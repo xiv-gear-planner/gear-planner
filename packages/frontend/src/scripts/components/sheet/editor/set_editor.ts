@@ -11,6 +11,7 @@ import {writeProxy} from "@xivgear/util/proxies";
 import {isPopout} from "../../../popout";
 import {DisplayGearSlotKey, GearItem} from "@xivgear/xivmath/geartypes";
 import {GearPlanSheetGui} from "../sheet_gui";
+import {showCompatOverview} from "../compat_checker";
 
 /**
  * The set editor portion. Includes the tab as well as controls for the set name and such.
@@ -66,7 +67,7 @@ export class GearSetEditor extends HTMLElement {
         this.formatTitleDesc();
 
         const compatCheckerButton = makeActionButton('Compatibility', () => {
-            this.sheet.showCompatOverview(this.gearSet);
+            showCompatOverview(this.sheet, this.gearSet);
         });
 
         this.issuesButtonContent = el('span');

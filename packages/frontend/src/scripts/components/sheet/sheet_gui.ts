@@ -1936,10 +1936,6 @@ export class GearPlanSheetGui extends GearPlanSheet {
         super.activeSpecialStat = value;
         this.resetEditorArea();
     }
-
-    showCompatOverview(set: CharacterGearSet): void {
-        showCompatOverview(this, set);
-    }
 }
 
 function formatSyncInfo(si: SyncInfo, level: SupportedLevel): string | null {
