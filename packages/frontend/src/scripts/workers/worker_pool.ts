@@ -289,23 +289,13 @@ export class WorkerPool {
         };
     }
 
-    // Webpack sees this and it causes it to generate a separate js file for the worker.
-    // import.meta.url doesn't actually work for this - we need to use document.location as shown in the ctor.
-    // noinspection JSUnusedLocalSymbols
-    private makeUselessWorker() {
-        new Worker(new URL(
-            // @ts-expect-error idk
-            './worker_main.ts', import.meta.url)
-        );
-    }
-
     workerId = 0;
 
     private makeActualWorker(): SheetWorker {
         const name = 'worker-' + this.workerId++;
         console.log(`Creating worker ${name}`);
         const worker = new Worker(
-            new URL('src_scripts_workers_worker_main_ts.js',
+            new URL('worker_main.js',
                 document.location.toString()),
             {
                 name: name,

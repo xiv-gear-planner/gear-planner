@@ -6,16 +6,18 @@ const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin");
 module.exports = (env, argv) => {
     const prod = argv.mode === 'production';
     return {
-        entry: [path.resolve(__dirname, "./src/scripts/main.ts"),
-                // path.resolve(__dirname, "./src/scripts/workers/worker_main.ts"),
-        ],
+        entry: {
+            main: path.resolve(__dirname, "./src/scripts/main.ts"),
+        },
         output: {
             path: path.resolve(__dirname + "/dist"),
-            clean: false
+            clean: false,
+            filename: prod ? '[name].[contenthash].js' : '[name].js',
         },
         optimization: {
             minimize: prod,
             chunkIds: 'named',
+            splitChunks: false,
         },
         // devtool: prod ? 'nosources-source-map' : 'source-map',
         devtool: 'source-map',
@@ -37,7 +39,8 @@ module.exports = (env, argv) => {
             new HtmlWebpackPlugin({
                 template: path.resolve(__dirname, "src/index.html"),
                 filename: "index.html",
-                inject: false
+                inject: 'head',
+                scriptLoading: 'module'
             }),
             new NodePolyfillPlugin(),
             new BeastiesWebpackPlugin({
