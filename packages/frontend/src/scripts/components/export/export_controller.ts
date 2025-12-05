@@ -453,7 +453,7 @@ class SheetExportModal extends ExportModal<GearPlanSheet> {
         if (this.sheet instanceof GearPlanSheetGui) {
             selectedIndex = this.sheet.gearPlanTable.selectedIndex ?? undefined;
         }
-        const url = makeUrl(new NavState([VIEW_SHEET_HASH, JSON.stringify(exported)], undefined, selectedIndex))
+        const url = makeUrl(new NavState([VIEW_SHEET_HASH, JSON.stringify(exported)], undefined, selectedIndex));
         // const url = makeUrlSimple(VIEW_SET_HASH, JSON.stringify(exported));
         console.log("Preview url", url);
         return url.toString();

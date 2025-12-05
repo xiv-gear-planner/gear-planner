@@ -265,7 +265,7 @@ class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOrHeaderS
     }
 
     get selectedIndex(): number | null {
-        const sel = this.selectionModel.getSelection()
+        const sel = this.selectionModel.getSelection();
         if (sel instanceof CustomRow && sel.dataItem instanceof CharacterGearSet) {
             const index = this.sheet.sets.indexOf(sel.dataItem);
             if (index >= 0) {
