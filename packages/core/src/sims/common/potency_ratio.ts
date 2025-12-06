@@ -2,7 +2,6 @@ import {CharacterGearSet} from "@xivgear/core/gear";
 import {applyDhCrit, baseDamage} from "@xivgear/xivmath/xivmath";
 import {SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
 import {EmptyObject} from "@xivgear/util/util_types";
-import {potRatioImpl} from "./potency_ratio_impl";
 
 export const potRatioSimSpec: SimSpec<PotencyRatioSim, SimSettings> = {
     displayName: "Potency Ratio",
@@ -36,13 +35,12 @@ export class PotencyRatioSim implements Simulation<PotencyRatioSimResults, SimSe
     displayName = "Dmg/100p*";
 
     async simulate(set: CharacterGearSet): Promise<PotencyRatioSimResults> {
-        return potRatioImpl(set);
-        // const base = baseDamage(set.computedStats, 100, 'Spell');
-        // const final = applyDhCrit(base, set.computedStats);
-        // return {
-        //     mainDpsResult: final,
-        //     withoutCritDh: base,
-        // };
+        const base = baseDamage(set.computedStats, 100, 'Spell');
+        const final = applyDhCrit(base, set.computedStats);
+        return {
+            mainDpsResult: final,
+            withoutCritDh: base,
+        };
     };
 
     async simulateSimple(set: CharacterGearSet): Promise<number> {
