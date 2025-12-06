@@ -35,7 +35,6 @@ import process from "process";
 import {extractSingleSet} from "@xivgear/core/util/sheet_utils";
 import {getJobIcons} from "./preload_helpers";
 import FastifyIP from 'fastify-ip';
-import {AnyStringIndex} from "@xivgear/util/util_types";
 
 let initDone = false;
 
