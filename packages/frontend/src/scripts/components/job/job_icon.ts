@@ -72,6 +72,7 @@ export class JobIcon extends HTMLImageElement {
         };
 
         if (iconId !== null) {
+            // setXivApiIcon(this, iconId, [32, 32], [32, 32]);
             this.src = xivApiIconUrl(iconId, true);
         }
         if (className !== null) {

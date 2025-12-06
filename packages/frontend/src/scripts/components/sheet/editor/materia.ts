@@ -196,7 +196,10 @@ export class SlotMateriaManager extends HTMLElement {
         let title: string;
         const editable = this.editable;
         if (currentMat) {
-            this.image.src = currentMat.iconUrl.toString();
+            const hr = currentMat.iconUrl.toString();
+            const lr = hr.replaceAll("_hr1", "");
+            this.image.src = lr;
+            this.image.srcset = `${lr} 1.3x, ${hr} 2x`;
             this.image.style.display = 'block';
             const displayedNumber = Math.max(0, currentMat.primaryStatValue - this._overcap);
             this.text.textContent = `${displayedNumber} ${STAT_ABBREVIATIONS[currentMat.primaryStat]}`;
@@ -209,6 +212,7 @@ export class SlotMateriaManager extends HTMLElement {
         }
         else {
             this.image.style.display = 'none';
+            this.image.src = '';
             this.text.textContent = 'Empty';
             this.classList.remove('materia-normal', 'materia-overcap', 'materia-overcap-major', 'materia-slot-full');
             // this.classList.remove('materia-slot-full', 'materia-normal', 'materia-overcap', 'materia-overcap-major')
@@ -260,17 +264,17 @@ export class SingleMateriaViewOnly extends HTMLElement {
     constructor(materia: Materia) {
         super();
         this.classList.add("single-materia-view-only");
-        const imageHolder = document.createElement("div");
-        imageHolder.classList.add("materia-image-holder");
+        const imageHolder = el("div", {class:"materia-image-holder"});
         this.image = document.createElement("img");
-        this.text = document.createElement("span");
+        this.text = el("span", {}, [materiaShortLabel(materia)]);
         imageHolder.appendChild(this.image);
         this.appendChild(imageHolder);
         this.appendChild(this.text);
-        const currentMat = materia;
-        this.image.src = currentMat.iconUrl.toString();
+        const hr = materia.iconUrl.toString();
+        const lr = hr.replaceAll("_hr1", "");
+        this.image.src = lr;
+        this.image.srcset = `${lr} 1.3x, ${hr} 2x`;
         this.image.style.display = 'block';
-        this.text.textContent = materiaShortLabel(materia);
         this.classList.remove("materia-slot-empty");
         this.classList.add("materia-slot-full");
     }

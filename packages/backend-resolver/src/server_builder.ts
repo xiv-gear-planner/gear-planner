@@ -216,8 +216,9 @@ function resolveNavData(nav: NavPath | null): NavResult | null {
             // TODO: combine these into one call
             return fillSheetData(getShortlinkFetchUrl(nav.uuid), getShortLink(nav.uuid).then(JSON.parse), nav.onlySetIndex);
         case "setjson":
-        case "sheetjson":
             return fillSheetData(null, Promise.resolve(nav.jsonBlob as TopLevelExport), undefined);
+        case "sheetjson":
+            return fillSheetData(null, Promise.resolve(nav.jsonBlob as TopLevelExport), nav.onlySetIndex);
         case "bis":
             return fillSheetData(getBisSheetFetchUrl(nav.path), getBisSheet(nav.path).then(JSON.parse), nav.onlySetIndex);
         case "bisbrowser":
@@ -497,9 +498,10 @@ export function buildPreviewServer() {
                             addExtraScript(scriptUrl, {'async': ''});
                         }
                     });
+
                     doc.documentElement.setAttribute('scripts-injected', 'true');
                 }
-                return new Response(doc.documentElement.outerHTML, {
+                return new Response('<!DOCTYPE html>\n' + doc.documentElement.outerHTML, {
                     status: 200,
                     headers: {
                         'content-type': 'text/html',

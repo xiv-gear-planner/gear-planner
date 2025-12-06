@@ -81,7 +81,6 @@ import {
     makeNewSheetIcon,
     makeTrashIcon
 } from "@xivgear/common-ui/components/icons";
-import {showCompatOverview} from "./compat_checker";
 import {AddSimDialog} from "../sim/add_sim_dialog";
 import {ImportSetsModal} from "../import/import_sets_modal";
 import {recordSheetEvent} from "../../analytics/analytics";
@@ -264,6 +263,17 @@ class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOrHeaderS
             });
 
         }
+    }
+
+    get selectedIndex(): number | null {
+        const sel = this.selectionModel.getSelection();
+        if (sel instanceof CustomRow && sel.dataItem instanceof CharacterGearSet) {
+            const index = this.sheet.sets.indexOf(sel.dataItem);
+            if (index >= 0) {
+                return index;
+            }
+        }
+        return null;
     }
 
     dataChanged() {
@@ -1944,10 +1954,6 @@ export class GearPlanSheetGui extends GearPlanSheet {
     set activeSpecialStat(value: SpecialStatType | null) {
         super.activeSpecialStat = value;
         this.resetEditorArea();
-    }
-
-    showCompatOverview(set: CharacterGearSet): void {
-        showCompatOverview(this, set);
     }
 }
 
