@@ -295,8 +295,7 @@ export class WorkerPool {
         const name = 'worker-' + this.workerId++;
         console.log(`Creating worker ${name}`);
         const worker = new Worker(
-            new URL('worker_main.js',
-                document.location.toString()),
+            /* webpackChunkName: "worker_main" */'./worker_main.js',
             {
                 name: name,
             });

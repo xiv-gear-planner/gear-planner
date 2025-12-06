@@ -464,12 +464,12 @@ export function buildPreviewServer() {
                     addPreload(url, 'image');
                 }
 
-                function addDnsPreload(url: string) {
-                    const preload = doc.createElement('link');
-                    preload.rel = 'dns-prefetch';
-                    preload.href = url;
-                    head.append(preload);
-                }
+                // function addDnsPreload(url: string) {
+                //     const preload = doc.createElement('link');
+                //     preload.rel = 'dns-prefetch';
+                //     preload.href = url;
+                //     head.append(preload);
+                // }
 
                 // Inject preload properties based on job
                 // The rest are part of the static html
@@ -480,7 +480,7 @@ export function buildPreviewServer() {
                 navResult.fetchPreloads.forEach(preload => addFetchPreload(preload.toString()));
                 // TODO: image preloads need to account for hr vs non-hr images
                 (await navResult.imagePreloads).forEach(preload => addImagePreload(preload.toString()));
-                addDnsPreload('https://v2.xivapi.com/');
+                // addDnsPreload('https://v2.xivapi.com/');
                 if (extraScripts) {
                     function addExtraScript(url: string, extraProps: object = {}) {
                         const script = doc.createElement('script');

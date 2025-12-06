@@ -11,7 +11,7 @@ export class AsyncSimLoader {
     async load(): Promise<void> {
         if (this.aload === null) {
             this.aload = Promise.all([
-                import(/* webpackChunkName: "sims", webpackPrefetch: false, webpackPreload: true */ '@xivgear/gearplan-frontend/sims/registration/default_sim_guis').then(mod => {
+                import(/* webpackChunkName: "sims", webpackPreload: true */ '@xivgear/gearplan-frontend/sims/registration/default_sim_guis').then(mod => {
                     mod.registerSims();
                     mod.registerDefaultSimGuis();
                 }),
