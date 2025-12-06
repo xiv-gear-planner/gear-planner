@@ -22,14 +22,6 @@ function nextJobId(): number {
     return currJobId++;
 }
 
-class ModifiedURL extends URL {
-
-    constructor(url: string | URL, base: string | URL) {
-        super(url, document.location.href);
-    }
-
-}
-
 function makeWorkRequest<T extends AnyJobContext>(request: RequestTypeOf<T>, updateCallback?: JobUpdateCallback<T>): {
     promise: Promise<ResponseTypeOf<T>>,
     jobId: number,
