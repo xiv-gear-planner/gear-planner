@@ -520,16 +520,16 @@ export function buildPreviewServer() {
         const headers: HeadersInit = {
             'content-type': response.headers.get('content-type') || 'text/html',
         };
-
-        // Check if the URL looks like a hashed webpack JS chunk (e.g., script_name.a1b2c3d4.js)
-        const hashedChunkPattern = /\.[a-f0-9]{2,}\.js$/i;
-        const isHashedChunk = hashedChunkPattern.test(request.url);
-        if (isHashedChunk) {
-            headers['cache-control'] = 'public, max-age=31536000, immutable';
-        }
-        // else if (response.headers.get('cache-control')) {
-        //     headers['cache-control'] = response.headers.get('cache-control') || '';
+        //
+        // // Check if the URL looks like a hashed webpack JS chunk (e.g., script_name.a1b2c3d4.js)
+        // const hashedChunkPattern = /\.[a-f0-9]{2,}\.js$/i;
+        // const isHashedChunk = hashedChunkPattern.test(request.url);
+        // if (isHashedChunk) {
+        //     headers['cache-control'] = 'public, max-age=31536000, immutable';
         // }
+        // // else if (response.headers.get('cache-control')) {
+        // //     headers['cache-control'] = response.headers.get('cache-control') || '';
+        // // }
 
         return new Response((await responsePromise).body, {
             status: 200,

@@ -21,7 +21,7 @@ module.exports = (env, argv) => {
             splitChunks: false,
         },
         // devtool: prod ? 'nosources-source-map' : 'source-map',
-        // devtool: 'source-map',
+        devtool: 'source-map',
         module: {
             rules: [
                 {
