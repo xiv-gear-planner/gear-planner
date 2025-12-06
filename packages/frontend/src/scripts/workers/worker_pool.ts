@@ -305,6 +305,9 @@ export class WorkerPool {
         // import.meta.url = document.location.toString();
         // const URL = ModifiedURL;
         console.log(`Creating worker ${name}`);
+        /* @ts-expect-error idk */
+        const theObj = import.meta;
+        theObj['url'] = document.location.toString();
         /* @ts-expect-error not a module */
         const workerScript = /* webpackChunkName: "worker_main" */ new URL('./worker_main', import.meta.url);
         /* @ts-expect-error not a module */
