@@ -35,6 +35,7 @@ import process from "process";
 import {extractSingleSet} from "@xivgear/core/util/sheet_utils";
 import {getJobIcons} from "./preload_helpers";
 import FastifyIP from 'fastify-ip';
+import {AnyStringIndex} from "@xivgear/util/util_types";
 
 let initDone = false;
 
@@ -516,14 +517,23 @@ export function buildPreviewServer() {
         }
         // If error or no additional data needed, then just pass through the response as-is
         const response = await responsePromise;
+        const headers: HeadersInit = {
+            'content-type': response.headers.get('content-type') || 'text/html',
+        };
+
+        // Check if the URL looks like a hashed webpack JS chunk (e.g., script_name.a1b2c3d4.js)
+        const hashedChunkPattern = /\.[a-f0-9]{2,}\.js$/i;
+        const isHashedChunk = hashedChunkPattern.test(request.url);
+        if (isHashedChunk) {
+            headers['cache-control'] = 'public, max-age=31536000, immutable';
+        }
+        // else if (response.headers.get('cache-control')) {
+        //     headers['cache-control'] = response.headers.get('cache-control') || '';
+        // }
+
         return new Response((await responsePromise).body, {
             status: 200,
-            headers: {
-                'content-type': response.headers.get('content-type') || 'text/html',
-                // TODO: should these have caching?
-                // // use a shorter cache duration for these
-                // 'cache-control': response.headers.get('cache-control') || 'max-age=120, public'
-            },
+            headers: headers,
         });
     });
 
