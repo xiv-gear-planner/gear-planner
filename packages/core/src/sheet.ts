@@ -36,7 +36,8 @@ import {
     MateriaAutoFillController,
     MateriaAutoFillPrio,
     MateriaFillMode,
-    MeldableMateriaSlot, NormalOccGearSlotKey,
+    MeldableMateriaSlot,
+    NormalOccGearSlotKey,
     OccGearSlotKey,
     PartyBonusAmount,
     RawStatKey,
@@ -426,7 +427,7 @@ export class GearPlanSheet {
         for (const importedSet of saved.sets) {
             this.addGearSet(this.importGearSet(importedSet));
         }
-        if (saved.sims) {
+        if (saved.sims && !this.isEmbed) {
             for (const simport of saved.sims) {
                 const simSpec = getSimSpecByStub(simport.stub);
                 if (simSpec === undefined) {

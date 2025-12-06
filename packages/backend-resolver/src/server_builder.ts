@@ -464,6 +464,13 @@ export function buildPreviewServer() {
                     addPreload(url, 'image');
                 }
 
+                // function addDnsPreload(url: string) {
+                //     const preload = doc.createElement('link');
+                //     preload.rel = 'dns-prefetch';
+                //     preload.href = url;
+                //     head.append(preload);
+                // }
+
                 // Inject preload properties based on job
                 // The rest are part of the static html
                 const job = await navResult.job;
@@ -471,7 +478,9 @@ export function buildPreviewServer() {
                     addFetchPreload(`https://data.xivgear.app/Items?job=${job}`);
                 }
                 navResult.fetchPreloads.forEach(preload => addFetchPreload(preload.toString()));
+                // TODO: image preloads need to account for hr vs non-hr images
                 (await navResult.imagePreloads).forEach(preload => addImagePreload(preload.toString()));
+                // addDnsPreload('https://v2.xivapi.com/');
                 if (extraScripts) {
                     function addExtraScript(url: string, extraProps: object = {}) {
                         const script = doc.createElement('script');
@@ -507,14 +516,23 @@ export function buildPreviewServer() {
         }
         // If error or no additional data needed, then just pass through the response as-is
         const response = await responsePromise;
+        const headers: HeadersInit = {
+            'content-type': response.headers.get('content-type') || 'text/html',
+        };
+        //
+        // // Check if the URL looks like a hashed webpack JS chunk (e.g., script_name.a1b2c3d4.js)
+        // const hashedChunkPattern = /\.[a-f0-9]{2,}\.js$/i;
+        // const isHashedChunk = hashedChunkPattern.test(request.url);
+        // if (isHashedChunk) {
+        //     headers['cache-control'] = 'public, max-age=31536000, immutable';
+        // }
+        // // else if (response.headers.get('cache-control')) {
+        // //     headers['cache-control'] = response.headers.get('cache-control') || '';
+        // // }
+
         return new Response((await responsePromise).body, {
             status: 200,
-            headers: {
-                'content-type': response.headers.get('content-type') || 'text/html',
-                // TODO: should these have caching?
-                // // use a shorter cache duration for these
-                // 'cache-control': response.headers.get('cache-control') || 'max-age=120, public'
-            },
+            headers: headers,
         });
     });
 
