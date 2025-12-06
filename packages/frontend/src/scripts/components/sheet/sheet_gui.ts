@@ -81,7 +81,6 @@ import {
     makeNewSheetIcon,
     makeTrashIcon
 } from "@xivgear/common-ui/components/icons";
-import {showCompatOverview} from "./compat_checker";
 import {AddSimDialog} from "../sim/add_sim_dialog";
 import {ImportSetsModal} from "../import/import_sets_modal";
 import {recordSheetEvent} from "../../analytics/analytics";
