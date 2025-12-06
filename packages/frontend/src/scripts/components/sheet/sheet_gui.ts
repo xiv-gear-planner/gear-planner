@@ -61,7 +61,7 @@ import {DropdownActionMenu} from "../general/dropdown_actions_menu";
 import {CustomFoodPopup, CustomItemPopup} from "./custom_item_manager";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import {SimulationGui} from "../../sims/simulation_gui";
-import {makeGui} from "../../sims/sim_guis";
+import {makeGui} from "../../sims/registration/sim_guis";
 import {MeldSolverDialog} from "./editor/meld_solver_modal";
 import {insertAds} from "../general/ads";
 import {SETTINGS} from "@xivgear/common-ui/settings/persistent_settings";
@@ -87,6 +87,8 @@ import {recordSheetEvent} from "../../analytics/analytics";
 import {GearSetViewer} from "./editor/set_viewer";
 import {stringToParagraphs, textWithToolTip} from "../../util/text_utils";
 import {GearSetEditor} from "./editor/set_editor";
+import {DataManager} from "@xivgear/core/datamanager";
+import {ASYNC_SIM_LOADER} from "../../sims/asyncloader/async_loader";
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 
@@ -1500,8 +1502,17 @@ export class GearPlanSheetGui extends GearPlanSheet {
     }
 
     async load() {
+        // Kick off sim loading if it hasn't already
+        ASYNC_SIM_LOADER.load();
         await super.load();
         this.setupRealGui();
+    }
+
+    async loadFromDataManager(dataManager: DataManager): Promise<void> {
+        if (!this.isEmbed) {
+            await ASYNC_SIM_LOADER.load();
+        }
+        return super.loadFromDataManager(dataManager);
     }
 
     /**

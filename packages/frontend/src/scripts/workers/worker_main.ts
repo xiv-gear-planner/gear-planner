@@ -1,5 +1,4 @@
 import {HEADLESS_SHEET_PROVIDER} from "@xivgear/core/sheet";
-import {registerDefaultSims} from "@xivgear/core/sims/default_sims";
 import {GearsetGenerationWorker} from "./meld_generation_worker";
 import {SolverSimulationRunner} from "./simulation_worker";
 import {DataManager, makeDataManager} from "@xivgear/core/datamanager";
@@ -9,8 +8,10 @@ import {
     AnyJobContext,
     AnyWorkRequest,
     MainToWorkerMessage,
-    WorkerToMainMessage, WorkResponseDone
+    WorkerToMainMessage,
+    WorkResponseDone
 } from "@xivgear/core/workers/worker_types";
+import {registerDefaultSims} from "@xivgear/core/sims/default_sims";
 
 const originalConsoleValues: Partial<typeof console> = {
     log: console.log,
@@ -20,10 +21,14 @@ const originalConsoleValues: Partial<typeof console> = {
 } as const;
 
 const silencedConsoleValues: typeof originalConsoleValues = {
-    log: () => {},
-    info: () => {},
-    trace: () => {},
-    debug: () => {},
+    log: () => {
+    },
+    info: () => {
+    },
+    trace: () => {
+    },
+    debug: () => {
+    },
 } as const;
 
 function blockConsoleSpam() {

@@ -1,17 +1,19 @@
 import {processHashLegacy, processNav} from "./nav_hash";
 import {earlyUiSetup, initialLoad, initTopMenu} from "./base_ui";
-import {registerDefaultSims} from "@xivgear/core/sims/default_sims";
 import {installFallbackPrivacyArea} from "./components/general/ads";
 import {installDoubleClickHandler} from "@xivgear/common-ui/util/stop_double_click";
 import {ACCOUNT_STATE_TRACKER} from "./account/account_state";
 import {setupAccountUi} from "./account/components/account_components";
 import {setupUserDataSync} from "./account/user_data";
 import {startSizeAnalytics} from "./analytics/analytics_helpers";
+import {ASYNC_SIM_LOADER} from "./sims/asyncloader/async_loader";
+import '@ungap/custom-elements';
 
 // Main entry point for actual browsers
 document.addEventListener("DOMContentLoaded", () => {
     // Sim configuration
-    registerDefaultSims();
+    // Just kick off the async loading
+    ASYNC_SIM_LOADER.load();
 
     // Early UI stuff
     earlyUiSetup();
