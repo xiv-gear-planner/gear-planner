@@ -16,7 +16,7 @@ module.exports = (env, argv) => {
             publicPath: './',
         },
         optimization: {
-            minimize: true,
+            minimize: prod,
             chunkIds: 'named',
             splitChunks: false,
         },
