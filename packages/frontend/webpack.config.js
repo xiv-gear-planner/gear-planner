@@ -13,14 +13,15 @@ module.exports = (env, argv) => {
             path: path.resolve(__dirname + "/dist"),
             clean: false,
             filename: prod ? '[name].[contenthash].js' : '[name].js',
+            publicPath: './',
         },
         optimization: {
-            minimize: prod,
+            minimize: false,
             chunkIds: 'named',
             splitChunks: false,
         },
         // devtool: prod ? 'nosources-source-map' : 'source-map',
-        devtool: 'source-map',
+        // devtool: 'source-map',
         module: {
             rules: [
                 {
