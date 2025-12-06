@@ -1502,6 +1502,8 @@ export class GearPlanSheetGui extends GearPlanSheet {
     }
 
     async load() {
+        // Kick off sim loading if it hasn't already
+        ASYNC_SIM_LOADER.load();
         await super.load();
         this.setupRealGui();
     }

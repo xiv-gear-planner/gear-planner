@@ -295,7 +295,9 @@ export class WorkerPool {
         const name = 'worker-' + this.workerId++;
         console.log(`Creating worker ${name}`);
         const worker = new Worker(
-            /* webpackChunkName: "worker_main" */'./worker_main.js',
+            /* webpackChunkName: "worker_main" */
+            // @ts-expect-error not a module
+            new URL('./worker_main', import.meta.url),
             {
                 name: name,
             });
