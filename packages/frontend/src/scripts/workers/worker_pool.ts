@@ -22,6 +22,14 @@ function nextJobId(): number {
     return currJobId++;
 }
 
+class ModifiedURL extends URL {
+
+    constructor(url: string | URL, base: string | URL) {
+        super(url, document.location.href);
+    }
+
+}
+
 function makeWorkRequest<T extends AnyJobContext>(request: RequestTypeOf<T>, updateCallback?: JobUpdateCallback<T>): {
     promise: Promise<ResponseTypeOf<T>>,
     jobId: number,
@@ -293,17 +301,23 @@ export class WorkerPool {
 
     private makeActualWorker(): SheetWorker {
         const name = 'worker-' + this.workerId++;
+        // /* @ts-expect-error not a module */
+        // import.meta.url = document.location.toString();
+        // const URL = ModifiedURL;
         console.log(`Creating worker ${name}`);
-        /* @ts-expect-error not a module */
-        const workerScript = /* webpackChunkName: "worker_main" */ new URL('@xivgear/gearplan-frontend/workers/worker_main', import.meta.url);
-        /* @ts-expect-error not a module */
-        console.log("Resolved worker script URL", workerScript, import.meta.url);
+        // /* @ts-expect-error not a module */
+        // const workerScript = /* webpackChunkName: "worker_main" */ new URL('./worker_main', import.meta.url);
+        // /* @ts-expect-error not a module */
+        // console.log("Resolved worker script URL", workerScript.toString(), import.meta.url);
+        // foo = /* webpackChunkName: "worker_main" */ new URL('@xivgear/gearplan-frontend/workers/worker_main', import.meta.url),
+        // let foo: string | null = null;
         const worker = new Worker(
             /* @ts-expect-error not a module */
-            /* webpackChunkName: "worker_main" */ new URL('@xivgear/gearplan-frontend/workers/worker_main', import.meta.url),
+            /* webpackChunkName: "worker_main" */ new URL('./worker_main', import.meta.url),
             {
                 name: name,
             });
+        // console.log("worker URL:", foo.toString());
         return new SheetWorker(worker, name, () => this.stateUpdate());
     }
 
