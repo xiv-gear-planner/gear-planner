@@ -22,10 +22,10 @@ import {
     NavState,
     ONLY_SET_QUERY_PARAM,
     parsePath,
-    PATH_SEPARATOR,
     PREVIEW_MAX_DESC_LENGTH,
     PREVIEW_MAX_NAME_LENGTH,
     SELECTION_INDEX_QUERY_PARAM,
+    splitPath,
     tryParseOptionalIntParam
 } from "@xivgear/core/nav/common_nav";
 import {nonCachedFetch} from "./polyfills";
@@ -242,7 +242,7 @@ export function buildStatsServer() {
         const path = request.query?.[HASH_QUERY_PARAM] ?? '';
         const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
         const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
-        const pathPaths = path.split(PATH_SEPARATOR);
+        const pathPaths = splitPath(path);
         const state = new NavState(pathPaths, osIndex, selIndex);
         const nav = parsePath(state);
         request.log.info(pathPaths, 'Path');
@@ -280,7 +280,7 @@ export function buildStatsServer() {
         const path = request.query?.[HASH_QUERY_PARAM] ?? '';
         const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
         const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
-        const pathPaths = path.split(PATH_SEPARATOR);
+        const pathPaths = splitPath(path);
         const state = new NavState(pathPaths, osIndex, selIndex);
         const nav = parsePath(state);
         request.log.info(pathPaths, 'Path');
@@ -298,7 +298,7 @@ export function buildStatsServer() {
         const path = request.query?.[HASH_QUERY_PARAM] ?? '';
         const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
         const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
-        const pathPaths = path.split(PATH_SEPARATOR);
+        const pathPaths = splitPath(path);
         const state = new NavState(pathPaths, osIndex, selIndex);
         const nav = parsePath(state);
         request.log.info(pathPaths, 'Path');
@@ -405,7 +405,7 @@ export function buildPreviewServer() {
             const path = request.query[HASH_QUERY_PARAM] ?? '';
             const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
             const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
-            const pathPaths = path.split(PATH_SEPARATOR);
+            const pathPaths = splitPath(path);
             const state = new NavState(pathPaths, osIndex, selIndex);
             const nav = parsePath(state);
             request.log.info(pathPaths, 'Path');
