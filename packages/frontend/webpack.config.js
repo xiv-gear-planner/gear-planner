@@ -12,7 +12,8 @@ module.exports = (env, argv) => {
         output: {
             path: path.resolve(__dirname + "/dist"),
             clean: false,
-            filename: prod ? '[name].[contenthash].js' : '[name].js',
+            filename: '[name].js',
+            // filename: prod ? '[name].[contenthash].js' : '[name].js',
         },
         optimization: {
             minimize: prod,
