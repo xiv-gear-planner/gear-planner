@@ -293,19 +293,7 @@ export class WorkerPool {
 
     private makeActualWorker(): SheetWorker {
         const name = 'worker-' + this.workerId++;
-        // /* @ts-expect-error not a module */
-        // import.meta.url = document.location.toString();
-        // const URL = ModifiedURL;
         console.log(`Creating worker ${name}`);
-        /* @ts-expect-error idk */
-        const theObj = import.meta;
-        theObj['url'] = document.location.toString();
-        /* @ts-expect-error not a module */
-        const workerScript = /* webpackChunkName: "worker_main" */ new URL('./worker_main', import.meta.url);
-        /* @ts-expect-error not a module */
-        console.log("Resolved worker script URL", workerScript.toString(), import.meta.url);
-        // foo = /* webpackChunkName: "worker_main" */ new URL('@xivgear/gearplan-frontend/workers/worker_main', import.meta.url),
-        // let foo: string | null = null;
         const worker = new Worker(
             /* @ts-expect-error not a module */
             /* webpackChunkName: "worker_main" */ new URL('./worker_main', import.meta.url),
