@@ -7,15 +7,21 @@ module.exports = (env, argv) => {
     const prod = argv.mode === 'production';
     return {
         entry: {
+            // It is not necessary to declare the webworker as an entry point, since we are using the syntax that
+            // webpack automatically recognizes and turns into a chunk.
             main: path.resolve(__dirname, "./src/scripts/main.ts"),
         },
         output: {
             path: path.resolve(__dirname + "/dist"),
             clean: false,
             filename: prod ? '[name].[contenthash].js' : '[name].js',
+            // Normally, webpack tries to guess the public URL of the output files, but the way it does so will break
+            // if you have 3rd party scripts (cloudflare beacon, etc) on the page. This tells it that the scripts are
+            // always in the same directory as the HTML document.
             publicPath: './',
         },
         optimization: {
+            // Minimize for the 'npm run buildprod' mode but not the normal 'npm run build'.
             minimize: prod,
             chunkIds: 'named',
             splitChunks: false,

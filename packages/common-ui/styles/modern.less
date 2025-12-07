@@ -192,9 +192,29 @@ body.modern {
     background-color: var(--bg-color);
   }
 
+  // Estimated top nav size including shadow and borders, because we can't directly transition on a computed value.
+  --top-nav-size: 40px;
+  --transition-props: 0.1s linear;
+
+  &.top-menu-hidden {
+    div#main-menu-area {
+      display: initial;
+      max-height: 0;
+      margin-bottom: 0;
+      div#main-menu-area-inner {
+        bottom: var(--top-nav-size);
+      }
+    }
+  }
+
   div#main-menu-area {
     background: none;
     box-shadow: none;
+
+    transition: max-height var(--transition-props);
+
+    max-height: var(--top-nav-size);
+
 
     div#main-menu-area-inner {
 
@@ -210,6 +230,10 @@ body.modern {
       border-bottom-right-radius: var(--mmai-border-radius);
       padding-left: var(--mmai-border-radius);
       padding-right: var(--mmai-border-radius);
+      position: relative;
+      transition: bottom var(--transition-props);
+      bottom: 0;
+
 
       @media (width < 650px) {
         a span {

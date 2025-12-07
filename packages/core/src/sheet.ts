@@ -427,6 +427,7 @@ export class GearPlanSheet {
         for (const importedSet of saved.sets) {
             this.addGearSet(this.importGearSet(importedSet));
         }
+        // If this is an embed, we don't care about sims.
         if (saved.sims && !this.isEmbed) {
             for (const simport of saved.sims) {
                 const simSpec = getSimSpecByStub(simport.stub);
