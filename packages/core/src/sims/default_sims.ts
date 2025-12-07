@@ -1,4 +1,3 @@
-/* webpackChunkName: "default-sims" */
 import {BluBreath60Spec} from "./blu/blu_breath60";
 import {BluFlame120Spec} from "./blu/blu_flame120";
 import {BluFlame60Spec} from "./blu/blu_flame60";
