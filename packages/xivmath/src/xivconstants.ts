@@ -37,6 +37,19 @@ export const NORMAL_GCD = 2.5;
  */
 export const MAX_GCD = NORMAL_GCD;
 
+// These should match the data API
+/**
+ * Min ilvl of gear items we care about.
+ *
+ * Should match the value declared in the data API, since items will effectively be filtered to that value anyway.
+ */
+export const MIN_ILVL_ITEMS = 290;
+/**
+ * Min ilvl of food items we care about.
+ *
+ * Should match the value declared in the data API, since items will effectively be filtered to that value anyway.
+ */
+export const MIN_ILVL_FOOD = 430;
 /**
  * Highest ilvl for the foreseeable future
  */

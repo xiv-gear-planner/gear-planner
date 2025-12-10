@@ -14,6 +14,7 @@ import {GearPlanSheetGui} from "../sheet_gui";
 import {recordSheetEvent} from "../../../analytics/analytics";
 import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {redoIcon, undoIcon} from "@xivgear/common-ui/components/icons";
+import {MIN_ILVL_FOOD, MIN_ILVL_ITEMS} from "@xivgear/xivmath/xivconstants";
 
 function makeGearFiltersArea(
     sheet: GearPlanSheetGui,
@@ -23,7 +24,7 @@ function makeGearFiltersArea(
     const filtersForm = document.createElement('form');
     filtersForm.style.display = 'contents';
     filtersForm.classList.add('ilvl-picker-area');
-    const itemIlvlRange = new ILvlRangePicker(itemDisplaySettings, 'minILvl', 'maxILvl', 'Gear:');
+    const itemIlvlRange = new ILvlRangePicker(itemDisplaySettings, 'minILvl', 'maxILvl', 'Gear:', MIN_ILVL_ITEMS);
     itemIlvlRange.addListener((min, max) => {
         recordSheetEvent('itemIlvlRange', sheet, {
             min: min,
@@ -32,7 +33,7 @@ function makeGearFiltersArea(
     });
     filtersForm.appendChild(itemIlvlRange);
 
-    const foodIlvlRange = new ILvlRangePicker(itemDisplaySettings, 'minILvlFood', 'maxILvlFood', 'Food:');
+    const foodIlvlRange = new ILvlRangePicker(itemDisplaySettings, 'minILvlFood', 'maxILvlFood', 'Food:', MIN_ILVL_FOOD);
     foodIlvlRange.addListener((min, max) => {
         recordSheetEvent('foodIlvlRange', sheet, {
             min: min,
