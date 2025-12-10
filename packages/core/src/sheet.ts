@@ -160,8 +160,6 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
         };
         const gearPlanSheet = this.construct(sheetKey, fakeExport, this.sheetManager);
         gearPlanSheet.addDefaultSims();
-        // TODO
-        // gearPlanSheet._selectFirstRowByDefault = true;
         return gearPlanSheet;
     }
 
