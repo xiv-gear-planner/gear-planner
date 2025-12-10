@@ -35,6 +35,7 @@ import {
     formatAcquisitionSource,
     MateriaSubstat,
     MateriaSubstats,
+    MAX_ILVL,
     STAT_ABBREVIATIONS
 } from "@xivgear/xivmath/xivconstants";
 import {
@@ -1146,13 +1147,25 @@ export class AltItemsModal extends BaseModal {
     }
 }
 
+/**
+ * Component for an ilvl range picker. Binds to an object with a minimum and maximum field.
+ */
 export class ILvlRangePicker<ObjType> extends HTMLElement {
     private _listeners: ((min: number, max: number) => void)[] = [];
     private readonly obj: ObjType;
     private readonly minField: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType];
     private readonly maxField: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType];
 
-    constructor(obj: ObjType, minField: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType], maxField: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType], label: string | undefined) {
+    /**
+     * Construct an ilvl picker.
+     *
+     * @param obj The object to bind to.
+     * @param minField The field representing the minimum ilvl.
+     * @param maxField The field representing the maximum ilvl.
+     * @param label The label for this field. undefined results in no label being created.
+     * @param minIlvl The absolute minimum ilvl to allow. Lower inputs are not allowed.
+     */
+    constructor(obj: ObjType, minField: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType], maxField: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType], label: string | undefined, minIlvl: number) {
         super();
         this.obj = obj;
         this.minField = minField;
@@ -1167,10 +1180,16 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
 
         const lowerBoundControl = new FieldBoundIntField(obj, minField);
         const upperBoundControl = new FieldBoundIntField(obj, maxField);
+        lowerBoundControl.title = `Minimum value must be between ${minIlvl} and the chosen maximum value`;
+        upperBoundControl.title = `Maximum value must be between the chosen minimum value and ${MAX_ILVL}`;
         const borderListener = function (min: number, max: number) {
             const invalid = min > max;
             lowerBoundControl.classList.toggle("invalid-numeric-input", invalid);
             upperBoundControl.classList.toggle("invalid-numeric-input", invalid);
+            if (min < minIlvl) {
+                lowerBoundControl.classList.add('invalid-numeric-input');
+                lowerBoundControl.title = `Must be at least ${minIlvl}`;
+            }
         };
         this._listeners.push(borderListener);
 
