@@ -73,7 +73,7 @@ const eDosis: GcdAbility = {
             dot: {
                 id: 2864,
                 duration: 30,
-                tickPotency: 80,
+                tickPotency: 85,
             },
             id: 24314,
         },
