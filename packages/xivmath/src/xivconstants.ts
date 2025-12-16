@@ -573,7 +573,7 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
 const defaultItemDispBase = {
     showNq: false,
     higherRelics: true,
-    minILvlFood: 740,
+    minILvlFood: 770,
     maxILvlFood: 999,
     showOneStatFood: false,
 } as const satisfies Partial<ItemDisplaySettings>;
@@ -642,7 +642,7 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
         defaultDisplaySettings: {
             ...defaultItemDispBase,
             // Raise this when more gear is available
-            minILvl: 740,
+            minILvl: 770,
             maxILvl: 999,
         },
     },
@@ -924,7 +924,7 @@ export function bluWdfromInt(gearIntStat: number): number {
 export const defaultItemDisplaySettings: ItemDisplaySettings = {
     minILvl: 680,
     maxILvl: 999,
-    minILvlFood: 740,
+    minILvlFood: 770,
     maxILvlFood: 999,
     higherRelics: true,
     showNq: false,
