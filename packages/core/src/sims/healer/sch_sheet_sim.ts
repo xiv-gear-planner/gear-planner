@@ -87,7 +87,7 @@ const bio: SchGcdAbility = {
         id: 16540,
         dot: {
             duration: 30,
-            tickPotency: 80,
+            tickPotency: 85,
             id: 3089,
         },
     },
