@@ -1,3 +1,4 @@
+import '@ungap/custom-elements';
 import {processHashLegacy, processNav} from "./nav_hash";
 import {earlyUiSetup, initialLoad, initTopMenu} from "./base_ui";
 import {installFallbackPrivacyArea} from "./components/general/ads";
@@ -7,7 +8,6 @@ import {setupAccountUi} from "./account/components/account_components";
 import {setupUserDataSync} from "./account/user_data";
 import {startSizeAnalytics} from "./analytics/analytics_helpers";
 import {ASYNC_SIM_LOADER} from "./sims/asyncloader/async_loader";
-import '@ungap/custom-elements';
 
 // Main entry point for actual browsers
 document.addEventListener("DOMContentLoaded", () => {
