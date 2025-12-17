@@ -63,7 +63,7 @@ const fountainFall: GcdAbility = {
 const saberDance: GcdAbility = {
     name: 'Saber Dance',
     type: 'gcd',
-    potency: 520,
+    potency: 540,
     attackType: 'Weaponskill',
     gcd: 2.50,
     id: 16005,
@@ -136,7 +136,7 @@ const fd3: OgcdAbility = {
 const fd4: OgcdAbility = {
     name: 'Fan Dance IV',
     type: 'ogcd',
-    potency: 420,
+    potency: 460,
     attackType: 'Ability',
     cooldown: {
         time: 1,
@@ -157,7 +157,7 @@ const finishingMove: GcdAbility = {
 const lastDance: GcdAbility = {
     name: 'Last Dance',
     type: 'gcd',
-    potency: 520,
+    potency: 540,
     attackType: 'Weaponskill',
     gcd: 2.50,
     // TODO: dt skill
