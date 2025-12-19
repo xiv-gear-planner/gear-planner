@@ -698,8 +698,9 @@ class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOrHeaderS
                 return;
             }
             for (const [cell, value] of processed) {
-                // Special case for MP Sim: we want to show all positive values as green relative
-                // to the highest.
+                // Special case for MP Sim: this isn't a normal sim and we want to show
+                // positive values as good and negative values as kinda bad relative to
+                // a 'good' or 'bad' number, instead of comparing them directly.
                 if (sim.sim.spec.stub === HEALER_MP_SIM_STUB_NAME) {
                     cell.classList.add('sim-column-valid');
                     if (value >= 0) {
