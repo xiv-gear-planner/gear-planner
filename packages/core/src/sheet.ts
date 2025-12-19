@@ -1136,10 +1136,22 @@ export class GearPlanSheet {
      */
     isStatPossibleOnGear(stat: RawStatKey | undefined): boolean {
         const role = this.classJobEarlyStats.role;
+        if (stat === 'vitality') {
+            return true;
+        }
         if (stat === 'dhit' && (role === 'Healer' || role === 'Tank')) {
             return false;
         }
         return this.isStatRelevant(stat);
+    }
+
+    /**
+     * Determine whether a stat should be shown by default on the custom item UI. Same as {@link #isStatPossibleOnGear}.
+     *
+     * @param stat The stat
+     */
+    isStatRelevantForCustomItems(stat: RawStatKey | undefined): boolean {
+        return this.isStatPossibleOnGear(stat);
     }
 
     /**

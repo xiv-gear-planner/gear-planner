@@ -193,13 +193,13 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                     },
                     initialWidth: 40,
                     colStyler: (_, cell) => {
-                        if (!this.sheet.isStatPossibleOnGear(stat)) {
+                        if (!this.sheet.isStatRelevantForCustomItems(stat)) {
                             cell.classList.add('irrelevant-stat');
                         }
                         cell.title = STAT_FULL_NAMES[stat];
                     },
                     headerStyler: (_, cell) => {
-                        if (!this.sheet.isStatPossibleOnGear(stat)) {
+                        if (!this.sheet.isStatRelevantForCustomItems(stat)) {
                             cell.classList.add('irrelevant-stat');
                         }
                         cell.title = STAT_FULL_NAMES[stat];
