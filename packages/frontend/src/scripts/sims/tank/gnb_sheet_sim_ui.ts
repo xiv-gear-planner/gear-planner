@@ -1,9 +1,7 @@
 import {
     el,
     FieldBoundCheckBox,
-    FieldBoundFloatOrUndefField,
     labeledCheckbox,
-    labelFor,
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
@@ -74,18 +72,9 @@ export class GnbSimGui extends BaseMultiCycleSimGui<GnbSimResult, GnbSettings> {
 
         const potCb = new FieldBoundCheckBox(settings, "usePotion");
 
-        const holdiness = new FieldBoundFloatOrUndefField(settings, 'holdiness', {id: 'holdiness'});
-        const holdLabel = labelFor('# GCDs to hold Gnashing for nearby No Mercy. Leave blank for default:', holdiness);
-        holdLabel.classList.add('non-expanding-block');
-
-        const pretendMicroclipsDontExistCB = new FieldBoundCheckBox(settings, "pretendThatMicroclipsDontExist");
-
         return el("div", {}, [
             labeledCheckbox("Use Potion", potCb),
-            labeledCheckbox("Assume that Gnashing Fang microclips don't exist", pretendMicroclipsDontExistCB),
             el('br'),
-            holdLabel,
-            holdiness,
         ]);
     }
 

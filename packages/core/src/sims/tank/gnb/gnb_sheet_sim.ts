@@ -14,6 +14,7 @@ import {formatDuration} from "@xivgear/util/strutils";
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import {GnbGauge} from "./gnb_gauge";
 import {
+    BloodfestBuff,
     GnbAbility,
     GnbExtraData,
     GnbGcdAbility,
@@ -40,13 +41,6 @@ export interface GnbSettings extends SimSettings {
     usePotion: boolean;
     // the length of the fight in seconds
     fightTime: number;
-    // If set, will make the rotation 'cheat' and assume that Gnashing
-    // Fang and Double Down align perfectly with the GCD.
-    // This will make the rotation consistent across sub-tiers of SKS.
-    pretendThatMicroclipsDontExist: boolean;
-    // How many GCDs before No Mercy comes up we should hold Gnashing.
-    // Defaults to undefined which equates to one GCD for most GCD speeds but can be manually overridden.
-    holdiness: number | undefined;
 }
 
 export interface GnbSettingsExternal extends ExternalCycleSettings<GnbSettings> {
@@ -256,6 +250,13 @@ class GnbCycleProcessor extends CycleProcessor {
         return rtg !== undefined;
     }
 
+    isBloodfestBuffActive(): boolean {
+        const buffs = this.getActiveBuffs();
+        const bloodfest = buffs.find(buff => buff.name === BloodfestBuff.name);
+        return bloodfest !== undefined;
+    }
+
+
     isReadyToBlastBuffActive(): boolean {
         const buffs = this.getActiveBuffs();
         const rtb = buffs.find(buff => buff.name === ReadyToBlastBuff.name);
@@ -264,21 +265,6 @@ class GnbCycleProcessor extends CycleProcessor {
 
     isContinuationReady(): boolean {
         return this.isReadyToRipBuffActive() || this.isReadyToTearBuffActive() || this.isReadyToGougeBuffActive() || this.isReadyToBlastBuffActive();
-    }
-
-    wouldOvercapCartsFromUpcomingBloodfest(): boolean {
-        if (this.stats.level < 76) {
-            // We don't have Bloodfest unlocked.
-            return false;
-        }
-        const carts = this.gauge.cartridges;
-        const bloodfestOffCdRelative = this.cdTracker.statusOf(Actions.Bloodfest).readyAt.relative;
-        const gcdSpeed = this.stats.gcdPhys(2.5);
-        // Is Bloodfest coming up in N GCDs, where N is the number of carts we have?
-        // We add the extra GCD minus the animation lock of Bloodfest as it could be weaved after
-        const timeToSpendCarts = gcdSpeed * carts;
-        const oneGcdMinusAnimationLock = gcdSpeed - STANDARD_ANIMATION_LOCK;
-        return bloodfestOffCdRelative <= timeToSpendCarts + oneGcdMinusAnimationLock;
     }
 
     haveCartsAndBloodfestIsOffCooldown(): boolean {
@@ -347,63 +333,12 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
             // This is chosen since it's two pots, five bursts,
             // and is somewhat even between the two main GCDs.
             fightTime: (8 * 60) + 30,
-            pretendThatMicroclipsDontExist: true,
-            holdiness: undefined,
         };
     }
 
     willOvercapCartsNextGCD(cp: GnbCycleProcessor): boolean {
-        return cp.gauge.cartridges === cp.gauge.maxCartridges && cp.rotationState.combo === 2;
-    }
-
-    shouldUseGCD(cp: GnbCycleProcessor, ability: GnbGcdAbility): boolean {
-        const cooldown = cp.cdTracker.statusOfAt(ability, cp.nextGcdTime);
-        const relativeCooldown = cooldown.readyAt.relative;
-        const gcdSpeed = cp.stats.gcdPhys(2.5);
-        // This check needs to be added for strange GCD tiers. It's better to microclip than let Gnashing
-        // Fang and Double Down drift out of No Mercy.
-        if (ability.id === Actions.DoubleDown.id && !(cp.getNoMercyDuration() > 0)) {
-            // Double Down will naturally be faster than No Mercy at faster speeds, but
-            // we always want it to be in No Mercy.
-            return false;
-        }
-
-        // Holdiness is how many GCDs we should hold Gnashing Fang to fit it into a nearby No Mercy.
-        // For example, if holdiness is 1, we'll hold Gnashing if No Mercy is 1 GCD away.
-        // Some GCD speeds prefer not holding at all, and others prefer different levels of holdiness.
-        // 'Normal' speeds (i.e. 2.50 -> 2.40) prefer a single GCD.
-        const userSetHoldiness = this.settings.holdiness;
-        let holdiness = 1;
-        if (userSetHoldiness !== undefined) {
-            // Holdiness has been manually set, so override
-            holdiness = userSetHoldiness;
-        }
-        else {
-            // Okay so I know this is really hacky, but it seems like the easiest way to solve this problem at current,
-            // there doesn't seem to be a discernable pattern and these speeds are edge cases to begin with.
-            // This will need to be revisited if potencies change.
-            if (gcdSpeed === 2.37 || gcdSpeed === 2.36 || gcdSpeed === 2.30 || gcdSpeed === 2.29) {
-                holdiness = 2;
-            }
-            if (gcdSpeed === 2.35 || gcdSpeed === 2.34 || gcdSpeed === 2.31) {
-                holdiness = 0;
-            }
-        }
-
-        // If No Mercy isn't up AND it's coming up within the next two GCDs, we should wait.
-        if (ability.id === Actions.GnashingFang.id && (!(cp.getNoMercyDuration() > 0) && cp.cdTracker.statusOfAt(Actions.NoMercy, cp.nextGcdTime + gcdSpeed * holdiness).readyToUse)) {
-            return false;
-        }
-
-        // (gcdSpeed / 20) is the potential amount it could be delayed by.
-        const shouldUseGCD = relativeCooldown === 0 || relativeCooldown <= (gcdSpeed / 20);
-        if (shouldUseGCD) {
-            // We are microclipping
-            if (relativeCooldown > 0) {
-                cp.advanceTo(cooldown.readyAt.absolute);
-            }
-        }
-        return shouldUseGCD;
+        const maxCarts = cp.isBloodfestBuffActive() ? cp.gauge.maxCartridges * 2 : cp.gauge.maxCartridges;
+        return cp.gauge.cartridges === maxCarts && cp.rotationState.combo === 2;
     }
 
     // Gets the next GCD to use in the GNB rotation.
@@ -416,25 +351,49 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
             return Actions.SonicBreak;
         }
 
-        // Start Gnashing Fang combo
-        if (cp.gauge.cartridges >= Actions.GnashingFang.cartridgeCost && this.shouldUseGCD(cp, Actions.GnashingFang)
-            // Gnashing and Lionheart break each other, so wait until we're finished the Lionheart combo to start it
-            && !cp.isBloodfestComboActive()
-        ) {
-            return cp.getGnashingFangComboToUse();
-        }
-
+        // Double Down logic
         if (cp.stats.level >= 90) {
-            if (cp.gauge.cartridges >= Actions.DoubleDown.cartridgeCost && this.shouldUseGCD(cp, Actions.DoubleDown)) {
-                return Actions.DoubleDown;
+            if (cp.gauge.cartridges >= Actions.DoubleDown.cartridgeCost && cp.getNoMercyDuration() > 0) {
+                if (cp.cdTracker.statusOfAt(Actions.DoubleDown, cp.nextGcdTime).readyToUse) {
+                    return Actions.DoubleDown;
+                }
+
+                // Should we microclip for Double Down?
+                const relativeCooldown = cp.cdTracker.statusOfAt(Actions.DoubleDown, cp.nextGcdTime).readyAt.relative;
+                const shouldUseGCD = relativeCooldown === 0 || relativeCooldown <= (cp.stats.gcdPhys(2.5) / 20);
+                if (shouldUseGCD) {
+                // We are microclipping
+                    if (relativeCooldown > 0) {
+                        cp.advanceTo(cp.cdTracker.statusOf(Actions.DoubleDown).readyAt.absolute);
+                        return Actions.DoubleDown;
+                    }
+                }
             }
         }
 
-        // If we're at level 100 (and have the Bloodfest combo) we want to spend carts early.
-        // Otherwise, we just don't want to overcap.
-        if (cp.stats.level >= 100) {
-            if (cp.gauge.cartridges >= 1 && cp.wouldOvercapCartsFromUpcomingBloodfest()) {
-                return Actions.BurstStrike;
+        // Start Gnashing Fang combo in No Mercy
+        if (cp.getNoMercyDuration() > 0 && !cp.isGnashingFangComboActive()) {
+            if (cp.cdTracker.statusOfAt(Actions.GnashingFang, cp.nextGcdTime).readyToUse) {
+                if (cp.gauge.cartridges >= Actions.GnashingFang.cartridgeCost
+                    // Gnashing and Lionheart break each other, so wait until we're finished the Lionheart combo to start it
+                    && !cp.isBloodfestComboActive()
+                ) {
+                    return cp.getGnashingFangComboToUse();
+                }
+            }
+        }
+
+        if (cp.stats.level === 100) {
+            // 2.49 / 2.48 Opti Zone
+            // We're at Wicked Talon. We should clip our GCD for No Mercy
+            if (cp.isGnashingFangComboActive() && cp.rotationState.gnashingFangCombo === 2 && cp.stats.gcdPhys(2.5) < 2.5) {
+                // This check checks whether or not a small amount of clipping would be possible to fit a 9 GCD NM after intentionally
+                // clipping your GCD. Practically speaking, this only applies to 2.49 and 2.48.
+                if (cp.cdTracker.statusOf(Actions.NoMercy).readyAt.relative < cp.nextGcdTime - cp.currentTime) {
+                    cp.advanceTo(cp.cdTracker.statusOf(Actions.NoMercy).readyAt.absolute);
+                    cp.use(Actions.NoMercy);
+                    return cp.getGnashingFangComboToUse();
+                }
             }
         }
 
@@ -452,20 +411,12 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
             }
         }
 
-        // If we have Bloodfest unlocked
-        if (cp.stats.level >= 76) {
-            // Spend carts if Bloodfest is waiting for us.
-            if (noMercyDuration > 0 && cp.haveCartsAndBloodfestIsOffCooldown()) {
-                return Actions.BurstStrike;
-            }
-        }
-
         if (cp.isReadyToBreakBuffActive()) {
             return Actions.SonicBreak;
         }
 
         // Start or continue Bloodfest Combo at a higher priority if we only have that many GCDs left, since it's our biggest potency
-        if (noMercyDuration > 0 && (cp.isReadyToReignBuffActive() || cp.isBloodfestComboActive()) && timeRemaining < cp.stats.gcdPhys(2.5) * (4 - cp.rotationState.bloodfestCombo)) {
+        if ((cp.isReadyToReignBuffActive() || cp.isBloodfestComboActive()) && timeRemaining < cp.stats.gcdPhys(2.5) * (3 - cp.rotationState.bloodfestCombo)) {
             return cp.getBloodfestComboToUse();
         }
 
@@ -494,22 +445,41 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
             return Actions.BurstStrike;
         }
 
-        // If No Mercy is up after this GCD and we will only get 8 GCDs in the upcoming No Mercy, then we
-        // can use Burst Strike beforehand for a buffed Hypervelocity.
-        // We check level since there will be Burst Strike GCDs in sub 100 GNB, whereas there won't for 100 GNB.
-        if (cp.stats.level >= 100) {
+        // Pre-No Mercy Gnashing logic:
+        if (cp.stats.level === 100
+            && !cp.isGnashingFangComboActive()
+            && cp.cdTracker.statusOf(Actions.GnashingFang).readyToUse) {
             const readyAt = cp.cdTracker.statusOf(Actions.NoMercy).readyAt;
-            // Is No Mercy coming up after this GCD?
-            if (readyAt.absolute <= cp.nextGcdTime + cp.stats.gcdPhys(2.5) - STANDARD_ANIMATION_LOCK) {
-                // Will we only get 8 GCDs in it?
-                // The 9 here counts:
-                // - The immediately following GCD (not in No Mercy)
-                // - The 8 GCDs we'll get in No Mercy
-                // We check Ready To Reign to make sure it's a 2m burst. Otherwise the Burst Strike
-                // we're about to use would go in the No Mercy fully.
-                const aboutToStart2mBurst = cp.gauge.cartridges === 3 && cp.isReadyToReignBuffActive();
-                if (readyAt.relative + NoMercyBuff.duration <= cp.stats.gcdPhys(2.5) * 9 && aboutToStart2mBurst) {
-                    return Actions.BurstStrike;
+            const gcdSpeed = cp.stats.gcdPhys(2.5);
+            // Force gcd clip for 9 GCD No Mercy at 2.48 and 2.49.
+            // We don't want any of the other behaviour, we want to literally do this every single time.
+            const forceGcdClipForNineGcdNoMercy = gcdSpeed === 2.48 || gcdSpeed === 2.49;
+            if (forceGcdClipForNineGcdNoMercy) {
+                if (readyAt.absolute <= (cp.nextGcdTime + gcdSpeed * 2)) {
+                    return cp.getGnashingFangComboToUse();
+                }
+            }
+            else {
+                // Special Gnashing logic: 9 GCD No Mercy
+                // Is No Mercy coming up after two GCDs?
+                if (readyAt.absolute <= cp.nextGcdTime + (cp.stats.gcdPhys(2.5) * 2)) {
+                    // The 11 here counts:
+                    // - Two immediately following GCDs (not in No Mercy)
+                    // - The 9 GCDs we'll get in No Mercy
+                    if (readyAt.relative + NoMercyBuff.duration <= cp.stats.gcdPhys(2.5) * 11) {
+                        return cp.getGnashingFangComboToUse();
+                    }
+                }
+
+                // Special Gnashing logic: 8 GCD No Mercy
+                // Is No Mercy coming up after three GCDs?
+                if (readyAt.absolute <= cp.nextGcdTime + (cp.stats.gcdPhys(2.5) * 3)) {
+                    // The 11 here counts:
+                    // - Three immediately following GCD (not in No Mercy)
+                    // - The 8 GCDs we'll get in No Mercy
+                    if (readyAt.relative + NoMercyBuff.duration <= cp.stats.gcdPhys(2.5) * 11) {
+                        return cp.getGnashingFangComboToUse();
+                    }
                 }
             }
         }
@@ -539,19 +509,28 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
         ////////
         ///oGCDs
         ////////
+        let activeContinuation: GnbOgcdAbility = undefined;
         if (cp.isContinuationReady()) {
-            const continuation: GnbOgcdAbility = cp.getActiveContinuationAction();
+            activeContinuation = cp.getActiveContinuationAction();
             // Should always be defined, but just in case.
-            if (continuation) {
+            if (activeContinuation) {
                 // Prefer using No Mercy -> Continuation if possible
-                if (cp.canUseOgcdsWithoutClipping([Actions.NoMercy, continuation])) {
+                // Except for Abdomen Tear, since it means we'll be going for a 9 GCD NM.
+                if (cp.canUseOgcdsWithoutClipping([Actions.NoMercy, activeContinuation]) && activeContinuation.id !== Actions.AbdomenTear.id) {
                     this.use(cp, Actions.NoMercy);
-                    this.use(cp, continuation);
+                    this.use(cp, activeContinuation);
                 }
                 // Then, prioritize Continuation -> No Mercy
-                else if (cp.canUseWithoutClipping(continuation)) {
-                    this.use(cp, continuation);
+                else if (cp.canUseWithoutClipping(activeContinuation)) {
+                    this.use(cp, activeContinuation);
                 }
+            }
+        }
+
+        if (activeContinuation?.id === Actions.AbdomenTear.id) {
+            if (cp.canUseWithoutClipping(Actions.NoMercy)) {
+                cp.advanceForLateWeave([Actions.NoMercy]);
+                this.use(cp, Actions.NoMercy);
             }
         }
 
@@ -569,12 +548,9 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
             this.use(cp, ogcds[1]);
         }
 
-        // We need the cartridge check even though we unload carts before Bloodfest just in case
-        // our GCD is at Solid Barrel before Bloodfest comes up. In this case, we intentionally drift
-        // Bloodfest slightly.
         // Bloodfest is unlocked at level 76.
         if (cp.stats.level >= 76) {
-            if (cp.canUseWithoutClipping(Actions.Bloodfest) && cp.gauge.cartridges === 0) {
+            if (cp.canUseWithoutClipping(Actions.Bloodfest)) {
                 this.use(cp, Actions.Bloodfest);
             }
         }
@@ -635,24 +611,6 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
                 cp.advanceTo(cp.nextGcdTime);
             }
             gnbAbility.updateCartridges(cp.gauge);
-        }
-
-        if (this.settings.pretendThatMicroclipsDontExist) {
-            const gcd = cp.stats.gcdPhys(2.5);
-            if (gnbAbility.name === Actions.GnashingFang.name || gnbAbility.name === Actions.DoubleDown.name) {
-                // Note: this pushes us forward the ability's animation lock.
-                // For e.g. Gnashing Fang at 2.48 (29.85 CD) the cooldown without having
-                // the animation lock re-added will be 29.25.
-                const result = cp.use(ability);
-                const animationLock = gnbAbility.animationLock ?? STANDARD_ANIMATION_LOCK;
-                const cooldown = cp.cdTracker.statusOf(gnbAbility).readyAt.relative + animationLock;
-                const cooldownWithoutMicroclips = (gnbAbility.cooldown.time / cp.gcdBase) * gcd;
-                // e.g. for 2.48 this will be:
-                // 29.76 - 29.85 = -0.09
-                // which will effectively 'fix' the cooldown as if it was the ideal speed.
-                cp.cdTracker.modifyCooldown(gnbAbility, cooldownWithoutMicroclips - cooldown);
-                return result;
-            }
         }
 
         return cp.use(ability);
@@ -719,18 +677,22 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
         this.use(cp, Actions.EyeGouge);
     }
 
-
-    // For GCD Speeds >=2.48
-    private useSlowOpener(cp: GnbCycleProcessor) {
+    private useLevel100Opener(cp: GnbCycleProcessor,  gcd: number) {
         cp.advanceTo(STANDARD_ANIMATION_LOCK);
         this.use(cp, Actions.LightningShot);
         this.use(cp, Actions.Bloodfest);
         this.use(cp, cp.getComboToUse());
-        cp.advanceForLateWeave([potionMaxStr]);
-        this.use(cp, potionMaxStr);
-        this.use(cp, Actions.BurstStrike);
-        this.use(cp, Actions.NoMercy);
-        this.use(cp, Actions.Hypervelocity);
+        this.use(cp, cp.getComboToUse());
+        if (gcd === 2.50) {
+            this.use(cp, Actions.NoMercy);
+            cp.advanceForLateWeave([potionMaxStr]);
+            this.use(cp, potionMaxStr);
+        }
+        else {
+            cp.advanceForLateWeave([potionMaxStr, Actions.NoMercy]);
+            this.use(cp, potionMaxStr);
+            this.use(cp, Actions.NoMercy);
+        }
         this.use(cp, cp.getGnashingFangComboToUse());
         this.use(cp, Actions.JugularRip);
         this.use(cp, Actions.BowShock);
@@ -744,43 +706,13 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
         this.use(cp, cp.getBloodfestComboToUse());
         this.use(cp, cp.getBloodfestComboToUse());
         this.use(cp, cp.getBloodfestComboToUse());
-    }
-
-    private useFastOpener(cp: GnbCycleProcessor) {
-        cp.advanceTo(STANDARD_ANIMATION_LOCK);
-        this.use(cp, Actions.LightningShot);
-        this.use(cp, Actions.Bloodfest);
         this.use(cp, cp.getComboToUse());
-        cp.advanceForLateWeave([potionMaxStr]);
-        this.use(cp, potionMaxStr);
-        this.use(cp, cp.getComboToUse());
-        cp.advanceForLateWeave([Actions.NoMercy]);
-        this.use(cp, Actions.NoMercy);
         this.use(cp, cp.getGnashingFangComboToUse());
-        this.use(cp, Actions.JugularRip);
-        this.use(cp, Actions.BowShock);
-        this.use(cp, Actions.DoubleDown);
-        this.use(cp, Actions.BlastingZone);
-        this.use(cp, cp.getGnashingFangComboToUse());
-        this.use(cp, Actions.AbdomenTear);
-        this.use(cp, cp.getGnashingFangComboToUse());
-        this.use(cp, Actions.EyeGouge);
-        this.use(cp, cp.getBloodfestComboToUse());
-        this.use(cp, cp.getBloodfestComboToUse());
-        this.use(cp, cp.getBloodfestComboToUse());
-        this.use(cp, Actions.BurstStrike);
-        this.use(cp, Actions.Hypervelocity);
-        this.use(cp, Actions.SonicBreak);
     }
 
     private useOpener(cp: GnbCycleProcessor, gcd: number) {
         if (cp.stats.level === 100) {
-            if (gcd >= 2.48) {
-                this.useSlowOpener(cp);
-            }
-            else {
-                this.useFastOpener(cp);
-            }
+            this.useLevel100Opener(cp, gcd);
         }
         else if (cp.stats.level >= 80 && cp.stats.level <= 90) {
             this.useOpener8090(cp);

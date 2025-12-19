@@ -85,10 +85,9 @@ export const GnashingFang: GnbGcdAbility = {
     activatesBuffs: [ReadyToRipBuff],
     cooldown: {
         time: 30,
-        reducedBy: "skillspeed",
-        charges: 1,
+        charges: 2,
     },
-    updateCartridges: (gauge: GnbGauge) => gauge.cartridges -= 1,
+    updateCartridges: (gauge: GnbGauge) => gauge.useCarts(1),
     levelModifiers: [
         {
             minLevel: 94,
@@ -140,7 +139,7 @@ export const BurstStrike: GnbGcdAbility = {
     gcd: 2.5,
     cartridgeCost: 1,
     activatesBuffs: [],
-    updateCartridges: (gauge: GnbGauge) => gauge.cartridges -= 1,
+    updateCartridges: (gauge: GnbGauge) => gauge.useCarts(1),
     levelModifiers: [
         {
             minLevel: 86,
@@ -167,7 +166,7 @@ export const DoubleDown: GnbGcdAbility = {
         reducedBy: "skillspeed",
         charges: 1,
     },
-    updateCartridges: (gauge: GnbGauge) => gauge.cartridges -= 1,
+    updateCartridges: (gauge: GnbGauge) => gauge.useCarts(2),
 };
 
 export const SonicBreak: GnbGcdAbility = {
@@ -235,7 +234,7 @@ export const Bloodfest: GnbOgcdAbility = {
         charges: 1,
     },
     activatesBuffs: [BloodfestBuff],
-    updateCartridges: (gauge: GnbGauge) => gauge.cartridges += gauge.maxCartridges,
+    updateCartridges: (gauge: GnbGauge) => gauge.bonusCartridges += gauge.maxCartridges,
     levelModifiers: [
         {
             minLevel: 100,
