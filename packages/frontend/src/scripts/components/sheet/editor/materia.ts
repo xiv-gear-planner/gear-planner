@@ -228,8 +228,9 @@ export class SlotMateriaManager extends HTMLElement {
             title += `\nCtrl-click to ${this.materiaSlot.locked ? 'unlock' : 'prevent auto-fill/solving from affecting this slot.'}.`;
         }
         const locked = this.materiaSlot.locked;
-        this.classList.toggle('materia-slot-locked', locked);
-        this.classList.toggle('materia-slot-unlocked', !locked);
+        const displayAsLocked = locked && editable;
+        this.classList.toggle('materia-slot-locked', displayAsLocked);
+        this.classList.toggle('materia-slot-unlocked', !displayAsLocked);
         if (locked && editable) {
             title = 'This slot is LOCKED. It will not be affected by auto-fill nor the solver.\n' + title;
         }
