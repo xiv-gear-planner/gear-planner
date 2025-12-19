@@ -716,8 +716,8 @@ class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOrHeaderS
                         }
                     }
                     else {
-                        // We do negatives relative to -750 MP/Min, so -750 MP or lower will show the darkest reds
-                        const worstCaseMpPerMinute = 750;
+                        // We do negatives relative to -500 MP/Min, so -500 MP or lower will show the darkest reds
+                        const worstCaseMpPerMinute = 500;
                         const percentWorse = (Math.abs(value) / worstCaseMpPerMinute) * 100;
                         const percentDividedBy2 = percentWorse / 2;
                         const percentage = 50 - percentDividedBy2;
