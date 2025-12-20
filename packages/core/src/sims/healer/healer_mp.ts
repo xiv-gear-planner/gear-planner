@@ -2,6 +2,7 @@ import {CharacterGearSet} from "@xivgear/core/gear";
 import {SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
 import {NORMAL_GCD} from "@xivgear/xivmath/xivconstants";
 import {EmptyObject} from "@xivgear/util/util_types";
+import {HEALER_MP_SIM_STUB_NAME} from "./healer_mp_consts";
 
 const maxMP = 10000;
 
@@ -47,7 +48,7 @@ export const mpSimSpec: SimSpec<MPPerMinute, MPSettings> = {
     makeNewSimInstance(): MPPerMinute {
         return new MPPerMinute();
     },
-    stub: "mp-sim",
+    stub: HEALER_MP_SIM_STUB_NAME,
     description: "Mp economy",
     isDefaultSim: false,
     supportedJobs: ['AST', 'SCH', 'SGE', 'WHM'],
