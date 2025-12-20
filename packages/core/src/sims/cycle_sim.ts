@@ -56,6 +56,8 @@ export type GaugeManager<GaugeStateType> = {
 
     gaugeSnapshot(): GaugeStateType;
 
+    readonly haste?: number;
+
 }
 
 /**
@@ -1190,9 +1192,30 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
     }
 
     /**
+     * Given an ordered priority list of oGCDs, return a list of the highest priority two oGCDs that can be used.
+     *
+     * @param ogcds the Off-GCD abilities to check for
+     * @returns an empty list or a list of exactly two oGCDs that can be used
+     */
+    getTopTwoPriorityOgcds(ogcds: OgcdAbility[]) {
+        for (let i = 0; i < ogcds.length; i++) {
+            for (let j = 0; j < ogcds.length; j++) {
+                if (j === i) {
+                    continue;
+                }
+                const listToTry = [ogcds[i], ogcds[j]];
+                if (this.canUseOgcdsWithoutClipping(listToTry)) {
+                    return listToTry;
+                }
+            }
+        }
+        return [];
+    }
+
+    /**
      * Determines whether or not a list of Off-GCD abilities can be used without clipping the GCD
      *
-     * @param ogcds The Off-GCD abilitiesto check for
+     * @param ogcds The Off-GCD abilities to check for
      * @returns whether or not the abilities can be used in sequence without clipping the GCD
      */
     canUseOgcdsWithoutClipping(ogcds: OgcdAbility[]) {
@@ -1322,7 +1345,7 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
             lockTime: 0,
             gaugeAfter: this.gaugeManager.gaugeSnapshot() as GaugeStateTypeOfMgr<GaugeManagerType>,
         });
-        const aaDelay = this.stats.aaDelay * (100 - this.stats.haste('Auto-attack') - combinedEffects.haste) / 100;
+        const aaDelay = this.stats.effectiveAaDelay(combinedEffects.haste, this.gaugeHaste);
         this.nextAutoAttackTime = this.currentTime + aaDelay;
     }
 
@@ -1444,6 +1467,10 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
         });
     }
 
+    get gaugeHaste(): number {
+        return this.gaugeManager.haste ?? 0;
+    }
+
     /**
      * Determine the effective cast time of an ability, assuming it is cast at the current time with the given set of
      * buffs.
@@ -1454,7 +1481,7 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
     castTime(ability: Ability, effects: CombinedBuffEffect): number {
         const base = ability.cast ?? (STANDARD_ANIMATION_LOCK + CASTER_TAX);
         const stats = effects.modifyStats(this.stats);
-        const haste = effects.haste + stats.haste(ability.attackType);
+        const haste = stats.haste(ability.attackType, effects.haste, this.gaugeHaste);
         return ability.fixedGcd ? base :
             (ability.attackType === "Spell") ?
                 (stats.gcdMag(base ?? this.gcdBase, haste)) :
@@ -1476,7 +1503,7 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
 
         const base = ability.gcd;
         const stats = effects.modifyStats(this.stats);
-        const haste = effects.haste + stats.haste(ability.attackType);
+        const haste = stats.haste(ability.attackType, effects.haste, this.gaugeHaste);
         return ability.fixedGcd ? base :
             (ability.attackType === "Spell") ?
                 (stats.gcdMag(base ?? this.gcdBase, haste)) :

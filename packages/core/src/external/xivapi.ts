@@ -41,15 +41,23 @@ export async function xivApiSingleCols<Columns extends readonly string[]>(sheet:
     });
 }
 
+export function xivApiAsset(assetPath: string, format: 'png' | 'jpg' = 'png') {
+    return `${XIVAPI_BASE_URL}/asset?path=${encodeURIComponent(assetPath)}&format=${format}`;
+}
+
 export function xivApiIconUrl(iconId: number, highRes: boolean = false): string {
     // Pad to 6 digits, e.g. 19581 -> '019581'
     const asStr = iconId.toString(10).padStart(6, '0');
     // Get the xivapi directory, e.g. 19581 -> 019000
     const directory = asStr.substring(0, 3) + '000';
-    if (highRes) {
-        return `${XIVAPI_BASE_URL}/asset/ui/icon/${directory}/${asStr}_hr1.tex?format=png`;
-    }
-    else {
-        return `${XIVAPI_BASE_URL}/asset/ui/icon/${directory}/${asStr}.tex?format=png`;
-    }
+    return xivApiAsset(`ui/icon/${directory}/${asStr}${highRes ? '_hr1' : ''}.tex`, 'png');
+}
+
+export function setXivApiIcon(img: HTMLImageElement, iconId: number, lrIntrinsicSize: [number, number], renderSize: [number, number]) {
+    const lr = xivApiIconUrl(iconId, false);
+    const hr = xivApiIconUrl(iconId, true);
+    img.setAttribute('intrinsicsize', `${lrIntrinsicSize[0]}x${lrIntrinsicSize[1]}`);
+    img.src = lr;
+    const ratio = Math.min(lrIntrinsicSize[0] / renderSize[0], lrIntrinsicSize[1] / renderSize[1]);
+    img.srcset = `${lr} ${ratio}x, ${hr} ${ratio * 2}x`;
 }

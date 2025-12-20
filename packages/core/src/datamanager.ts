@@ -18,6 +18,9 @@ export type BaseParamMap = { [rawStat in RawStatKey]?: BaseParamInfo }
 
 export type BaseParamInfo = {
     slots: BaseParamSlotInfo,
+    /**
+     * meldParam is job-specific weighting for stats.
+     */
     meldParam: number[],
 }
 /**

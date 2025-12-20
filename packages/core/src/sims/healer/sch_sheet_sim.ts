@@ -87,7 +87,7 @@ const bio: SchGcdAbility = {
         id: 16540,
         dot: {
             duration: 30,
-            tickPotency: 80,
+            tickPotency: 85,
             id: 3089,
         },
     },
@@ -179,6 +179,7 @@ class SchGauge {
     get aetherflow(): number {
         return this._aetherflow;
     }
+
     set aetherflow(newAF: number) {
         if (newAF < 0) {
             console.warn(`Used Energy Drain when empty`);

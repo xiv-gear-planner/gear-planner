@@ -22,9 +22,20 @@ export interface DisplayGearSlotInfo {
 export const DisplayGearSlots = ['Weapon', 'OffHand', 'Head', 'Body', 'Hand', 'Legs', 'Feet', 'Ears', 'Neck', 'Wrist', 'Ring'] as const;
 export type DisplayGearSlotKey = typeof DisplayGearSlots[number];
 // Slots that an item actually occupies. 2H and 1H weapons are distinct here.
-// TODO: this stuff *could* be XIVAPI-ified later, which would especially be useful if SE adds more gear that blocks out
-// other slots. It seems to return a '1' for the primary slot, and a '-1' for blocked slots.
-export const OccGearSlots = ['Weapon2H', 'Weapon1H', 'OffHand', 'Head', 'Body', 'Hand', 'Legs', 'Feet', 'Ears', 'Neck', 'Wrist', 'Ring'] as const;
+// TODO: since we have implemented EquipSlotMap, this can be used in significantly fewer places.
+// In fact, it is already technically wrong for things like Vermilion Cloak, which is equipped to body+head, but it
+// isn't a huge practical concern because it only used in Eureka, where its ilvl of 300 does not get synced down.
+// "Normal" slots
+export const NormalOccGearSlots = [
+    'Weapon2H', 'Weapon1H', 'OffHand', 'Head', 'Body', 'Hand', 'Legs', 'Feet', 'Ears', 'Neck', 'Wrist', 'Ring',
+] as const;
+export type NormalOccGearSlotKey = typeof NormalOccGearSlots[number];
+// Unusual slots - not displayed as much in the UI
+export const SpecialOccGearSlots = [
+    'ChestHead', 'ChestHeadLegsFeet', 'ChestLegsFeet', 'ChestLegsGloves', 'HeadChestHandsLegsFeet', 'LegsFeet',
+] as const;
+// All slots
+export const OccGearSlots = [...NormalOccGearSlots, ...SpecialOccGearSlots] as const;
 export type OccGearSlotKey = typeof OccGearSlots[number];
 
 // For future use, in the event that these actually require properties
@@ -121,6 +132,35 @@ export const EquipSlotInfo: Record<EquipSlotKey, EquipSlot> = {
 //     [K in keyof T as T[K] extends V ? K : never]: any
 // };
 
+/**
+ * The relationship between an item and a slot has three states:
+ * 1. The item cannot be equipped in the slot, e.g. cannot equip a head item in the leg slot.
+ * 2. The item can be equipped in the slot, e.g. a ring can be equipped to left right or right ring slot.
+ * 3. The item cannot be equipped in the slot, but if equipped into its correct slot, will block this slot.
+ * e.g. Vermilion Cloak.
+ *
+ * */
+export type EquipSlotValue = 'none' | 'equip' | 'block';
+
+/**
+ * The relationship between an item and all slots.
+ */
+export type EquipSlotMap = {
+    [K in EquipSlotKey]: EquipSlotValue;
+} & {
+    /**
+     * Whether the item can be equipped to the slot. Usually this is only true for a single slot, but rings can
+     * be equipped to both left and right ring slots.
+     * @param slot
+     */
+    canEquipTo(slot: EquipSlotKey): boolean;
+    /**
+     * Get the list of slots which will be blocked from equipping items if this item is equipped.
+     * e.g. Vermilion Cloak blocks the head slot despite being equipped to body slot.
+     */
+    getBlockedSlots(): EquipSlotKey[];
+}
+
 
 export interface XivItem {
     /**
@@ -203,6 +243,8 @@ export interface GearItem extends XivCombatItem {
     usableByJob(job: JobName): boolean;
 
     activeSpecialStat: SpecialStatType | null;
+
+    readonly slotMapping: EquipSlotMap;
 }
 
 export interface FoodStatBonus {
@@ -274,9 +316,16 @@ export interface ComputedSetStats extends RawStats {
     gcdMag(baseGcd: number, haste?: number): number,
 
     /**
-     * Base haste value for a given attack type
+     * Combined haste value for a given attack type
      */
-    haste(attackType: AttackType): number;
+    haste(attackType: AttackType, buffHaste: number, gaugeHaste: number): number;
+
+    /**
+     * Compute the effective auto-attack delay. Assumes the attack has the type 'Auto-attack'.
+     *
+     * @param buffHaste The amount of haste from buffs.
+     */
+    effectiveAaDelay(buffHaste: number, gaugeHaste: number): number;
 
     /**
      * Crit chance. Ranges from 0 to 1.
@@ -585,9 +634,13 @@ export type GcdDisplayOverride = {
      */
     attackType: AttackType,
     /**
-     * Additional haste to use for this calculation (e.g. for PoM)
+     * Additional buff haste to use for this calculation (e.g. for PoM)
      */
-    haste?: number,
+    buffHaste?: number,
+    /**
+     * Additional gauge haste to use for this calculation (e.g. Paeon)
+     */
+    gaugeHaste?: number,
     /**
      * Whether this calc uses SpS or SkS formula
      */
@@ -618,8 +671,10 @@ export interface JobData extends JobDataConst {
 export interface JobTrait {
     minLevel?: number,
     maxLevel?: number,
-    apply: (stats: RawBonusStats) => void;
+    apply: TraitFunc,
 }
+
+export type TraitFunc = (stats: RawBonusStats) => void;
 
 export type GearSlotItem = {
     slot: EquipSlot;
@@ -828,7 +883,7 @@ export type CustomItemExport = {
     materiaGrade: number;
     name: string;
     fakeId: number;
-    slot: OccGearSlotKey;
+    slot: NormalOccGearSlotKey;
     isUnique: boolean;
     stats: RawStats;
     respectCaps: boolean;

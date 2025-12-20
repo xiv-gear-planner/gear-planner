@@ -53,12 +53,12 @@ describe('Custom items support', () => {
         expect(set1.computedStats.wdPhys).to.eq(200);
         expect(set1.computedStats.wdMag).to.eq(200);
         expect(set1.computedStats.gearHaste).to.eq(5);
-        expect(set1.computedStats.haste('Weaponskill')).to.eq(5);
+        expect(set1.computedStats.haste('Weaponskill', 0, 0)).to.eq(5);
 
         expect(set2.computedStats.wdPhys).to.eq(200);
         expect(set2.computedStats.wdMag).to.eq(200);
         expect(set2.computedStats.gearHaste).to.eq(5);
-        expect(set2.computedStats.haste('Weaponskill')).to.eq(5);
+        expect(set2.computedStats.haste('Weaponskill', 0, 0)).to.eq(5);
 
         // now make it respect caps and expect it to change
         custom.respectCaps = true;
@@ -66,12 +66,12 @@ describe('Custom items support', () => {
         expect(set1.computedStats.wdPhys).to.eq(127);
         expect(set1.computedStats.wdMag).to.eq(127);
         expect(set1.computedStats.gearHaste).to.eq(5);
-        expect(set1.computedStats.haste('Weaponskill')).to.eq(5);
+        expect(set1.computedStats.haste('Weaponskill', 0, 0)).to.eq(5);
 
         expect(set2.computedStats.wdPhys).to.eq(127);
         expect(set2.computedStats.wdMag).to.eq(127);
         expect(set2.computedStats.gearHaste).to.eq(5);
-        expect(set2.computedStats.haste('Weaponskill')).to.eq(5);
+        expect(set2.computedStats.haste('Weaponskill', 0, 0)).to.eq(5);
 
         expect(custom.materiaSlots.length).to.equal(3);
         expect(custom.unsyncedVersion.materiaSlots.length).to.equal(3);

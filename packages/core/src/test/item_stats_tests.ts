@@ -84,10 +84,6 @@ describe('bug #695 - offhands have wrong stats', () => {
                     // TODO: is there a specific pattern we can use for NQ?
                     return;
                 }
-                if (item.id === 24855 || item.id === 24856) {
-                    // Vermillion cloak of casting/health - multi-slot items other than 2H weapon are not supported
-                    return;
-                }
                 if (item.id === 34455 || item.id === 34474) {
                     // Known issue with this specific PLD 1H+Shield
                     return;

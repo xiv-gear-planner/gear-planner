@@ -9,7 +9,7 @@ import {SimulationGui} from "./simulation_gui";
 import {SimSettings} from "@xivgear/core/sims/sim_types";
 import {cycleSettingsGui} from "./components/cycle_settings_components";
 import {writeProxy} from "@xivgear/util/proxies";
-import {NamedSection} from "../components/section";
+import {NamedSection} from "../components/general/section";
 import {BuffSettingsArea} from "./party_comp_settings";
 import {ResultSettingsArea} from "./components/result_settings";
 import {applyStdDev} from "@xivgear/xivmath/deviation";

@@ -1,5 +1,6 @@
 @import "util.less";
 
+
 body.modern {
   --border-color: #00000000;
   --border-style: none;
@@ -32,11 +33,58 @@ body.modern {
       border-radius: 0;
       --table-extra-padding: 0px;
 
+      --table-top-gradient: 8px;
+
+      // The way the top gradient works is that the cell works normally, but we have the ::after element in place to
+      // provide the transition seam. The fake spacer row pushes the content down accordingly.
       tr {
         td[col-id="actions"] {
           button {
             opacity: 10%;
           }
+        }
+
+        div.spacer-row {
+          height: var(--table-top-gradient);
+        }
+      }
+
+      tr:first-child {
+        th:first-child > *:first-child::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          //background-color: #f006;
+          z-index: -999;
+          //#24242c
+          background: linear-gradient(to top, var(--blended-bg) 0%, var(--blended-bg-50) calc(var(--table-top-gradient) * 0.3), var(--default-table-bg-color) var(--table-top-gradient));
+          //background: red;
+          top: 100%;
+          height: var(--table-top-gradient);
+          pointer-events: none;
+          width: 100vw;
+        }
+
+        //background: linear-gradient(to top, transparent 0%, var(--table-bg-color) var(--table-top-gradient));
+        background: transparent;
+
+        th {
+          --blended-bg: rgb(from var(--table-bg-color) r g b / 0);
+          --blended-bg-50: rgb(from var(--table-bg-color) r g b / 50%);
+
+          span.header-cell-detail-gear {
+            bottom: var(--table-top-gradient);
+          }
+
+        }
+
+        td[col-id="setname"], th[col-id="setname"] {
+          //background: var(--table-bg-color), linear-gradient(to left, transparent 0%, #ffff 20px), linear-gradient(to top, transparent 0%, #ffff 20px);
+          //background: linear-gradient(to left, transparent 0%, #fff0 20px), linear-gradient(to top, transparent 0%, #fff0 20px), red;
+          //background-blend-mode: darken;
+          //background-position-y: bottom 20px;
+          //background-size: 100% calc(100% - var(--table-top-gradient));
+          //background: #0000 linear-gradient(to left, transparent 0%, var(--table-bg-color) var(--table-top-gradient)) no-repeat;
         }
       }
 
@@ -68,6 +116,30 @@ body.modern {
         padding-left: 5px;
         padding-right: 5px;
       }
+
+      // Make the header row sticky
+      > tr:nth-child(2) {
+        position: sticky;
+        z-index: 99;
+        // Offsets the padding of the scrollable area
+        top: -8px;
+        background-color: transparent;
+
+        // this isn't supported on firefox and didn't seem to work on chrome
+        @container gear-sheet-editor-area scroll-state(stuck: top) {
+          //color: red;
+        }
+
+        > th {
+          --blended-bg: rgb(from var(--table-bg-color) r g b / 0);
+          background: linear-gradient(to top, var(--blended-bg) 0%, var(--table-bg-color) 6px);
+
+          &:first-child::before {
+            content: '';
+          }
+
+        }
+      }
     }
 
     //Center wide stat columns
@@ -88,7 +160,8 @@ body.modern {
   }
 
   &:not(.light-mode) {
-    --table-bg-color: #24242c;
+    --default-table-bg-color: #24242c;
+    --table-bg-color: var(--default-table-bg-color);
     --input-background-color: var(--table-bg-color);
   }
 
@@ -119,9 +192,29 @@ body.modern {
     background-color: var(--bg-color);
   }
 
+  // Estimated top nav size including shadow and borders, because we can't directly transition on a computed value.
+  --top-nav-size: 40px;
+  --transition-props: 0.1s linear;
+
+  &.top-menu-hidden {
+    div#main-menu-area {
+      display: initial;
+      max-height: 0;
+      margin-bottom: 0;
+      div#main-menu-area-inner {
+        bottom: var(--top-nav-size);
+      }
+    }
+  }
+
   div#main-menu-area {
     background: none;
     box-shadow: none;
+
+    transition: max-height var(--transition-props);
+
+    max-height: var(--top-nav-size);
+
 
     div#main-menu-area-inner {
 
@@ -137,8 +230,12 @@ body.modern {
       border-bottom-right-radius: var(--mmai-border-radius);
       padding-left: var(--mmai-border-radius);
       padding-right: var(--mmai-border-radius);
+      position: relative;
+      transition: bottom var(--transition-props);
+      bottom: 0;
 
-      @media (width < 525px) {
+
+      @media (width < 650px) {
         a span {
           display: none;
         }
@@ -176,8 +273,6 @@ body.modern {
     background-color: var(--table-bg-color);
     .shadow();
 
-    .gear-sheet-table-holder {
-    }
   }
 
   .gear-sheet-table-area {
@@ -203,12 +298,13 @@ body.modern {
       @media screen and (width <= 800px) {
         background: none;
       }
+      pointer-events: none;
     }
 
     > * {
       height: 25px;
-      padding-left: 10px;
-      padding-right: 10px;
+      padding-left: 7px;
+      padding-right: 7px;
 
       &:is(select) {
         // Don't put the padding on select elements - the dropdown arrow
@@ -268,3 +364,19 @@ body.modern {
   }
 }
 
+body:not(.modern) {
+  table.gear-plan-table {
+
+    tr:has(div.spacer-row) {
+      display: none;
+    }
+  }
+}
+
+#content-area > .my-sheets-section {
+  .named-section-content-area {
+    table.gear-sheets-table {
+      padding-top: 0;
+    }
+  }
+}

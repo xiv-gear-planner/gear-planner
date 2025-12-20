@@ -11,6 +11,8 @@
  */
 
 export enum SpecialStatType {
+  Eureka = "Eureka",
+  Bozja = "Bozja",
   OccultCrescent = "OccultCrescent",
 }
 
@@ -60,6 +62,18 @@ export type BaseParam = XivApiObject &
     braceletPercent?: number;
     /** @format int32 */
     ringPercent?: number;
+    /** @format int32 */
+    chestHeadLegsFeetPercent?: number;
+    /** @format int32 */
+    chestHeadPercent?: number;
+    /** @format int32 */
+    chestLegsFeetPercent?: number;
+    /** @format int32 */
+    chestLegsGlovesPercent?: number;
+    /** @format int32 */
+    headChestHandsLegsFeetPercent?: number;
+    /** @format int32 */
+    legsFeetPercent?: number;
     meldParam?: number[];
   };
 

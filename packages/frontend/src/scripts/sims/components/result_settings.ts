@@ -1,5 +1,5 @@
 import {FieldBoundFloatField, labelFor} from "@xivgear/common-ui/components/util";
-import {NamedSection} from "../../components/section";
+import {NamedSection} from "../../components/general/section";
 import {ResultSettings} from "@xivgear/core/sims/cycle_sim";
 
 export class ResultSettingsArea extends NamedSection {

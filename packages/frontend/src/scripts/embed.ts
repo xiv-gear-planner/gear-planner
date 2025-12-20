@@ -1,12 +1,13 @@
 import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 
 import {setTitle, showFatalError} from "./base_ui";
-import {GearPlanSheetGui} from "./components/sheet";
+import {GearPlanSheetGui} from "./components/sheet/sheet_gui";
 import {recordError, recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {makeUrl, NavState, ONLY_SET_QUERY_PARAM} from "@xivgear/core/nav/common_nav";
 import {getCurrentHash, getCurrentState} from "./nav_hash";
 import {recordSheetEvent} from "./analytics/analytics";
-import {faIcon} from "@xivgear/common-ui/components/util";
+
+import {makeNewTabIcon} from "@xivgear/common-ui/components/icons";
 
 let embedDiv: HTMLDivElement;
 
@@ -54,7 +55,7 @@ export async function openEmbed(sheet: GearPlanSheetGui) {
         openFullLink.addEventListener('click', () => {
             recordSheetEvent("openEmbedToFull", sheet);
         });
-        openFullLink.replaceChildren('Click to open full view ', faIcon('fa-arrow-up-right-from-square', 'fa'));
+        openFullLink.replaceChildren('Click to open full view ', makeNewTabIcon());
 
         // const body = document.body;
         // body.prepend(openFullLink);

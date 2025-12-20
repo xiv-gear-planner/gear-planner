@@ -1,6 +1,7 @@
-import {el, makeActionButton, makeCloseButton} from "./util";
+import {el, makeActionButton} from "./util";
 import {Modal, MODAL_CONTROL} from "../modalcontrol";
 import {LoadingBlocker} from "./loader";
+import {makeCloseButton} from "./icons";
 
 export abstract class BaseModal extends HTMLElement {
     protected readonly header: HTMLElement;

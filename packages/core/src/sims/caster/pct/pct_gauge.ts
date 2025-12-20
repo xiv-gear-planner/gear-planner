@@ -13,6 +13,7 @@ class PCTGauge {
     get paletteGauge() {
         return this._paletteGauge;
     }
+
     set paletteGauge(newGauge : number) {
         if (newGauge > 100) {
             console.warn(`Overcapped Palette by ${newGauge - 100}.`);
@@ -26,6 +27,7 @@ class PCTGauge {
     spendPalette(action: PctPaletteAbility) : void {
         action.updateGauge(this);
     }
+
     paletteReady(): boolean {
         return this.paletteGauge >= 50;
     }
@@ -34,6 +36,7 @@ class PCTGauge {
     get whitePaintCharges() {
         return this._whitePaintCharges;
     }
+
     set whitePaintCharges(newGauge: number){
         // Overcapping White Paint is not an issue so no need to check for it.
         if (newGauge < 0) {
@@ -41,6 +44,7 @@ class PCTGauge {
         }
         this._paletteGauge = Math.max(Math.min(newGauge, 5), 0);
     }
+
     spendWhitePaint(action: PctPaintAbility) : void {
         action.updateGauge(this);
     }
@@ -49,6 +53,7 @@ class PCTGauge {
     get hyperphantasiaStacks() {
         return this._hyperphantasiaStacks;
     }
+
     set hyperphantasiaStacks(newGauge: number){
         if (newGauge < 0) {
             console.error();

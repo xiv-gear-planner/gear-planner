@@ -113,7 +113,7 @@ export class GearsetGenerator {
         const useSks = settings.gearset.isStatRelevant('skillspeed');
         const over = override.find(over => over.basis === (useSks ? 'sks' : 'sps'));
         const attackType = over ? over.attackType : useSks ? 'Weaponskill' : 'Spell';
-        const haste = settings.gearset.computedStats.haste(attackType) + (over ? over.haste : 0);
+        const haste = settings.gearset.computedStats.haste(attackType, over?.buffHaste ?? 0, over?.gaugeHaste ?? 0);
 
         const equipment = this.cloneEquipmentset(settings.gearset.equipment);
 
@@ -144,7 +144,9 @@ export class GearsetGenerator {
         // Generate these first to avoid re-doing them. Also saves memory by letting our EquipmentSets shallow copy EquippedItems which all reside in here.
         const allIndividualGearPieces: Map<EquipSlotKey, ItemWithStats[]> = new Map<EquipSlotKey, ItemWithStats[]>();
         for (const slotKey of EquipSlots) {
-            if (equipment[slotKey] === null || equipment[slotKey] === undefined) continue;
+            if (equipment[slotKey] === null || equipment[slotKey] === undefined) {
+                continue;
+            }
 
             console.log(`Meld generator: generating combinations for ${slotKey}`);
             const pieceCombinations = this.getAllMeldCombinationsForGearItem(equipment[slotKey]);
@@ -172,7 +174,9 @@ export class GearsetGenerator {
         for (let i = 0; i < EquipSlots.length; i++) {
             const slotKey = EquipSlots[i];
 
-            if (equipment[slotKey] === null || equipment[slotKey] === undefined) continue;
+            if (equipment[slotKey] === null || equipment[slotKey] === undefined) {
+                continue;
+            }
 
             statusCallback({
                 phase: 2,
@@ -383,7 +387,9 @@ export class GearsetGenerator {
         const result = new EquipmentSet;
         for (const key in set) {
             const equipSlotKey = key as EquipSlotKey;
-            if (set[equipSlotKey] === null || set[equipSlotKey] === undefined) continue;
+            if (set[equipSlotKey] === null || set[equipSlotKey] === undefined) {
+                continue;
+            }
             result[equipSlotKey] = this.cloneEquippedItem(set[equipSlotKey]);
         }
 
