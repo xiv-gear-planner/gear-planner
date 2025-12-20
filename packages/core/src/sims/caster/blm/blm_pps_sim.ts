@@ -335,7 +335,7 @@ export class BlmPpsSim implements Simulation<BlmPpsResult, BlmPpsSettings, BlmPp
         value *= numF4Rots;
         numGcds *= numF4Rots;
 
-        // cold B3, reasonings thanks to punished downtime
+        // cold B3, reasonings thanks to punished downtime (solver uptime, great name btw lol)
         if (this.settings.useColdB3) {
             if (stats.level >= 90) {
                 // levels 90 and 100: assume we get 3 instant UI1 B3 per cycle.

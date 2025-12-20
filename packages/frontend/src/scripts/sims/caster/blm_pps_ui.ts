@@ -1,8 +1,8 @@
 import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
 import {SimulationGui} from "../simulation_gui";
 import {writeProxy} from "@xivgear/util/proxies";
-import {NamedSection} from "../../components/section";
 import {simpleKvTable} from "../components/simple_tables";
+import {NamedSection} from "../../components/general/section";
 import {quickElement} from "@xivgear/common-ui/components/util";
 import {BlmPpsResult, BlmPpsSettings, BlmPpsSettingsExternal} from "@xivgear/core/sims/caster/blm/blm_pps_sim";
 import {applyStdDev} from "@xivgear/xivmath/deviation";
