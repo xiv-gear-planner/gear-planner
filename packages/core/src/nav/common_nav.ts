@@ -100,7 +100,9 @@ export type NavPath = {
     jsonBlob: object
 } | {
     type: 'sheetjson'
-    jsonBlob: object
+    jsonBlob: object,
+    onlySetIndex?: number,
+    defaultSelectionIndex?: number,
 } | {
     type: 'bis',
     // TODO: is this being used anywhere?
@@ -197,6 +199,8 @@ export function parsePath(state: NavState): NavPath | null {
             return {
                 type: 'sheetjson',
                 jsonBlob: parsed,
+                onlySetIndex: state.onlySetIndex,
+                defaultSelectionIndex: state.selectIndex,
                 embed: false,
                 viewOnly: viewOnly,
             };

@@ -6,7 +6,7 @@ import {
     labeledCheckbox,
     labelFor
 } from "@xivgear/common-ui/components/util";
-import {NamedSection} from "../../components/section";
+import {NamedSection} from "../../components/general/section";
 
 export function cycleSettingsGui(cycleSettings: CycleSettings) {
     const out = new NamedSection('Cycle Settings');

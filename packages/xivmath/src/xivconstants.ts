@@ -6,8 +6,10 @@ import {
     LevelStats,
     PartyBonusAmount,
     RawStatKey,
-    RawStats
+    RawStats,
+    TraitFunc
 } from "./geartypes";
+import {RawBonusStats} from "./xivstats";
 
 /**
  * Maximum number of materia slots on any item.
@@ -35,6 +37,19 @@ export const NORMAL_GCD = 2.5;
  */
 export const MAX_GCD = NORMAL_GCD;
 
+// These should match the data API
+/**
+ * Min ilvl of gear items we care about.
+ *
+ * Should match the value declared in the data API, since items will effectively be filtered to that value anyway.
+ */
+export const MIN_ILVL_ITEMS = 290;
+/**
+ * Min ilvl of food items we care about.
+ *
+ * Should match the value declared in the data API, since items will effectively be filtered to that value anyway.
+ */
+export const MIN_ILVL_FOOD = 430;
 /**
  * Highest ilvl for the foreseeable future
  */
@@ -178,6 +193,20 @@ const STANDARD_CASTER: JobDataConst = {
     maxLevel: CURRENT_MAX_LEVEL,
 } as const;
 
+/**
+ * Create a trait applier function for a standard haste trait.
+ *
+ * @param amount
+ */
+function hasteTrait(amount: number): TraitFunc {
+    return (stats: RawBonusStats) => {
+        stats.traitHaste.push(attackType =>
+            attackType === 'Weaponskill'
+            || attackType === 'Spell'
+            || attackType === 'Auto-attack'
+                ? amount : 0);
+    };
+}
 
 /**
  * Job-specific data items.
@@ -195,7 +224,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                 description: 'Standard 2.5s GCD recast time',
                 gcdTime: 2.5,
                 attackType: 'Spell',
-                haste: 0,
+                buffHaste: 0,
                 basis: 'sps',
             }, {
                 shortLabel: 'PoM GCD',
@@ -203,7 +232,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                 description: '2.5s GCD recast time under Presence of Mind',
                 gcdTime: 2.5,
                 attackType: 'Spell',
-                haste: 20,
+                buffHaste: 20,
                 basis: 'sps',
             }];
         },
@@ -228,54 +257,27 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
             {
                 minLevel: 1,
                 maxLevel: 19,
-                apply: (stats) => {
-                    stats.bonusHaste.push(attackType =>
-                        attackType === 'Weaponskill'
-                        || attackType === 'Spell'
-                        || attackType === 'Auto-attack'
-                            ? 5 : 0);
-                },
+                apply: hasteTrait(5),
             },
             {
                 minLevel: 20,
                 maxLevel: 39,
-                apply: (stats) => {
-                    stats.bonusHaste.push(attackType =>
-                        attackType === 'Weaponskill'
-                        || attackType === 'Spell'
-                        || attackType === 'Auto-attack'
-                            ? 10 : 0);
-                },
+                apply: hasteTrait(10),
             },
             {
                 minLevel: 40,
                 maxLevel: 75,
-                apply: (stats) => {
-                    stats.bonusHaste.push(attackType =>
-                        attackType === 'Weaponskill'
-                        || attackType === 'Spell'
-                        || attackType === 'Auto-attack'
-                            ? 15 : 0);
-                },
+                apply: hasteTrait(15),
             },
             {
                 minLevel: 76,
-                apply: (stats) => {
-                    stats.bonusHaste.push(attackType =>
-                        attackType === 'Weaponskill'
-                        || attackType === 'Spell'
-                        || attackType === 'Auto-attack'
-                            ? 20 : 0);
-                },
+                apply: hasteTrait(20),
             }],
     },
     NIN: {
         ...MELEE_SCOUTING,
         traits: [{
-            apply: stats => {
-                stats.bonusHaste.push(attackType =>
-                    attackType === 'Weaponskill' || attackType === 'Auto-attack' ? 15 : 0);
-            },
+            apply: hasteTrait(15),
         },
         ],
     },
@@ -289,7 +291,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                     description: 'GCD recast time w/ Fuka',
                     gcdTime: 2.5,
                     attackType: 'Weaponskill',
-                    haste: 10,
+                    buffHaste: 10,
                     basis: 'sks',
                     isPrimary: true,
                 }];
@@ -301,7 +303,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                     description: 'GCD recast time w/ Fuka',
                     gcdTime: 2.5,
                     attackType: 'Weaponskill',
-                    haste: 13, // Enhanced Fugetsu and Fuka
+                    buffHaste: 13, // Enhanced Fugetsu and Fuka
                     basis: 'sks',
                     isPrimary: true,
                 }];
@@ -318,7 +320,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                 description: '2.5s GCD with swiftscaled buff',
                 gcdTime: 2.5,
                 attackType: 'Weaponskill',
-                haste: 15,
+                buffHaste: 15,
                 basis: 'sks',
                 isPrimary: true,
             }];
@@ -571,7 +573,7 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
 const defaultItemDispBase = {
     showNq: false,
     higherRelics: true,
-    minILvlFood: 740,
+    minILvlFood: 770,
     maxILvlFood: 999,
     showOneStatFood: false,
 } as const satisfies Partial<ItemDisplaySettings>;
@@ -640,7 +642,7 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
         defaultDisplaySettings: {
             ...defaultItemDispBase,
             // Raise this when more gear is available
-            minILvl: 740,
+            minILvl: 770,
             maxILvl: 999,
         },
     },
@@ -652,26 +654,21 @@ const BLU_ITEM_DISPLAY = {
     maxILvl: 535,
 } satisfies ItemDisplaySettings;
 
-export function getDefaultDisplaySettings(level: SupportedLevel, job: JobName): Readonly<ItemDisplaySettings> {
+export function getDefaultDisplaySettings(level: SupportedLevel, job: JobName, isync: number | undefined): Readonly<ItemDisplaySettings> {
     if (job === 'BLU' && level === JOB_DATA.BLU.maxLevel) {
         return BLU_ITEM_DISPLAY;
     }
-    return LEVEL_ITEMS[level].defaultDisplaySettings;
+    const out = LEVEL_ITEMS[level].defaultDisplaySettings;
+    // Special logic for current-content sync
+    if (isync !== undefined && level === CURRENT_MAX_LEVEL) {
+        return {
+            ...out,
+            minILvl: isync - 5,
+            maxILvl: isync,
+        };
+    }
+    return out;
 }
-
-// Level 70 data
-// export const MainstatModifier {
-//     tank: {
-//         70: number = 105,
-//         80: number = 115,
-//         90: number = 156
-//     }
-//     non-tank: {
-//         70: number = 125,
-//         80: number = 165,
-//         90: number = 195
-//     }
-// }
 
 /**
  * Main stats in current version of the game.
@@ -806,12 +803,17 @@ export function statById(id: number): keyof RawStats | undefined {
             return "defenseMag";
         case 27:
             return "crit";
+        case 36:
+            // Eureka Elemental Bonus - not supported yet.
+            return undefined;
         case 44:
             return "determination";
         case 45:
             return "skillspeed";
         case 46:
             return "spellspeed";
+        case 47:
+            return "gearHaste";
         default:
             return undefined;
     }
@@ -922,7 +924,7 @@ export function bluWdfromInt(gearIntStat: number): number {
 export const defaultItemDisplaySettings: ItemDisplaySettings = {
     minILvl: 680,
     maxILvl: 999,
-    minILvlFood: 740,
+    minILvlFood: 770,
     maxILvlFood: 999,
     higherRelics: true,
     showNq: false,
@@ -930,3 +932,32 @@ export const defaultItemDisplaySettings: ItemDisplaySettings = {
 } as const;
 
 export const MAX_PARTY_BONUS: PartyBonusAmount = 5;
+
+export const SPECIAL_STAT_KEYS = ['OccultCrescent', 'Bozja', 'Eureka'] as const;
+
+export type SpecialStatKey = typeof SPECIAL_STAT_KEYS[number];
+
+export type SpecialStatInfo = {
+    level: number;
+    ilvls: number[];
+    showHaste: boolean;
+}
+
+export const SPECIAL_STATS_MAPPING: Record<SpecialStatKey, SpecialStatInfo> = {
+    Eureka: {
+        level: 70,
+        ilvls: [300],
+        showHaste: true,
+    },
+    Bozja: {
+        level: 80,
+        ilvls: [430],
+        showHaste: true,
+    },
+    OccultCrescent: {
+        level: 100,
+        ilvls: [700],
+        showHaste: false,
+    },
+};
+

@@ -53,7 +53,10 @@ describe("ComputedSetStats", () => {
         expect(stats.dhitMulti).to.eq(1.25);
         expect(stats.gcdMag(2.50)).to.eq(2.41);
         expect(stats.gcdPhys(2.50)).to.eq(2.50);
-        expect(stats.haste('Spell')).to.eq(0);
+        expect(stats.haste('Spell', 0, 0)).to.eq(0);
+        expect(stats.haste('Spell', 37, 0)).to.eq(37);
+        expect(stats.haste('Weaponskill', 37, 0)).to.eq(37);
+        expect(stats.haste('Auto-attack', 37, 0)).to.eq(37);
         expect(stats.hp).to.eq(114937);
         expect(stats.intelligence).to.eq(462);
         expect(stats.mainStatMulti).to.eq(22.58);
@@ -124,7 +127,10 @@ describe("ComputedSetStats", () => {
         expect(stats.dhitMulti).to.eq(1.25);
         expect(stats.gcdMag(2.50)).to.eq(2.40);
         expect(stats.gcdPhys(2.50)).to.eq(2.50);
-        expect(stats.haste('Spell')).to.eq(0);
+        expect(stats.haste('Spell', 0, 0)).to.eq(0);
+        expect(stats.haste('Spell', 37, 0)).to.eq(37);
+        expect(stats.haste('Weaponskill', 37, 0)).to.eq(37);
+        expect(stats.haste('Auto-attack', 37, 0)).to.eq(37);
         expect(stats.hp).to.eq(121048);
         expect(stats.intelligence).to.eq(462);
         expect(stats.mainStatMulti).to.eq(22.58);
@@ -195,7 +201,10 @@ describe("ComputedSetStats", () => {
         expect(stats.dhitMulti).to.eq(1.25);
         expect(stats.gcdMag(2.50)).to.eq(2.40);
         expect(stats.gcdPhys(2.50)).to.eq(2.50);
-        expect(stats.haste('Spell')).to.eq(0);
+        expect(stats.haste('Spell', 0, 0)).to.eq(0);
+        expect(stats.haste('Spell', 37, 0)).to.eq(37);
+        expect(stats.haste('Weaponskill', 37, 0)).to.eq(37);
+        expect(stats.haste('Auto-attack', 37, 0)).to.eq(37);
         expect(stats.hp).to.eq(127218);
         expect(stats.intelligence).to.eq(462);
         expect(stats.mainStatMulti).to.eq(23.78);

@@ -3,6 +3,14 @@ import {MNKGauge} from "./mnk_gauge";
 import {FuryAbility, MnkGcdAbility, MnkOgcdAbility} from "./mnk_types";
 import {noStatusId} from "../../buff_helpers";
 
+/** This buff timing is extended by 0.7 to allow for the 1.94 GCD sim to hit a "4am Brotherhood" timing,
+    also known as an 11/11 Brotherhood. In game the buff is only 20 seconds long, unlike the 20.7 that is
+    used on RiddleOfFireBuff which is _actually_ 20.7 seconds in game.
+
+    The reason for this is so that 1.94 sets show up in their "theoretical maximum" when comparing to 2.00 which is
+    very difficult for a human to execute, but the simulation executes at its "theoretical maximum" as well. */
+const BROTHERHOOD_BUFF_DURATION = 20 + 0.7;
+
 export const OpoForm: PersonalBuff = {
     name: "Opo-Opo Form",
     selfOnly: true,
@@ -226,7 +234,7 @@ export const BrotherhoodBuff: PartyBuff = {
     cooldown: 120,
     name: "Brotherhood",
     selfOnly: false,
-    duration: 20,
+    duration: BROTHERHOOD_BUFF_DURATION,
     statusId: 1185,
     effects: {
         // Additional effect: allows the opening of up to ten chakra,
@@ -242,7 +250,7 @@ export const MeditativeBrotherhood: PartyBuff = {
     cooldown: 120,
     name: "Meditative Brotherhood",
     selfOnly: false,
-    duration: 20,
+    duration: BROTHERHOOD_BUFF_DURATION,
     statusId: 1182,
     effects: {
         // Party members under this buff have a 20% chance of generating chakra on a weaponskill / spell
@@ -255,13 +263,7 @@ export const RiddleOfWindBuff: PersonalBuff = {
     statusId: 2687,
     appliesTo: (ability) => ability.attackType === 'Auto-attack',
     effects: {
-        /**
-         * Riddle of Wind is actually a 50% increase type-Y speed buff. But until gear-planner supports type-Y and
-         * type-Z speed buffs separately (this only affects Monk auto attacks currently) the actual recast time
-         * of autos can be simulated by pretending it's a 40% type-Z speed buff.
-         * The correct in game auto timing is 1.024 between autos.
-         */
-        haste: 40,
+        haste: 50,
     },
 };
 export const FiresRumination: PersonalBuff = {

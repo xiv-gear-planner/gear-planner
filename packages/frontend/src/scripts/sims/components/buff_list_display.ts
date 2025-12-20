@@ -1,4 +1,4 @@
-import {StatusIcon, translatedStatusName} from "../../components/status_effects";
+import {StatusIcon, translatedStatusName} from "../../components/sim/status_effects";
 import {toRelPct} from "@xivgear/util/strutils";
 import {Buff} from "@xivgear/core/sims/sim_types";
 

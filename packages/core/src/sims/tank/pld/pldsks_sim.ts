@@ -60,10 +60,12 @@ class PaladinStateSystem {
             this.comboState = 2;
         }
         else if (GCDused === ActionRecordGCD["Riot"]) {
-            if (this.comboState === 2)
+            if (this.comboState === 2) {
                 this.comboState = 3;
-            else
+            }
+            else {
                 this.comboState = 0;
+            }
         }
         else if (GCDused === ActionRecordGCD["Royal"]) {
             if (this.comboState === 3) {
@@ -71,8 +73,9 @@ class PaladinStateSystem {
                 this.divineMight = true;
                 this.swordOath = this.swordOath | this.A1Ready;
             }
-            else
+            else {
                 this.comboState = 0;
+            }
         }
         else if (GCDused === ActionRecordGCD["HS"]) {
             // Consume Divine Might:
@@ -184,19 +187,23 @@ class PldSKSCycleProcessor extends CycleProcessor {
 
     fofIsActive(atTime: number): boolean {
         const fofData = this.getActiveBuffData(Buffs.FightOrFlightBuff);
-        if (fofData === null)
+        if (fofData === null) {
             return false;
+        }
 
-        if (fofData.end > atTime)
+        if (fofData.end > atTime) {
             return true;
-        else
+        }
+        else {
             return false;
+        }
     }
 
     getFOFRemaining(): number {
         const fofData = this.getActiveBuffData(Buffs.FightOrFlightBuff);
-        if (fofData === null)
+        if (fofData === null) {
             return 0;
+        }
         return fofData.end - this.nextGcdTime;
     }
 
@@ -229,10 +236,12 @@ class PldSKSCycleProcessor extends CycleProcessor {
             chosenAbility = ActionRecordGCD["Atone"];
         }
         else if (this.MyState.comboState !== 3) {
-            if (this.MyState.comboState === 2)
+            if (this.MyState.comboState === 2) {
                 chosenAbility = ActionRecordGCD["Riot"];
-            else
+            }
+            else {
                 chosenAbility = ActionRecordGCD["Fast"];
+            }
         }
         else {
             // If we are royal ready:
@@ -242,22 +251,29 @@ class PldSKSCycleProcessor extends CycleProcessor {
             // This makes 9 GCD fofs more likely, and has better parity now
             // that it + Supp have the same potency
 
-            if (this.MyState.divineMight === true && evenMinute && playForNineSafety)
+            if (this.MyState.divineMight === true && evenMinute && playForNineSafety) {
                 chosenAbility = ActionRecordGCD["HS"];
+            }
 
-            else if (this.MyState.swordOath === this.MyState.A1Ready)
+            else if (this.MyState.swordOath === this.MyState.A1Ready) {
                 chosenAbility = ActionRecordGCD["Atone"];
-            else if (this.MyState.swordOath === this.MyState.A2Ready)
+            }
+            else if (this.MyState.swordOath === this.MyState.A2Ready) {
                 chosenAbility = ActionRecordGCD["Supp"];
+            }
             // Old priority has us HS last, new priority has us HS before Sepp
-            else if (this.MyState.divineMight === true && !useOldPriority)
+            else if (this.MyState.divineMight === true && !useOldPriority) {
                 chosenAbility = ActionRecordGCD["HS"];
-            else if (this.MyState.swordOath === this.MyState.A3Ready)
+            }
+            else if (this.MyState.swordOath === this.MyState.A3Ready) {
                 chosenAbility = ActionRecordGCD["Sep"];
-            else if (this.MyState.divineMight === true && useOldPriority)
+            }
+            else if (this.MyState.divineMight === true && useOldPriority) {
                 chosenAbility = ActionRecordGCD["HS"];
-            else if (this.MyState.swordOath === 0 && this.MyState.divineMight === false)
+            }
+            else if (this.MyState.swordOath === 0 && this.MyState.divineMight === false) {
                 chosenAbility = ActionRecordGCD["Royal"];
+            }
         }
 
         this.useGcd(chosenAbility);
@@ -267,42 +283,53 @@ class PldSKSCycleProcessor extends CycleProcessor {
         let chosenAbility = ActionRecordGCD["Fast"];
 
         // We always Sepulchre if we have it:
-        if (this.MyState.swordOath === this.MyState.A3Ready)
+        if (this.MyState.swordOath === this.MyState.A3Ready) {
             chosenAbility = ActionRecordGCD["Sep"];
+        }
 
         // prioritise_melee blocks this check:
-        else if (this.MyState.divineMight === true && !prioritiseMelee)
+        else if (this.MyState.divineMight === true && !prioritiseMelee) {
             chosenAbility = ActionRecordGCD["HS"];
-        else if (this.MyState.swordOath === this.MyState.A1Ready)
+        }
+        else if (this.MyState.swordOath === this.MyState.A1Ready) {
             chosenAbility = ActionRecordGCD["Atone"];
-        else if (this.MyState.swordOath === this.MyState.A2Ready)
+        }
+        else if (this.MyState.swordOath === this.MyState.A2Ready) {
             chosenAbility = ActionRecordGCD["Supp"];
+        }
         // When we prioritise_melee, only use HS if it is our last option
-        else if (this.MyState.divineMight === true)
+        else if (this.MyState.divineMight === true) {
             chosenAbility = ActionRecordGCD["HS"];
+        }
         else if (this.MyState.swordOath === 0 && this.MyState.divineMight === false) {
-            if (this.MyState.comboState === 3)
+            if (this.MyState.comboState === 3) {
                 chosenAbility = ActionRecordGCD["Royal"];
-            else if (this.MyState.comboState === 2)
+            }
+            else if (this.MyState.comboState === 2) {
                 chosenAbility = ActionRecordGCD["Riot"];
-            else if (replace1WHc)
+            }
+            else if (replace1WHc) {
                 chosenAbility = ActionRecordGCD["HSHC"];
+            }
         }
 
         this.useGcd(chosenAbility);
     }
 
     useOgcdLateWeave(ability: OgcdAbility, hyperPrecise?: boolean): AbilityUseResult {
-        if (hyperPrecise)
+        if (hyperPrecise) {
             this.advanceTo(this.nextGcdTime - (STANDARD_ANIMATION_LOCK) - this.teenyTinySafetyMargin);
-        else
+        }
+        else {
             this.advanceTo(this.nextGcdTime - (STANDARD_ANIMATION_LOCK) - this.largerSafetyMargin);
+        }
         return this.useOgcd(ability);
     }
 
     override addSpecialRow(message: string, time?: number) {
-        if (!this.hideCommentText)
+        if (!this.hideCommentText) {
             super.addSpecialRow(message, time);
+        }
     }
 
     override useGcd(ability: GcdAbility): AbilityUseResult {
@@ -605,8 +632,9 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 
 
                 // Standard opener:
-                if (sim.settings.hardcastopener)
+                if (sim.settings.hardcastopener) {
                     cp.useGcd(ActionRecordGCD["HSHC"]);
+                }
                 cp.useGcd(ActionRecordGCD["Fast"]);
                 cp.useGcd(ActionRecordGCD["Riot"]);
                 if (!sim.settings.burstOneGCDEarlier) {
@@ -649,8 +677,9 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 
                             // If we are forcing 98s and this is an even minute, we will get our awareness
                             // elsewhere:
-                            if ((strategy98Force && evenMinute))
+                            if ((strategy98Force && evenMinute)) {
                                 forceNextBurst = true;
+                            }
                             else {
                                 const isAfterLateWeaveLimit = (readyAt > (cp.nextGcdTime - STANDARD_ANIMATION_LOCK));
                                 const isAfterNextGcd = readyAt > cp.nextGcdTime;
@@ -669,8 +698,9 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                                             forceNextBurst = true;
                                         }
                                     }
-                                    else
+                                    else {
                                         cp.addSpecialRow(">> Delaying FOF " + (nextEarly - readyAt).toFixed(2) + "s across GCD...", readyAt);
+                                    }
                                 }
                             }
                         }
@@ -681,8 +711,9 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                     if (cp.canUseWithoutClipping(ActionRecordOgcd["FOF"]) || forceNextBurst) {
 
                         if (strategy250 || strategyMinimise) {
-                            if (strategyMinimise)
+                            if (strategyMinimise) {
                                 cp.addSpecialRow(`>> Using FOF ASAP`);
+                            }
                             cp.useOgcd(ActionRecordOgcd["FOF"]);
                         }
                         else {
@@ -727,8 +758,9 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 
                         fofDelayTrackerNext = cp.cdTracker.statusOf(ActionRecordOgcd["FOF"]).readyAt.absolute;
 
-                        if (fofsUsed === 0)
+                        if (fofsUsed === 0) {
                             timeOfFirstFof = cp.currentTime;
+                        }
                         fofsUsed++;
                         timeOfLastFof = cp.currentTime;
 
@@ -752,8 +784,9 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                                 let isGonnaClip = false;
                                 const beforeGCD = cp.nextGcdTime;
                                 // If we're specifically pretending SKS doesn't exist, delay for Req+
-                                if (!cp.canUseWithoutClipping(ActionRecordOgcd["Imp"]))
+                                if (!cp.canUseWithoutClipping(ActionRecordOgcd["Imp"])) {
                                     isGonnaClip = true;
+                                }
 
                                 cp.delayForOgcd(ActionRecordOgcd["Imp"]);
 
@@ -814,8 +847,9 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                         // Use any further ogcds, and burn down to when we only have time for
                         // 1 more GCD
                         let prioritiseMelee = true;
-                        if (strategyAlways9 || (strategy98Alt && evenMinute))
+                        if (strategyAlways9 || (strategy98Alt && evenMinute)) {
                             prioritiseMelee = true;
+                        }
 
                         oGCDcounter = cp.useOgcdInOrder(ogcdOrder, oGCDcounter);
 
@@ -827,8 +861,9 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                         while (enoughTimeIfMelee && safety < 100000) {
                             safety++;
                             // Note the current status:
-                            if (!strategy250)
+                            if (!strategy250) {
                                 cp.addSpecialRow(`>> FOF: ${fofRemaining}s, phys prio`);
+                            }
                             // Use a burst GCD
                             cp.useBurstFiller(prioritiseMelee && (!sim.settings.perform12312OldPrio));
                             // Use any remaining oGCDs:
@@ -845,14 +880,17 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                             }
 
                             // Fix 'time runs out in middle of burst' infinite loop:
-                            if (cp.remainingGcdTime === 0)
+                            if (cp.remainingGcdTime === 0) {
                                 enoughTimeIfMelee = false;
+                            }
                         }
 
-                        if (!strategy250)
+                        if (!strategy250) {
                             cp.addSpecialRow(`>> Final burst GCD margin: ${fofRemaining}s:`);
-                        else
+                        }
+                        else {
                             cp.addSpecialRow(`>> Final burst GCD:`);
+                        }
 
                         if (sim.settings.simulateMissing9th && burstGCDsUsed === 3) {
                             cp.advanceTo(cp.nextGcdTime);
@@ -870,10 +908,12 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                         forceNextBurst = false;
 
                         if (strategy98Alt) {
-                            if (evenMinute)
+                            if (evenMinute) {
                                 cp.addSpecialRow(`>> 9/8 Even min: Hold Atonement`);
-                            else
+                            }
+                            else {
                                 cp.addSpecialRow(`>> 9/8 Odd min: Spend Atonement`);
+                            }
                         }
                     }
 
@@ -891,9 +931,10 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                         // we also replace 1s with hardcasts under 3 phys GCDs, preventing a new combo starting
                         cp.useBurstFiller(false, cp.remainingGcdTime < (physGCD * 3));
                     }
-                    else
+                    else {
                         cp.useFiller((evenMinute && strategy98Alt) || (strategyAlways9 && strategySpecial250Late),
                             sim.settings.perform12312OldPrio, sim.settings.avoidDoubleHS9s);
+                    }
 
                     // There are some circumstances where eg 2.47 will have these come off of
                     // cd when messing with FOF. Let's only use them once between bursts.
