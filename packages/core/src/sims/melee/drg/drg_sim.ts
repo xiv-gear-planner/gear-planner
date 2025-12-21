@@ -242,7 +242,7 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
             const blCooldown = cp.timeUntilReady(Actions.BattleLitany);
             const lcCooldown = cp.timeUntilReady(Actions.LanceCharge);
             const gskCooldown = cp.timeUntilReady(Actions.Geirskogul);
-            console.log("Next GCD: %.2f, LC: %.2f, BL: %.2f, Gsk: %.2f", timeUntilNextGcd, lcCooldown, blCooldown, gskCooldown);
+            //console.log("Next GCD: %.2f, LC: %.2f, BL: %.2f, Gsk: %.2f", timeUntilNextGcd, lcCooldown, blCooldown, gskCooldown);
             if (blCooldown < timeUntilNextGcd) {
                 cp.advanceTo(cp.currentTime + lcDelay);
                 this.use(cp, Actions.BattleLitany);
