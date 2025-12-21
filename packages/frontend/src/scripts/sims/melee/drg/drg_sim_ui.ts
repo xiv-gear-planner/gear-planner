@@ -1,4 +1,4 @@
-import {FieldBoundCheckBox, labeledCheckbox, quickElement} from "@xivgear/common-ui/components/util";
+import {FieldBoundCheckBox, FieldBoundFloatField, labeledCheckbox, labeledComponent, quickElement, el, labelFor, nonNegative} from "@xivgear/common-ui/components/util";
 import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {CustomColumnSpec} from "@xivgear/common-ui/table/tables";
@@ -33,6 +33,7 @@ export class DrgSimGui extends BaseMultiCycleSimGui<DrgSimResult, DrgSettings> {
 
         configDiv.appendChild(labeledCheckbox("Use Potion", potCb));
 
+        /*
         const useEptOpenerCB = new FieldBoundCheckBox(settings, "useEptOpener");
 
         configDiv.appendChild(labeledCheckbox("Use ePT opener (will use TT opener otherwise)", useEptOpenerCB));
@@ -40,6 +41,21 @@ export class DrgSimGui extends BaseMultiCycleSimGui<DrgSimResult, DrgSettings> {
         const useDoubleMdCB = new FieldBoundCheckBox(settings, "useDoubleMd");
 
         configDiv.appendChild(labeledCheckbox("Use double Mirage Dive", useDoubleMdCB));
+        */
+
+        const acceptableClipSksField = new FieldBoundFloatField<DrgSettings>(settings, "acceptableClipSks", {
+            inputMode: 'number',
+            id: 'acceptableClip',
+            postValidators: [nonNegative],
+        });
+
+        const label = labelFor('Maximum acceptable clip (SkS):', acceptableClipSksField);
+        label.style.display = 'block';
+        
+        configDiv.appendChild(el("div", {}, [
+            label,
+            acceptableClipSksField,
+        ]));
 
         return configDiv;
     }
