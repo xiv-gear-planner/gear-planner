@@ -24,13 +24,12 @@ import {
     LanceChargeBuff,
     LifeSurgeBuff
 } from "./drg_types";
-import {animationLock} from '../../ability_helpers';
+//import {animationLock} from '../../ability_helpers';
 //import {Litany} from "@xivgear/core/sims/buffs"
 import * as Actions from './drg_actions';
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
 import {potionMaxStr} from "@xivgear/core/sims/common/potion";
-import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
-//import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
+import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 
 function formatTime(time: number) {
     const negative = time < 0;
@@ -240,8 +239,8 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
             const gskDelay = this.getMinDelay9Gsk(cp);
             const timeUntilNextGcd = cp.nextGcdTime - cp.currentTime;
             const blCooldown = cp.timeUntilReady(Actions.BattleLitany);
-            const lcCooldown = cp.timeUntilReady(Actions.LanceCharge);
-            const gskCooldown = cp.timeUntilReady(Actions.Geirskogul);
+            //const lcCooldown = cp.timeUntilReady(Actions.LanceCharge);
+            //const gskCooldown = cp.timeUntilReady(Actions.Geirskogul);
             //console.log("Next GCD: %.2f, LC: %.2f, BL: %.2f, Gsk: %.2f", timeUntilNextGcd, lcCooldown, blCooldown, gskCooldown);
             if (blCooldown < timeUntilNextGcd) {
                 cp.advanceTo(cp.currentTime + lcDelay);
@@ -259,10 +258,10 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
         else if (this.canDo9Lc(cp)) {
             const lcDelay = this.getMinDelay9Lc(cp);
             const currentTime = cp.currentTime;
-            const timeUntilNextGcd = cp.nextGcdTime - currentTime;
-            const lcCooldown = cp.timeUntilReady(Actions.LanceCharge);
-            const blCooldown = cp.timeUntilReady(Actions.BattleLitany);
-            const gskCooldown = cp.timeUntilReady(Actions.Geirskogul);
+            //const timeUntilNextGcd = cp.nextGcdTime - currentTime;
+            //const lcCooldown = cp.timeUntilReady(Actions.LanceCharge);
+            //const blCooldown = cp.timeUntilReady(Actions.BattleLitany);
+            //const gskCooldown = cp.timeUntilReady(Actions.Geirskogul);
             //console.log("Next GCD: %.2f, LC: %.2f, BL: %.2f, Gsk: %.2f", timeUntilNextGcd, lcCooldown, blCooldown, gskCooldown);
             if (cp.canUseWithoutClipping(Actions.BattleLitany)) {
                 this.use(cp, Actions.BattleLitany);
@@ -399,7 +398,7 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
                             (canFitInGsk && timeLeftInLC > timeUntilGsk);
 
             // Only worry about this for 2.4 and 2.5
-            if (gcd == 2.5 && (canFitInBoth || canFitInLC || canFitInGsk)) {
+            if (gcd === 2.5 && (canFitInBoth || canFitInLC || canFitInGsk)) {
                 // Don't use it yet.
 
                 // Special exception for TT+double MD, don't wait for Gsk or we will overcap because of MD's higher priority.
@@ -520,7 +519,9 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
     private canUseWithClipping(cp: DrgCycleProcessor, action: OgcdAbility): boolean {
         const readyAt = cp.cdTracker.statusOf(action).readyAt.absolute;
         const maxDelayAt = cp.nextGcdTime;
-        if (readyAt > cp.totalTime) return false;
+        if (readyAt > cp.totalTime) {
+            return false;
+        }
         return (readyAt - maxDelayAt) <= this.settings.acceptableClipSks;
     }
 
@@ -570,7 +571,7 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
         this.useComboGCD(cp);
         if (canDo9Gsk) {
             cp.advanceTo(cp.currentTime + lcDelay);
-            this.use(cp, potionMaxStr); 
+            this.use(cp, potionMaxStr);
             this.useComboGCD(cp);
             cp.advanceTo(cp.currentTime + lcDelay);
             this.use(cp, Actions.BattleLitany);
@@ -587,19 +588,20 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
                 if (canDoubleWeaveLc) {
                     cp.advanceTo(cp.currentTime + lcDelay);
                     this.use(cp, Actions.LanceCharge);
-                    this.use(cp, potionMaxStr); 
+                    this.use(cp, potionMaxStr);
                 }
                 else {
-                    this.use(cp, potionMaxStr); 
+                    this.use(cp, potionMaxStr);
                     cp.advanceTo(cp.currentTime + lcDelay - STANDARD_ANIMATION_LOCK);
                     this.use(cp, Actions.LanceCharge);
                 }
-            } else {
+            }
+            else {
                 if (lcDelay > 0) {
                     cp.advanceTo(cp.currentTime + lcDelay);
                 }
                 this.use(cp, Actions.LanceCharge);
-                this.use(cp, potionMaxStr); 
+                this.use(cp, potionMaxStr);
             }
             this.useComboGCD(cp);
             this.use(cp, Actions.BattleLitany);
@@ -757,7 +759,7 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
                 outer.printDriftAndUsageSummary(cp);
             },
         }];*/
-        
+
         return [{
             cycleTime: 120,
             apply(cp: DrgCycleProcessor) {

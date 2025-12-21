@@ -1,4 +1,4 @@
-import {FieldBoundCheckBox, FieldBoundFloatField, labeledCheckbox, labeledComponent, quickElement, el, labelFor, nonNegative} from "@xivgear/common-ui/components/util";
+import {FieldBoundCheckBox, FieldBoundFloatField, labeledCheckbox, quickElement, el, labelFor, nonNegative} from "@xivgear/common-ui/components/util";
 import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {CustomColumnSpec} from "@xivgear/common-ui/table/tables";
@@ -51,7 +51,7 @@ export class DrgSimGui extends BaseMultiCycleSimGui<DrgSimResult, DrgSettings> {
 
         const label = labelFor('Maximum acceptable clip (SkS):', acceptableClipSksField);
         label.style.display = 'block';
-        
+
         configDiv.appendChild(el("div", {}, [
             label,
             acceptableClipSksField,
