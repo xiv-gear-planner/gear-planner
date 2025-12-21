@@ -144,7 +144,7 @@ const glare4: GcdAbility = {
 
 class WhmGaugeManager implements GaugeManager<WhmGaugeState> {
     private _blueLilies: number = 0;
-    private _redLilies: number = 0;
+    private _redLilies: number = 3;
 
     get blueLilies(): number {
         return this._blueLilies;
