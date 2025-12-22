@@ -1,6 +1,6 @@
 import {AutoAttack, GcdAbility, OgcdAbility, SimSpec} from "@xivgear/core/sims/sim_types";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {TechnicalFinish} from "@xivgear/core/sims/buffs";
+import {StandardFinishBuff, TechnicalFinish} from "@xivgear/core/sims/buffs";
 import {ExternalCountSettings, CountSimResult, BaseUsageCountSim, SkillCount} from "@xivgear/core/sims/processors/count_sim";
 
 export const dncDtSheetSpec: SimSpec<DncDtSim, DncDtSimSettings> = {
@@ -87,6 +87,7 @@ const standardFinish: GcdAbility = {
     attackType: 'Weaponskill',
     gcd: 1.50,
     fixedGcd: true,
+    activatesBuffs: [StandardFinishBuff],
     id: 16003,
 } as const satisfies GcdAbility;
 
@@ -150,6 +151,7 @@ const finishingMove: GcdAbility = {
     potency: 850,
     attackType: 'Weaponskill',
     gcd: 2.50,
+    activatesBuffs: [StandardFinishBuff],
     // TODO: dt skill
     id: 40001,
 } as const satisfies GcdAbility;

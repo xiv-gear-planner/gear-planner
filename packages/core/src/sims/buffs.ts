@@ -101,13 +101,28 @@ export const StarryMuse = {
     statusId: 3685,
 } as const satisfies PartyBuff;
 
+export const StandardFinishBuff = {
+    name: "Standard Finish",
+    saveKey: "Standard Finish",
+    job: "DNC",
+    duration: 60,
+    cooldown: 30,
+    selfOnly: false,
+    effects: {
+        dmgIncrease: 0.05,
+    },
+    startTime: 0,
+    statusId: 1821,
+    // TODO: The first application won't apply to itself,
+    // but subseqent applications should if the buff hasn't been dropped
+} as const satisfies PartyBuff;
+
 export const Devilment = {
     name: "Devilment",
     saveKey: "Devilment",
     job: "DNC",
     duration: 20,
     cooldown: 120,
-    optional: true,
     selfOnly: false,
     effects: {
         dhitChanceIncrease: 0.20,
@@ -244,7 +259,7 @@ export const OffGuardBuff = {
 
 export const ALL_BUFFS = [
     Dokumori, Litany, Brotherhood, ArcaneCircleBuff, SearingLight, Embolden, StarryMuse,
-    Devilment, TechnicalFinish, BattleVoice, RadiantFinale, Chain, Divination,
+    StandardFinishBuff, Devilment, TechnicalFinish, BattleVoice, RadiantFinale, Chain, Divination,
     AstCard, OffGuardBuff,
 ] as const;
 
