@@ -1,5 +1,5 @@
 import {GnbGauge} from "./gnb_gauge";
-import {GnbGcdAbility, GnbOgcdAbility, ReadyToBlastBuff, ReadyToRipBuff, NoMercyBuff, ReadyToTearBuff, ReadyToGougeBuff, ReadyToBreakBuff, ReadyToReignBuff} from "./gnb_types";
+import {GnbGcdAbility, GnbOgcdAbility, ReadyToBlastBuff, ReadyToRipBuff, NoMercyBuff, ReadyToTearBuff, ReadyToGougeBuff, ReadyToBreakBuff, ReadyToReignBuff, BloodfestBuff} from "./gnb_types";
 
 export const LightningShot: GnbGcdAbility = {
     type: 'gcd',
@@ -77,7 +77,7 @@ export const GnashingFang: GnbGcdAbility = {
     type: 'gcd',
     name: "Gnashing Fang",
     id: 16146,
-    potency: 380,
+    potency: 330,
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
@@ -85,14 +85,13 @@ export const GnashingFang: GnbGcdAbility = {
     activatesBuffs: [ReadyToRipBuff],
     cooldown: {
         time: 30,
-        reducedBy: "skillspeed",
-        charges: 1,
+        charges: 2,
     },
-    updateCartridges: (gauge: GnbGauge) => gauge.cartridges -= 1,
+    updateCartridges: (gauge: GnbGauge) => gauge.useCarts(1),
     levelModifiers: [
         {
             minLevel: 94,
-            potency: 500,
+            potency: 440,
         },
     ],
 };
@@ -101,7 +100,7 @@ export const SavageClaw: GnbGcdAbility = {
     type: 'gcd',
     name: "Savage Claw",
     id: 16147,
-    potency: 460,
+    potency: 410,
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
@@ -109,7 +108,7 @@ export const SavageClaw: GnbGcdAbility = {
     levelModifiers: [
         {
             minLevel: 94,
-            potency: 560,
+            potency: 500,
         },
     ],
 };
@@ -118,7 +117,7 @@ export const WickedTalon: GnbGcdAbility = {
     type: 'gcd',
     name: "Wicked Talon",
     id: 16150,
-    potency: 540,
+    potency: 490,
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
@@ -126,7 +125,7 @@ export const WickedTalon: GnbGcdAbility = {
     levelModifiers: [
         {
             minLevel: 94,
-            potency: 620,
+            potency: 560,
         },
     ],
 };
@@ -135,12 +134,12 @@ export const BurstStrike: GnbGcdAbility = {
     type: 'gcd',
     name: "Burst Strike",
     id: 16162,
-    potency: 380,
+    potency: 340,
     attackType: "Weaponskill",
     gcd: 2.5,
     cartridgeCost: 1,
     activatesBuffs: [],
-    updateCartridges: (gauge: GnbGauge) => gauge.cartridges -= 1,
+    updateCartridges: (gauge: GnbGauge) => gauge.useCarts(1),
     levelModifiers: [
         {
             minLevel: 86,
@@ -148,7 +147,7 @@ export const BurstStrike: GnbGcdAbility = {
         },
         {
             minLevel: 94,
-            potency: 460,
+            potency: 420,
             activatesBuffs: [ReadyToBlastBuff],
         },
     ],
@@ -158,29 +157,29 @@ export const DoubleDown: GnbGcdAbility = {
     type: 'gcd',
     name: "Double Down",
     id: 25760,
-    potency: 1200,
+    potency: 1000,
     attackType: "Weaponskill",
     gcd: 2.5,
-    cartridgeCost: 1,
+    cartridgeCost: 2,
     cooldown: {
         time: 60,
         reducedBy: "skillspeed",
         charges: 1,
     },
-    updateCartridges: (gauge: GnbGauge) => gauge.cartridges -= 1,
+    updateCartridges: (gauge: GnbGauge) => gauge.useCarts(2),
 };
 
 export const SonicBreak: GnbGcdAbility = {
     type: 'gcd',
     name: "Sonic Break",
     id: 16153,
-    potency: 300,
+    potency: 340,
     attackType: "Weaponskill",
     gcd: 2.5,
     dot: {
         id: 1837,
-        tickPotency: 60,
-        duration: 30,
+        tickPotency: 120,
+        duration: 15,
     },
 };
 
@@ -188,7 +187,7 @@ export const ReignOfBeasts: GnbGcdAbility = {
     type: 'gcd',
     name: "Reign of Beasts",
     id: 36937,
-    potency: 1000,
+    potency: 800,
     attackType: "Weaponskill",
     gcd: 2.5,
 };
@@ -197,7 +196,7 @@ export const NobleBlood: GnbGcdAbility = {
     type: 'gcd',
     name: "Noble Blood",
     id: 36938,
-    potency: 1100,
+    potency: 900,
     attackType: "Weaponskill",
     gcd: 2.5,
 };
@@ -206,7 +205,7 @@ export const LionHeart: GnbGcdAbility = {
     type: 'gcd',
     name: "Lion Heart",
     id: 36939,
-    potency: 1200,
+    potency: 1000,
     attackType: "Weaponskill",
     gcd: 2.5,
 };
@@ -231,15 +230,15 @@ export const Bloodfest: GnbOgcdAbility = {
     potency: 0,
     attackType: "Ability",
     cooldown: {
-        time: 120,
+        time: 60,
         charges: 1,
     },
-    activatesBuffs: [],
-    updateCartridges: (gauge: GnbGauge) => gauge.cartridges += gauge.maxCartridges,
+    activatesBuffs: [BloodfestBuff],
+    updateCartridges: (gauge: GnbGauge) => gauge.bonusCartridges += gauge.maxCartridges,
     levelModifiers: [
         {
             minLevel: 100,
-            activatesBuffs: [ReadyToReignBuff],
+            activatesBuffs: [ReadyToReignBuff, BloodfestBuff],
         },
     ],
 };
@@ -296,7 +295,7 @@ export const Hypervelocity: GnbOgcdAbility = {
     type: 'ogcd',
     name: "Hypervelocity",
     id: 25759,
-    potency: 160,
+    potency: 140,
     attackType: "Ability",
     cooldown: {
         time: 1,
@@ -305,7 +304,7 @@ export const Hypervelocity: GnbOgcdAbility = {
     levelModifiers: [
         {
             minLevel: 94,
-            potency: 200,
+            potency: 180,
         },
     ],
 };
@@ -332,7 +331,7 @@ export const AbdomenTear: GnbOgcdAbility = {
     type: 'ogcd',
     name: "Abdomen Tear",
     id: 16157,
-    potency: 240,
+    potency: 220,
     attackType: "Ability",
     cooldown: {
         time: 1,
@@ -341,7 +340,7 @@ export const AbdomenTear: GnbOgcdAbility = {
     levelModifiers: [
         {
             minLevel: 94,
-            potency: 280,
+            potency: 260,
         },
     ],
 };
@@ -350,7 +349,7 @@ export const EyeGouge: GnbOgcdAbility = {
     type: 'ogcd',
     name: "Eye Gouge",
     id: 16158,
-    potency: 280,
+    potency: 260,
     attackType: "Ability",
     cooldown: {
         time: 1,
@@ -359,7 +358,7 @@ export const EyeGouge: GnbOgcdAbility = {
     levelModifiers: [
         {
             minLevel: 94,
-            potency: 320,
+            potency: 300,
         },
     ],
 };

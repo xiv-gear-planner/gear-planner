@@ -1,7 +1,6 @@
 import {
     el,
     FieldBoundCheckBox,
-    FieldBoundFloatOrUndefField,
     labeledCheckbox,
     labelFor,
     quickElement
@@ -16,8 +15,6 @@ import {GaugeWithText} from "@xivgear/common-ui/components/gauges";
 import {extraDataDiscreteGaugeRenderer} from "../common/sim_ui_utils";
 
 export class GnbSimGui extends BaseMultiCycleSimGui<GnbSimResult, GnbSettings> {
-
-
     protected extraAbilityUsedColumns(_: GnbSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
         return [
             {
@@ -73,19 +70,15 @@ export class GnbSimGui extends BaseMultiCycleSimGui<GnbSimResult, GnbSettings> {
     override makeCustomConfigInterface(settings: GnbSettings, _updateCallback: () => void): HTMLElement | null {
 
         const potCb = new FieldBoundCheckBox(settings, "usePotion");
-
-        const holdiness = new FieldBoundFloatOrUndefField(settings, 'holdiness', {id: 'holdiness'});
-        const holdLabel = labelFor('# GCDs to hold Gnashing for nearby No Mercy. Leave blank for default:', holdiness);
-        holdLabel.classList.add('non-expanding-block');
-
-        const pretendMicroclipsDontExistCB = new FieldBoundCheckBox(settings, "pretendThatMicroclipsDontExist");
+        const unrealisticGcdClip = new FieldBoundCheckBox(settings, 'unrealisticGcdClipRotation', {id: 'unrealisticGcdClipRotation'});
+        const unrealisticGcdClipLabel = labelFor('Unrealistic GCD Clip Rotation for 2.49/2.48', unrealisticGcdClip);
+        unrealisticGcdClipLabel.classList.add('non-expanding-block');
 
         return el("div", {}, [
             labeledCheckbox("Use Potion", potCb),
-            labeledCheckbox("Assume that Gnashing Fang microclips don't exist", pretendMicroclipsDontExistCB),
             el('br'),
-            holdLabel,
-            holdiness,
+            unrealisticGcdClip,
+            unrealisticGcdClipLabel,
         ]);
     }
 
