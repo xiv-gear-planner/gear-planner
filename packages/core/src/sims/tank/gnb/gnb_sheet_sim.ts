@@ -41,6 +41,10 @@ export interface GnbSettings extends SimSettings {
     usePotion: boolean;
     // the length of the fight in seconds
     fightTime: number;
+    // If the sim should do the unrealistic gcd clip tech for 2.49/2.48.
+    // While a gain, it's unfeasible to do in-game for 2.49 and not practical
+    // to do in a real fight for 2.48.
+    unrealisticGcdClipRotation: boolean;
 }
 
 export interface GnbSettingsExternal extends ExternalCycleSettings<GnbSettings> {
@@ -333,6 +337,7 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
             // This is chosen since it's two pots, five bursts,
             // and is somewhat even between the two main GCDs.
             fightTime: (8 * 60) + 30,
+            unrealisticGcdClipRotation: false,
         };
     }
 
@@ -383,16 +388,18 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
             }
         }
 
-        if (cp.stats.level === 100) {
-            // 2.49 / 2.48 Opti Zone
-            // We're at Wicked Talon. We should clip our GCD for No Mercy
-            if (cp.isGnashingFangComboActive() && cp.rotationState.gnashingFangCombo === 2 && cp.stats.gcdPhys(2.5) < 2.5) {
-                // This check checks whether or not a small amount of clipping would be possible to fit a 9 GCD NM after intentionally
-                // clipping your GCD. Practically speaking, this only applies to 2.49 and 2.48.
-                if (cp.cdTracker.statusOf(Actions.NoMercy).readyAt.relative < cp.nextGcdTime - cp.currentTime) {
-                    cp.advanceTo(cp.cdTracker.statusOf(Actions.NoMercy).readyAt.absolute);
-                    cp.use(Actions.NoMercy);
-                    return cp.getGnashingFangComboToUse();
+        if (this.settings.unrealisticGcdClipRotation) {
+            if (cp.stats.level === 100) {
+                // 2.49 / 2.48 Opti Zone
+                // We're at Wicked Talon. We should clip our GCD for No Mercy
+                if (cp.isGnashingFangComboActive() && cp.rotationState.gnashingFangCombo === 2 && cp.stats.gcdPhys(2.5) < 2.5) {
+                    // This check checks whether or not a small amount of clipping would be possible to fit a 9 GCD NM after intentionally
+                    // clipping your GCD. Practically speaking, this only applies to 2.49 and 2.48.
+                    if (cp.cdTracker.statusOf(Actions.NoMercy).readyAt.relative < cp.nextGcdTime - cp.currentTime) {
+                        cp.advanceTo(cp.cdTracker.statusOf(Actions.NoMercy).readyAt.absolute);
+                        cp.use(Actions.NoMercy);
+                        return cp.getGnashingFangComboToUse();
+                    }
                 }
             }
         }
@@ -453,7 +460,7 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
             const gcdSpeed = cp.stats.gcdPhys(2.5);
             // Force gcd clip for 9 GCD No Mercy at 2.48 and 2.49.
             // We don't want any of the other behaviour, we want to literally do this every single time.
-            const forceGcdClipForNineGcdNoMercy = gcdSpeed === 2.48 || gcdSpeed === 2.49;
+            const forceGcdClipForNineGcdNoMercy = this.settings.unrealisticGcdClipRotation && (gcdSpeed === 2.48 || gcdSpeed === 2.49);
             if (forceGcdClipForNineGcdNoMercy) {
                 if (readyAt.absolute <= (cp.nextGcdTime + gcdSpeed * 2)) {
                     return cp.getGnashingFangComboToUse();

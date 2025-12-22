@@ -2,6 +2,7 @@ import {
     el,
     FieldBoundCheckBox,
     labeledCheckbox,
+    labelFor,
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
@@ -14,8 +15,6 @@ import {GaugeWithText} from "@xivgear/common-ui/components/gauges";
 import {extraDataDiscreteGaugeRenderer} from "../common/sim_ui_utils";
 
 export class GnbSimGui extends BaseMultiCycleSimGui<GnbSimResult, GnbSettings> {
-
-
     protected extraAbilityUsedColumns(_: GnbSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
         return [
             {
@@ -71,10 +70,15 @@ export class GnbSimGui extends BaseMultiCycleSimGui<GnbSimResult, GnbSettings> {
     override makeCustomConfigInterface(settings: GnbSettings, _updateCallback: () => void): HTMLElement | null {
 
         const potCb = new FieldBoundCheckBox(settings, "usePotion");
+        const unrealisticGcdClip = new FieldBoundCheckBox(settings, 'unrealisticGcdClipRotation', {id: 'unrealisticGcdClipRotation'});
+        const unrealisticGcdClipLabel = labelFor('Unrealistic GCD Clip Rotation for 2.49/2.48', unrealisticGcdClip);
+        unrealisticGcdClipLabel.classList.add('non-expanding-block');
 
         return el("div", {}, [
             labeledCheckbox("Use Potion", potCb),
             el('br'),
+            unrealisticGcdClip,
+            unrealisticGcdClipLabel,
         ]);
     }
 
