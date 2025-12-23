@@ -23,7 +23,7 @@ export class CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType> ex
     private table: CustomTable<RowDataType, any>;
     private readonly span: HTMLSpanElement;
 
-    constructor(table: CustomTable<RowDataType, any>, columnDef: CustomColumn<RowDataType, CellDataType, ColumnDataType>, row: CustomTableHeaderRow<RowDataType>) {
+    constructor(table: CustomTable<RowDataType, any>, private readonly columnDef: CustomColumn<RowDataType, CellDataType, ColumnDataType>, private readonly row: CustomTableHeaderRow<RowDataType>) {
         super();
         this.table = table;
         this._colDef = columnDef;
@@ -31,9 +31,6 @@ export class CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType> ex
         this.appendChild(this.span);
         this.refreshFull();
         setCellProps(this, columnDef);
-        if (columnDef.headerStyler) {
-            columnDef.headerStyler(columnDef.dataValue, this, row);
-        }
         this.refreshSelection();
     }
 
@@ -41,12 +38,15 @@ export class CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType> ex
         return this._colDef;
     }
 
-    setName() {
+    private setText() {
         this.span.textContent = this.colDef.displayName;
     }
 
     refreshFull() {
-        this.setName();
+        this.setText();
+        if (this.columnDef.headerStyler) {
+            this.columnDef.headerStyler(this.columnDef.dataValue, this, this.row);
+        }
     }
 
     refreshSelection() {

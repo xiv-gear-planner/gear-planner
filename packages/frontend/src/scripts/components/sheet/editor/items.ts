@@ -1046,8 +1046,6 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
                 renderer: (itemName, item) => {
                     return quickElement('div', ['item-name-holder'], [quickElement('span', ['item-name'], [shortenItemName(itemName)])]);
                 },
-                headerStyler: (_, colHeader, headerRow) => {
-                },
                 // initialWidth: 300,
             }),
             // {
