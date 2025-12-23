@@ -373,10 +373,10 @@ class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOrHeaderS
                 allowCellSelection: true,
                 // TODO: make this not display if the sim has no settings
                 headerStyler: (value, colHeader) => {
-                    const span = document.createElement('span');
-                    span.textContent = '⛭';
-                    span.classList.add('header-cell-detail', 'header-cell-gear');
-                    colHeader.firstElementChild?.appendChild(span);
+                    if (!colHeader.querySelector('.header-cell-gear')) {
+                        const span = el('span', {classes: ['header-cell-detail', 'header-cell-gear']}, ['⛭']);
+                        colHeader.firstElementChild?.appendChild(span);
+                    }
                     // colHeader.append(span);
                     colHeader.classList.add('hoverable');
                     colHeader.title = 'Click to configure simulation settings';
