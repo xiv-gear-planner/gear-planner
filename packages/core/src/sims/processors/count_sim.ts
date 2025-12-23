@@ -74,6 +74,7 @@ export abstract class BaseUsageCountSim<ResultType extends CountSimResult, Inter
         const enabledBuffs = this.buffManager.enabledBuffs;
         // Map from duration to list of enabled party buffs with that duration
         // e.g. 15 -> [Chain, Litany], 20 -> [Embolden]
+        // NOT cumulative - a 20 second buff will only be in the 20 second bucket, not any shorter bucket.
         const durationMap: Map<number, PartyBuff[]> = new Map();
         enabledBuffs.forEach(buff => {
             const duration = buff.duration;
@@ -116,6 +117,7 @@ export abstract class BaseUsageCountSim<ResultType extends CountSimResult, Inter
             console.debug(`Duration after ${duration} - raw ${JSON.stringify(thisDurationCumulative)}`);
             previous = thisDurationCumulative;
         }
+        // At this point, skillsDurationMap is done.
         // Organize into buckets
         const resultBuckets: BuffWindowUsages[] = [];
         // no buffs bucket
@@ -130,7 +132,21 @@ export abstract class BaseUsageCountSim<ResultType extends CountSimResult, Inter
         for (let i = 0; i < durationKeys.length; i++) {
             const duration = durationKeys[i];
             const minDuration = (i + 1) in durationKeys ? durationKeys[i + 1] : null;
-            const buffs = durationMap.get(duration) ?? [];
+            // We need to also include longer buffs into each bucket.
+            // e.g. if we have 3 uses in 15 seconds buffs and 2 additional in 20 seconds buffs, then we need the 3 to
+            // also include effects of the 20 second buffs.
+            const buffs: PartyBuff[] = [];
+            // Iterate over duration keys so that we include longer buffs as well.
+            // durationKeys is sorted descending, so we start at 0 and go to the current i.
+            for (let j = 0; j <= i; j++) {
+                const dur = durationKeys[j];
+                const buffsForThisDur = durationMap.get(dur) ?? [];
+                buffsForThisDur.forEach(buff => {
+                    if (!buffs.includes(buff)) {
+                        buffs.push(buff);
+                    }
+                });
+            }
             resultBuckets.push({
                 maxDuration: duration,
                 minDuration: minDuration,
