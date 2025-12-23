@@ -120,7 +120,7 @@ export class BaseUsageCountSimGui<ResultType extends CountSimResult, InternalSet
             columns.push(col({
                 shortName: `buff-dur-${dur}`,
                 displayName: `In ${dur}s Buffs`,
-                headerStyler: setTitle(`Skills under ${dur}s and shorter buffs (${formattedBuffs})`),
+                headerStyler: setTitle(`Skills under ${dur}s and longer buffs\n(${formattedBuffs})`),
                 getter: bucket => {
                     return bucket.usages.get(dur) ?? 0;
                 },
