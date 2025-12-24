@@ -283,7 +283,7 @@ export class BlmPpsSim implements Simulation<BlmPpsResult, BlmPpsSettings, BlmPp
         let numGcds = 6;
 
         // lv>=90 has 6xF4 so one more. lv<=80 has 7xF4 so two more, but special case for cold B3 at lv80.
-        if (stats.level === 90) {
+        if (stats.level >= 90) {
             damage = addValues(damage, F4damage);
             value += F4;
             numGcds += 1;
@@ -300,7 +300,8 @@ export class BlmPpsSim implements Simulation<BlmPpsResult, BlmPpsSettings, BlmPp
             value += hotF3;
             numGcds += 1;
         }
-        else if (stats.level === 70 || (stats.level === 80 && !this.settings.useColdB3)) {
+        else if (stats.level === 70 || (stats.level === 80 && !this.settings.useColdB3)
+                            || (stats.level >= 90 && !this.settings.useStandardF3P)) {
             damage = addValues(damage, fastF3damage);
             value += fastF3;
             numGcds += 1;
@@ -384,6 +385,8 @@ export class BlmPpsSim implements Simulation<BlmPpsResult, BlmPpsSettings, BlmPp
             }
         }
 
+        console.log(numGcds);
+        
         return {
             damage,
             value,
@@ -421,15 +424,24 @@ export class BlmPpsSim implements Simulation<BlmPpsResult, BlmPpsSettings, BlmPp
         const potency = cycle.value + xeno.value + mf.value + amply.value + thunder.value;
         const time = cycle.time + xeno.time + mf.time + amply.time + thunder.time;
 
-        /*
+        //const damage = cycle.damage;
+        //const potency = cycle.value;
+        //const time = cycle.time;
+        
+        
         console.log({cycle, xeno, mf, amply, thunder, damage, potency, time});
-        console.log("Rotation PPS: " + potency / time);
-        */
+        
 
         const enochian = this.getEnochianModifier(stats);
 
         const dps = multiplyFixed(damage, enochian / time);
         const pps = potency / time;
+
+        console.log("time:", time);
+        console.log("total damage before eno:", damage.expected);
+        console.log("total damage after eno:", multiplyFixed(damage, enochian).expected);
+        console.log("dps before eno:", multiplyFixed(damage, 1/time).expected);
+        console.log("dps after eno:", multiplyFixed(damage, enochian/time).expected);
 
         return {
             mainDpsResult: applyStdDev(dps, this.settings.stdDevs ?? 0),
