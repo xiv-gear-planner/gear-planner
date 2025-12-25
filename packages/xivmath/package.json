@@ -5,7 +5,7 @@
   "scripts": {
     "build": "tsc --build",
     "buildprod": "tsc --build",
-    "test": "ts-mocha src/test/**/*tests.ts"
+    "test": "ts-mocha \"src/test/**/*tests.ts\""
   },
   "devDependencies": {
     "@types/chai": "^4.3.20",
