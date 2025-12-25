@@ -72,9 +72,6 @@ describe('parsePath', () => {
     });
 
     describe('importsheet', () => {
-        it('this test fails on purpose', () => {
-            expect(true).to.be.false;
-        });
         it('does not try to embed import form', () => {
             const result = parsePath(new NavState(['embed', 'importsheet']));
             expect(result).to.deep.equals({
@@ -91,7 +88,9 @@ describe('parsePath', () => {
                 jsonBlob: setValue,
                 embed: false,
                 viewOnly: false,
-            });
+                defaultSelectionIndex: undefined,
+                onlySetIndex: undefined,
+            } satisfies NavPath);
         });
         it('does not try to embed import sheet', () => {
             const setValue = {
@@ -103,7 +102,9 @@ describe('parsePath', () => {
                 jsonBlob: setValue,
                 embed: false,
                 viewOnly: false,
-            });
+                defaultSelectionIndex: undefined,
+                onlySetIndex: undefined,
+            } satisfies NavPath);
         });
     });
 
@@ -118,7 +119,9 @@ describe('parsePath', () => {
                 jsonBlob: setValue,
                 embed: false,
                 viewOnly: true,
-            });
+                defaultSelectionIndex: undefined,
+                onlySetIndex: undefined,
+            } satisfies NavPath);
         });
         it('does not try to embed view sheet', () => {
             const setValue = {
@@ -130,7 +133,9 @@ describe('parsePath', () => {
                 jsonBlob: setValue,
                 embed: false,
                 viewOnly: true,
-            });
+                defaultSelectionIndex: undefined,
+                onlySetIndex: undefined,
+            } satisfies NavPath);
         });
     });
 
