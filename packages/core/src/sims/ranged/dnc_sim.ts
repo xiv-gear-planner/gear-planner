@@ -383,7 +383,7 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
         const FanDanceIIITotal = FanDanceTotal / 2 + 2;
         const FanDanceIII15 = FanDance15 / 2 + 1;
         const FanDanceIII20 = FanDance20 / 2 + 1;
-        const FanDanceIII30 = FanDance30 / 2 + 11;
+        const FanDanceIII30 = FanDanceIII20;
 
         const FullCycleTime = this.totalCycleTime(set);
 

@@ -11,6 +11,12 @@ import {col, CustomColumn, CustomTable, HeaderRow} from "@xivgear/common-ui/tabl
 import {simpleKvTable} from "./components/simple_tables";
 import {BaseUsageCountSim, CountSimResult, ExternalCountSettings} from "@xivgear/core/sims/processors/count_sim";
 
+function setTitle(title: string) {
+    return (_: never, cell: HTMLElement) => {
+        cell.title = title;
+    };
+}
+
 export class BaseUsageCountSimGui<ResultType extends CountSimResult, InternalSettingsType extends SimSettings>
     extends SimulationGui<ResultType, InternalSettingsType, ExternalCountSettings<InternalSettingsType>> {
 
@@ -109,9 +115,12 @@ export class BaseUsageCountSimGui<ResultType extends CountSimResult, InternalSet
             },
         })];
         buffDurations.forEach(dur => {
+            const buffsUnderDur = result.buffBuckets.find(bucket => bucket.maxDuration === dur)?.buffs ?? [];
+            const formattedBuffs = buffsUnderDur.map(buff => `${buff.name}(${buff.duration})`).join(", ");
             columns.push(col({
                 shortName: `buff-dur-${dur}`,
                 displayName: `In ${dur}s Buffs`,
+                headerStyler: setTitle(`Skills under ${dur}s and longer buffs\n(${formattedBuffs})`),
                 getter: bucket => {
                     return bucket.usages.get(dur) ?? 0;
                 },
@@ -121,6 +130,7 @@ export class BaseUsageCountSimGui<ResultType extends CountSimResult, InternalSet
         columns.push(col({
             shortName: `out-of-buffs`,
             displayName: `Out of Buffs`,
+            headerStyler: setTitle('Skills used outside any buff windows'),
             getter: bucket => {
                 return bucket.outOfBuffs;
             },
