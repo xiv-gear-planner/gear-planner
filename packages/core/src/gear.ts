@@ -387,7 +387,7 @@ export class CharacterGearSet {
         }
         this.invalidate();
         this.equipment[slot] = this.toEquippedItem(item);
-        console.log(`Set ${this.name}: slot ${slot} => ${item?.name}`);
+        // console.debug(`Set ${this.name}: slot ${slot} => ${item?.name}`);
         if (materiaAutoFillController) {
             const mode = materiaAutoFillController.autoFillMode;
             if (mode === 'leave_empty') {

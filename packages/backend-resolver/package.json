@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc --build",
     "buildprod": "tsc --build",
-    "test": "ts-mocha --parallel=true src/test/**/*.ts"
+    "test": "ts-mocha --parallel=true \"src/test/**/*.ts\""
   },
   "dependencies": {
     "@fastify/cors": "8.5.0",

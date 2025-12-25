@@ -39,6 +39,6 @@
     "web": "webpack --mode=development",
     "webprod": "webpack --mode=production",
     "less": "lessc --source-map ./src/style.less dist/style.css",
-    "test": "ts-mocha --parallel=true src/scripts/test/**/*test.ts src/scripts/test/**/*tests.ts"
+    "test": "ts-mocha --parallel=true \"src/scripts/test/**/*test.ts\" \"src/scripts/test/**/*tests.ts\""
   }
 }
