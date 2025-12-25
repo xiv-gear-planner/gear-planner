@@ -72,6 +72,9 @@ describe('parsePath', () => {
     });
 
     describe('importsheet', () => {
+        it('this test fails on purpose', () => {
+            expect(true).to.be.false;
+        });
         it('does not try to embed import form', () => {
             const result = parsePath(new NavState(['embed', 'importsheet']));
             expect(result).to.deep.equals({
