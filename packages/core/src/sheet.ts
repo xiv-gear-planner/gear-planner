@@ -49,7 +49,7 @@ import {
     SimExport,
     Substat
 } from "@xivgear/xivmath/geartypes";
-import {CharacterGearSet, isSameOrBetterItem, SyncInfo} from "./gear";
+import {CharacterGearSet, SyncInfo} from "./gear";
 import {DataManager, DmJobs, makeDataManager} from "./datamanager";
 import {Inactivitytimer} from "@xivgear/util/inactivitytimer";
 import {writeProxy} from "@xivgear/util/proxies";
