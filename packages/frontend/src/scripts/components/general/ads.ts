@@ -57,7 +57,7 @@ class ManagedAd {
     private ad: unknown;
     private readonly adSizes: AdSize[];
 
-    constructor(public readonly id: string, outerSize: AdContainerSize, condition: DisplayCondition, readonly adSide: AdSide, useMinSize: boolean = true) {
+    constructor(public readonly id: string, outerSize: AdContainerSize, condition: DisplayCondition, readonly adSide: AdSide, useMinSize: boolean = false) {
         this.adContainer = makeFixedArea(id, outerSize[0], outerSize[1], adSide, useMinSize);
         this.adSize = outerSize;
         this.adSizes = AdSizes.filter(size => size[0] <= outerSize[0] && size[1] <= outerSize[1]);
