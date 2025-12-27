@@ -44,6 +44,7 @@ const X_PADDING = 10;
 const Y_PADDING = 50;
 
 type AdSide = 'left' | 'right';
+
 /**
  * Manages a single ad
  */
@@ -56,8 +57,8 @@ class ManagedAd {
     private ad: unknown;
     private readonly adSizes: AdSize[];
 
-    constructor(public readonly id: string, outerSize: AdContainerSize, condition: DisplayCondition, readonly adSide: AdSide) {
-        this.adContainer = makeFixedArea(id, outerSize[0], outerSize[1], adSide);
+    constructor(public readonly id: string, outerSize: AdContainerSize, condition: DisplayCondition, readonly adSide: AdSide, useMinSize: boolean = true) {
+        this.adContainer = makeFixedArea(id, outerSize[0], outerSize[1], adSide, useMinSize);
         this.adSize = outerSize;
         this.adSizes = AdSizes.filter(size => size[0] <= outerSize[0] && size[1] <= outerSize[1]);
         this.condition = condition;
@@ -174,10 +175,12 @@ function adsEnabled(): boolean {
 }
 
 
-function makeFixedArea(id: string, width: number, height: number, side: AdSide): AdContainerElements {
+function makeFixedArea(id: string, width: number, height: number, side: AdSide, useMinSize: boolean): AdContainerElements {
     const inner = document.createElement('div');
-    inner.style.height = `${height}px`;
-    inner.style.width = `${width}px`;
+    if (useMinSize) {
+        inner.style.height = `${height}px`;
+        inner.style.width = `${width}px`;
+    }
     inner.id = id;
 
     const middle = document.createElement('div');
@@ -241,6 +244,9 @@ const AdContainerSizes = [
     [300, 250],
     [160, 600],
     [320, 100],
+    [970, 250],
+    [970, 90],
+    [728, 90],
 ] as const;
 type AdContainerSize = typeof AdContainerSizes[number];
 // const foo: AdContainerSize = [300, 250];
@@ -357,34 +363,36 @@ export function insertAds(newElement: HTMLElement) {
                         return parentWidth >= contentWidth() + 2 * (adWidth + X_PADDING);
                     }
 
-                    function adCondition(size: AdContainerSize, previous: DisplayCondition[] = []): DisplayCondition {
-                        return (w, h) => {
+                    const existing: DisplayCondition[] = [];
+
+                    // Add mutual exclusion to a condition.
+                    // The first caller of this gets priority, i.e. call in descending order of priority.
+                    function adCondition(conditionInner: DisplayCondition): DisplayCondition {
+                        const previous = [...existing];
+                        const dc: DisplayCondition = (w: number, h: number) => {
                             for (const prev of previous) {
                                 if (prev(w, h)) {
                                     return false;
                                 }
                             }
-                            return horizFit(w, size[0]) && h >= size[1] + Y_PADDING;
+                            return conditionInner(w, h);
                         };
+                        existing.push(dc);
+                        return dc;
                     }
 
-                    function adConditions<X extends readonly AdContainerSize[]>(sizes: X): { [I in keyof X]: DisplayCondition } {
-                        const out: DisplayCondition[] = [];
-                        sizes.forEach(size => {
-                            const newCond = adCondition(size, [...out]);
-                            out.push(newCond);
+                    // Condition for ads which only take up otherwise-empty space
+                    function emptySpace(size: AdContainerSize): DisplayCondition {
+                        return adCondition((w, h) => {
+                            return horizFit(w, size[0]) && h >= size[1] + Y_PADDING;
                         });
-                        return out as { [I in keyof X]: DisplayCondition };
                     }
 
-                    const conds = adConditions(AdContainerSizes);
-                    const [
-                        sideXWideCond,
-                        sideXWideShortCond,
-                        sideWideCond,
-                        sideWideShortCond,
-                        sideNarrowCond,
-                    ] = conds;
+                    const sideXWideCond = emptySpace(AdContainerSizes[0]);
+                    const sideXWideShortCond = emptySpace(AdContainerSizes[1]);
+                    const sideWideCond = emptySpace(AdContainerSizes[2]);
+                    const sideWideShortCond = emptySpace(AdContainerSizes[3]);
+                    const sideNarrowCond = emptySpace(AdContainerSizes[4]);
 
                     {
                         const size: AdContainerSize = [336, 600];
@@ -426,20 +434,21 @@ export function insertAds(newElement: HTMLElement) {
                         const adAreaRightNarrow = new ManagedAd('float-area-narrow-right', size, sideNarrowCond, 'right');
                         currentAds.push(adAreaRightNarrow);
                     }
-                    {
-                        const sideRightShortCond: DisplayCondition = (w, h) => {
-                            for (const prev of conds) {
-                                if (prev(w, h)) {
-                                    return false;
-                                }
-                            }
-                            return w > 400 && h > 400;
-                        };
-                        const size: AdContainerSize = [320, 100];
-                        const adAreaRightShortRight = new ManagedAd('float-area-narrow-short-right', size, sideRightShortCond, 'right');
-                        adAreaRightShortRight.adContainer.outer.style.zIndex = '194';
-                        currentAds.push(adAreaRightShortRight);
+
+                    function floatAd(size: AdContainerSize, minContentSize: [w: number, h: number], name: string): void {
+                        const cond: DisplayCondition = adCondition((w, h) => {
+                            return w >= minContentSize[0] && h >= minContentSize[1];
+                        });
+                        const adArea = new ManagedAd(name, size, cond, 'right');
+                        adArea.adContainer.outer.style.zIndex = '194';
+                        currentAds.push(adArea);
                     }
+
+                    // This one just feels too big.
+                    // floatAd([970, 250], [1100, 800], 'float-area-narrow-largest-right');
+                    floatAd([970, 90], [1000, 700], 'float-area-narrow-large-right');
+                    floatAd([728, 90], [800, 700], 'float-area-narrow-med-right');
+                    floatAd([320, 100], [400, 400], 'float-area-narrow-short-right');
                 }
                 catch (e) {
                     recordError('insertAds', e);
