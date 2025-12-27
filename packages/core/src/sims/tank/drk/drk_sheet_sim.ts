@@ -598,7 +598,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
     }
 
     private useLevel80OrBelowOpener(cp: DrkCycleProcessor, prepullTBN: boolean) {
-        if (prepullTBN) {
+        if (prepullTBN && cp.totalTime >= 3) {
             this.use(cp, Actions.TheBlackestNight);
             cp.advanceTo(3 - STANDARD_ANIMATION_LOCK);
             // Hacky out of combat mana tick.
@@ -642,7 +642,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
     }
 
     private useLevel90Opener(cp: DrkCycleProcessor, prepullTBN: boolean) {
-        if (prepullTBN) {
+        if (prepullTBN && cp.totalTime >= 3) {
             this.use(cp, Actions.TheBlackestNight);
             cp.advanceTo(3 - STANDARD_ANIMATION_LOCK);
             // Hacky out of combat mana tick.
@@ -687,7 +687,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
     }
 
     private useLevel100Opener(cp: DrkCycleProcessor, prepullTBN: boolean) {
-        if (prepullTBN) {
+        if (prepullTBN && cp.totalTime >= 3) {
             this.use(cp, Actions.TheBlackestNight);
             cp.advanceTo(3 - STANDARD_ANIMATION_LOCK);
             // Hacky out of combat mana tick.
