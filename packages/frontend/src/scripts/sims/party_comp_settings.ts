@@ -3,12 +3,13 @@ import {BuffSettingsManager} from "@xivgear/core/sims/common/party_comp_settings
 import {el, FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
 import {jobAbbrevTranslated} from "../components/job/job_name_translator";
 import {statusNameTranslated} from "../components/sim/status_effects";
+import {SimSettingsUpdateCallback} from "./simulation_gui";
 
 /**
  * Provides the settings area for configuring party buffs.
  */
 export class BuffSettingsArea extends NamedSection {
-    constructor(settings: BuffSettingsManager, updateCallback: () => void) {
+    constructor(settings: BuffSettingsManager, updateCallback: SimSettingsUpdateCallback) {
         super('Party Comp/Raid Buffs');
         this.classList.add('buff-settings-area');
 
@@ -18,13 +19,13 @@ export class BuffSettingsArea extends NamedSection {
 
                     const jobCell = el('td');
                     const jobCb = new FieldBoundCheckBox(job, 'enabled');
-                    jobCb.addListener(updateCallback);
+                    jobCb.addListener(() => updateCallback(100));
                     jobCell.append(labeledCheckbox(jobAbbrevTranslated(job.job), jobCb));
 
                     const buffsCell = el('td');
                     job.allBuffs.forEach(buff => {
                         const buffCb = new FieldBoundCheckBox(buff, 'enabled');
-                        buffCb.addListener(updateCallback);
+                        buffCb.addListener(() => updateCallback(100));
                         buffsCell.append(labeledCheckbox(statusNameTranslated(buff.buff), buffCb));
                         jobCb.addAndRunListener(val => buffCb.disabled = !val);
                     });
