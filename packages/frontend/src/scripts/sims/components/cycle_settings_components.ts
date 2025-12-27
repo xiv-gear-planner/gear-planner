@@ -18,6 +18,9 @@ export function cycleSettingsGui(cycleSettings: CycleSettings, updateCallback: S
         // actual value.
         postValidators: [clampValues(15, 60 * 60)],
     });
+    // TODO: might be nice to make this an official part of the FieldBoundConvertingTextField
+    // Make this apply immediately on pressing enter or focus loss.
+    timeField.addEventListener('change', () => updateCallback(0));
     timeField.id = 'cycle-total-time';
     const label = labelFor('Total Time:', timeField);
     out.contentArea.appendChild(label);
