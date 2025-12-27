@@ -539,7 +539,9 @@ function getPrivacyHtml(): string {
         were on when You clicked on a link to this Service). This may also include
         geolocation data.
     </li>
-    <li>Additional analytics data, such as button clicks and page visit duration</li>
+    <li>Additional analytics data, such as button clicks and page visit duration, and browser performance
+        data. Some of this data is collected via CloudFlare - you should consult 
+        <a href="https://www.cloudflare.com/privacypolicy/">CloudFlare's Privacy Policy</a> for more details.</li>
 </ul>
 <p>When registering an account or changing account details, you will be asked to provide
     certain Personally Identifiable Information including, but not limited to, an email address.
