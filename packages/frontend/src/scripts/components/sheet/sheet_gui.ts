@@ -60,7 +60,7 @@ import {ChangePropsModal, SaveAsModal} from "../sheetpicker/new_sheet_form";
 import {DropdownActionMenu} from "../general/dropdown_actions_menu";
 import {CustomFoodPopup, CustomItemPopup} from "./custom_item_manager";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
-import {SimulationGui} from "../../sims/simulation_gui";
+import {SimSettingsUpdateCallback, SimulationGui} from "../../sims/simulation_gui";
 import {makeGui} from "../../sims/registration/sim_guis";
 import {MeldSolverDialog} from "./editor/meld_solver_modal";
 import {insertAds} from "../general/ads";
@@ -739,8 +739,8 @@ class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOrHeaderS
                         cell.classList.add('sim-column-worst');
                     }
                     else {
-                    // Log base 1.017 on our number -- which makes anything just below five or above be considered worst gradient.
-                    // We use a logarithmic scale so that the percentage gets less favourable the further away from the best it is.
+                        // Log base 1.017 on our number -- which makes anything just below five or above be considered worst gradient.
+                        // We use a logarithmic scale so that the percentage gets less favourable the further away from the best it is.
                         const percentageScore = Math.log(numberToBeProcessed + 1) / Math.log(1.018);
                         const adjustedPercentageScore = Math.min(Math.max(percentageScore, 0), 100);
                         cell.style.setProperty('--sim-result-relative', adjustedPercentageScore.toFixed(1) + '%');
@@ -945,14 +945,17 @@ function formatSimulationConfigArea<SettingsType extends SimSettings>(
         const rerunButton = makeActionButton("Rerun", rerunAction);
         outerDiv.appendChild(rerunButton);
     }
-    const rerunTimer = new Inactivitytimer(300, rerunAction);
+    // Specific sub-UIs can make their own proxy with a shorter debounce time, e.g. buff settings.
+    // This one is meant to be longer since it acts as a catch-all for operations that either
+    // don't want to override, or forgot to.
+    const rerunTimer = new Inactivitytimer(800, rerunAction);
 
     const originalSettings: SettingsType = simGui.sim.settings;
-    const updateCallback = () => {
+    const updateCallback: SimSettingsUpdateCallback = (msOverride: number | null = null) => {
         simGui.sim.settingsChanged();
         sheet.requestSave();
         if (auto) {
-            rerunTimer.ping();
+            rerunTimer.ping(msOverride);
         }
     };
     const settingsProxy = writeProxy(originalSettings, () => {
