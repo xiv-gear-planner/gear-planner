@@ -244,6 +244,7 @@ const AdContainerSizes = [
     [300, 250],
     [160, 600],
     [320, 100],
+    [320, 50],
     [970, 250],
     [970, 90],
     [728, 90],
@@ -446,9 +447,10 @@ export function insertAds(newElement: HTMLElement) {
 
                     // This one just feels too big.
                     // floatAd([970, 250], [1100, 800], 'float-area-narrow-largest-right');
-                    floatAd([970, 90], [1000, 700], 'float-area-narrow-large-right');
-                    floatAd([728, 90], [800, 700], 'float-area-narrow-med-right');
+                    floatAd([970, 90], [1100, 600], 'float-area-narrow-large-right');
+                    floatAd([728, 90], [800, 500], 'float-area-narrow-med-right');
                     floatAd([320, 100], [400, 400], 'float-area-narrow-short-right');
+                    floatAd([320, 50], [400, 300], 'float-area-narrow-shorter-right');
                 }
                 catch (e) {
                     recordError('insertAds', e);
