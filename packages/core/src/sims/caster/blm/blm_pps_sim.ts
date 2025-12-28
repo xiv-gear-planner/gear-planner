@@ -75,7 +75,8 @@ export type BlmPpsSettingsExternal = {
 export const blmPpsSpec: SimSpec<BlmPpsSim, BlmPpsSettingsExternal> = {
     stub: "blm-pps-sim",
     displayName: "BLM PPS Sim",
-    description: `Estimates DPS based on average potency-per-second, essentially simulating infinite killtime.`,
+    description: `Estimates DPS based on average potency-per-second, essentially simulating infinite killtime.
+Party buffs are not considered.`,
     makeNewSimInstance: function (): BlmPpsSim {
         return new BlmPpsSim();
     },
@@ -95,7 +96,7 @@ export const blmPpsSpec: SimSpec<BlmPpsSim, BlmPpsSettingsExternal> = {
     }],
 };
 
-// TODO: Replace with xivgear's functions once it's implemented
+// TODO: Replace with xivgear's functions once it's implemented / decided
 export function baseDamageFullWithAfUi(stats: ComputedSetStats, potency: number, isDot: boolean = false, afUiMulti: number = 1.0): ValueWithDev {
     const attackType = 'Spell';
     const autoDH = false;
@@ -487,7 +488,7 @@ export class BlmPpsSim implements Simulation<BlmPpsResult, BlmPpsSettings, BlmPp
             }
         }
 
-        console.log(numGcds, "gcds per cycle");
+        //console.log(numGcds, "gcds per cycle");
 
         return {
             damage,
@@ -500,7 +501,7 @@ export class BlmPpsSim implements Simulation<BlmPpsResult, BlmPpsSettings, BlmPp
     async simulate(set: CharacterGearSet): Promise<BlmPpsResult> {
         const stats = set.computedStats;
 
-        console.log("---");
+        //console.log("---");
 
         this.precomputeDamage(stats);
 
@@ -532,6 +533,7 @@ export class BlmPpsSim implements Simulation<BlmPpsResult, BlmPpsSettings, BlmPp
             };
         };
 
+        /*
         console.log({
             cycle: w(cycle),
             xeno: w(xeno),
@@ -561,6 +563,7 @@ export class BlmPpsSim implements Simulation<BlmPpsResult, BlmPpsSettings, BlmPp
         console.log("time:", time);
         console.log("total damage:", damage.expected);
         console.log("dps:", damage.expected / time);
+        */
 
         return {
             mainDpsResult: applyStdDev(dps, this.settings.stdDevs ?? 0),

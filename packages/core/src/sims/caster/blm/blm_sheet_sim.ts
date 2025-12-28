@@ -67,7 +67,7 @@ Summary of cooldown drift and GCD clips at the end of the list of abilities used
     },
     supportedJobs: ['BLM'],
     supportedLevels: [100, 90, 80, 70],
-    isDefaultSim: false,
+    isDefaultSim: true,
     maintainers: [{
         name: 'Rika',
         contact: [{
