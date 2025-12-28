@@ -244,6 +244,8 @@ export interface GearItem extends XivCombatItem {
 
     activeSpecialStat: SpecialStatType | null;
 
+    setBonuses: SetBonuses | null;
+
     readonly slotMapping: EquipSlotMap;
 }
 
@@ -1396,3 +1398,10 @@ export type IlvlSyncInfo = {
     readonly ilvl: number;
     substatCap(slot: OccGearSlotKey, statsKey: RawStatKey): number;
 }
+
+export type SetBonuses = {
+    readonly series: number,
+    readonly requiredCount: number,
+    readonly bonusStats: RawStats,
+}
+

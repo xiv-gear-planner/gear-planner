@@ -27,7 +27,8 @@ import {
     OccGearSlotKey,
     RawStatKey,
     RawStats,
-    RelicStatModel
+    RelicStatModel,
+    SetBonuses
 } from "@xivgear/xivmath/geartypes";
 import {BaseParamToStatKey, RelevantBaseParam} from "./external/xivapitypes";
 import {getRelicStatModelFor} from "./relicstats/relicstats";
@@ -600,6 +601,10 @@ export class DataApiGearInfo implements GearItem {
     // Actual effective stats
     stats: RawStats;
     readonly slotMapping: DataApiEquipSlotMap;
+    // 0 indicates no series (item set)
+    private readonly itemSeries: number;
+    private readonly specialBonusParam: number;
+    setBonuses: SetBonuses | null = null;
 
     constructor(data: ApiItemData, forceNq: boolean = false) {
         this.jobs = data.classJobs as JobName[];
@@ -669,6 +674,8 @@ export class DataApiGearInfo implements GearItem {
             this.specialStatType = null;
         }
         this.isUnique = data.unique;
+        this.itemSeries = data.itemSeries;
+        this.specialBonusParam = data.itemSpecialBonusParam;
         this.computeSubstats();
         this.materiaSlots = [];
         const baseMatCount: number = data.materiaSlotCount;
@@ -854,13 +861,35 @@ export class DataApiGearInfo implements GearItem {
     }
 
     recalcEffectiveStats(): void {
+        // TODO: generic set bonuses independent of any special stat
         if (this.specialStatType && this.specialStatType === this._activeSpecialStat) {
-            const stats = new RawStats(this.baseStats);
-            addStats(stats, this.specialStats);
-            this.stats = stats;
+            if (this.itemSeries > 0) {
+                this.stats = this.baseStats;
+                let requiredCount: number;
+                if (this.specialBonusParam >= 2 && this.specialBonusParam <= 10) {
+                    requiredCount = this.specialBonusParam;
+                }
+                else {
+                    console.warn(`Invalid special bonus param for item ${this.id}: ${this.specialBonusParam} (series ${this.itemSeries})`);
+                    // TODO
+                    requiredCount = 99999;
+                }
+                this.setBonuses = {
+                    series: this.itemSeries,
+                    requiredCount: requiredCount,
+                    bonusStats: this.specialStats,
+                };
+            }
+            else {
+                const stats = new RawStats(this.baseStats);
+                addStats(stats, this.specialStats);
+                this.stats = stats;
+                this.setBonuses = null;
+            }
         }
         else {
             this.stats = this.baseStats;
+            this.setBonuses = null;
         }
     }
 

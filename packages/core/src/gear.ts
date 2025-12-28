@@ -36,7 +36,7 @@ import {
     RawStatKey,
     RawStats,
     RelicStatMemoryExport,
-    RelicStats,
+    RelicStats, SetBonuses,
     SetDisplaySettingsExport,
     SlotMateriaMemoryExport
 } from "@xivgear/xivmath/geartypes";
@@ -675,6 +675,26 @@ export class CharacterGearSet {
         return finalized.effectiveFoodBonuses;
     }
 
+    // Determine whether a set bonus would be satisfied if an item with the given set bonus were to be equipped
+    // into the given slot.
+    isSetBonusSatisfied(slotId: EquipSlotKey, setBonus: SetBonuses): boolean {
+        const requiredCount = setBonus.requiredCount;
+        const requiredSeries = setBonus.series;
+        // Start count at 1 because the item that we are examining would be the first item in the set, and
+        // it isn't necessarily equipped. To avoid double counting, we skip it in the loop below.
+        let equippedCount = 1;
+        this.forEachEquippedItem((slot, item) => {
+            if (slot === slotId) {
+                return;
+            }
+            const itemBonus = item.gearItem.setBonuses;
+            if (itemBonus && itemBonus.series === requiredSeries) {
+                equippedCount++;
+            }
+        });
+        return equippedCount >= requiredCount;
+    }
+
     /**
      * Get the effective stats and issues pertaining to a specific slot.
      *
@@ -693,6 +713,13 @@ export class CharacterGearSet {
             };
         }
         const itemStats = new RawStats(equip.gearItem.stats);
+        const setBonus = equip.gearItem.setBonuses;
+        if (setBonus) {
+            const setBonusSatisfied = this.isSetBonusSatisfied(slotId, setBonus);
+            if (setBonusSatisfied) {
+                addStats(itemStats, setBonus.bonusStats);
+            }
+        }
         // Note for future: if we ever get an item that has both custom stats AND materia, this logic will need to be extended.
         for (const stat of ALL_SUB_STATS) {
             const statDetail = this.getStatDetail(slotId, stat);
