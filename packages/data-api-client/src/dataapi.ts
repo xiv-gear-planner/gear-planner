@@ -165,6 +165,8 @@ export interface FoodStatBonus {
   max: number;
 }
 
+export type GameVersion = Record;
+
 export type Icon = XivApiStruct &
   XivApiBase & {
     /** @format uri */
@@ -217,6 +219,10 @@ export type ItemBase = XivApiObject &
     defensePhys?: number;
     /** @format int32 */
     defenseMag?: number;
+    /** @format int32 */
+    itemSpecialBonusParam?: number;
+    /** @format int32 */
+    itemSeries?: number;
   };
 
 export type ItemLevel = XivApiObject &
@@ -292,12 +298,18 @@ export type MateriaItem = XivApiObject &
     ilvl?: number;
   };
 
+export type Record = object;
+
 export interface SchemaVersionEndpointResponse {
   schemaVersion?: string;
 }
 
 export interface VersionsEndpointResponse {
   versions?: string[];
+}
+
+export interface VersionsFullEndpointResponse {
+  versions?: GameVersion[];
 }
 
 export interface XivApiBase {
@@ -609,6 +621,22 @@ export class DataApiClient<
         ...params,
       }),
   };
+  item = {
+    /**
+     * No description
+     *
+     * @name Item
+     * @summary Get a single gear item
+     * @request GET:/Item/{itemId}
+     */
+    item: (itemId: number, params: RequestParams = {}) =>
+      this.request<Item, any>({
+        path: `/Item/${itemId}`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+  };
   itemLevel = {
     /**
      * No description
@@ -700,12 +728,27 @@ export class DataApiClient<
      * No description
      *
      * @name Versions1
-     * @summary Get versions available via Xivapi at the time the data was polled.
+     * @summary Get versions available via Xivapi at the time the data was pulled. Returns a flattened list of known version names.
      * @request GET:/Versions
      */
     versions1: (params: RequestParams = {}) =>
       this.request<VersionsEndpointResponse, any>({
         path: `/Versions`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name Versions2
+     * @summary Get versions available via Xivapi at the time the data was pulled. Returns the same shape as Xivapi's verion endpoint would.
+     * @request GET:/Versions/Full
+     */
+    versions2: (params: RequestParams = {}) =>
+      this.request<VersionsFullEndpointResponse, any>({
+        path: `/Versions/Full`,
         method: "GET",
         format: "json",
         ...params,
