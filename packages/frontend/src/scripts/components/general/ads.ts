@@ -540,6 +540,8 @@ class PrivacyPolicyModal extends BaseModal {
             element.innerHTML = mod.getPrivacyHtml();
             element.style.width = '';
             element.style.height = '';
+        }).catch(() => {
+            element.innerHTML = 'Error loading';
         });
     }
 }
