@@ -526,6 +526,7 @@ export class BlmPpsSim implements Simulation<BlmPpsResult, BlmPpsSettings, BlmPp
         const dps = multiplyFixed(damage, 1.0 / time);
         const pps = potency / time;
 
+        /*
         const w = (d: PpsPart) => {
             return {
                 damage: d.damage.expected,
@@ -533,7 +534,6 @@ export class BlmPpsSim implements Simulation<BlmPpsResult, BlmPpsSettings, BlmPp
             };
         };
 
-        /*
         console.log({
             cycle: w(cycle),
             xeno: w(xeno),
