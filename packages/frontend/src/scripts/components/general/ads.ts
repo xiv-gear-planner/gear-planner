@@ -447,10 +447,10 @@ export function insertAds(newElement: HTMLElement) {
 
                     // This one just feels too big.
                     // floatAd([970, 250], [1100, 800], 'float-area-narrow-largest-right');
-                    floatAd([970, 90], [1100, 580], 'corner-area-narrow-large-right');
-                    floatAd([728, 90], [800, 500], 'corner-area-narrow-med-right');
-                    floatAd([320, 100], [400, 500], 'corner-area-narrow-short-right');
-                    floatAd([320, 50], [400, 300], 'corner-area-narrow-shorter-right');
+                    floatAd([970, 90], [1100, 580], 'corner-area-970-90-right');
+                    floatAd([728, 90], [800, 500], 'corner-area-728-90-right');
+                    floatAd([320, 100], [400, 500], 'corner-area-320-100-right');
+                    floatAd([320, 50], [400, 300], 'corner-area-320-50-right');
                 }
                 catch (e) {
                     recordError('insertAds', e);
