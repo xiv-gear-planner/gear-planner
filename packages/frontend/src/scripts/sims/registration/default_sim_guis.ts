@@ -42,6 +42,8 @@ import {SamSimGui} from "../melee/sam/sam_lvl100_sim_ui";
 import {dncDtSheetSpec} from "@xivgear/core/sims/ranged/dnc_sim";
 import {blmSpec} from "@xivgear/core/sims/caster/blm/blm_sheet_sim";
 import {BlmSimGui} from "../caster/blm_sim_ui";
+import {blmPpsSpec} from "@xivgear/core/sims/caster/blm/blm_pps_sim";
+import {BlmPpsGui} from "../caster/blm_pps_ui";
 import {BluWinged120Spec} from "@xivgear/core/sims/blu/blu_winged120";
 import {BluSimGui} from "../blu/blu_common_ui";
 import {BluFlame120Spec} from "@xivgear/core/sims/blu/blu_flame120";
@@ -83,6 +85,7 @@ export function registerDefaultSimGuis() {
     registerGui(dncDtSheetSpec, BaseUsageCountSimGui);
     // Caster
     registerGui(blmSpec, BlmSimGui);
+    registerGui(blmPpsSpec, BlmPpsGui);
     registerGui(BluWinged120Spec, BluSimGui);
     registerGui(BluFlame120Spec, BluSimGui);
     registerGui(BluBreath60Spec, BluSimGui);

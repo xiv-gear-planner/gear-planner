@@ -50,7 +50,7 @@ export interface BlmSettingsExternal extends ExternalCycleSettings<BlmSettings> 
 
 export const blmSpec: SimSpec<BlmSim, BlmSettingsExternal> = {
     stub: "blm-sheet-sim",
-    displayName: "BLM Sim",
+    displayName: "BLM Rotation Sim",
     description: `Simulates a BLM rotation for levels 100/90/80/70.
 If potions are enabled, pots in the burst window every 6m (i.e. 0m, 6m, 12m, etc).
 Defaults to simulating a killtime of 8m 30s (510s) and consistent use of AF1 F3P.
