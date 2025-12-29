@@ -16,8 +16,6 @@
     <meta name="mobile-web-app-capable" content="yes">
 
     <title>XivGear - FFXIV Gear Planner</title>
-<!--    <script src="./main.js" type="module"></script>-->
-<!--    <script src="https://cdn.jsdelivr.net/npm/@ungap/custom-elements"></script>-->
     <script async src="https://um.xivgear.app/umami" data-website-id="bc3fc7a6-b0ac-4a30-b737-031b59a9810f"></script>
     <script data-cfasync="false">window.nitroAds = window.nitroAds || {
         createAd: function () {
@@ -28,6 +26,33 @@
             window.nitroAds.queue.push(["addUserToken", arguments])
         }, queue: []
     };</script>
+    <script data-cfasync="false">
+        // Failsafe in case script cannot load due to bad cache
+        window.addEventListener('error', (event) => {
+            if (window.xivgearLoadStarted) {
+                // If it actually loaded successfully, then this error event is just noise.
+                return;
+            }
+            const target = event.target;
+            if (target && target.tagName.toLowerCase() === 'script') {
+                const scriptSrc = target.src;
+                if (scriptSrc.includes('main') && scriptSrc.includes('.js')) {
+                    console.error("Main script load appears to have failed", event);
+                    document.querySelector('#content-area').replaceChildren(`There was an error loading the main script. The page will reload automatically in 5 seconds. Check the browser console for more details.`);
+                    setTimeout(() => {
+                        const newLoc = new URL(document.location.toString());
+                        newLoc.searchParams.set("_cacheBust", Math.floor(Math.random() * 1_000_000).toString());
+                        document.location = newLoc.toString();
+                        umami?.track('mainScriptLoadFail', {
+                            scriptSrc: scriptSrc,
+                        });
+                    }, 5_000);
+                }
+            }
+        }, {
+            capture: true
+        });
+    </script>
     <link rel="preload" href="https://data.xivgear.app/BaseParams" as="fetch" crossorigin/>
     <link rel="preload" href="https://data.xivgear.app/Materia" as="fetch" crossorigin/>
     <link rel="preload" href="https://data.xivgear.app/Food" as="fetch" crossorigin/>
@@ -36,14 +61,17 @@
     <link rel="dns-prefetch" href="https://accountsvc.xivgear.app/" crossorigin/>
     <link rel="dns-prefetch" href="https://v2.xivapi.com/" crossorigin/>
 </head>
-<body class="modern account-state-not-loaded token-state-not-loaded" data-accountstate="not-loaded" data-tokenstate="not-loaded">
+<body class="modern account-state-not-loaded token-state-not-loaded" data-accountstate="not-loaded"
+      data-tokenstate="not-loaded">
 
 <div id="dev-menu-area" style="display: none;"></div>
 <div id="show-hide-menu-button-area">
     <button id="show-hide-menu-button"><span>≡</span></button>
 </div>
 <div id="help-button-area">
-    <a target="_blank" href="https://github.com/xiv-gear-planner/gear-planner/blob/master/docs/Index.md"><button id="help-button">?</button></a>
+    <a target="_blank" href="https://github.com/xiv-gear-planner/gear-planner/blob/master/docs/Index.md">
+        <button id="help-button">?</button>
+    </a>
 </div>
 <div id="main-menu-area">
     <div id="main-menu-area-inner">

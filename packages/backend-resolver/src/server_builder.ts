@@ -35,6 +35,7 @@ import process from "process";
 import {extractSingleSet} from "@xivgear/core/util/sheet_utils";
 import {getJobIcons} from "./preload_helpers";
 import FastifyIP from 'fastify-ip';
+import {AnyStringIndex} from "@xivgear/util/util_types";
 
 let initDone = false;
 
@@ -501,13 +502,20 @@ export function buildPreviewServer() {
 
                     doc.documentElement.setAttribute('scripts-injected', 'true');
                 }
+                const headers: HeadersInit = {
+                    'content-type': 'text/html',
+                    // use a longer cache duration for success
+                    'cache-control': 'max-age=7200, public',
+                };
+                // If the client is trying to cache bust, then send Clear-Site-Data header to try to clear client
+                // cache entirely, and also override cache-control.
+                if (request.query['_cacheBust']) {
+                    headers['Clear-Site-Data'] = '"cache", "prefetchCache", "prerenderCache"';
+                    headers['cache-control'] = 'max-age=0, no-cache';
+                }
                 return new Response('<!DOCTYPE html>\n' + doc.documentElement.outerHTML, {
                     status: 200,
-                    headers: {
-                        'content-type': 'text/html',
-                        // use a longer cache duration for success
-                        'cache-control': 'max-age=7200, public',
-                    },
+                    headers: headers,
                 });
             }
         }
