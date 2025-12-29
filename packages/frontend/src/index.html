@@ -36,7 +36,7 @@
             const target = event.target;
             if (target && target.tagName.toLowerCase() === 'script') {
                 const scriptSrc = target.src;
-                if (scriptSrc.includes('main') && scriptSrc.includes('.js')) {
+                if (scriptSrc?.includes('main') && scriptSrc?.includes('.js')) {
                     console.error("Main script load appears to have failed", event);
                     document.querySelector('#content-area').replaceChildren(`There was an error loading the main script. The page will reload automatically in 5 seconds. Check the browser console for more details.`);
                     setTimeout(() => {
