@@ -9,10 +9,18 @@ import {setupUserDataSync} from "./account/user_data";
 import {startSizeAnalytics} from "./analytics/analytics_helpers";
 import {ASYNC_SIM_LOADER} from "./sims/asyncloader/async_loader";
 
+declare global {
+    interface Window {
+        xivgearLoadStarted?: boolean;
+    }
+}
+
+window.xivgearLoadStarted = true;
+
 // Main entry point for actual browsers
 document.addEventListener("DOMContentLoaded", () => {
     // Sim configuration
-    // Just kick off the async loading
+    // Just kick off the async loading - don't wait
     ASYNC_SIM_LOADER.load();
 
     // Early UI stuff
