@@ -64,13 +64,14 @@ class ManagedAd {
         this.condition = condition;
         if (adSide === 'left') {
             this.adContainer.outer.style.left = '0';
-            this.adContainer.middle.style.marginLeft = '-5px';
+            this.adContainer.middle.style.marginLeft = 'calc(-1 * var(--editor-sides-padding))';
             this.adContainer.middle.style.borderRadius = '0 10px 0 0';
         }
         else if (adSide === 'right') {
             this.adContainer.outer.style.left = '100%';
             this.adContainer.middle.style.right = '0';
-            this.adContainer.middle.style.marginRight = '-5px';
+            this.adContainer.middle.style.marginRight = 'calc(-1 * var(--editor-sides-padding))';
+            // this.adContainer.middle.style.marginRight = '-5px';
             this.adContainer.middle.style.borderRadius = '10px 0 0 0';
         }
     }
@@ -181,6 +182,9 @@ function makeFixedArea(id: string, width: number, height: number, side: AdSide, 
         inner.style.height = `${height}px`;
         inner.style.width = `${width}px`;
     }
+    else {
+        inner.classList.add('collapse-vertical');
+    }
     inner.id = id;
 
     const middle = document.createElement('div');
@@ -191,7 +195,7 @@ function makeFixedArea(id: string, width: number, height: number, side: AdSide, 
     middle.style.zIndex = '-99';
     middle.style.bottom = '0';
     middle.style.boxSizing = 'content-box';
-    middle.style.marginBottom = '-8px';
+    middle.style.marginBottom = 'calc(-1 * var(--editor-bottom-padding))';
     if (side === 'left') {
         middle.style.padding = '5px 5px 0 0';
     }
@@ -222,6 +226,7 @@ function makeFixedArea(id: string, width: number, height: number, side: AdSide, 
     };
 }
 
+// Sizes of the ads themselves (predetermined)
 const AdSizes = [
     [300, 600],
     [336, 280],
@@ -234,7 +239,6 @@ const AdSizes = [
     [320, 100],
     [320, 50],
 ] as const;
-// Sizes of the ads themselves (predetermined)
 type AdSize = typeof AdSizes[number];
 // Sizes of the ad container (our choice)
 const AdContainerSizes = [
@@ -246,8 +250,8 @@ const AdContainerSizes = [
     [320, 100],
     [320, 50],
     [970, 250],
-    [970, 90],
-    [728, 90],
+    [970, 100],
+    [728, 100],
 ] as const;
 type AdContainerSize = typeof AdContainerSizes[number];
 // const foo: AdContainerSize = [300, 250];
@@ -447,8 +451,8 @@ export function insertAds(newElement: HTMLElement) {
 
                     // This one just feels too big.
                     // floatAd([970, 250], [1100, 800], 'float-area-narrow-largest-right');
-                    floatAd([970, 90], [1100, 580], 'corner-area-970-90-right');
-                    floatAd([728, 90], [800, 500], 'corner-area-728-90-right');
+                    floatAd([970, 100], [1100, 580], 'corner-area-970-100-right');
+                    floatAd([728, 100], [800, 500], 'corner-area-728-100-right');
                     floatAd([320, 100], [400, 500], 'corner-area-320-100-right');
                     floatAd([320, 50], [400, 300], 'corner-area-320-50-right');
                 }

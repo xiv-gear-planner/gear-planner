@@ -48,7 +48,9 @@ body {
   --faint-border: 1px solid #60606680;
   --plain-link-color: #4f84ff;
   --plain-link-hover-color: #76cfff;
-  --edge-padding: 4px;
+  --editor-sides-padding: 4px;
+  --editor-bottom-padding: 8px;
+  --editor-top-padding: 8px;
   --stat-col-width: 40px;
   --chance-stat-col-width: 157px;
   --multi-stat-col-width: 120px;
@@ -377,31 +379,6 @@ body {
   &:hover {
     .no-transition();
   }
-}
-
-// TODO
-div#editor-area {
-  text-align: center;
-  overflow-y: scroll;
-  flex-basis: 60%;
-  .flex-transition();
-  //flex-shrink: 99;
-  flex-grow: 9999;
-  min-height: 60%;
-  max-height: 100%;
-  border-top: 2px var(--standard-border-part);
-  margin-top: 5px;
-  padding-top: 8px;
-  padding-bottom: 8px;
-
-  table {
-    text-align: left;
-  }
-}
-
-// TODO
-div#main-page-padding {
-  flex-grow: 9999999;
 }
 
 .table-item-selected-bg {
@@ -1478,8 +1455,8 @@ gear-plan {
     height: 60%;
     max-height: 100%;
     border-top: 2px var(--standard-border-part);
-    padding-left: var(--edge-padding);
-    padding-right: var(--edge-padding);
+    padding-left: var(--editor-sides-padding);
+    padding-right: var(--editor-sides-padding);
   }
 }
 
@@ -1488,8 +1465,8 @@ gear-plan {
   text-align: center;
   overflow: auto;
   //margin-top: 5px;
-  padding-top: 8px;
-  padding-bottom: 8px;
+  padding-top: var(--editor-top-padding);
+  padding-bottom: var(--editor-bottom-padding);
 
   table {
     text-align: left;
@@ -2898,15 +2875,7 @@ gear-set-viewer {
   padding-left: 5px;
   padding-right: 5px;
   // Users have reported privacy thing blocking the bottom
-  padding-bottom: 90px;
-  //margin-left: 5px;
-  //margin-right: 5px;
-  //.left-side-gear-table, .right-side-gear-table {
-  //  table {
-  //    margin-left: 5px !important;
-  //    margin-right: 5px !important;
-  //  }
-  //}
+  padding-bottom: 100px;
   display: block;
   --standard-border-radius: 10px;
 
