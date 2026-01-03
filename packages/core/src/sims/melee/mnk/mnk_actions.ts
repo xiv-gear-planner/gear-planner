@@ -225,7 +225,7 @@ export const RiddleOfFireBuff: PersonalBuff = {
     duration: 20.7,
     statusId: 1181,
     effects: {
-        dmgIncrease: 0.20,
+        dmgIncrease: 0.15,
     },
 };
 
