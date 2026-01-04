@@ -8,6 +8,7 @@ import {setupAccountUi} from "./account/components/account_components";
 import {setupUserDataSync} from "./account/user_data";
 import {startSizeAnalytics} from "./analytics/analytics_helpers";
 import {ASYNC_SIM_LOADER} from "./sims/asyncloader/async_loader";
+import {installImageFallbackHelper} from "./util/image_fallback_helper";
 
 declare global {
     interface Window {
@@ -35,6 +36,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Stop double click selection
     installDoubleClickHandler();
+    // Xivapi to fallback image helper
+    installImageFallbackHelper();
     // Initial page load behavior
     initialLoad();
 

@@ -1,14 +1,25 @@
 export const XIVAPI_BASE_URL = "https://v2.xivapi.com/api";
+export const XIVAPI_BASE_URL_FALLBACK = "https://bm.xivgear.app/api/1";
 
 export async function xivApiFetch(...params: Parameters<typeof fetch>): Promise<Response> {
-    return xFetchInternal(...params);
+    return xFetchInternal(params);
 }
 
-async function xFetchInternal(...params: Parameters<typeof fetch>): Promise<Response> {
+async function xFetchInternal(params: Parameters<typeof fetch>): Promise<Response> {
     let tries = 5;
     while (true) {
         tries--;
-        const result = await fetch(...params);
+        let result: Response;
+        try {
+            result = await fetch(...params);
+        }
+        catch (e) {
+            console.warn("Xivapi fetch failed, trying again with fallback URL", params[0], e);
+            const fbUrl = new URL(params[0].toString().replace(XIVAPI_BASE_URL, XIVAPI_BASE_URL_FALLBACK));
+            const fbParams: typeof params = [...params];
+            fbParams[0] = fbUrl;
+            result = await fetch(...fbParams);
+        }
         // TODO: add other errors here?
         if (tries > 0 && result.status === 429) {
             console.log("xivapi throttle, retrying", params[0]);
