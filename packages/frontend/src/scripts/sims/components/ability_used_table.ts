@@ -154,7 +154,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                             return alignedValue('--', '');
                         }
                         const text = used.totalDamage.toFixed(1);
-                        if (used.partialRate !== null 
+                        if (used.partialRate !== null
                             || (used.dotInfo && used.dotInfo.fullDurationTicks !== "indefinite" && used.dotInfo.actualTickCount < used.dotInfo.fullDurationTicks)
                             || (used.channelInfo && used.channelInfo.actualTickCount < used.channelInfo.fullDurationTicks)) {
                             return alignedValue(text, '*');
