@@ -1475,9 +1475,9 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
             }
         }
 
-        if (usedAbility.channel) {
+        if (usedAbility.channel && 'channel' in usedAbility.ability) {
             // TODO: allow cutting off a channel early by other action use?
-            const channelId = usedAbility.ability['channel']?.id;
+            const channelId = usedAbility.ability.channel?.id;
             if (channelId !== undefined) {
                 // Set our new channel into the channel map
                 this.channelMap.set(channelId, usedAbility);
