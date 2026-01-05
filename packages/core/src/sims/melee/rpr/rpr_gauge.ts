@@ -1,4 +1,4 @@
-import { RprGaugeState } from "./rpr_types";
+import {RprGaugeState} from "./rpr_types";
 
 export class RprGauge {
 
@@ -6,6 +6,7 @@ export class RprGauge {
     get soulGauge(): number {
         return this._soulGauge;
     }
+
     set soulGauge(newGauge: number) {
         if (newGauge > 100) {
             console.warn(`Overcapped Soul by ${newGauge - 100}.`);
@@ -20,6 +21,7 @@ export class RprGauge {
     get shroudGauge(): number {
         return this._shroudGauge;
     }
+
     set shroudGauge(newGauge: number) {
         if (newGauge > 100) {
             console.warn(`Overcapped shroud by ${newGauge - 100}.`);

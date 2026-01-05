@@ -1,9 +1,9 @@
-import {arrayEq, goHash, processNav, setHash} from "./nav_hash";
+import {goHash, processNav, setHash} from "./nav_hash";
 import {DISPLAY_SETTINGS} from "@xivgear/common-ui/settings/display_settings";
 import {showSettingsModal} from "@xivgear/common-ui/settings/settings_modal";
 import {splitPath} from "@xivgear/core/nav/common_nav";
-import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 import {applyCommonTopMenuFormatting} from "@xivgear/common-ui/components/top_menu";
+import {arrayEq} from "@xivgear/util/array_utils";
 
 const pageTitle = 'XivGear - FFXIV Gear Planner';
 
@@ -11,12 +11,22 @@ export async function initialLoad() {
     await processNav();
 }
 
-export const contentArea = document.getElementById("content-area");
-export const devMenuArea = document.getElementById("dev-menu-area");
-export const topMenuArea = document.getElementById("main-menu-area");
-export const welcomeArea = document.getElementById("welcome-message");
+function getRequiredElementById(id: string): HTMLElement {
+    const out = document.getElementById(id);
+    if (out === null) {
+        console.error(`Cannot find element ${id}`);
+        throw new Error(`Cannot find element ${id}`);
+    }
+    return out;
+}
 
-export function setMainContent(title: string, ...nodes) {
+export const contentArea = getRequiredElementById("content-area");
+export const devMenuArea = getRequiredElementById("dev-menu-area");
+export const topMenuArea = getRequiredElementById("main-menu-area");
+export const welcomeArea = getRequiredElementById("welcome-message");
+const body = document.querySelector('body');
+
+export function setMainContent(title: string, ...nodes: Parameters<ParentNode['replaceChildren']>) {
     contentArea.replaceChildren(...nodes);
     setTitle(title);
 }
@@ -44,19 +54,11 @@ export function formatTopMenu(hash: string[]) {
                 link.classList.add('current-page');
             }
             else {
-                if (hash.length >= expected.length && arrayEq(hash.slice(0, expected.length), expected)) {
-                    link.classList.add('current-page');
-                }
-                else {
-                    link.classList.remove('current-page');
-                }
+                const isCurrentPage = hash.length >= expected.length && arrayEq(hash.slice(0, expected.length), expected);
+                link.classList.toggle('current-page', isCurrentPage);
             }
         }
     });
-}
-
-export function showLoadingScreen() {
-    setMainContent('Loading...', new LoadingBlocker());
 }
 
 export function setTitle(titlePart: string | undefined) {
@@ -81,13 +83,14 @@ export function earlyUiSetup() {
         }
     });
     DISPLAY_SETTINGS.loadSettings();
-    document.getElementById('settings-button').addEventListener('click', (ev) => {
+    getRequiredElementById('settings-button').addEventListener('click', (ev) => {
         ev.preventDefault();
         showSettingsModal();
     });
-    document.getElementById('show-hide-menu-button').addEventListener('click', (ev) => {
+    getRequiredElementById('show-hide-menu-button').addEventListener('click', (ev) => {
         ev.preventDefault();
-        topMenuArea.style.display = topMenuArea.style.display === 'none' ? '' : 'none';
+        body!.classList.toggle("top-menu-hidden");
+        // topMenuArea.style.display = topMenuArea.style.display === 'none' ? '' : 'none';
     });
     const header = document.createElement("span");
     header.textContent = "Dev Menu";

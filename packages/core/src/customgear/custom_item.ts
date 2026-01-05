@@ -1,56 +1,92 @@
 import {
-    DisplayGearSlot,
+    CustomItemExport,
     DisplayGearSlotInfo,
     DisplayGearSlotKey,
+    DisplayGearSlotMapping,
+    EquipSlotKey,
+    EquipSlotMap,
+    EquipSlotValue,
     GearAcquisitionSource,
     GearItem,
+    IlvlSyncInfo,
     MateriaSlot,
-    OccGearSlotKey,
+    NormalOccGearSlotKey,
     RawStatKey,
     RawStats
 } from "@xivgear/xivmath/geartypes";
 import {xivApiIconUrl} from "../external/xivapi";
-import {CURRENT_MAX_LEVEL, LEVEL_ITEMS, MATERIA_LEVEL_MAX_NORMAL} from "@xivgear/xivmath/xivconstants";
-import {IlvlSyncInfo} from "../datamanager_xivapi";
+import {CURRENT_MAX_LEVEL, JobName, LEVEL_ITEMS, MATERIA_LEVEL_MAX_NORMAL} from "@xivgear/xivmath/xivconstants";
 import {applyStatCaps} from "../gear";
 import {GearPlanSheet} from "../sheet";
+import {toTranslatable} from "@xivgear/i18n/translation";
+import {RawStatsPart} from "@xivgear/util/util_types";
+import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 
-export type CustomItemExport = {
-    ilvl: number;
-    equipLvl: number;
-    largeMateriaSlots: number;
-    smallMateriaSlots: number;
-    materiaGrade: number;
-    name: string;
-    fakeId: number;
-    slot: OccGearSlotKey;
-    isUnique: boolean;
-    stats: RawStats;
-    respectCaps: boolean;
+class CustomItemSlotMapping implements EquipSlotMap {
+    readonly Body: EquipSlotValue = 'none';
+    readonly Ears: EquipSlotValue = 'none';
+    readonly Feet: EquipSlotValue = 'none';
+    readonly Hand: EquipSlotValue = 'none';
+    readonly Head: EquipSlotValue = 'none';
+    readonly Legs: EquipSlotValue = 'none';
+    readonly Neck: EquipSlotValue = 'none';
+    readonly OffHand: EquipSlotValue = 'none';
+    readonly RingLeft: EquipSlotValue = 'none';
+    readonly RingRight: EquipSlotValue = 'none';
+    readonly Weapon: EquipSlotValue = 'none';
+    readonly Wrist: EquipSlotValue = 'none';
+
+    constructor(slot: NormalOccGearSlotKey) {
+        switch (slot) {
+            case "Weapon2H":
+                this.Weapon = 'equip';
+                this.OffHand = 'block';
+                break;
+            case "Weapon1H":
+                this.Weapon = 'equip';
+                break;
+            case "Ring":
+                this.RingLeft = 'equip';
+                this.RingRight = 'equip';
+                break;
+            default:
+                this[slot] = 'equip';
+        }
+    }
+
+    canEquipTo(slot: EquipSlotKey): boolean {
+        return this[slot] === 'equip';
+    }
+
+    getBlockedSlots(): EquipSlotKey[] {
+        return [];
+    }
+
 }
 
 export class CustomItem implements GearItem {
 
+    isNqVersion: boolean = false;
     unsyncedVersion: GearItem = this;
     isCustomRelic: boolean = false;
-    // TODO: syncing and stat caps not supported
     isSyncedDown: boolean = false;
-    relicStatModel = undefined;
-    // unsyncedVersion: GearItem = null;
+    relicStatModel: undefined = undefined;
     acquisitionType: GearAcquisitionSource = 'custom';
+    readonly rarity = 1;
 
-    // TODO
     primarySubstat: keyof RawStats = null;
     secondarySubstat: keyof RawStats = null;
-    // statCaps: { determination?: number; piety?: number; crit?: number; dhit?: number; spellspeed?: number; skillspeed?: number; tenacity?: number; hp?: number; vitality?: number; strength?: number; dexterity?: number; intelligence?: number; mind?: number; wdPhys?: number; wdMag?: number; weaponDelay?: number; };
-    statCaps = {};
+    statCaps: Partial<RawStats> = {};
+    // TODO: pull this out into a constant somewhere
     iconUrl: URL = new URL(xivApiIconUrl(26270));
     syncedDownTo: number | null;
     private _data: CustomItemExport;
+    readonly slotMapping: CustomItemSlotMapping;
 
-    private constructor(exportedData: CustomItemExport, private readonly sheet: GearPlanSheet) {
+    private constructor(exportedData: CustomItemExport, private readonly sheet: GearPlanSheet, private readonly isUnsyncCopy: boolean = false) {
         this._data = exportedData;
-        this.recheckStats();
+        this.recheckSync();
+        this.slotMapping = new CustomItemSlotMapping(this.occGearSlotName);
     }
 
     private static defaults(): Omit<CustomItemExport, 'fakeId' | 'name' | 'slot' | 'respectCaps'> {
@@ -75,7 +111,7 @@ export class CustomItem implements GearItem {
         }, sheet);
     }
 
-    static fromScratch(fakeId: number, slot: OccGearSlotKey, sheet: GearPlanSheet): CustomItem {
+    static fromScratch(fakeId: number, slot: NormalOccGearSlotKey, sheet: GearPlanSheet): CustomItem {
         const data: CustomItemExport = {
             ...this.defaults(),
             fakeId: fakeId,
@@ -84,10 +120,29 @@ export class CustomItem implements GearItem {
             respectCaps: true,
             slot: slot,
         };
+        // Copy relevant features of the highest ilvl available for that slot
+        const highest = sheet.highestIlvlItemForSlot(slot).unsyncedVersion;
+        data.ilvl = highest.ilvl;
+        data.stats.vitality = highest.stats.vitality;
+        data.stats.strength = highest.stats.strength;
+        data.stats.dexterity = highest.stats.dexterity;
+        data.stats.intelligence = highest.stats.intelligence;
+        data.stats.mind = highest.stats.mind;
+        if (slot === 'Weapon2H' || slot === 'Weapon1H') {
+            data.stats.weaponDelay = highest.stats.weaponDelay;
+            data.stats.wdMag = highest.stats.wdMag;
+            data.stats.wdPhys = highest.stats.wdPhys;
+        }
         return new CustomItem(data, sheet);
     }
 
-    recheckStats(): void {
+    recheckSync(): void {
+        // If this is a copy of an item which exists for no reason but to act as another custom item's
+        // unsyncedVersion, we do not want to apply stat caps. In fact, it will result in an infinite recursion if
+        // we try, because it will try to generate its own unsynced copy.
+        if (this.isUnsyncCopy) {
+            return;
+        }
         const nativeInfo = this.sheet.ilvlSyncInfo(this.ilvl);
         const syncIlvl = this.sheet.ilvlSync;
         const syncInfo = syncIlvl === undefined ? undefined : this.sheet.ilvlSyncInfo(syncIlvl);
@@ -104,7 +159,7 @@ export class CustomItem implements GearItem {
 
     set ilvl(ilvl: number) {
         this._data.ilvl = ilvl;
-        this.recheckStats();
+        this.recheckSync();
     }
 
     get equipLvl() {
@@ -113,7 +168,7 @@ export class CustomItem implements GearItem {
 
     set equipLvl(equipLvl: number) {
         this._data.equipLvl = equipLvl;
-        this.recheckStats();
+        this.recheckSync();
     }
 
     get respectCaps() {
@@ -122,7 +177,7 @@ export class CustomItem implements GearItem {
 
     set respectCaps(respectCaps: boolean) {
         this._data.respectCaps = respectCaps;
-        this.recheckStats();
+        this.recheckSync();
     }
 
     get isUnique() {
@@ -133,12 +188,16 @@ export class CustomItem implements GearItem {
         return this._data.name;
     }
 
-    get occGearSlotName() {
+    get nameTranslation() {
+        return toTranslatable(this.name);
+    }
+
+    get occGearSlotName(): NormalOccGearSlotKey {
         return this._data.slot;
     }
 
-    get displayGearSlot(): DisplayGearSlot {
-        return DisplayGearSlotInfo[this.displayGearSlotName];
+    get displayGearSlot(): DisplayGearSlotInfo {
+        return DisplayGearSlotMapping[this.displayGearSlotName];
     }
 
     get stats(): RawStats {
@@ -185,19 +244,16 @@ export class CustomItem implements GearItem {
 
     private applyIlvlData(nativeIlvlInfo: IlvlSyncInfo, syncIlvlInfo?: IlvlSyncInfo) {
         if (this.respectCaps && nativeIlvlInfo) {
-            const statCapsNative = {};
+            const statCapsNative: RawStatsPart = {};
             Object.entries(this.stats).forEach(([stat, _]) => {
-                statCapsNative[stat] = nativeIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
+                statCapsNative[stat as RawStatKey] = nativeIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
             });
             this.statCaps = statCapsNative;
             if (syncIlvlInfo && syncIlvlInfo.ilvl < this.ilvl) {
-                this.unsyncedVersion = {
-                    ...this,
-                    stats: {...this.customData.stats},
-                };
-                const statCapsSync = {};
+                this.unsyncedVersion = new CustomItem({...this._data}, this.sheet, true);
+                const statCapsSync: RawStatsPart = {};
                 Object.entries(this.stats).forEach(([stat, v]) => {
-                    statCapsSync[stat] = syncIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
+                    statCapsSync[stat as RawStatKey] = syncIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
                 });
                 this.statCaps = statCapsSync;
                 this.isSyncedDown = true;
@@ -246,6 +302,18 @@ export class CustomItem implements GearItem {
             this.primarySubstat = sortedStats[0][0] as keyof RawStats;
             this.secondarySubstat = sortedStats[1][0] as keyof RawStats;
         }
+    }
+
+    // Don't restrict jobs on custom items, assume the user knows what they're doing
+    usableByJob(job: JobName): boolean {
+        return true;
+    }
+
+    get activeSpecialStat(): null {
+        return null;
+    }
+
+    set activeSpecialStat(_ignored: SpecialStatType | null) {
     }
 
 }

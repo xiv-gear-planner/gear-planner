@@ -1,4 +1,4 @@
-import { WarGaugeState } from "./war_types";
+import {WarGaugeState} from "./war_types";
 
 export class WarGauge {
 
@@ -20,7 +20,6 @@ export class WarGauge {
 
     getGaugeState(): WarGaugeState {
         return {
-            level: 100,
             beastGauge: this.beastGauge,
         };
     }

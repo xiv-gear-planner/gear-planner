@@ -8,11 +8,11 @@ import {
     SupportedLevel
 } from "./xivconstants";
 
-import {CustomItemExport} from "@xivgear/core/customgear/custom_item";
-import {CustomFoodExport} from "@xivgear/core/customgear/custom_food";
-import {RawBonusStats, StatModification} from "./xivstats";
+import {RawBonusStats, StatModification, StatPreModifications} from "./xivstats";
+import {TranslatableString} from "@xivgear/i18n/translation";
+import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 
-export interface DisplayGearSlot {
+export interface DisplayGearSlotInfo {
 
 }
 
@@ -22,13 +22,24 @@ export interface DisplayGearSlot {
 export const DisplayGearSlots = ['Weapon', 'OffHand', 'Head', 'Body', 'Hand', 'Legs', 'Feet', 'Ears', 'Neck', 'Wrist', 'Ring'] as const;
 export type DisplayGearSlotKey = typeof DisplayGearSlots[number];
 // Slots that an item actually occupies. 2H and 1H weapons are distinct here.
-// TODO: this stuff *could* be XIVAPI-ified later, which would especially be useful if SE adds more gear that blocks out
-// other slots. It seems to return a '1' for the primary slot, and a '-1' for blocked slots.
-export const OccGearSlots = ['Weapon2H', 'Weapon1H', 'OffHand', 'Head', 'Body', 'Hand', 'Legs', 'Feet', 'Ears', 'Neck', 'Wrist', 'Ring'] as const;
+// TODO: since we have implemented EquipSlotMap, this can be used in significantly fewer places.
+// In fact, it is already technically wrong for things like Vermilion Cloak, which is equipped to body+head, but it
+// isn't a huge practical concern because it only used in Eureka, where its ilvl of 300 does not get synced down.
+// "Normal" slots
+export const NormalOccGearSlots = [
+    'Weapon2H', 'Weapon1H', 'OffHand', 'Head', 'Body', 'Hand', 'Legs', 'Feet', 'Ears', 'Neck', 'Wrist', 'Ring',
+] as const;
+export type NormalOccGearSlotKey = typeof NormalOccGearSlots[number];
+// Unusual slots - not displayed as much in the UI
+export const SpecialOccGearSlots = [
+    'ChestHead', 'ChestHeadLegsFeet', 'ChestLegsFeet', 'ChestLegsGloves', 'HeadChestHandsLegsFeet', 'LegsFeet',
+] as const;
+// All slots
+export const OccGearSlots = [...NormalOccGearSlots, ...SpecialOccGearSlots] as const;
 export type OccGearSlotKey = typeof OccGearSlots[number];
 
 // For future use, in the event that these actually require properties
-export const DisplayGearSlotInfo: Record<DisplayGearSlotKey, DisplayGearSlot> = {
+export const DisplayGearSlotMapping: Record<DisplayGearSlotKey, DisplayGearSlotInfo> = {
     Weapon: {},
     OffHand: {},
     Head: {},
@@ -43,7 +54,7 @@ export const DisplayGearSlotInfo: Record<DisplayGearSlotKey, DisplayGearSlot> = 
 } as const;
 
 export interface EquipSlot {
-    get gearSlot(): DisplayGearSlot;
+    get gearSlot(): DisplayGearSlotKey;
 
     slot: keyof EquipmentSet;
 
@@ -58,62 +69,62 @@ export const EquipSlotInfo: Record<EquipSlotKey, EquipSlot> = {
     Weapon: {
         slot: 'Weapon',
         name: 'Weapon',
-        gearSlot: DisplayGearSlotInfo.Weapon,
+        gearSlot: 'Weapon',
     },
     OffHand: {
         slot: 'OffHand',
         name: 'Off-Hand',
-        gearSlot: DisplayGearSlotInfo.OffHand,
+        gearSlot: 'OffHand',
     },
     Head: {
         slot: 'Head',
         name: 'Head',
-        gearSlot: DisplayGearSlotInfo.Head,
+        gearSlot: 'Head',
     },
     Body: {
         slot: 'Body',
         name: 'Body',
-        gearSlot: DisplayGearSlotInfo.Body,
+        gearSlot: 'Body',
     },
     Hand: {
         slot: 'Hand',
         name: 'Hand',
-        gearSlot: DisplayGearSlotInfo.Hand,
+        gearSlot: 'Hand',
     },
     Legs: {
         slot: 'Legs',
         name: 'Legs',
-        gearSlot: DisplayGearSlotInfo.Legs,
+        gearSlot: 'Legs',
     },
     Feet: {
         slot: 'Feet',
         name: 'Feet',
-        gearSlot: DisplayGearSlotInfo.Feet,
+        gearSlot: 'Feet',
     },
     Ears: {
         slot: 'Ears',
         name: 'Ears',
-        gearSlot: DisplayGearSlotInfo.Ears,
+        gearSlot: 'Ears',
     },
     Neck: {
         slot: 'Neck',
         name: 'Neck',
-        gearSlot: DisplayGearSlotInfo.Neck,
+        gearSlot: 'Neck',
     },
     Wrist: {
         slot: 'Wrist',
         name: 'Wrist',
-        gearSlot: DisplayGearSlotInfo.Wrist,
+        gearSlot: 'Wrist',
     },
     RingLeft: {
         slot: 'RingLeft',
         name: 'Left Ring',
-        gearSlot: DisplayGearSlotInfo.Ring,
+        gearSlot: 'Ring',
     },
     RingRight: {
         slot: 'RingRight',
         name: 'Right Ring',
-        gearSlot: DisplayGearSlotInfo.Ring,
+        gearSlot: 'Ring',
     },
 } as const;
 
@@ -121,12 +132,45 @@ export const EquipSlotInfo: Record<EquipSlotKey, EquipSlot> = {
 //     [K in keyof T as T[K] extends V ? K : never]: any
 // };
 
+/**
+ * The relationship between an item and a slot has three states:
+ * 1. The item cannot be equipped in the slot, e.g. cannot equip a head item in the leg slot.
+ * 2. The item can be equipped in the slot, e.g. a ring can be equipped to left right or right ring slot.
+ * 3. The item cannot be equipped in the slot, but if equipped into its correct slot, will block this slot.
+ * e.g. Vermilion Cloak.
+ *
+ * */
+export type EquipSlotValue = 'none' | 'equip' | 'block';
+
+/**
+ * The relationship between an item and all slots.
+ */
+export type EquipSlotMap = {
+    [K in EquipSlotKey]: EquipSlotValue;
+} & {
+    /**
+     * Whether the item can be equipped to the slot. Usually this is only true for a single slot, but rings can
+     * be equipped to both left and right ring slots.
+     * @param slot
+     */
+    canEquipTo(slot: EquipSlotKey): boolean;
+    /**
+     * Get the list of slots which will be blocked from equipping items if this item is equipped.
+     * e.g. Vermilion Cloak blocks the head slot despite being equipped to body slot.
+     */
+    getBlockedSlots(): EquipSlotKey[];
+}
+
 
 export interface XivItem {
     /**
      * Item name
      */
     name: string;
+    /**
+     * Item name, including translations
+     */
+    readonly nameTranslation: TranslatableString;
     /**
      * Item ID
      */
@@ -148,7 +192,7 @@ export interface GearItem extends XivCombatItem {
     /**
      * Which gear slot to populate in the UI
      */
-    displayGearSlot: DisplayGearSlot;
+    displayGearSlot: DisplayGearSlotInfo;
     /**
      * Which gear slot to populate in the UI
      */
@@ -193,6 +237,14 @@ export interface GearItem extends XivCombatItem {
     isUnique: boolean;
     acquisitionType: GearAcquisitionSource;
     relicStatModel: RelicStatModel | undefined;
+    isNqVersion: boolean;
+    rarity: number;
+
+    usableByJob(job: JobName): boolean;
+
+    activeSpecialStat: SpecialStatType | null;
+
+    readonly slotMapping: EquipSlotMap;
 }
 
 export interface FoodStatBonus {
@@ -239,7 +291,7 @@ export interface ComputedSetStats extends RawStats {
     /**
      * Current level
      */
-    readonly level: number,
+    readonly level: SupportedLevel,
     /**
      * Current level stats modifier
      */
@@ -264,9 +316,16 @@ export interface ComputedSetStats extends RawStats {
     gcdMag(baseGcd: number, haste?: number): number,
 
     /**
-     * Base haste value for a given attack type
+     * Combined haste value for a given attack type
      */
-    haste(attackType: AttackType): number;
+    haste(attackType: AttackType, buffHaste: number, gaugeHaste: number): number;
+
+    /**
+     * Compute the effective auto-attack delay. Assumes the attack has the type 'Auto-attack'.
+     *
+     * @param buffHaste The amount of haste from buffs.
+     */
+    effectiveAaDelay(buffHaste: number, gaugeHaste: number): number;
 
     /**
      * Crit chance. Ranges from 0 to 1.
@@ -309,6 +368,10 @@ export interface ComputedSetStats extends RawStats {
      */
     readonly wdMulti: number,
     /**
+     * Pet action WD multiplier. Uses a slightly lower job modifier.
+     */
+    readonly wdMultiPetAction: number,
+    /**
      * Multiplier from main stat.
      */
     readonly mainStatMulti: number
@@ -317,6 +380,17 @@ export interface ComputedSetStats extends RawStats {
      * else).
      */
     readonly aaStatMulti: number
+    /**
+     * Stats coming from the gear pre-party bonus. Important for some abilities' alternate
+     * scalings (e.g. Living Shadow).
+     */
+    readonly gearStats: RawStats
+    /**
+     * Base main stat, multiplied by the job stat multiplier, plus racial bonus. For example, the main stat (e.g. 440 at level 100) multiplied by the
+     * jobStatMultiplier (e.g. 1.05 at level 100) plus the racial stat (e.g. +3 for The Lost's strength). This is useful for being able to unwind
+     * it later for abilities with different scaling, e.g. Living Shadow.
+     */
+    readonly baseMainStatPlusRace: number
 
     /**
      * Trait multiplier
@@ -327,6 +401,14 @@ export interface ComputedSetStats extends RawStats {
      * Bonus added to det multiplier for automatic direct hits
      */
     readonly autoDhBonus: number;
+    /**
+     * Bonus added to crit multi by crit chance buffs when auto-critting.
+     */
+    readonly autoCritBuffMulti: number;
+    /**
+     * Bonus added to DH multi by DH chance buffs when auto-DHing.
+     */
+    readonly autoDhitBuffMulti: number;
     /**
      * MP Per Tick
      */
@@ -340,12 +422,25 @@ export interface ComputedSetStats extends RawStats {
      */
     readonly aaDelay: number;
 
-    withModifications(modifications: StatModification): ComputedSetStats;
+    /**
+     * The damage taken ratio based on the defense stat. e.g. 0.95 would mean 5% damage reduction.
+     */
+    readonly defenseDamageTaken: number;
+
+    /**
+     * The damage taken ratio based on the magic defense stat. e.g. 0.95 would mean 5% damage reduction.
+     */
+    readonly magicDefenseDamageTaken: number;
+
+    readonly effectiveFoodBonuses: RawStats;
+
+    withModifications(modifications: StatModification, pre?: StatPreModifications): ComputedSetStats;
 }
 
 export interface MeldableMateriaSlot {
     materiaSlot: MateriaSlot;
     equippedMateria: Materia | null;
+    locked: boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
@@ -365,7 +460,10 @@ export interface RawStats {
     skillspeed: number,
     wdPhys: number,
     wdMag: number,
-    weaponDelay: number
+    weaponDelay: number,
+    defenseMag: number;
+    defensePhys: number;
+    gearHaste: number;
 }
 
 export type RawStatKey = keyof RawStats;
@@ -393,13 +491,15 @@ export class RawStats implements RawStats {
     wdPhys: number = 0;
     wdMag: number = 0;
     weaponDelay: number = 0;
+    defenseMag: number = 0;
+    defensePhys: number = 0;
+    gearHaste: number = 0;
 
     constructor(values: ({ [K in RawStatKey]?: number } | undefined) = undefined) {
         if (values) {
             Object.assign(this, values);
         }
     }
-
 }
 
 export interface LevelStats {
@@ -414,11 +514,9 @@ export interface LevelStats {
         } & { [K in RoleKey]?: number })
         | { [K in RoleKey]: number },
     // You can specify either 'default' and a non-exhaustive list, or an exhaustive list (i.e. every role).
-    mainStatPowerMod:
-        ({
-            'other': number
-        } & { [K in RoleKey]?: number })
-        | { [K in RoleKey]: number },
+    mainStatPowerMod: {
+        'other': number
+    } & { [K in RoleKey]?: number }
 }
 
 
@@ -441,6 +539,10 @@ export type RoleKey = typeof ROLES[number];
 export type Mainstat = typeof MAIN_STATS[number];
 export type Substat = (typeof FAKE_MAIN_STATS[number] | typeof SPECIAL_SUB_STATS[number]);
 
+/**
+ * JobDataConst represents the subset of job-related data which we do not pull from Xivapi.
+ * These are mostly manually curated.
+ */
 export interface JobDataConst {
     /**
      * The role of the job
@@ -470,12 +572,20 @@ export interface JobDataConst {
      * True if this class uses 1H+Offhand rather than 2H weapons
      */
     readonly offhand?: boolean;
+    // /**
+    //  * Stat cap multipliers. e.g. Healers have a 10% VIT penalty, so it would be {'Vitality': 0.90}
+    //  */
+    // readonly itemStatCapMultipliers?: {
+    //     [K in RawStatKey]?: number
+    // };
     /**
-     * Stat cap multipliers. e.g. Healers have a 10% VIT penalty, so it would be {'Vitality': 0.90}
+     * Which BaseParam.MeldParam index to use for calculating stat caps.
+     * Makes hardcoded itemStatCapMultipliers obsolete.
+     * Since these only have numeric indices with no indication of which is which, it is derived from looking at gear
+     * pieces of the same ilvl and comparing their stats across different jobs. However, there are many rows which are
+     * identical for
      */
-    readonly itemStatCapMultipliers?: {
-        [K in RawStatKey]?: number
-    };
+    readonly meldParamIndex: number;
     /**
      * Auto-attack potency amount
      */
@@ -524,9 +634,13 @@ export type GcdDisplayOverride = {
      */
     attackType: AttackType,
     /**
-     * Additional haste to use for this calculation (e.g. for PoM)
+     * Additional buff haste to use for this calculation (e.g. for PoM)
      */
-    haste?: number,
+    buffHaste?: number,
+    /**
+     * Additional gauge haste to use for this calculation (e.g. Paeon)
+     */
+    gaugeHaste?: number,
     /**
      * Whether this calc uses SpS or SkS formula
      */
@@ -547,6 +661,9 @@ export type JobMultipliers = {
     hp: number
 }
 
+/**
+ * JobData is the combination of {@link JobDataConst} and other data pulled from Xivapi.
+ */
 export interface JobData extends JobDataConst {
     jobStatMultipliers: JobMultipliers,
 }
@@ -554,35 +671,37 @@ export interface JobData extends JobDataConst {
 export interface JobTrait {
     minLevel?: number,
     maxLevel?: number,
-    apply: (stats: RawBonusStats) => void;
+    apply: TraitFunc,
 }
 
-export class GearSlotItem {
+export type TraitFunc = (stats: RawBonusStats) => void;
+
+export type GearSlotItem = {
     slot: EquipSlot;
     item: GearItem;
     slotId: keyof EquipmentSet;
 }
 
-export class EquipmentSet {
-    Weapon: EquippedItem | null;
-    OffHand: EquippedItem | null;
-    Head: EquippedItem | null;
-    Body: EquippedItem | null;
-    Hand: EquippedItem | null;
-    Legs: EquippedItem | null;
-    Feet: EquippedItem | null;
-    Ears: EquippedItem | null;
-    Neck: EquippedItem | null;
-    Wrist: EquippedItem | null;
-    RingLeft: EquippedItem | null;
-    RingRight: EquippedItem | null;
-
+export class EquipmentSet implements Record<EquipSlotKey, EquippedItem | null> {
+    Weapon: EquippedItem | null = null;
+    OffHand: EquippedItem | null = null;
+    Head: EquippedItem | null = null;
+    Body: EquippedItem | null = null;
+    Hand: EquippedItem | null = null;
+    Legs: EquippedItem | null = null;
+    Feet: EquippedItem | null = null;
+    Ears: EquippedItem | null = null;
+    Neck: EquippedItem | null = null;
+    Wrist: EquippedItem | null = null;
+    RingLeft: EquippedItem | null = null;
+    RingRight: EquippedItem | null = null;
 }
 
 export function cloneEquipmentSet(set: EquipmentSet) {
     const out = new EquipmentSet();
-    Object.entries(set).forEach(([slot, equipped]) => {
-        if (equipped instanceof EquippedItem) {
+    EquipSlots.forEach(slot => {
+        const equipped = set[slot];
+        if (equipped) {
             out[slot] = equipped.clone();
         }
     });
@@ -626,7 +745,7 @@ export interface SheetExport {
     /**
      * The character clan (e.g. Wildwood or Duskwight) of the sheet.
      */
-    race: RaceName,
+    race: RaceName | undefined,
     /**
      * Party bonus percentage (0-5)
      */
@@ -680,14 +799,114 @@ export interface SheetExport {
      * Custom foods
      */
     customFoods?: CustomFoodExport[],
+
+    /**
+     * Unix timestamp
+     */
+    timestamp?: number,
+
+    /**
+     * True if this is a multi-job sheet (within a single role)
+     */
+    isMultiJob?: boolean,
+
+    specialStats?: string | null,
 }
+
+export type SheetModificationKey = number;
+
+export type SheetModificationRecord = [version: number, key: SheetModificationKey];
+
+export type LocalSheetMetadata = {
+    /**
+     * The current numeric version of the sheet. Should be incremented upon modifications.
+     */
+    currentVersion: number,
+    /**
+     * The version of the sheet that was last uploaded to the server. Zero if it has never been uploaded.
+     */
+    lastSyncedVersion: number,
+    /**
+     * The version of the sheet that the server is confirmed to have. Zero if the server does not have it.
+     */
+    serverVersion: number,
+    /**
+     * The sort order of the sheet. Null indicates that the sheet should use the default sort order.
+     */
+    sortOrder: number | null,
+    /**
+     * True if the sheet has some kind of sync conflict.
+     */
+    hasConflict: boolean,
+    /**
+     * True if the user data sync process should force push to the server.
+     */
+    forcePush: boolean,
+    /**
+     * True if the sheet is deleted from the server.
+     */
+    serverDeleted: boolean,
+    /**
+     * True if the sheet was deleted locally.
+     */
+    localDeleted: boolean,
+
+    summary: SheetSummary,
+
+    unsyncedModifications?: SheetModificationRecord[],
+}
+
+export type SheetSummary = {
+    job: JobName,
+    name: string,
+    multiJob: boolean,
+    level: SupportedLevel,
+    isync?: number | undefined,
+}
+
+export const DEFAULT_SHEET_METADATA: Readonly<Omit<LocalSheetMetadata, 'summary'>> = {
+    currentVersion: 1,
+    lastSyncedVersion: 0,
+    serverVersion: 0,
+    sortOrder: null,
+    hasConflict: false,
+    forcePush: false,
+    serverDeleted: false,
+    localDeleted: false,
+} as const;
+
+export type CustomItemExport = {
+    ilvl: number;
+    equipLvl: number;
+    largeMateriaSlots: number;
+    smallMateriaSlots: number;
+    materiaGrade: number;
+    name: string;
+    fakeId: number;
+    slot: NormalOccGearSlotKey;
+    isUnique: boolean;
+    stats: RawStats;
+    respectCaps: boolean;
+}
+
+export type CustomFoodExport = {
+    ilvl: number;
+    name: string;
+    fakeId: number;
+    vitalityBonus: FoodStatBonus;
+    primaryStat: Substat | null;
+    primaryStatBonus: FoodStatBonus;
+    secondaryStat: Substat | null;
+    secondaryStatBonus: FoodStatBonus;
+}
+
 
 export type RelicStatMemoryExport = {
     [p: number]: RelicStats;
 };
 
 
-export type SlotMateriaMemoryExport = [item: number, materiaIds: number[]];
+export type SlotMateriaMemoryExport = [item: number, materiaIds: number[], locked?: boolean[]];
 
 export type MateriaMemoryExport = {
     [slot in EquipSlotKey]?: SlotMateriaMemoryExport[]
@@ -697,7 +916,6 @@ export interface SheetStatsExport extends SheetExport {
     sets: SetStatsExport[],
 }
 
-// TODO: split into internal and external version?
 /**
  * Represents an exported set. Note that in addition to some fields only being applicable to internal vs external
  * usage, some fields may be present based on whether this set was exported as a standalone individual set, or as
@@ -718,13 +936,40 @@ export interface SetExport {
     /**
      * Equipped items (and their materia and/or relic stats)
      */
-    items: {
-        [K in EquipSlotKey]?: ItemSlotExport
-    };
+    items: ItemsSlotsExport,
     /**
      * Equipped food (by item ID)
      */
     food?: number,
+    /**
+     * When a relic is de-selected, its former stats are remembered here so that they can be recalled if the
+     * relic is selected again. They keys are item IDs, and the values are {@link RelicStats}.
+     */
+    relicStatMemory?: RelicStatMemoryExport;
+    /**
+     * When an item is de-selected, its former materia are remembered so that they can later be automatically
+     * re-equipped based on settings. They keys are slot names (so that left/right ring can be differentiated),
+     * and the values are lists of tuples of [item ID, [materia 0, materia 1, ... materia n]]
+     */
+    materiaMemory?: MateriaMemoryExport;
+    /**
+     * Indicates that this set is a separator rather than an actual set
+     */
+    isSeparator?: boolean,
+    /**
+     * For multi-class sheets, each set can have a different job.
+     */
+    jobOverride?: JobName | null,
+}
+
+export type ItemsSlotsExport = {
+    [K in EquipSlotKey]?: ItemSlotExport
+};
+
+/**
+ * Type that represents a single set exported as a top-level sheet.
+ */
+export interface SetExportExternalSingle extends SetExport {
     // We don't care about job/level for internal usage, since
     // those are properties of the sheet. It's strictly to
     // prevent/warn on importing the wrong job, as well as for
@@ -746,17 +991,6 @@ export interface SetExport {
      */
     sims?: SimExport[],
     /**
-     * When a relic is de-selected, its former stats are remembered here so that they can be recalled if the
-     * relic is selected again. They keys are item IDs, and the values are {@link RelicStats}.
-     */
-    relicStatMemory?: RelicStatMemoryExport;
-    /**
-     * When an item is de-selected, its former materia are remembered so that they can later be automatically
-     * re-equipped based on settings. They keys are slot names (so that left/right ring can be differentiated),
-     * and the values are lists of tuples of [item ID, [materia 0, materia 1, ... materia n]]
-     */
-    materiaMemory?: MateriaMemoryExport;
-    /**
      * Only for standalone use - Custom items
      */
     customItems?: CustomItemExport[],
@@ -765,9 +999,19 @@ export interface SetExport {
      */
     customFoods?: CustomFoodExport[],
     /**
-     * Indicates that this set is a separator rather than an actual set
+     * Party bonus percentage (0-5)
      */
-    isSeparator?: boolean,
+    partyBonus?: PartyBonusAmount,
+    /**
+     * The character clan (e.g. Wildwood or Duskwight) of the sheet.
+     */
+    race?: RaceName,
+    /**
+     * Unix timestamp
+     */
+    timestamp?: number,
+
+    specialStats?: string | null,
 }
 
 /**
@@ -801,30 +1045,68 @@ export interface ItemSlotExport {
         /**
          * The item ID of this materia. -1 indicates no materia equipped in this slot.
          */
-        id: number
+        id: number,
+        locked?: boolean,
     } | undefined)[],
     /**
      * If this is a relic, represents the current stats of the relic.
      */
-    relicStats?: {
-        [K in Substat]?: number
-    }
+    relicStats?: RelicStatsExport,
+    /**
+     * Force this to be an NQ item instead of HQ if available.
+     */
+    forceNq?: boolean,
+}
+
+export type RelicStatsExport = {
+    [K in Substat]?: number
 }
 
 export type PartyBonusAmount = 0 | 1 | 2 | 3 | 4 | 5;
 
 
-export interface MateriaAutoFillController {
+/**
+ * MateriaAutoFillController is the interface for bulk materia actions and some
+ * settings related to them.
+ */
+export type MateriaAutoFillController = {
     readonly prio: MateriaAutoFillPrio;
     autoFillMode: MateriaFillMode;
 
+    /**
+     * callback() should be called after changing settings to ensure they get saved.
+     */
     callback(): void;
 
+    /**
+     * Fill empty slots according to priority.
+     */
     fillEmpty(): void;
 
+    /**
+     * Fill all slots according to priority, overwriting existing materia if needed.
+     */
     fillAll(): void;
 
-    refreshOnly(): void;
+    /**
+     * Lock all filled slots.
+     */
+    lockFilled(): void;
+
+    /**
+     * Lock all empty slots.
+     */
+    lockEmpty(): void;
+
+    /**
+     * Unlock all slots.
+     */
+    unlockAll(): void;
+
+    /**
+     * Unequip materia in unlocked slots.
+     */
+    unequipUnlocked(): void;
 }
 
 export interface MateriaAutoFillPrio {
@@ -836,11 +1118,34 @@ export const MATERIA_FILL_MODES = ['leave_empty', 'autofill', 'retain_slot_else_
 export type MateriaFillMode = typeof MATERIA_FILL_MODES[number];
 
 export interface ItemDisplaySettings {
+    /**
+     * Min ilvl for gear items
+     */
     minILvl: number,
+    /**
+     * Max ilvl for gear items
+     */
     maxILvl: number,
+    /**
+     * Min ilvl for food items
+     */
     minILvlFood: number,
+    /**
+     * Max ilvl for food items
+     */
     maxILvlFood: number,
-    higherRelics: boolean
+    /**
+     * Show relics which exceed {@link #maxILvl}
+     */
+    higherRelics: boolean,
+    /**
+     * Show NQ items in addition to their HQ counterparts
+     */
+    showNq: boolean,
+    /**
+     * Show food with only one relevant stat
+     */
+    showOneStatFood: boolean,
 }
 
 export const AttackTypes = ['Unknown', 'Auto-attack', 'Spell', 'Weaponskill', 'Ability', 'Item'] as const;
@@ -922,8 +1227,10 @@ export type GearSetResult = {
     readonly issues: readonly GearSetIssue[]
 }
 
+export type CollapsibleSlot = EquipSlotKey | 'food';
+
 export type SetDisplaySettingsExport = {
-    hiddenSlots: EquipSlotKey[]
+    hiddenSlots: CollapsibleSlot[]
 }
 
 export type BaseRelicStatModel = {
@@ -995,6 +1302,10 @@ export type RelicStats = {
     [K in Substat]?: number
 }
 
+/**
+ * EquippedItem represents an item as it is actually equipped, not just a base item. Thus includes customizations such
+ * as equipped materia, materia locking, and custom relic stats.
+ */
 export class EquippedItem {
 
     gearItem: GearItem;
@@ -1009,6 +1320,7 @@ export class EquippedItem {
                 this.melds.push({
                     materiaSlot: materiaSlot,
                     equippedMateria: null,
+                    locked: false,
                 });
             }
         }
@@ -1020,13 +1332,20 @@ export class EquippedItem {
         }
     }
 
+    /**
+     * Clone creates a deep clone of this EquippedItem.
+     */
     clone(): EquippedItem {
         const out = new EquippedItem(
             this.gearItem
         );
         // Deep clone the materia slots
         this.melds.forEach((slot, index) => {
+            if (index >= out.melds.length) {
+                return;
+            }
             out.melds[index].equippedMateria = slot.equippedMateria;
+            out.melds[index].locked = slot.locked;
         });
         if (this.relicStats !== undefined && out.relicStats !== undefined) {
             Object.assign(out.relicStats, this.relicStats);
@@ -1035,3 +1354,45 @@ export class EquippedItem {
     }
 }
 
+/**
+ * Represents different overrides to values used in calculating damage.
+ * This can and should be extended for other things that are specially overriden
+ * by abilities in the future.
+ */
+export type ScalingOverrides = {
+    /**
+     * Main stat multiplier. Overriden by abilities like Living Shadow and Bunshin.
+     */
+    mainStatMulti: number,
+    /**
+     * Weapon damage multiplier. Overriden by pet abilities and abilities with alternate
+     * actors, e.g. Earthly Star, Living Shadow, Queen, SMN abilities.
+     */
+    wdMulti: number,
+}
+
+// TODO: look at Int16Array and friends to see if this can be compressed further
+// Idea:
+/*
+MicroSetExport has a single TypedArray, where we store items in a flat structure.
+e.g. [slot1slotId, slot1itemId, slot1materiaCount, slot1materia1id, ... slot1materiaNid, slot2slotId, ... etc]
+Could even take it a step further and pack multiple sets into one big array.
+ */
+
+/**
+ * MicroSetExport is a minimal analog to {@link SetExport} which contains the bare minimum information
+ * needed for brute force solving. This is useful for reducing memory usage. These are meant to be very dense in
+ * terms of memory, so they use hacks like adding 0.5 to item IDs to signify an NQ item.
+ */
+export type MicroSetExport = MicroSlotExport[];
+
+export type FoodMicroSlotExport = [slot: "food", foodId: number];
+// The itemId in this case has 0.5 added to it to indicate an NQ item
+export type NormalItemMicroSlotExport = [slot: EquipSlotKey, itemId: number, ...materiaIds: (number | null)[]];
+export type RelicItemMicroSlotExport = [slot: EquipSlotKey, itemId: number, "relic", relicStats: RelicStatsExport];
+export type MicroSlotExport = FoodMicroSlotExport | NormalItemMicroSlotExport | RelicItemMicroSlotExport;
+
+export type IlvlSyncInfo = {
+    readonly ilvl: number;
+    substatCap(slot: OccGearSlotKey, statsKey: RawStatKey): number;
+}

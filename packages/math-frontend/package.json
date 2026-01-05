@@ -3,38 +3,35 @@
   "version": "1.0.0",
   "dependencies": {
     "@webcomponents/webcomponentsjs": "^2.8.0",
-    "@xivgear/xivmath": "^1.0.0",
-    "@xivgear/core": "^1.0.0",
     "@xivgear/common-ui": "^1.0.0",
-    "highlight.js": "^11.9.0"
+    "@xivgear/core": "^1.0.0",
+    "@xivgear/xivmath": "^1.0.0",
+    "highlight.js": "^11.11.1"
   },
   "exports": {
     "./*": "./src/scripts/*.ts"
   },
   "devDependencies": {
     "@types/jsdom": "^21.1.7",
-    "@types/mocha": "^10.0.9",
+    "@types/mocha": "^10.0.10",
     "global-jsdom": "^25.0.0",
-    "html-webpack-plugin": "^5.6.2",
+    "html-webpack-plugin": "^5.6.3",
     "isomorphic-fetch": "^3.0.0",
-    "jsdom": "^25.0.0",
-    "less": "^4.2.0",
+    "jsdom": "^25.0.1",
+    "less": "^4.4.0",
     "mocha": "^10.7.3",
-    "ts-loader": "^9.5.1",
-    "ts-mocha": "^10.0.0",
+    "ts-loader": "^9.5.2",
+    "ts-mocha": "^10.1.0",
     "ts-node": "^10.9.2",
-    "typedoc": "^0.26.10",
-    "webpack": "^5.91.0",
+    "typedoc": "^0.28.4",
+    "webpack": "^5.99.8",
     "webpack-cli": "^5.1.4"
   },
   "scripts": {
     "build": "tsc --build && webpack --mode=development && lessc --source-map ./src/style.less dist/style.css",
-    "buildprod": "tsc --build && webpack --mode=development && lessc --source-map ./src/style.less dist/style.css",
+    "buildprod": "tsc --build && webpack --mode=production && lessc --source-map ./src/style.less dist/style.css",
     "web": "webpack --mode=development",
     "webprod": "webpack --mode=production",
     "less": "lessc --source-map ./src/style.less dist/style.css"
-  },
-  "browser": {
-    "[module-name]": false
   }
 }

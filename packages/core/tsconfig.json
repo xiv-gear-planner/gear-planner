@@ -1,21 +1,28 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "target": "es2022",
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "sourceMap": true,
-    "outDir": "./build",
-    "noImplicitReturns": true,
-    "strictBindCallApply": true,
-    "allowSyntheticDefaultImports": true,
-    "composite": true
+    "strict": false,
   },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "./node_modules",
+    "./dist",
+    "*.d.ts"
+  ],
   "references": [
     {
       "path": "../xivmath"
     },
     {
       "path": "../data-api-client"
+    },
+    {
+      "path": "../i18n"
+    },
+    {
+      "path": "../util"
     }
   ]
 }

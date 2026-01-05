@@ -1,6 +1,8 @@
 import {previewItemStatDetail} from "../gear";
-import {GearItem, RawStats} from "@xivgear/xivmath/geartypes";
+import {GearItem, RawStatKey, RawStats} from "@xivgear/xivmath/geartypes";
 import {expect} from 'chai';
+import {NewApiDataManager} from "../datamanager_new";
+import {ALL_COMBAT_JOBS, MAIN_STATS} from "@xivgear/xivmath/xivconstants";
 
 
 describe('Individual item math', () => {
@@ -65,3 +67,86 @@ describe('Individual item math', () => {
 });
 
 // TODO: add more tests for the gear sheet as a whole after untangling
+
+describe('bug #695 - offhands have wrong stats', () => {
+    // This test validates our stat cap calculation logic by verifying that all known items have
+    // a big substat exactly equal to their cap
+    ALL_COMBAT_JOBS.forEach(job => {
+        it(`all normal items for ${job} have big stat, main stat, vitality === stat cap`, async () => {
+            const dm = new NewApiDataManager([job], 100, undefined);
+            await dm.loadData();
+            const failures: string[] = [];
+            dm.allItems.forEach(item => {
+                if (item.isCustomRelic) {
+                    return;
+                }
+                if (item.isNqVersion) {
+                    // TODO: is there a specific pattern we can use for NQ?
+                    return;
+                }
+                if (item.id === 34455 || item.id === 34474) {
+                    // Known issue with this specific PLD 1H+Shield
+                    return;
+                }
+                const primarySub = item.primarySubstat;
+                const primarySubValue = item.stats[primarySub];
+                const primarySubCap = item.statCaps[primarySub];
+                if (primarySubValue !== primarySubCap) {
+                    // A few ilvls have different caps for piety and tenacity
+                    if (primarySub === 'piety' || primarySub === 'tenacity') {
+                        const ilvlSyncInfo = dm.getIlvlSyncInfo(item.ilvl);
+                        const thisCap = ilvlSyncInfo.substatCap(item.occGearSlotName, primarySub);
+                        // The cap for the "normal" substats
+                        const normalCap = ilvlSyncInfo.substatCap(item.occGearSlotName, 'crit');
+                        if (thisCap !== normalCap && primarySubValue === normalCap) {
+                            return;
+                        }
+                    }
+                    failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has ${primarySub} ${primarySubValue} !== ${primarySubCap} (cap)`);
+                }
+                // This includes vitality
+                MAIN_STATS.forEach(mainStat => {
+                    const value = item.stats[mainStat];
+                    if (value === 0) {
+                        return;
+                    }
+                    const cap = item.statCaps[mainStat];
+                    // See bug #715
+                    if (item.ilvl === 380
+                        && (item.usableByJob('WHM') || item.usableByJob('RDM'))
+                        && (item.occGearSlotName === 'Head' || item.occGearSlotName === 'Hand' || item.occGearSlotName === 'Feet')
+                        && mainStat === 'vitality'
+                    ) {
+                        return;
+                    }
+                    if (value !== cap) {
+                        failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has ${mainStat} ${value} !== ${cap} (cap)`);
+                    }
+                });
+                const defStats: RawStatKey[] = ["defensePhys", "defenseMag"];
+                defStats.forEach(defStat => {
+                    const value = item.stats[defStat];
+                    if (value === 0) {
+                        return;
+                    }
+                    const cap = item.statCaps[defStat];
+                    // For some reason, the cap is 0, but the actual value is 1 for accessories.
+                    if (value === 0 || value === 1) {
+                        return;
+                    }
+                    // Allow a margin of error of one unless we find a confirmed-wrong case.
+                    if (Math.abs(value - cap) > 1) {
+                        failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has ${defStat} ${value} !== ${cap} (cap)`);
+                    }
+
+                });
+            });
+            if (failures.length > 0) {
+                throw Error(failures.join('\n'));
+            }
+        });
+
+    });
+});
+
+

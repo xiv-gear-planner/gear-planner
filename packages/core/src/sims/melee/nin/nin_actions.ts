@@ -42,7 +42,7 @@ export const AeolianEdge: NinGcdAbility = {
     name: "Aeolian Edge",
     id: 2255,
     attackType: "Weaponskill",
-    potency: 440,
+    potency: 460,
     gcd: 2.5,
     cast: 0,
     updateGauge: (gauge: NINGauge) => {
@@ -64,7 +64,7 @@ export const ArmorCrush: NinGcdAbility = {
     name: "Armor Crush",
     id: 3563,
     attackType: "Weaponskill",
-    potency: 480,
+    potency: 500,
     gcd: 2.5,
     cast: 0,
     updateGauge: (gauge: NINGauge) => {
@@ -97,7 +97,7 @@ export const Phantom: NinGcdAbility = {
     name: "Phantom Kamaitachi",
     id: 25774,
     attackType: "Weaponskill",
-    potency: 600, // TODO: Mark as Pet Damage Potency
+    potency: 700, // TODO: Mark as Pet Damage Potency
     gcd: 2.5,
     cast: 0,
     updateGauge: gauge => gauge.ninkiGauge += 10,
@@ -211,7 +211,7 @@ export const KunaisBane: NinOgcdAbility = {
     name: "Kunai's Bane",
     id: 36958,
     attackType: "Ability",
-    potency: 600,
+    potency: 700,
     cooldown: {
         time: 60,
     },
@@ -274,7 +274,7 @@ export const DokumoriAbility: NinOgcdAbility = {
     name: "Dokumori",
     id: 36957,
     attackType: "Ability",
-    potency: 300,
+    potency: 400,
     cooldown: {
         time: 120,
     },
@@ -287,7 +287,7 @@ export const DreamWithin: NinOgcdAbility = {
     name: "Dream Within a Dream",
     id: 3566,
     attackType: "Ability",
-    potency: 150 * 3, // Multihit
+    potency: 180 * 3, // Multihit
 };
 
 export const Bhavacakra: NinkiAbility = {
@@ -295,7 +295,7 @@ export const Bhavacakra: NinkiAbility = {
     name: "Bhavacakra",
     id: 7402,
     attackType: "Ability",
-    potency: 380,
+    potency: 400,
     updateGauge: gauge => gauge.ninkiGauge -= 50,
     ninkiCost: 50,
 };

@@ -1,52 +1,25 @@
-export type XivApiRequest = {
-    requestType: 'list' | 'search',
-    sheet: string,
-    columns?: readonly string[],
-    columnsTrn?: readonly string[]
-    perPage?: number
-    startPage?: number,
-    pageLimit?: number
-}
-
-export type XivApiListRequest = XivApiRequest & {
-    requestType: 'list',
-    rows?: number[],
-}
-
-export type XivApiFilter = string;
-
-export type XivApiSearchRequest = XivApiRequest & {
-    requestType: 'search',
-    filters?: XivApiFilter[],
-}
-
-export const XIVAPI_SERVER = "https://beta.xivapi.com";
-
-export type XivApiResultSingle<Cols extends readonly string[], TrnCols extends readonly string[] = []> = {
-    [K in Cols[number]]: unknown;
-} & {
-    [K in TrnCols[number]]: unknown;
-} & {
-    ID: number
-}
-
-export type XivApiResponse<RequestType extends XivApiRequest> = {
-    Results: XivApiResultSingle<RequestType['columns'], RequestType['columnsTrn']>[]
-}
-
-// export type ValidRequest<RequestType extends XivApiRequest> = RequestType['requestType'] extends 'search' ? XivApiSearchRequest : XivApiListRequest;
-
-// export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiSearchRequest)>(request: RequestType | ValidRequest<RequestType>):
+export const XIVAPI_BASE_URL = "https://v2.xivapi.com/api";
+export const XIVAPI_BASE_URL_FALLBACK = "https://bm.xivgear.app/api/1";
 
 export async function xivApiFetch(...params: Parameters<typeof fetch>): Promise<Response> {
-    return xFetchInternal(...params);
+    return xFetchInternal(params);
 }
 
-async function xFetchInternal(...params: Parameters<typeof fetch>): Promise<Response> {
+async function xFetchInternal(params: Parameters<typeof fetch>): Promise<Response> {
     let tries = 5;
     while (true) {
         tries--;
-        const result = await fetch(...params);
+        let result: Response;
+        try {
+            result = await fetch(...params);
+        }
+        catch (e) {
+            console.warn("Xivapi fetch failed, trying again with fallback URL", params[0], e);
+            const fbUrl = new URL(params[0].toString().replace(XIVAPI_BASE_URL, XIVAPI_BASE_URL_FALLBACK));
+            const fbParams: typeof params = [...params];
+            fbParams[0] = fbUrl;
+            result = await fetch(...fbParams);
+        }
         // TODO: add other errors here?
         if (tries > 0 && result.status === 429) {
             console.log("xivapi throttle, retrying", params[0]);
@@ -62,17 +35,16 @@ async function xFetchInternal(...params: Parameters<typeof fetch>): Promise<Resp
     }
 }
 
-export async function xivApiSingle(sheet: string, id: number) {
-    const query = `${XIVAPI_SERVER}/api/1/sheet/${sheet}/${id}`;
-    return xivApiFetch(query).then(response => response.json()).then(response => response['fields']);
-}
-
-export async function xivApiSingleCols<Columns extends readonly string[]>(sheet: string, id: number, cols: Columns): Promise<{
+export async function xivApiSingleCols<Columns extends readonly string[]>(sheet: string, id: number, cols: Columns, lang?: string): Promise<{
     [K in Columns[number]]: unknown;
 } & {
     ID: number
 }> {
-    const query = `${XIVAPI_SERVER}/api/1/sheet/${sheet}/${id}?fields=${cols.join(',')}`;
+
+    const query = new URL(`./sheet/${sheet}/${id}?fields=${cols.join(',')}`, XIVAPI_BASE_URL + '/');
+    if (lang) {
+        query.searchParams.set('language', lang);
+    }
     return xivApiFetch(query).then(response => response.json()).then(response => {
         const responseOut = response['fields'];
         responseOut['ID'] = response['row_id'];
@@ -80,119 +52,23 @@ export async function xivApiSingleCols<Columns extends readonly string[]>(sheet:
     });
 }
 
-export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiSearchRequest)>(request: RequestType):
-    Promise<XivApiResponse<RequestType>> {
-    if (request.requestType === 'list') {
-        return await xivApiGetList(request) as XivApiResponse<RequestType>;
-    }
-    else {
-        return await xivApiSearch(request) as XivApiResponse<RequestType>;
-    }
+export function xivApiAsset(assetPath: string, format: 'png' | 'jpg' = 'png') {
+    return `${XIVAPI_BASE_URL}/asset?path=${encodeURIComponent(assetPath)}&format=${format}`;
 }
 
-const DEFAULT_PER_PAGE = 250;
-
-export async function xivApiSearch<RequestType extends XivApiSearchRequest>(request: RequestType): Promise<XivApiResponse<RequestType>> {
-    const perPage = request.perPage ?? DEFAULT_PER_PAGE;
-    let query = `${XIVAPI_SERVER}/api/1/search?sheets=${request.sheet}&limit=${perPage}`;
-    if (request.columns?.length > 0) {
-        query += '&fields=' + request.columns.join(',');
-    }
-    let queryInitial = query;
-    const after: number = request.startPage !== undefined ? (request.startPage * perPage) : 0;
-    queryInitial += `&after=${after}`;
-    if (request.filters?.length > 0) {
-        const filterFmt = request.filters.map(filter => encodeURIComponent('+' + filter)).join(encodeURIComponent(' '));
-        queryInitial += `&query=${filterFmt}`;
-    }
-    let remainingPages = request.pageLimit ?? 4;
-    let lastCursor: string | null = null;
-    const results = [];
-    while (remainingPages-- > 0) {
-        let thisQuery: string;
-        if (lastCursor !== null) {
-            thisQuery = query + '&cursor=' + lastCursor;
-        }
-        else {
-            thisQuery = queryInitial;
-        }
-        const responseRaw = await xivApiFetch(thisQuery)
-            .then(response => response.json());
-        const response = responseRaw['results'];
-        results.push(...response.filter(isNonEmpty));
-        const thisNext = responseRaw['next'];
-        if (thisNext === undefined) {
-            break;
-        }
-        lastCursor = thisNext ?? null;
-    }
-    if (remainingPages <= 0 && !request.pageLimit) {
-        console.warn(`Exceeded xivapi page limit for query ${queryInitial}`);
-    }
-    return {
-        Results: results.map(resultRow => {
-            const out = {...resultRow['fields']};
-            out['ID'] = resultRow['row_id'];
-            return out;
-        }),
-    };
-
-}
-
-
-export async function xivApiGetList<RequestType extends XivApiListRequest>(request: RequestType): Promise<XivApiResponse<RequestType>> {
-    // TODO: raise limit after testing
-    const perPage = request.perPage ?? DEFAULT_PER_PAGE;
-    let query = `${XIVAPI_SERVER}/api/1/sheet/${request.sheet}?limit=${perPage}`;
-    if (request.columns?.length > 0) {
-        query += '&fields=' + request.columns.join(',');
-    }
-    if (request.rows !== null) {
-        query += '&rows=' + request.rows.join(',');
-    }
-    let remainingPages = request.pageLimit ?? 4;
-    let after = request.startPage !== undefined ? (request.startPage * perPage) : 0;
-    const results = [];
-    while (remainingPages-- > 0) {
-        const responseRaw = await xivApiFetch(query + '&after=' + after)
-            .then(response => response.json());
-        const response = responseRaw['rows'];
-        if (response.length > 0) {
-            after += response.length;
-            results.push(...response.filter(isNonEmpty));
-            if (response.length < perPage) {
-                break;
-            }
-        }
-        else {
-            break;
-        }
-    }
-    if (remainingPages <= 0 && !request.pageLimit) {
-        console.warn(`Exceeded xivapi page limit for query ${query}`);
-    }
-    return {
-        Results: results.map(resultRow => {
-            const out = {...resultRow['fields']};
-            out['ID'] = resultRow['row_id'];
-            return out;
-        }),
-    };
-}
-
-function isNonEmpty(row: object) {
-    return row['row_id'] > 0 && Object.keys(row['fields']).length > 0;
-}
-
-export function xivApiIconUrl(iconId: number, highRes: boolean = false) {
+export function xivApiIconUrl(iconId: number, highRes: boolean = false): string {
     // Pad to 6 digits, e.g. 19581 -> '019581'
     const asStr = iconId.toString(10).padStart(6, '0');
     // Get the xivapi directory, e.g. 19581 -> 019000
     const directory = asStr.substring(0, 3) + '000';
-    if (highRes) {
-        return `${XIVAPI_SERVER}/api/1/asset/ui/icon/${directory}/${asStr}_hr1.tex?format=png`;
-    }
-    else {
-        return `${XIVAPI_SERVER}/api/1/asset/ui/icon/${directory}/${asStr}.tex?format=png`;
-    }
+    return xivApiAsset(`ui/icon/${directory}/${asStr}${highRes ? '_hr1' : ''}.tex`, 'png');
+}
+
+export function setXivApiIcon(img: HTMLImageElement, iconId: number, lrIntrinsicSize: [number, number], renderSize: [number, number]) {
+    const lr = xivApiIconUrl(iconId, false);
+    const hr = xivApiIconUrl(iconId, true);
+    img.setAttribute('intrinsicsize', `${lrIntrinsicSize[0]}x${lrIntrinsicSize[1]}`);
+    img.src = lr;
+    const ratio = Math.min(lrIntrinsicSize[0] / renderSize[0], lrIntrinsicSize[1] / renderSize[1]);
+    img.srcset = `${lr} ${ratio}x, ${hr} ${ratio * 2}x`;
 }

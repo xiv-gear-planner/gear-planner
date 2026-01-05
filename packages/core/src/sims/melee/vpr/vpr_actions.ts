@@ -1,5 +1,5 @@
-import { VprGcdAbility, VprOgcdAbility } from "./vpr_types";
-import { FlanksbaneVenom, FlankstungVenom, HindsbaneVenom, HindstungVenom, HonedReavers, HonedSteel, HuntersInstinct, ReadyToReawaken, Swiftscaled } from "./vpr_buffs";
+import {VprGcdAbility, VprOgcdAbility} from "./vpr_types";
+import {FlanksbaneVenom, FlankstungVenom, HindsbaneVenom, HindstungVenom, HonedReavers, HonedSteel, HuntersInstinct, ReadyToReawaken, Swiftscaled} from "./vpr_buffs";
 
 
 export const SteelFangs: VprGcdAbility = {
@@ -55,7 +55,7 @@ export const FlankstingStrike: VprGcdAbility = {
     gcd: 2.5,
     cast: 0,
     activatesBuffs: [HindstungVenom],
-    updateGauge: gauge => gauge.serpentOfferings += 10,
+    updateGaugeLegacy: gauge => gauge.serpentOfferings += 10,
 };
 
 export const FlanksbaneFang: VprGcdAbility = {
@@ -67,7 +67,7 @@ export const FlanksbaneFang: VprGcdAbility = {
     gcd: 2.5,
     cast: 0,
     activatesBuffs: [HindsbaneVenom],
-    updateGauge: gauge => gauge.serpentOfferings += 10,
+    updateGaugeLegacy: gauge => gauge.serpentOfferings += 10,
 };
 
 export const HindstingStrike: VprGcdAbility = {
@@ -79,7 +79,7 @@ export const HindstingStrike: VprGcdAbility = {
     gcd: 2.5,
     cast: 0,
     activatesBuffs: [FlanksbaneVenom],
-    updateGauge: gauge => gauge.serpentOfferings += 10,
+    updateGaugeLegacy: gauge => gauge.serpentOfferings += 10,
 };
 
 export const HindsbaneFang: VprGcdAbility = {
@@ -91,7 +91,7 @@ export const HindsbaneFang: VprGcdAbility = {
     gcd: 2.5,
     cast: 0,
     activatesBuffs: [FlankstungVenom],
-    updateGauge: gauge => gauge.serpentOfferings += 10,
+    updateGaugeLegacy: gauge => gauge.serpentOfferings += 10,
 };
 
 export const Vicewinder: VprGcdAbility = {
@@ -106,7 +106,7 @@ export const Vicewinder: VprGcdAbility = {
         time: 40,
         charges: 2,
     },
-    updateGauge: gauge => gauge.rattlingCoils += 1,
+    updateGaugeLegacy: gauge => gauge.rattlingCoils += 1,
 };
 
 export const HuntersCoil: VprGcdAbility = {
@@ -118,7 +118,7 @@ export const HuntersCoil: VprGcdAbility = {
     gcd: 3.0,
     cast: 0,
     activatesBuffs: [HuntersInstinct],
-    updateGauge: gauge => gauge.serpentOfferings += 5,
+    updateGaugeLegacy: gauge => gauge.serpentOfferings += 5,
 };
 
 export const SwiftskinsCoil: VprGcdAbility = {
@@ -130,7 +130,7 @@ export const SwiftskinsCoil: VprGcdAbility = {
     gcd: 3.0,
     cast: 0,
     activatesBuffs: [Swiftscaled],
-    updateGauge: gauge => gauge.serpentOfferings += 5,
+    updateGaugeLegacy: gauge => gauge.serpentOfferings += 5,
 };
 
 export const UncoiledFury: VprGcdAbility = {
@@ -141,7 +141,7 @@ export const UncoiledFury: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 3.5,
     cast: 0,
-    updateGauge: gauge => gauge.rattlingCoils -= 1,
+    updateGaugeLegacy: gauge => gauge.rattlingCoils -= 1,
 };
 
 export const Reawaken: VprGcdAbility = {
@@ -152,7 +152,7 @@ export const Reawaken: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.2,
     cast: 0,
-    updateGauge: gauge => gauge.serpentOfferings -= 50,
+    updateGaugeLegacy: gauge => gauge.serpentOfferings -= 50,
 };
 
 const GenerationBase: VprGcdAbility = {
@@ -203,7 +203,7 @@ const LegacyBase: VprOgcdAbility = {
     name: null,
     id: null,
     type: 'ogcd',
-    potency: 280,
+    potency: 320,
     attackType: 'Ability',
 };
 
@@ -241,7 +241,7 @@ export const SerpentsIre: VprOgcdAbility = {
         charges: 1,
     },
     attackType: 'Ability',
-    updateGauge: gauge => gauge.rattlingCoils += 1,
+    updateGaugeLegacy: gauge => gauge.rattlingCoils += 1,
     activatesBuffs: [ReadyToReawaken],
 };
 

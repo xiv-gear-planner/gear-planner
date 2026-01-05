@@ -1,15 +1,15 @@
-import { ArcaneCircleBuff } from "@xivgear/core/sims/buffs";
-import { Ability, Buff, OgcdAbility, SimSettings, SimSpec } from "@xivgear/core/sims/sim_types";
-import { PreDmgAbilityUseRecordUnf, AbilityUseResult, CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation } from "@xivgear/core/sims/cycle_sim";
-import { potionMaxStr } from "@xivgear/core/sims/common/potion";
+import {ArcaneCircleBuff} from "@xivgear/core/sims/buffs";
+import {Ability, Buff, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
+import {PreDmgAbilityUseRecordUnf, AbilityUseResult, CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
+import {potionMaxStr} from "@xivgear/core/sims/common/potion";
 import * as Actions from "./rpr_actions";
-import { RprAbility, RprExtraData, RprGcdAbility } from "./rpr_types";
-import { RprGauge } from "./rpr_gauge";
-import { DeathsDesign, IdealHost } from "./rpr_buff";
-import { sum } from "@xivgear/core/util/array_utils";
-import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
-import { animationLock } from "@xivgear/core/sims/ability_helpers";
-import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
+import {RprAbility, RprExtraData, RprGcdAbility} from "./rpr_types";
+import {RprGauge} from "./rpr_gauge";
+import {DeathsDesign, IdealHost} from "./rpr_buff";
+import {sum} from "@xivgear/util/array_utils";
+import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
+import {animationLock} from "@xivgear/core/sims/ability_helpers";
+import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
 
 
 export interface RprSheetSimResult extends CycleSimResult {
@@ -47,7 +47,9 @@ class RotationState {
 
     set combo(newCombo) {
         this._combo = newCombo;
-        if (this._combo >= 3) this._combo = 0;
+        if (this._combo >= 3) {
+            this._combo = 0;
+        }
     }
 
     oddShroudUsed: boolean = false;
@@ -58,6 +60,7 @@ class RotationState {
     get sodNumber() {
         return this._sodNumber;
     }
+
     set sodNumber(newSodNumber) {
         if (newSodNumber > 4) {
             newSodNumber = 1;
@@ -115,19 +118,19 @@ class RprCycleProcessor extends CycleProcessor {
     override use(ability: Ability): AbilityUseResult {
         const rprAbility = ability as RprAbility;
 
-        if (rprAbility.updateSoulGauge !== null || rprAbility.updateShroudGauge !== null) {
+        if (rprAbility.updateSoulGauge !== undefined || rprAbility.updateShroudGauge !== undefined) {
 
             /** prevent weird gauge update if an auto lands between now and nextGcdTime */
             if (ability.type === 'gcd' &&  this.nextGcdTime > this.currentTime) {
                 this.advanceTo(this.nextGcdTime);
             }
 
-            if (rprAbility.updateSoulGauge !== null) {
+            if (rprAbility.updateSoulGauge !== undefined) {
                 rprAbility.updateSoulGauge(this.gauge);
             }
 
             /** If the ability updates shroud gauge and also is not our free enshroud from Ideal Host, update the gauge */
-            if (rprAbility.updateShroudGauge !== null
+            if (rprAbility.updateShroudGauge !== undefined
                 && !(this.getBuffIfActive(IdealHost) && ability.id === Actions.Enshroud.id)) {
 
                 rprAbility.updateShroudGauge(this.gauge);
@@ -410,7 +413,7 @@ class RprCycleProcessor extends CycleProcessor {
     }
 
 }
-export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprSimSettings> {
+export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprSimSettings, RprCycleProcessor> {
 
     spec = rprSheetSpec;
     shortName = "rpr-sheet-sim";

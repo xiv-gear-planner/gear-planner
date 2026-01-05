@@ -2,40 +2,11 @@ import {CALC_HASH, HASH_QUERY_PARAM, PATH_SEPARATOR, splitPath} from "@xivgear/c
 
 import {formatTopMenu} from "./base_ui";
 import {openMath} from "./mathpage/math_ui";
+import {arrayEq} from "@xivgear/util/array_utils";
+import {getQueryParams, manipulateUrlParams} from "@xivgear/common-ui/nav/common_frontend_nav";
 
 let expectedHash: string[] | undefined = undefined;
 
-
-/**
- * Determine if two arrays have equal members. Not a deep equals - only inspects one level.
- *
- * @param left The first array
- * @param right The second array
- */
-export function arrayEq(left: unknown[] | undefined, right: unknown[] | undefined) {
-    if (left === undefined && right === undefined) {
-        return true;
-    }
-    if (left === undefined || right === undefined) {
-        return false;
-    }
-    if (left.length !== right.length) {
-        return false;
-    }
-    for (let i = 0; i < left.length; i++) {
-        if (left[i] !== right[i]) {
-            return false;
-        }
-    }
-    return true;
-}
-
-/**
- * Get the current page path
- */
-export function getCurrentHash() {
-    return [...expectedHash];
-}
 
 /**
  * Process a potential change in hash.
@@ -87,28 +58,16 @@ export function parsePath(originalPath: string[]): NavPath | null {
 
 async function doNav(pathParts: string[]) {
     const nav = parsePath(pathParts);
-    switch (nav.type) {
-        case "math": {
-            openMath(nav.formula);
-            return;
+    if (nav !== null) {
+        switch (nav.type) {
+            case "math": {
+                openMath(nav.formula);
+                return;
+            }
         }
     }
     console.error("I don't know what to do with this path", pathParts);
     // TODO: handle remaining invalid cases
-}
-
-function getQueryParams(): URLSearchParams {
-    return new URLSearchParams(location.search);
-}
-
-function manipulateUrlParams(action: (params: URLSearchParams) => void) {
-    const params = getQueryParams();
-    const before = params.toString();
-    action(params);
-    const after = params.toString();
-    if (before !== after) {
-        history.pushState(null, null, '?' + params.toString());
-    }
 }
 
 /**
@@ -134,10 +93,6 @@ export function setHash(...hashParts: string[]) {
     const hash = hashParts.map(part => encodeURIComponent(part)).join(PATH_SEPARATOR);
     manipulateUrlParams(params => params.set(HASH_QUERY_PARAM, hash));
     formatTopMenu(expectedHash);
-}
-
-export function getHash(): string[] | undefined {
-    return expectedHash;
 }
 
 /**

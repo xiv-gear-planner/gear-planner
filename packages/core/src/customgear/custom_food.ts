@@ -1,17 +1,7 @@
-import {FoodBonuses, FoodItem, FoodStatBonus, Substat} from "@xivgear/xivmath/geartypes";
+import {CustomFoodExport, FoodBonuses, FoodItem, FoodStatBonus, Substat} from "@xivgear/xivmath/geartypes";
 import {CURRENT_MAX_LEVEL, LEVEL_ITEMS} from "@xivgear/xivmath/xivconstants";
 import {xivApiIconUrl} from "../external/xivapi";
-
-export type CustomFoodExport = {
-    ilvl: number;
-    name: string;
-    fakeId: number;
-    vitalityBonus: FoodStatBonus;
-    primaryStat: Substat | null;
-    primaryStatBonus: FoodStatBonus;
-    secondaryStat: Substat | null;
-    secondaryStatBonus: FoodStatBonus;
-}
+import {toTranslatable, TranslatableString} from "@xivgear/i18n/translation";
 
 function defaultBonus(): FoodStatBonus {
     return {
@@ -69,6 +59,10 @@ export class CustomFood implements FoodItem {
         return this._data.name;
     }
 
+    get nameTranslation(): TranslatableString {
+        return toTranslatable(this.name);
+    }
+
     get id(): number {
         return this._data.fakeId;
     }
@@ -88,11 +82,11 @@ export class CustomFood implements FoodItem {
         return out;
     }
 
-    get primarySubStat(): Substat | null {
+    get primarySubStat(): Substat | undefined {
         return this._data.primaryStat;
     }
 
-    get secondarySubStat(): Substat | null {
+    get secondarySubStat(): Substat | undefined {
         return this._data.secondaryStat;
     }
 

@@ -1,6 +1,6 @@
-import { Ability, GcdAbility, OgcdAbility, Buff, BuffController } from "@xivgear/core/sims/sim_types";
-import { DrkGauge } from "./drk_gauge";
-import { removeSelf } from "@xivgear/core/sims/common/utils";
+import {Ability, GcdAbility, OgcdAbility, Buff, BuffController, AlternativeScaling} from "@xivgear/core/sims/sim_types";
+import {DrkGauge} from "./drk_gauge";
+import {removeSelf} from "@xivgear/core/sims/common/utils";
 
 /** A DRK-specific ability. */
 export type DrkAbility = Ability & Readonly<{
@@ -21,6 +21,11 @@ export type DrkGcdAbility = GcdAbility & DrkAbility;
 
 export type DrkOgcdAbility = OgcdAbility & DrkAbility;
 
+// All Living Shadow abilities use the following scalings:
+// - Alternate strength scaling (no Tank Mastery, no party bonus, replaced racial bonus)
+// - Pet action weapon damage scaling (100 instead of the usual)
+export const livingShadowScalings: AlternativeScaling[] = ["Living Shadow Strength Scaling", "Pet Action Weapon Damage"];
+
 /** DRK ability that costs blood */
 export type BloodAbility = DrkAbility & Readonly<{
     bloodCost: number;
@@ -28,7 +33,6 @@ export type BloodAbility = DrkAbility & Readonly<{
 
 /** Represents the DRK gauge state */
 export type DrkGaugeState = {
-    level: number,
     blood: number,
     mp: number,
     darkArts: boolean,
@@ -107,7 +111,19 @@ export const DeliriumBuff: Buff = {
         // Allows usage of Delirium combo
     },
     stacks: 3,
-    appliesTo: ability => ability.name === "Scarlet Delirium" || ability.name === "Comeuppance" || ability.name === "Torcleaver",
+    appliesTo: ability => ability.name === "Scarlet Delirium" || ability.name === "Comeuppance" || ability.name === "Torcleaver" || ability.name === "Bloodspiller",
+    beforeAbility<X extends DrkAbility>(buffController: BuffController, ability: X): X {
+        const oldUpdateMP = ability.updateMP;
+        return {
+            ...ability,
+            updateMP: gauge => {
+                gauge.magicPoints += 200;
+                if (oldUpdateMP) {
+                    oldUpdateMP(gauge);
+                }
+            },
+        };
+    },
     beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): X {
         buffController.subtractStacksSelf(1);
         return ability;

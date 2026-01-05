@@ -1,17 +1,15 @@
 import {FieldBoundFloatField, labelFor} from "@xivgear/common-ui/components/util";
-import {NamedSection} from "../../components/section";
+import {NamedSection} from "../../components/general/section";
 import {ResultSettings} from "@xivgear/core/sims/cycle_sim";
 
 export class ResultSettingsArea extends NamedSection {
     constructor(resultSettings: ResultSettings) {
         super("Result Settings");
-        const inputField = new FieldBoundFloatField(resultSettings, 'stdDevs', {
-            inputMode: 'number',
-        });
+        const inputField = new FieldBoundFloatField(resultSettings, 'stdDevs');
         const label = labelFor('+/- Standard Deviations', inputField);
         label.style.display = 'block';
-        this.appendChild(label);
-        this.appendChild(inputField);
+        this.contentArea.appendChild(label);
+        this.contentArea.appendChild(inputField);
     }
 }
 

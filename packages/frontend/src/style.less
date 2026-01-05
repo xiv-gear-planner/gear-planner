@@ -1,7 +1,39 @@
-@import "../../common-ui/styles/common.less";
+@import "../../common-ui/styles/util.less";
+
+@layer base {
+  @import "../../common-ui/styles/common.less";
+}
+
+@layer modern {
+  @import "../../common-ui/styles/modern.less";
+}
+
+@layer responsive {
+  @import "../../common-ui/styles/responsive.less";
+}
+
+@layer embed {
+  @import "./embed.less";
+}
+
+@layer popout {
+  @import "./popout.less";
+}
+
+@layer ads {
+  @import "../../common-ui/styles/ads.less";
+}
+
+@import "./compatchecker.less";
 
 custom-item-popup, custom-food-popup {
   table {
+    th {
+      text-align: center;
+      .no-items-message {
+        font-weight: normal;
+      }
+    }
     td {
       input[type="text"], input[type="number"], select {
         &input {
@@ -17,10 +49,6 @@ custom-item-popup, custom-food-popup {
         //box-sizing: border-box;
         //margin: 1px;
         text-align: center;
-
-        &.relic-validation-failed {
-          border: 2px solid red;
-        }
 
         &:hover, &:active, &:focus {
           background: var(--relic-stat-input-background-hover-color);
@@ -39,6 +67,12 @@ custom-item-popup, custom-food-popup {
     margin-left: auto;
     margin-right: auto;
   }
+
+  &:not(.show-all-stats) {
+    th.irrelevant-stat, td.irrelevant-stat {
+      display: none;
+    }
+  }
 }
 
 sim-result-detail-display {
@@ -47,21 +81,42 @@ sim-result-detail-display {
   width: fit-content;
 }
 
+.gear-sheet-editor-area {
+  sim-result-detail-display {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+
 meld-solver-result-dialog {
+  // The main body of the results
   .meld-solver-result {
-    display: flex;
-    flex-direction: row;
+    --img-col-width: 40px;
+    --bonus-col-width: 1fr;
+    --count-col-width: 50px;
+    --arrow-col-width: 60px;
+    display: grid;
+    // Columns:
+    // Left materia image
+    // Left materia bonus
+    // Left materia count
+    // Arrow/Delta
+    // Right materia image
+    // Right materia bonus
+    // Right materia count
+    grid-template-columns: var(--img-col-width) var(--bonus-col-width) var(--count-col-width) var(--arrow-col-width) var(--img-col-width) var(--bonus-col-width) var(--count-col-width);
+    gap: 15px 5px;
 
     span.arrow {
-      margin: 20px;
+      margin: 10px;
       font-size: xx-large;
     }
-  }
 
-  .meld-solver-result-set {
-    width: 40%;
-    padding: 0;
-    margin: 0;
+    .meld-results-arrow {
+      grid-column: 4;
+      grid-row: 1/-1;
+    }
 
     .meld-solver-result-set-sim {
       color: color-mix(in srgb, currentColor var(--sim-color-mix-percent), color-mix(in hsl, #00ff00 var(--sim-result-relative, 50%), #ff0000));
@@ -70,69 +125,70 @@ meld-solver-result-dialog {
     .sim-best {
       font-weight: bold;
     }
-  }
 
-  ul {
-    display: flex;
-    flex-direction: column;
-
-    li {
-      display: flex;
-      margin-top: 5px;
-      margin-bottom: 5px;
+    .cols-left {
+      grid-column: 1 / span 3;
     }
 
-    list-style-type: none;
-    padding-inline-start: 0px;
-  }
-
-  .meld-solver-result-materia-entry {
-    display: contents;
-
-    --image-size: 25px;
-
-    div.meld-solver-result-image {
-      overflow: clip;
-      width: var(--image-size);
-      height: var(--image-size);
-      margin-right: 3%;
-      border-radius: 100%;
+    .cols-right {
+      grid-column: 5 / span 3;
     }
 
-    img {
-      //width: 100%;
-      height: 100%;
-      display: block;
-      aspect-ratio: 1;
+    .cols-middle {
+      grid-column: 4;
     }
 
-    .meld-solver-result-materia-entry-text {
-      width: 100%;
-      text-align: left;
-      display: flex;
-      flex-direction: row;
+    .solve-result-mat-entry-holder {
+      display: grid;
+      grid-template-columns: subgrid;
+      grid-template-rows: subgrid;
 
-      .meld-solver-result-materia-entry-count {
-        width: 35%;
-        margin-left: 5%;
-        text-align: left;
+
+      .meld-solver-result-materia-entry {
+        display: contents;
+
+        --image-size: 25px;
+
+        .meld-solver-result-image {
+          grid-column: 1;
+          overflow: clip;
+          width: var(--image-size);
+          height: var(--image-size);
+          margin-right: 3%;
+          border-radius: 100%;
+          text-align: right;
+          margin-left: auto;
+
+          img {
+            //width: 100%;
+            height: 100%;
+            display: block;
+            aspect-ratio: 1;
+          }
+        }
+
+        .meld-solver-result-materia-entry-stat {
+          text-align: left;
+          grid-column: 2;
+        }
+
+        .meld-solver-result-materia-entry-count {
+          margin-left: 5%;
+          text-align: left;
+          grid-column: 3;
+        }
+
       }
-
-      .meld-solver-result-materia-entry-stat {
-        width: 60%;
-        text-align: left;
-      }
     }
   }
+
 
   .meld-solver-result-materia-entry-delta {
-    width: 20%;
-    text-align: left;
+    text-align: center;
   }
 
   .meld-solver-result-materia-entry-zero {
     color: var(--border-color-default);
-    //background-color: var(--scrollbar-bg);
   }
 
   .meld-solver-result-materia-entry-diff {
@@ -146,3 +202,287 @@ meld-solver-area, meld-solver-result-dialog {
     max-width: 95vw;
   }
 }
+
+img.item-icon {
+  border-radius: 10%;
+
+  &.loaded {
+    border-radius: unset;
+    background: unset;
+  }
+}
+
+img.item-rarity-normal, img.item-rarity-unknown {
+  background: radial-gradient(#7a7b70, #4b4d4a);
+}
+
+img.item-rarity-green {
+  background: linear-gradient(#494842, #29d281);
+}
+
+img.item-rarity-blue {
+  background: radial-gradient(circle at 35% 35%, #63a0c9, #203c8b 50%);
+}
+
+img.item-rarity-relic {
+  background: radial-gradient(#7550a7, #693971);
+}
+
+.abilities-used-table {
+
+  .ability-cell {
+    height: 100%;
+    max-height: var(--abilities-row-height);
+    display: flex;
+    align-items: center;
+
+    .ffxiv-ability-icon {
+      height: 100%;
+      display: block;
+      aspect-ratio: 1;
+    }
+
+    .ability-name {
+      overflow-x: hidden;
+      text-overflow: ellipsis;
+      line-height: initial;
+      flex-shrink: 1;
+      flex-grow: 1;
+    }
+
+    &.ability-ogcd {
+      &::before {
+        content: '⤷';
+        transform: scale(1.5);
+        font-weight: bold;
+        margin-right: 2px;
+      }
+    }
+
+    &.ability-autoattack {
+      &::before {
+        content: '🗘';
+        transform: scale(1.2) rotate(50deg);
+      }
+    }
+
+    &.ability-item {
+      span {
+        // Make it so that long item names won't expand the column. This is useful because item names
+        // (e.g. "Grade 3 Gemdraught of Strength") are often very long and will expand the column.
+        // This may result in the columns "jumping" due to lazy rendering.
+        width: 100px;
+      }
+    }
+  }
+
+  th {
+    text-align: center;
+  }
+
+  td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1px;
+    height: var(--abilities-row-height);
+
+    &[col-id='time'] {
+      text-align: right;
+    }
+
+    &[col-id='buffs'] {
+      padding-top: 0;
+
+      .active-buffs-list {
+        height: 100%;
+        width: 100%;
+        display: inline-flex;
+        align-items: center;
+        max-height: var(--abilities-row-height);
+
+        img {
+          height: 100%;
+          flex-shrink: 0;
+          padding-right: 2px;
+          aspect-ratio: 0.75;
+        }
+
+        span {
+          flex-shrink: 1;
+          display: block;
+          min-width: 1px;
+          overflow-x: hidden;
+          text-overflow: ellipsis;
+          line-height: var(--abilities-row-height);
+        }
+      }
+    }
+  }
+
+  td, th {
+    &[col-id='time'] {
+      min-width: 65px;
+      width: 75px;
+      max-width: 75px;
+    }
+
+    &[col-id='ability'] {
+      min-width: 150px;
+      max-width: 400px;
+    }
+
+    &[col-id='unbuffed-pot'] {
+      width: 40px;
+      max-width: 40px;
+      text-align: right;
+
+    }
+
+    .split-aligned-value {
+      display: flex;
+      padding-right: 10px;
+
+      :first-child {
+        flex-grow: 1;
+      }
+
+      :last-child {
+        display: inline-block;
+        width: 0;
+        flex-basis: 0;
+      }
+    }
+
+    .extra-indicator {
+      width: 0;
+      display: inline-block;
+    }
+
+    &[col-id='expected-damage'] {
+      width: 100px;
+      max-width: 100px;
+      text-align: right;
+      padding-right: 10px;
+    }
+
+    &[col-id='buffs'] {
+      width: 400px;
+      max-width: 400px;
+    }
+  }
+}
+
+sheet-info-modal {
+  .modal-content-area {
+
+    table {
+      max-width: 600px;
+      width: 100%;
+
+      td {
+        width: 50%;
+
+        &[col-id='key'] {
+          text-align: right;
+          padding-right: 10px;
+        }
+
+      }
+    }
+  }
+}
+
+account-modal, change-password-modal, finalize-password-reset-modal {
+  &.modal-dialog {
+
+    .modal-inner {
+
+      .modal-content-area {
+        overflow: visible;
+        max-width: 350px;
+        min-width: 220px;
+        width: calc(100vw - 50px);
+
+        button {
+          margin: 3px;
+        }
+
+        form {
+          input:not([type="checkbox"]) {
+            display: block;
+            margin-bottom: 5px;
+            width: 100%;
+            box-sizing: border-box;
+
+            &::placeholder {
+              color: var(--fg-color);
+              opacity: 0.8;
+            }
+          }
+        }
+
+        h3.divider {
+          width: 100%;
+          text-align: center;
+          position: relative;
+          //&::before {
+          //
+          //}
+        }
+
+        .failed {
+          color: var(--issue-error-color);
+        }
+
+        input.failed {
+          color: var(--fg-color);
+          box-shadow: 1px 1px 2px red inset, -1px -1px 2px #ff6000 inset;
+        }
+
+        .labeled-checkbox {
+          display: block;
+
+          input {
+            width: unset;
+            display: inline;
+          }
+        }
+      }
+    }
+
+    loading-blocker {
+      .loading-spinner {
+        position: relative;
+        top: calc(50% - 50px);
+      }
+    }
+  }
+}
+
+
+div.sync-tools {
+  cursor: initial;
+  font-weight: normal;
+
+  > * {
+    margin-right: 5px;
+  }
+}
+
+conflict-resolution-dialog {
+  .modal-content-area {
+
+    max-width: 600px;
+
+    .conflict-resolution-mid {
+      display: flex;
+
+      > * {
+        flex-basis: 50%;
+      }
+    }
+  }
+}
+
+

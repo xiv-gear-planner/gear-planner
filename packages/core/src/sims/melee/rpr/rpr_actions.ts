@@ -1,6 +1,6 @@
-import { ArcaneCircleBuff } from "@xivgear/core/sims/buffs";
-import { RprGcdAbility, RprOgcdAbility } from "./rpr_types";
-import { DeathsDesign, IdealHost } from "./rpr_buff";
+import {ArcaneCircleBuff} from "@xivgear/core/sims/buffs";
+import {RprGcdAbility, RprOgcdAbility} from "./rpr_types";
+import {DeathsDesign, IdealHost} from "./rpr_buff";
 
 export const Slice: RprGcdAbility = {
     type: 'gcd',
@@ -176,7 +176,7 @@ export const VoidReapingUnbuffed: RprGcdAbility = {
     type: 'gcd',
     name: "Void Reaping",
     id: 24395,
-    potency: 500,
+    potency: 540,
     attackType: "Weaponskill",
     gcd: 1.5,
     cast: 0,
@@ -187,7 +187,7 @@ export const VoidReaping: RprGcdAbility = {
     type: 'gcd',
     name: "Void Reaping",
     id: 24395,
-    potency: 560,
+    potency: 600,
     attackType: "Weaponskill",
     gcd: 1.5,
     cast: 0,
@@ -198,7 +198,7 @@ export const CrossReaping: RprGcdAbility = {
     type: 'gcd',
     name: "Cross Reaping",
     id: 24396,
-    potency: 560,
+    potency: 600,
     attackType: "Weaponskill",
     gcd: 1.5,
     cast: 0,
@@ -249,7 +249,7 @@ export const Sacrificium: RprOgcdAbility = {
     type: 'ogcd',
     name: "Sacrificium",
     id: 36969,
-    potency: 530,
+    potency: 600,
     attackType: "Ability",
 };
 

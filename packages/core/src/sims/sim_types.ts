@@ -4,6 +4,7 @@ import {JobName, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {AttackType, ComputedSetStats} from "@xivgear/xivmath/geartypes";
 import {ValueWithDev} from "@xivgear/xivmath/deviation";
 import {StatModification} from "@xivgear/xivmath/xivstats";
+import {EmptyGauge} from "./cycle_sim";
 
 /**
  * Represents the final result of a simulation run. Sim implementors should extend this type with
@@ -115,6 +116,16 @@ export interface Simulation<ResultType extends SimResult, SettingsType extends S
     simulate(set: CharacterGearSet): Promise<ResultType>;
 
     /**
+     * Like {@link simulate}, but only needs to return a single number. This is used for meld solving and such, as the
+     * brute force sim does not need to display any additional data to the user. If the extra processing time and
+     * memory use from the normal simulation path is trivial for a particular sim implementation, then this can be
+     * implemented as simply "return (await this.simulate(set)).mainDpsResult".
+     *
+     * @param set
+     */
+    simulateSimple(set: CharacterGearSet): Promise<number>;
+
+    /**
      * The internalized settings of the object.
      */
     settings: SettingsType;
@@ -127,7 +138,7 @@ export interface Simulation<ResultType extends SimResult, SettingsType extends S
     /**
      * The original sim spec.
      */
-    spec: SimSpec<typeof this, SettingsExport>
+    spec: SimSpec<Simulation<ResultType, SettingsType, SettingsExport>, SettingsExport>
 
     /**
      * If true, do not automatically re-run the sim. Currently, this is only implemented for
@@ -135,6 +146,11 @@ export interface Simulation<ResultType extends SimResult, SettingsType extends S
      * may also be implemented for changes to gear sets.
      */
     readonly manualRun?: boolean;
+
+    /**
+     * Notify the sim that settings have changed
+     */
+    settingsChanged(): void;
 }
 
 /**
@@ -142,7 +158,7 @@ export interface Simulation<ResultType extends SimResult, SettingsType extends S
  * others, such as those which use an external service, run asynchronously, and so intermediate
  * states such as 'Running' need to be represented.
  */
-export interface SimCurrentResult<X extends SimResult> {
+export interface SimCurrentResult<X extends SimResult = SimResult> {
     /**
      * The result. undefined unless {@link status} === 'Done'.
      */
@@ -163,7 +179,7 @@ export interface SimCurrentResult<X extends SimResult> {
     /**
      * Like {@link result}, but in the form of a Promise. This allows you to wait for the results.
      */
-    resultPromise: Promise<X>;
+    resultPromise: Promise<X> | undefined;
 }
 
 /**
@@ -252,8 +268,27 @@ export type DamagingAbility = Readonly<{
     autoDh?: boolean,
     dot?: DotInfo,
     channel?: ChannelInfo
+    alternativeScalings?: AlternativeScaling[],
 }>;
 
+/**
+ * Represents a set of ability attributes that should be applied
+ * above a certain level. Can be used to express e.g. traits increasing
+ * the potency of skills, or granting new buffs.
+ */
+export type LevelModifier<X> = ({
+        minLevel: number,
+    })
+    & Omit<Partial<X>, 'levelModifiers'>;
+
+export type LevelModifiable<X> = X & {
+    /**
+     * A list of level modifiers, that can override properties of the ability
+     * at the specified level. An action will have its properties overriden for
+     * the highest `minLevel` specified.
+     */
+    levelModifiers?: LevelModifier<X>[],
+}
 /**
  * Combo mode:
  * start: starts a combo.
@@ -263,7 +298,13 @@ export type DamagingAbility = Readonly<{
  */
 export type ComboBehavior = ComboData['comboBehavior'];
 
-export type BaseAbility = Readonly<{
+/**
+ * Alternate scalings that can exist for abilities, e.g. Living
+ * Shadow, Bunshin, SMN pet actions.
+ */
+export type AlternativeScaling = "Living Shadow Strength Scaling" | "Pet Action Weapon Damage";
+
+export type BaseAbility = Readonly<LevelModifiable<{
     /**
      * Name of the ability.
      */
@@ -319,7 +360,31 @@ export type BaseAbility = Readonly<{
      * Override the default application delay
      */
     appDelay?: number,
-} & (NonDamagingAbility | DamagingAbility)>;
+    /**
+     * If specified, will override the default application delay for abilities where the buff application delay differs
+     * from the damage application delay (e.g. Darkside, Life of the Dragon, Surging Tempest).
+     */
+    buffApplicationDelay?: number,
+    /**
+     * If the ability uses alternate scalings, such as Living Shadow Strength
+     * scaling or using the pet action Weapon Damage multiplier.
+     */
+    alternativeScalings?: AlternativeScaling[],
+    /**
+     * By default, actions will be translated on the UI when language is not English.
+     * You can force translation on or off via this property.
+     */
+    translate?: boolean,
+
+    /**
+     * Internal use only - used to keep cooldown tracking in sync when a skill has a level modifier which changes its
+     * ID. The CD tracker will use this ID to track the cooldown instead of the actual ID.
+     *
+     * See https://github.com/xiv-gear-planner/gear-planner/issues/720
+     */
+    _idForCooldown?: number,
+}> & (LevelModifiable<NonDamagingAbility> | LevelModifiable<DamagingAbility>)>;
+
 
 /**
  * Represents the cooldown of an ability
@@ -369,25 +434,25 @@ export type CdAbility = OriginCdAbility | SharedCdAbility;
 /**
  * Represents a GCD action
  */
-export type GcdAbility = BaseAbility & Readonly<{
+export type GcdAbility = BaseAbility & Readonly<LevelModifiable<{
     type: 'gcd';
     /**
      * If the ability's GCD can be lowered by sps/sks, put it here.
      */
     gcd: number,
-}>
+}>>
 
 /**
  * Represents an oGCD action
  */
-export type OgcdAbility = BaseAbility & Readonly<{
+export type OgcdAbility = BaseAbility & Readonly<LevelModifiable<{
     type: 'ogcd',
-}>;
+}>>;
 
-export type AutoAttack = BaseAbility & DamagingAbility & Readonly<{
+export type AutoAttack = BaseAbility & DamagingAbility & Readonly<LevelModifiable<{
     type: 'autoattack',
     // TODO
-}>;
+}>>;
 
 export type Ability = GcdAbility | OgcdAbility | AutoAttack;
 
@@ -402,13 +467,28 @@ export type ChannelDamageUnf = {
     damagePerTick: ComputedDamage,
     actualTickCount?: number
 };
+export type HasGaugeCondition<GaugeManagerType> = {
+    gaugeConditionSatisfied(gaugeManager: GaugeManagerType): boolean;
+}
+
+export type HasGaugeUpdate<GaugeManagerType> = {
+    updateGauge(gaugeManager: GaugeManagerType): void;
+}
+
+export function hasGaugeCondition<GaugeManagerType>(ab: Ability): ab is Ability & HasGaugeCondition<GaugeManagerType> {
+    return 'gaugeConditionSatisfied' in ab;
+}
+
+export function hasGaugeUpdate<GaugeManagerType>(ab: Ability): ab is Ability & HasGaugeUpdate<GaugeManagerType> {
+    return 'updateGauge' in ab;
+}
 
 export type ComputedDamage = ValueWithDev;
 
 /**
  * Represents an ability actually being used
  */
-export type PreDmgUsedAbility = {
+export type PreDmgUsedAbility<GaugeDataType = {}> = {
     /**
      * The ability that was used
      */
@@ -468,12 +548,18 @@ export type PreDmgUsedAbility = {
      */
     lockTime: number
     /**
-     * Extra data relating to the ability used. Useful for
+     * Extra data relating to the ability used. Useful for sims which wish to attach their own extra information
+     * for display in the results. Deprecated for Gauge use - see gaugeAftrer.
      */
     extraData?: object
+
+    /**
+     * Gauge information.
+     */
+    gaugeAfter: GaugeDataType
 };
 
-export type PostDmgUsedAbility = PreDmgUsedAbility & {
+export type PostDmgUsedAbility<GaugeType = EmptyGauge> = PreDmgUsedAbility<GaugeType> & {
     directDamage: ComputedDamage,
     dot?: DotDamageUnf,
     channel?: ChannelDamageUnf
@@ -485,13 +571,13 @@ export type PostDmgUsedAbility = PreDmgUsedAbility & {
  * remaining for an entire GCD. Thus, we would have a PartialAbility with portion = (1.1s / 2.5s)
  *
  */
-export type PartiallyUsedAbility = PreDmgUsedAbility & {
+export type PartiallyUsedAbility<GaugeType = EmptyGauge> = PreDmgUsedAbility<GaugeType> & {
     portion: number
 };
 
-export type FinalizedAbility = {
+export type FinalizedAbility<GaugeType = EmptyGauge> = {
     usedAt: number,
-    original: PreDmgUsedAbility,
+    original: PreDmgUsedAbility<GaugeType>,
     totalDamage: number,
     totalDamageFull: ComputedDamage
     totalPotency: number,
@@ -603,9 +689,9 @@ export type BaseBuff = Readonly<{
      */
     modifyDamage?(controller: BuffController, damageResult: DamageResult, ability: Ability): DamageResult | void,
     /**
-     * Optional status effect ID. Used to provide an icon.
+     * Status effect ID. Used to provide an icon, and for equality checks. If not known/needed, use {@link }
      */
-    statusId?: number
+    statusId: number
     /**
      * Stack count of this buff. This should generally not be baked into the buff - it should be inserted at run time.
      */
@@ -614,6 +700,12 @@ export type BaseBuff = Readonly<{
      * Add a key for this buff for import/export functionality. If not specified, will use the name as the key.
      */
     saveKey?: string
+
+    /**
+     * By default, names will be translated on the UI when language is not English.
+     * You can force translation on or off via this property.
+     */
+    translate?: boolean,
 } & ({
     descriptionExtras?: never,
     descriptionOverride?: never,
@@ -704,3 +796,4 @@ export type CombinedBuffEffect = {
      */
     modifyStats: (stats: ComputedSetStats) => ComputedSetStats,
 }
+

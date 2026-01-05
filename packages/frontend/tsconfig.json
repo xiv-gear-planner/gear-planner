@@ -1,22 +1,15 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "target": "es2022",
-    "sourceMap": true,
-    "outDir": "build",
-    "noImplicitReturns": true,
-    "strictBindCallApply": true,
-//    "strictFunctionTypes": true,
-//    "strictPropertyInitialization": true
-    "allowSyntheticDefaultImports": true,
-    "composite": true
+    "strict": false,
   },
-  "exclude": [
-    "node_modules"
-  ],
   "include": [
     "src/scripts"
+  ],
+  "exclude": [
+    "./node_modules",
+    "./dist",
+    "*.d.ts"
   ],
   "references": [
     {
@@ -27,6 +20,12 @@
     },
     {
       "path": "../common-ui"
+    },
+    {
+      "path": "../account-service-client"
+    },
+    {
+      "path": "../user-data-client"
     }
   ]
 }

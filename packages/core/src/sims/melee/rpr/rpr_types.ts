@@ -1,5 +1,5 @@
-import { Ability, GcdAbility, OgcdAbility } from "@xivgear/core/sims/sim_types";
-import { RprGauge } from "./rpr_gauge";
+import {Ability, GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
+import {RprGauge} from "./rpr_gauge";
 
 // This file is broadly copied as needed from NIN
 

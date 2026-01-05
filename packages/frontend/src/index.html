@@ -1,28 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="./style.css"/>
+    <script blocking="render">
+        if (localStorage.getItem('light-mode') === 'true') {
+            document.addEventListener('DOMContentLoaded', () => {
+                document.querySelector('body').classList.add('light-mode');
+            });
+        }
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=0.75, user-scalable=no">
-    <!--    <meta property="og:title" content="XivGear - FFXIV Gear Planner"/>-->
-    <!--    <meta property="og:description" content="XivGear is an advanced and easy-to-use FFXIV gear planner/set builder with built-in simulation support."/>-->
-    <!--    <meta property="og:site_name" content="XivGear"/>-->
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+
     <title>XivGear - FFXIV Gear Planner</title>
-    <script src="./main.js" type="module"></script>
-    <script src="//cdn.jsdelivr.net/npm/@ungap/custom-elements"></script>
     <script async src="https://um.xivgear.app/umami" data-website-id="bc3fc7a6-b0ac-4a30-b737-031b59a9810f"></script>
-    <link rel="stylesheet" href="./style.css"/>
-    <link rel="preload" href="https://data.xivgear.app/BaseParams" as="fetch"/>
-    <link rel="preload" href="https://data.xivgear.app/Materia" as="fetch"/>
-    <link rel="preload" href="https://data.xivgear.app/Food" as="fetch"/>
-    <link rel="preload" href="https://data.xivgear.app/Jobs" as="fetch"/>
-    <link rel="preload" href="https://data.xivgear.app/ItemLevel" as="fetch"/>
-    <!--    <script src="https://kit.fontawesome.com/87e2708a80.js" crossorigin="anonymous"></script>-->
+    <script data-cfasync="false">window.nitroAds = window.nitroAds || {
+        createAd: function () {
+            return new Promise(e => {
+                window.nitroAds.queue.push(["createAd", arguments, e])
+            })
+        }, addUserToken: function () {
+            window.nitroAds.queue.push(["addUserToken", arguments])
+        }, queue: []
+    };</script>
+    <script data-cfasync="false">
+        // Failsafe in case script cannot load due to bad cache
+        window.addEventListener('error', (event) => {
+            if (window.xivgearLoadStarted) {
+                // If it actually loaded successfully, then this error event is just noise.
+                return;
+            }
+            const target = event.target;
+            if (target && target.tagName.toLowerCase() === 'script') {
+                const scriptSrc = target.src;
+                if (scriptSrc?.includes('main') && scriptSrc?.includes('.js')) {
+                    console.error("Main script load appears to have failed", event);
+                    document.querySelector('#content-area').replaceChildren(`There was an error loading the main script. The page will reload automatically in 5 seconds. Check the browser console for more details.`);
+                    setTimeout(() => {
+                        const newLoc = new URL(document.location.toString());
+                        newLoc.searchParams.set("_cacheBust", Math.floor(Math.random() * 1_000_000).toString());
+                        document.location = newLoc.toString();
+                        umami?.track('mainScriptLoadFail', {
+                            scriptSrc: scriptSrc,
+                        });
+                    }, 5_000);
+                }
+            }
+        }, {
+            capture: true
+        });
+    </script>
+    <link rel="preload" href="https://data.xivgear.app/BaseParams" as="fetch" crossorigin/>
+    <link rel="preload" href="https://data.xivgear.app/Materia" as="fetch" crossorigin/>
+    <link rel="preload" href="https://data.xivgear.app/Food" as="fetch" crossorigin/>
+    <link rel="preload" href="https://data.xivgear.app/Jobs" as="fetch" crossorigin/>
+    <link rel="preload" href="https://data.xivgear.app/ItemLevel" as="fetch" crossorigin/>
+    <link rel="dns-prefetch" href="https://accountsvc.xivgear.app/" crossorigin/>
+    <link rel="dns-prefetch" href="https://v2.xivapi.com/" crossorigin/>
 </head>
-<body class="modern">
+<body class="modern account-state-not-loaded token-state-not-loaded" data-accountstate="not-loaded"
+      data-tokenstate="not-loaded">
 
 <div id="dev-menu-area" style="display: none;"></div>
 <div id="show-hide-menu-button-area">
     <button id="show-hide-menu-button"><span>≡</span></button>
+</div>
+<div id="help-button-area">
+    <a target="_blank" href="https://github.com/xiv-gear-planner/gear-planner/blob/master/docs/Index.md">
+        <button id="help-button">?</button>
+    </a>
 </div>
 <div id="main-menu-area">
     <div id="main-menu-area-inner">
@@ -30,10 +79,12 @@
         <a href="?page=newsheet" id="new-sheet-button">New Sheet</a>
         <a href="?page=importsheet">Import</a>
         <a href="" id="settings-button">Settings</a>
+        <a href="" id="account-button"><span id="account-text">Log In</span></a>
         <a href="./math/">Math</a><!--    <a href="." id="dev-menu-button">Dev Menu</a>-->
         <a href="https://github.com/xiv-gear-planner/gear-planner/" id="github-button" target="_blank">GitHub</a>
         <a href="https://ko-fi.com/wynnxiv" id="kofi-button" target="_blank">Ko-Fi</a>
-        <a href="https://patreon.com/xivgearapp?utm_medium=unknown&utm_source=join_link&utm_campaign=creatorshare_creator&utm_content=copyLink" id="patreon-button" target="_blank">Patreon</a>
+        <a href="https://patreon.com/xivgearapp?utm_medium=unknown&utm_source=join_link&utm_campaign=creatorshare_creator&utm_content=copyLink"
+           id="patreon-button" target="_blank">Patreon</a>
     </div>
 </div>
 <div id="content-area"></div>
@@ -43,24 +94,21 @@
             <h1 class="js-warning">Please enable JS. This site will not function without it.</h1>
         </noscript>
         <button id="welcome-close-button">Close</button>
-        <h1>Welcome to Xivgear!</h1>
-        <p>xivgear.app is a brand-new FFXIV gear planner and calculator. Build, compare, calculate, and simulate your
+        <h1>Welcome to XivGear!</h1>
+        <p>xivgear.app is an advanced FFXIV gear planner and calculator. Build, compare, calculate, and simulate your
             sets without complicated spreadsheets.</p>
         <p>Here's a few of the features it supports:</p>
         <ul>
-            <li>For some classes, DPS simulations built right into the gear set editor, for instant feedback.</li>
+            <li>For most jobs, DPS simulations built right into the gear set editor, for instant feedback.</li>
             <li>Share a sheet containing multiple sets, so players can view them at a glance, rather than having to
                 click through several sets.
             </li>
-            <li>Set a stat priority and have materia automatically chosen for you.</li>
-            <li>Coming later: leave a few slots empty, and brute-force solve the highest DPS sets.</li>
+            <li>The ability to solve the optimal melds and food for a given set of gear.</li>
         </ul>
         <p>Happy Raiding! Don't forget to check out <a href="https://thebalanceffxiv.com/">The Balance</a> for
             best-in-slot gear sets.</p>
     </div>
 </div>
-<!--<div id="mid-controls-area" style="display: none;"></div>-->
-<!--<div id="editor-area" style="display: none;"></div>-->
-<!--<div id="main-page-padding"></div>-->
+<!--<script defer="" src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon="{&quot;version&quot;:&quot;2024.11.0&quot;,&quot;token&quot;:&quot;779030c9ed5c43e5a560998dc71acb36&quot;,&quot;r&quot;:1,&quot;server_timing&quot;:{&quot;name&quot;:{&quot;cfCacheStatus&quot;:true,&quot;cfEdge&quot;:true,&quot;cfExtPri&quot;:true,&quot;cfL4&quot;:true,&quot;cfOrigin&quot;:true,&quot;cfSpeedBrain&quot;:true},&quot;location_startswith&quot;:null}}" crossorigin="anonymous"></script>-->
 </body>
 </html>

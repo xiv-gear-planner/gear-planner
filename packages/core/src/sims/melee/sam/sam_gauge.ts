@@ -1,4 +1,4 @@
-import { SAMGaugeState, KenkiAbility } from './sam_types';
+import {SAMGaugeState, KenkiAbility} from './sam_types';
 
 class SAMGauge {
     constructor(level: number) {
@@ -14,6 +14,7 @@ class SAMGauge {
     get kenkiGauge() {
         return this._kenkiGauge;
     }
+
     set kenkiGauge(newGauge: number) {
         if (newGauge > 100) {
             console.warn(`[SAM Sim] Overcapped Kenki by ${newGauge - 100}.`);
@@ -22,13 +23,14 @@ class SAMGauge {
     }
 
     spendKenki(action: KenkiAbility): void {
-        action.updateGauge(this);
+        action.updateGaugeLegacy(this);
     }
 
     private _meditation: number = 0;
     get meditation() {
         return this._meditation;
     }
+
     set meditation(newGauge: number) {
         this._meditation = Math.max(Math.min(newGauge, 3), 0);
     }
@@ -41,6 +43,7 @@ class SAMGauge {
     get sen() {
         return this._sen;
     }
+
     set sen(newSen: Set<string>) {
         this._sen = newSen;
     }
@@ -48,6 +51,7 @@ class SAMGauge {
     addSen(newSen: string): void {
         this._sen.add(newSen);
     }
+
     spendSen(): void {
         this._sen.clear();
     }

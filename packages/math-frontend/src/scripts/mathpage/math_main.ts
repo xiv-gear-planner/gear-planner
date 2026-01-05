@@ -1,7 +1,7 @@
 import {JobName} from "@xivgear/xivmath/xivconstants";
 import {LevelStats} from "@xivgear/xivmath/geartypes";
 import {DisplayType} from "./math_ui";
-import {PropertyOfType} from "@xivgear/core/util/types";
+import {PropertyOfType} from "@xivgear/util/util_types";
 
 export type GeneralSettings = {
     classJob: JobName;
@@ -10,7 +10,7 @@ export type GeneralSettings = {
     displayType: DisplayType;
 }
 
-export type Func = (...args: unknown[]) => unknown
+export type Func = (...args: never[]) => unknown;
 
 /**
  * Represents a single, simple formula, e.g. crit stat to crit chance
@@ -21,6 +21,11 @@ export type MathFormula<AllArgType, FuncType extends Func> = {
     argExtractor(arg: AllArgType, gen: GeneralSettings): Promise<Parameters<FuncType>>;
     // makeResultsDisplay: (result: ReturnType<FuncType>) => Element;
     excludeFormula?: boolean;
+    /**
+     * If true, the output column for this formula can be hidden by the user via the UI.
+     * If omitted or false, the column is always shown (unless excludeFormula is true).
+     */
+    hideableColumn?: boolean;
 }
 
 export type Variable<AllArgType extends object> =

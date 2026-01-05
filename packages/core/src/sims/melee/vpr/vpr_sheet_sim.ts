@@ -1,13 +1,29 @@
-import { PreDmgAbilityUseRecordUnf, AbilityUseResult, CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation } from "@xivgear/core/sims/cycle_sim";
-import { Ability, Buff, OgcdAbility, SimSettings, SimSpec } from "@xivgear/core/sims/sim_types";
-import { VprGauge } from "./vpr_gauge";
-import { VprAbility, VprExtraData, VprGcdAbility } from "./vpr_types";
+import {
+    AbilityUseResult,
+    CycleProcessor,
+    CycleSimResult,
+    ExternalCycleSettings,
+    MultiCycleSettings,
+    PreDmgAbilityUseRecordUnf,
+    Rotation
+} from "@xivgear/core/sims/cycle_sim";
+import {Ability, Buff, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
+import {VprGauge} from "./vpr_gauge";
+import {VprAbility, VprExtraData, VprGcdAbility} from "./vpr_types";
 import * as Actions from "./vpr_actions";
-import { FlanksbaneVenom, FlankstungVenom, HindsbaneVenom, HindstungVenom, HuntersInstinct, ReadyToReawaken, Swiftscaled } from "./vpr_buffs";
-import { potionMaxDex } from "@xivgear/core/sims/common/potion";
-import { sum } from "@xivgear/core/util/array_utils";
-import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
-import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
+import {
+    FlanksbaneVenom,
+    FlankstungVenom,
+    HindsbaneVenom,
+    HindstungVenom,
+    HuntersInstinct,
+    ReadyToReawaken,
+    Swiftscaled
+} from "./vpr_buffs";
+import {potionMaxDex} from "@xivgear/core/sims/common/potion";
+import {sum} from "@xivgear/util/array_utils";
+import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
+import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
 
 export interface VprSimResult extends CycleSimResult {
 }
@@ -38,13 +54,16 @@ class RotationState {
     get comboStep() {
         return this._comboStep;
     }
+
     set comboStep(newCombo: number) {
         this._comboStep = newCombo % 3;
     }
+
     private _nextSecondStep: number = 0;
     get nextSecondStep() {
         return this._nextSecondStep;
     }
+
     set nextSecondStep(new2ndGcd: number) {
         this._nextSecondStep = new2ndGcd % 2;
     }
@@ -53,6 +72,7 @@ class RotationState {
     get nextFirstStep() {
         return this._nextFirstStep;
     }
+
     set nextFirstStep(newFirstStep: number) {
         this._nextFirstStep = newFirstStep % 2;
     }
@@ -61,6 +81,7 @@ class RotationState {
     public lastComboTime: number = 0;
     public lastDualWieldFinisher: VprGcdAbility = null;
 }
+
 export class VprCycleProcessor extends CycleProcessor {
 
     gauge: VprGauge;
@@ -95,16 +116,16 @@ export class VprCycleProcessor extends CycleProcessor {
     override use(ability: Ability): AbilityUseResult {
         const vprAbility = ability as VprAbility;
 
-        if (vprAbility.updateGauge) {
+        if (vprAbility.updateGaugeLegacy) {
 
             /** prevent weird gauge update if an auto lands between now and nextGcdTime */
-            if (ability.type === 'gcd' &&  this.nextGcdTime > this.currentTime) {
+            if (ability.type === 'gcd' && this.nextGcdTime > this.currentTime) {
                 this.advanceTo(this.nextGcdTime);
             }
 
             /** Don't update gauge if we are awakening and ready to reawaken */
-            if ( !(vprAbility.id === Actions.Reawaken.id && this.getBuffIfActive(ReadyToReawaken)) ) {
-                vprAbility.updateGauge(this.gauge);
+            if (!(vprAbility.id === Actions.Reawaken.id && this.getBuffIfActive(ReadyToReawaken))) {
+                vprAbility.updateGaugeLegacy(this.gauge);
             }
         }
 
@@ -124,7 +145,7 @@ export class VprCycleProcessor extends CycleProcessor {
         /** If the ogcd can be used without clipping, do so.
          * NOTE: You still need to check if you can use without clipping when making rotation decisions.
          * This just forces the ogcd through if you already know you can use it.
-        */
+         */
         if (this.canUseWithoutClipping(ability)) {
             const readyAt = this.cdTracker.statusOf(ability).readyAt.absolute;
             if (this.totalTime > readyAt) {
@@ -195,6 +216,7 @@ export class VprCycleProcessor extends CycleProcessor {
 
     firstComboGcds: VprGcdAbility[] = [Actions.ReavingFangs, Actions.SteelFangs];
     secondComboGcds: VprGcdAbility[] = [Actions.SwiftskinsSting, Actions.HuntersSting];
+
     public useDualWieldCombo() {
         switch (this.rotationState.comboStep) {
             case 0:
@@ -204,7 +226,7 @@ export class VprCycleProcessor extends CycleProcessor {
                 this.useGcd(this.secondComboGcds[this.rotationState.nextSecondStep++]);
                 break;
             case 2:
-            /** Use finisher based on buff */
+                /** Use finisher based on buff */
                 if (this.getBuffIfActive(HindsbaneVenom)) {
                     this.useGcd(Actions.HindsbaneFang);
                 }
@@ -218,7 +240,7 @@ export class VprCycleProcessor extends CycleProcessor {
                     this.useGcd(Actions.FlankstingStrike);
                 }
                 else { // No buff running; Pick arbitrarily based on previous 2nd combo
-                /** If we just used Hunter's sting */
+                    /** If we just used Hunter's sting */
                     if (this.rotationState.nextSecondStep === 0) {
                         this.useGcd(Actions.HindsbaneFang); // Chosen arbitrarily from the flank options
                     }
@@ -256,7 +278,7 @@ export class VprCycleProcessor extends CycleProcessor {
         /** Requirements for using UF:
          * - need to not break combo
          * - need to use combo finisher before buff wears off
-        */
+         */
         const comboBreakTime = this.rotationState.lastComboTime + 30;
         const gcdAfterUF = this.nextGcdTime + this.gcdTime(Actions.UncoiledFury);
         let numCombosNeeded = 2 - this.rotationState.comboStep + 1;
@@ -339,7 +361,7 @@ export class VprCycleProcessor extends CycleProcessor {
         /** We are going to shift the GCDs around to make math easier.
          * Pretend we are starting after all of (hypothetical reawaken, UFs, Twinblade Combos) have been used, immediately.
          * That means the rest of the gcds before 2min reawaken are *all* dual wield combos.
-        */
+         */
         const numTwinbladeCombosToUse = 3 - this.rotationState.numDreadwindersUsed;
         const numRattlingCoils = this.gauge.rattlingCoils + numTwinbladeCombosToUse + (targetTime < this.cdTracker.statusOf(Actions.SerpentsIre).readyAt.absolute ? 0 : 1); // +1 for Serpent's ire
         const numUFs = Math.max(numRattlingCoils - 3, 0);
@@ -432,17 +454,18 @@ export class VprCycleProcessor extends CycleProcessor {
             : postReawakenTime + ((1 - this.rotationState.comboStep) % 3) * this.gcdTime(Actions.ReavingFangs);
 
         if (this.gauge.serpentOfferings >= 50
-            && nextSecondaryBuffRefresh < this.getActiveBuffData(HuntersInstinct).end
-            && nextSecondaryBuffRefresh < this.getActiveBuffData(Swiftscaled).end
-            && this.willHaveGaugeForBurst()) {
+            && (nextSecondaryBuffRefresh < this.getActiveBuffData(HuntersInstinct).end || this.getActiveBuffData(HuntersInstinct).end > this.totalTime)
+            && (nextSecondaryBuffRefresh < this.getActiveBuffData(Swiftscaled).end || this.getActiveBuffData(Swiftscaled).end > this.totalTime)
+            && (this.willHaveGaugeForBurst() || this.getGcdTimeAfterSerpentsIre() + this.getReawakenDuration() > this.totalTime)
+        ) {
 
             this.useReawaken();
             return;
         }
 
         if (this.gauge.rattlingCoils > 2
-           || (this.gauge.rattlingCoils > 0 && this.cdTracker.statusOf(Actions.SerpentsIre).readyAt.relative > this.remainingGcdTime)
-           || (this.rotationState.comboStep === 2 && this.gauge.serpentOfferings === 100 && this.gauge.rattlingCoils > 0)
+            || (this.gauge.rattlingCoils > 0 && this.cdTracker.statusOf(Actions.SerpentsIre).readyAt.relative > this.remainingGcdTime)
+            || (this.rotationState.comboStep === 2 && this.gauge.serpentOfferings === 100 && this.gauge.rattlingCoils > 0)
         ) {
             this.useUncoiledFury();
             return;
@@ -452,7 +475,7 @@ export class VprCycleProcessor extends CycleProcessor {
     }
 }
 
-export class VprSheetSim extends BaseMultiCycleSim<VprSimResult, VprSimSettings> {
+export class VprSheetSim extends BaseMultiCycleSim<VprSimResult, VprSimSettings, VprCycleProcessor> {
 
     spec = vprSheetSpec;
     shortName = "vpr-sheet-sim";
@@ -472,11 +495,12 @@ export class VprSheetSim extends BaseMultiCycleSim<VprSimResult, VprSimSettings>
             hideCycleDividers: true,
         });
     }
+
     getRotationsToSimulate(): Rotation<VprCycleProcessor>[] {
         return [{
             cycleTime: 120,
 
-            apply(cp: VprCycleProcessor) {
+            apply(cp) {
                 cp.useOpener();
                 while (cp.remainingTime > 0) {
                     cp.rotationStep();

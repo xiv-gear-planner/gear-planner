@@ -1,4 +1,4 @@
-import { NINGaugeState, NinkiAbility } from './nin_types';
+import {NINGaugeState, NinkiAbility} from './nin_types';
 
 class NINGauge {
     constructor(level: number) {
@@ -14,6 +14,7 @@ class NINGauge {
     get ninkiGauge() {
         return this._ninkiGauge;
     }
+
     set ninkiGauge(newGauge: number) {
         if (newGauge > 100) {
             console.warn(`Overcapped Ninki by ${newGauge - 100}.`);
@@ -36,6 +37,7 @@ class NINGauge {
     get kazematoi() {
         return this._kazematoi;
     }
+
     set kazematoi(newGauge: number) {
         if (newGauge > 5) {
             console.warn(`Overcapped Kazematoi by ${newGauge - 5}.`);

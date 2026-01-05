@@ -19,7 +19,7 @@
     <inspection_tool class="HtmlUnknownTag" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="myValues">
         <value>
-          <list size="47">
+          <list size="63">
             <item index="0" class="java.lang.String" itemvalue="nobr" />
             <item index="1" class="java.lang.String" itemvalue="noembed" />
             <item index="2" class="java.lang.String" itemvalue="comment" />
@@ -67,6 +67,22 @@
             <item index="44" class="java.lang.String" itemvalue="alt-items-modal" />
             <item index="45" class="java.lang.String" itemvalue="meld-solver-area" />
             <item index="46" class="java.lang.String" itemvalue="meld-solver-result-dialog" />
+            <item index="47" class="java.lang.String" itemvalue="settings-modal" />
+            <item index="48" class="java.lang.String" itemvalue="expandable-text" />
+            <item index="49" class="java.lang.String" itemvalue="separator-editor" />
+            <item index="50" class="java.lang.String" itemvalue="bis-browser" />
+            <item index="51" class="java.lang.String" itemvalue="sheet-info-modal" />
+            <item index="52" class="java.lang.String" itemvalue="gauge-outer" />
+            <item index="53" class="java.lang.String" itemvalue="gauge-bar" />
+            <item index="54" class="java.lang.String" itemvalue="job-picker" />
+            <item index="55" class="java.lang.String" itemvalue="account-modal" />
+            <item index="56" class="java.lang.String" itemvalue="conflict-resolution-dialog" />
+            <item index="57" class="java.lang.String" itemvalue="change-password-modal" />
+            <item index="58" class="java.lang.String" itemvalue="finalize-password-reset-modal" />
+            <item index="59" class="java.lang.String" itemvalue="change-props-modal" />
+            <item index="60" class="java.lang.String" itemvalue="popout-editor" />
+            <item index="61" class="java.lang.String" itemvalue="compat-checker-overview-modal" />
+            <item index="62" class="java.lang.String" itemvalue="compat-checker-set-modal" />
           </list>
         </value>
       </option>
@@ -84,6 +100,7 @@
       <option name="m_ignoreExpressionsContainingConstants" value="false" />
     </inspection_tool>
     <inspection_tool class="ReplaceAssignmentWithOperatorAssignmentJS" enabled="true" level="WEAK WARNING" enabled_by_default="true" editorAttributes="INFO_ATTRIBUTES" />
+    <inspection_tool class="Stylelint" enabled="true" level="WARNING" enabled_by_default="true" editorAttributes="WARNING_ATTRIBUTES" />
     <inspection_tool class="UnterminatedStatementJS" enabled="true" level="WEAK WARNING" enabled_by_default="true" editorAttributes="INFO_ATTRIBUTES">
       <option name="ignoreSemicolonAtEndOfBlock" value="true" />
     </inspection_tool>

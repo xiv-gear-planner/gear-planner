@@ -38,7 +38,7 @@ export interface SgeSheetSettings extends SimSettings {
 }
 
 export const sgeSheetSpec: SimSpec<SgeSheetSim, SgeSheetSettings> = {
-    displayName: "SGE Sheet Sim (Old)",
+    displayName: "SGE (Deprecated)",
     loadSavedSimInstance(exported: SgeSheetSettings) {
         return new SgeSheetSim(exported);
     },
@@ -79,6 +79,9 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettin
         }
     }
 
+    settingsChanged() {
+    }
+
     extraDhRate() {
         return (this.settings.hasBard ? (battleVoiceAvg + brdDhAvg) : 0);
     }
@@ -104,6 +107,11 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettin
             pps: ppsFinalResult,
         };
     }
+
+    async simulateSimple(set: CharacterGearSet): Promise<number> {
+        return (await this.simulate(set)).mainDpsResult;
+    }
+
 
     PhlegmaB(cycle: number) {
         return (phlegmaPot - dosis3pot) * (cycle / 40);

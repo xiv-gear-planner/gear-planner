@@ -1,21 +1,34 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // REQUIRED - sets up fake HTML classes
-import 'global-jsdom/register';
 import {describe, it} from "mocha";
 import {assize, dia, exampleGearSet, filler, lily, misery, nop, pom} from "./common_values";
 import * as assert from "assert";
-import {Ability, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
+import {Ability, SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
 import {
     AbilityUseResult,
     CycleProcessor,
     CycleSimResult,
-    ExternalCycleSettings, MultiCycleSettings,
+    ExternalCycleSettings,
+    MultiCycleSettings,
     Rotation
 } from "@xivgear/core/sims/cycle_sim";
 import {getRegisteredSimSpecs} from "@xivgear/core/sims/sim_registry";
-import { BaseMultiCycleSim } from '@xivgear/core/sims/processors/sim_processors';
-import { potRatioSimSpec } from '@xivgear/core/sims/common/potency_ratio';
-import { registerDefaultSims } from '@xivgear/core/sims/default_sims';
+import {BaseMultiCycleSim} from '@xivgear/core/sims/processors/sim_processors';
+import {potRatioSimSpec} from '@xivgear/core/sims/common/potency_ratio';
+import {registerDefaultSims} from '@xivgear/core/sims/default_sims';
+import {
+    CURRENT_MAX_LEVEL,
+    getClassJobStats,
+    JobName,
+    SupportedLevel,
+    SupportedLevels
+} from "@xivgear/xivmath/xivconstants";
+import {CharacterGearSet} from "../../gear";
+import {GearPlanSheet, HEADLESS_SHEET_PROVIDER} from "../../sheet";
+import {expect} from "chai";
+import {EquipSlotInfo, EquipSlotKey} from "@xivgear/xivmath/geartypes";
+import {FakeLocalStorage} from "../test_utils";
+import {whmNewSheetSpec} from "../../sims/healer/whm_new_sheet_sim";
 
 // Example of end-to-end simulation
 // This one is testing the simulation engine itself, so it copies the full simulation code rather than
@@ -28,6 +41,9 @@ export interface TestSimSettings extends SimSettings {
 export interface TestSimSettingsExternal extends ExternalCycleSettings<TestSimSettings> {
 }
 
+// HEADLESS_SHEET_PROVIDER uses localStorage to save/load, so we still need this
+// noinspection JSConstantReassignment
+global.localStorage = new FakeLocalStorage();
 
 export const testSimSpec: SimSpec<TestMultiCycleSim, TestSimSettingsExternal> = {
     displayName: "Test WHM Sim",
@@ -187,6 +203,25 @@ describe('Default sims', () => {
     describe('all others', () => {
         registerDefaultSims();
         const registered = getRegisteredSimSpecs();
+        const sampleSheets: GearPlanSheet[] = [];
+        const sampleSheetLoad = new Map<GearPlanSheet, Promise<void>>();
+
+        async function getSheetFor(job: JobName, level: SupportedLevel) {
+            const existing = sampleSheets.find(set => set.classJobName === job && set.level === level);
+            if (existing) {
+                await sampleSheetLoad.get(existing);
+                return existing;
+            }
+            else {
+                const newSheet = HEADLESS_SHEET_PROVIDER.fromScratch(undefined, "", job, level, undefined, false);
+                const promise = newSheet.load();
+                sampleSheetLoad.set(newSheet, promise);
+                sampleSheets.push(newSheet);
+                await promise;
+                return newSheet;
+            }
+        }
+
         for (const simSpec of registered) {
             describe(`sim '${simSpec.displayName}'`, () => {
                 it('Can instantiate, export, and load', () => {
@@ -194,7 +229,69 @@ describe('Default sims', () => {
                     const exported = inst.exportSettings();
                     simSpec.loadSavedSimInstance(exported);
                 });
+                let levels = [...(simSpec.supportedLevels ?? SupportedLevels)];
+                const job = simSpec.supportedJobs ? simSpec.supportedJobs[0] : 'WHM';
+                const maxLevel = getClassJobStats(job).maxLevel ?? CURRENT_MAX_LEVEL;
+                levels = levels.filter(lvl => lvl <= maxLevel);
+                levels.forEach(level => {
+                    it(`Can run at level ${level}`, async () => {
+                        const inst: Simulation<SimResult, any, any> = simSpec.makeNewSimInstance() as Simulation<any, any, any>;
+                        const level = simSpec.supportedLevels ? simSpec.supportedLevels[0] : (getClassJobStats(job).maxLevel ?? 100);
+                        const sheet = await getSheetFor(job, level);
+                        const set = new CharacterGearSet(sheet);
+                        // Equip random gear in each slot
+                        set.forEachSlot((slotKey: EquipSlotKey) => {
+                            // Ignore offhand for classes which do not support it
+                            if (slotKey === 'OffHand' && !sheet.classJobStats.offhand) {
+                                return;
+                            }
+                            const gearSlot = EquipSlotInfo[slotKey].gearSlot;
+                            const item = sheet.itemsForDisplay.find((item) => item.displayGearSlotName === gearSlot);
+                            expect(item).to.not.be.undefined;
+                            expect(item).to.not.be.null;
+                            set.setEquip(slotKey, item);
+                        });
+                        {
+                            const results = await inst.simulate(set);
+                            expect(results.mainDpsResult).to.be.greaterThan(0);
+                        }
+                        {
+                            const exported = inst.exportSettings();
+                            const newInst = simSpec.loadSavedSimInstance(exported);
+                            const results = await newInst.simulate(set);
+                            expect(results.mainDpsResult).to.be.greaterThan(0);
+                        }
+                    }).timeout(30000);
+                });
             });
         }
+        describe('whm sim', () => {
+            it("doesn't break if you get stuck in the pom loop", async () => {
+                const simSpec = whmNewSheetSpec;
+                const inst = simSpec.makeNewSimInstance();
+                inst.cycleSettings.totalTime = 721;
+                const job = simSpec.supportedJobs ? simSpec.supportedJobs[0] : 'WHM';
+                const level = simSpec.supportedLevels ? simSpec.supportedLevels[0] : (getClassJobStats(job).maxLevel ?? 100);
+                const sheet = await getSheetFor(job, level);
+                const set = new CharacterGearSet(sheet);
+                // Equip random gear in each slot
+                set.forEachSlot((slotKey: EquipSlotKey) => {
+                    // Ignore offhand for classes which do not support it
+                    if (slotKey === 'OffHand' && !sheet.classJobStats.offhand) {
+                        return;
+                    }
+                    const gearSlot = EquipSlotInfo[slotKey].gearSlot;
+                    const item = sheet.itemsForDisplay.find((item) => item.displayGearSlotName === gearSlot);
+                    expect(item).to.not.be.undefined;
+                    expect(item).to.not.be.null;
+                    set.setEquip(slotKey, item);
+                });
+                {
+                    const results = await inst.simulate(set);
+                    expect(results.mainDpsResult).to.be.greaterThan(0);
+                }
+
+            });
+        });
     });
 });

@@ -1,7 +1,7 @@
 import {RawStatKey} from "@xivgear/xivmath/geartypes";
 
 export const RelevantBaseParams = [
-    'Strength', 'Dexterity', 'Vitality', 'Intelligence', 'Mind', 'Piety', 'HP', 'Tenacity', 'Direct Hit Rate', 'Critical Hit', 'Skill Speed', 'Spell Speed', 'Determination', 'Physical Damage', 'Magic Damage', 'Delay',
+    'Strength', 'Dexterity', 'Vitality', 'Intelligence', 'Mind', 'Piety', 'HP', 'Tenacity', 'Direct Hit Rate', 'Critical Hit', 'Skill Speed', 'Spell Speed', 'Determination', 'Physical Damage', 'Magic Damage', 'Delay', 'Defense', 'Magic Defense', 'Haste',
 ] as const;
 export type RelevantBaseParam = typeof RelevantBaseParams[number];
 
@@ -22,6 +22,9 @@ export const BaseParamToStatKey: Record<RelevantBaseParam, RawStatKey> = {
     Tenacity: "tenacity",
     Vitality: "vitality",
     Delay: "weaponDelay",
+    Defense: 'defensePhys',
+    "Magic Defense": 'defenseMag',
+    "Haste": "gearHaste",
 };
 
 // Ignoring MP and doh/dol stats
@@ -40,23 +43,25 @@ export type XivApiStat =
     | 'SpellSpeed'
     | 'SkillSpeed'
     | 'MagicalDamage'
-    | 'PhysicalDamage';
+    | 'PhysicalDamage'
+    | 'Haste';
 
 
 export const xivApiStatMapping: Record<XivApiStat, RawStatKey> = {
     PhysicalDamage: 'wdPhys',
     MagicalDamage: 'wdMag',
-    Vitality: "vitality",
-    Strength: "strength",
-    Dexterity: "dexterity",
-    Intelligence: "intelligence",
-    Mind: "mind",
-    HP: "hp",
-    Piety: "piety",
-    CriticalHit: "crit",
-    DirectHitRate: "dhit",
-    Determination: "determination",
-    Tenacity: "tenacity",
-    SkillSpeed: "skillspeed",
-    SpellSpeed: "spellspeed",
+    Vitality: 'vitality',
+    Strength: 'strength',
+    Dexterity: 'dexterity',
+    Intelligence: 'intelligence',
+    Mind: 'mind',
+    HP: 'hp',
+    Piety: 'piety',
+    CriticalHit: 'crit',
+    DirectHitRate: 'dhit',
+    Determination: 'determination',
+    Tenacity: 'tenacity',
+    SkillSpeed: 'skillspeed',
+    SpellSpeed: 'spellspeed',
+    Haste: 'gearHaste',
 };

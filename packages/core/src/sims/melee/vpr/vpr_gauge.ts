@@ -1,4 +1,4 @@
-import { VprGaugeState } from "./vpr_types";
+import {VprGaugeState} from "./vpr_types";
 
 export class VprGauge {
 
@@ -6,6 +6,7 @@ export class VprGauge {
     get serpentOfferings(): number {
         return this._serpentOfferings;
     }
+
     set serpentOfferings(newGauge: number) {
         if (newGauge > 100) {
             console.warn(`Overcapped Serpent Offerings by ${newGauge - 100}.`);
@@ -20,6 +21,7 @@ export class VprGauge {
     get rattlingCoils(): number {
         return this._rattlingCoils;
     }
+
     set rattlingCoils(newCoils: number) {
         if (newCoils > 3) {
             console.warn(`Overcapped Rattling Coils by ${newCoils - 3}.`);

@@ -1,5 +1,5 @@
-import { WarGauge } from "./war_gauge";
-import { WarGcdAbility, WarOgcdAbility, SurgingTempest, PrimalRendReadyBuff, PrimalRuinationReadyBuff, InnerReleaseBuff, NascentChaosBuff } from "./war_types";
+import {WarGauge} from "./war_gauge";
+import {WarGcdAbility, WarOgcdAbility, SurgingTempest, PrimalRendReadyBuff, PrimalRuinationReadyBuff, InnerReleaseBuff, NascentChaosBuff} from "./war_types";
 
 export const Tomahawk: WarGcdAbility = {
     type: 'gcd',
@@ -15,55 +15,101 @@ export const HeavySwing: WarGcdAbility = {
     type: 'gcd',
     name: "Heavy Swing",
     id: 31,
-    potency: 220,
+    potency: 150,
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
+    levelModifiers: [
+        {
+            minLevel: 84,
+            potency: 200,
+        },
+        {
+            minLevel: 94,
+            potency: 240,
+        },
+    ],
 };
 
 export const Maim: WarGcdAbility = {
     type: 'gcd',
     name: "Maim",
     id: 37,
-    potency: 340,
+    potency: 250,
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
     updateBeastGauge: (gauge: WarGauge) => gauge.beastGauge += 10,
+    levelModifiers: [
+        {
+            minLevel: 84,
+            potency: 300,
+        },
+        {
+            minLevel: 94,
+            potency: 340,
+        },
+    ],
 };
 
 export const StormsPath: WarGcdAbility = {
     type: 'gcd',
     name: "Storm's Path",
     id: 42,
-    potency: 480,
+    potency: 380,
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
     updateBeastGauge: (gauge: WarGauge) => gauge.beastGauge += 20,
+    levelModifiers: [
+        {
+            minLevel: 84,
+            potency: 440,
+        },
+        {
+            minLevel: 94,
+            potency: 500,
+        },
+    ],
 };
 
 export const StormsEye: WarGcdAbility = {
     type: 'gcd',
     name: "Storm's Eye",
     id: 45,
-    potency: 480,
+    potency: 380,
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
     activatesBuffs: [SurgingTempest],
     updateBeastGauge: (gauge: WarGauge) => gauge.beastGauge += 10,
+    levelModifiers: [
+        {
+            minLevel: 84,
+            potency: 440,
+        },
+        {
+            minLevel: 94,
+            potency: 500,
+        },
+    ],
 };
 
 export const FellCleave: WarGcdAbility = {
     type: 'gcd',
     name: "Fell Cleave",
     id: 3549,
-    potency: 580,
+    potency: 520,
     attackType: "Weaponskill",
     gcd: 2.5,
     beastGaugeCost: 50,
     updateBeastGauge: gauge => gauge.beastGauge -= 50,
+    levelModifiers: [
+        {
+            minLevel: 94,
+            potency: 580,
+        },
+    ],
 };
 
 export const InnerChaos: WarGcdAbility = {
@@ -84,8 +130,14 @@ export const PrimalRend: WarGcdAbility = {
     id: 25753,
     potency: 700,
     attackType: "Weaponskill",
-    activatesBuffs: [PrimalRuinationReadyBuff],
+    activatesBuffs: [],
     gcd: 2.5,
+    levelModifiers: [
+        {
+            minLevel: 100,
+            activatesBuffs: [PrimalRuinationReadyBuff],
+        },
+    ],
 };
 
 export const PrimalRuination: WarGcdAbility = {
@@ -103,11 +155,17 @@ export const InnerRelease: WarOgcdAbility = {
     id: 7389,
     potency: null,
     attackType: "Ability",
-    activatesBuffs: [InnerReleaseBuff, PrimalRendReadyBuff],
+    activatesBuffs: [InnerReleaseBuff],
     cooldown: {
         time: 60,
         charges: 1,
     },
+    levelModifiers: [
+        {
+            minLevel: 90,
+            activatesBuffs: [InnerReleaseBuff, PrimalRendReadyBuff],
+        },
+    ],
 };
 
 export const Infuriate: WarOgcdAbility = {
@@ -116,12 +174,18 @@ export const Infuriate: WarOgcdAbility = {
     id: 52,
     potency: null,
     attackType: "Ability",
-    activatesBuffs: [NascentChaosBuff],
+    activatesBuffs: [],
     cooldown: {
         time: 60,
         charges: 2,
     },
     updateBeastGauge: (gauge: WarGauge) => gauge.beastGauge += 50,
+    levelModifiers: [
+        {
+            minLevel: 80,
+            activatesBuffs: [NascentChaosBuff],
+        },
+    ],
 };
 
 
@@ -145,6 +209,12 @@ export const Upheaval: WarOgcdAbility = {
     cooldown: {
         time: 30,
     },
+    levelModifiers: [
+        {
+            minLevel: 94,
+            potency: 420,
+        },
+    ],
 };
 
 export const Onslaught: WarOgcdAbility = {
@@ -156,6 +226,15 @@ export const Onslaught: WarOgcdAbility = {
     attackType: "Ability",
     cooldown: {
         time: 30,
-        charges: 3,
+        charges: 2,
     },
+    levelModifiers: [
+        {
+            minLevel: 88,
+            cooldown: {
+                time: 30,
+                charges: 3,
+            },
+        },
+    ],
 };

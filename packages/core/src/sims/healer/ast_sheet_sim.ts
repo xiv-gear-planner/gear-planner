@@ -1,14 +1,30 @@
-import { Divination } from "@xivgear/core/sims/buffs";
-import { Ability, BuffController, GcdAbility, OgcdAbility, PersonalBuff, SimSettings, SimSpec } from "@xivgear/core/sims/sim_types";
-import { CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation, PreDmgAbilityUseRecordUnf, AbilityUseResult } from "@xivgear/core/sims/cycle_sim";
-import { rangeInc } from "@xivgear/core/util/array_utils";
-import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
+import {Divination} from "@xivgear/core/sims/buffs";
+import {
+    Ability,
+    BuffController,
+    GcdAbility, LevelModifiable,
+    OgcdAbility,
+    PersonalBuff,
+    SimSettings,
+    SimSpec
+} from "@xivgear/core/sims/sim_types";
+import {
+    AbilityUseResult,
+    CycleProcessor,
+    CycleSimResult,
+    ExternalCycleSettings,
+    MultiCycleSettings,
+    PreDmgAbilityUseRecordUnf,
+    Rotation
+} from "@xivgear/core/sims/cycle_sim";
+import {rangeInc} from "@xivgear/util/array_utils";
+import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
 //import {potionMaxMind} from "@xivgear/core/sims/common/potion";
 
-type AstAbility = Ability & Readonly<{
+type AstAbility = Ability & Readonly<LevelModifiable<{
     /** Run if an ability needs to update the aetherflow gauge */
-    updateGauge?(gauge: AstGauge): void;
-}>
+    updateGaugeLegacy?(gauge: AstGauge): void;
+}>>
 
 type AstGcdAbility = GcdAbility & AstAbility;
 
@@ -27,10 +43,16 @@ const filler: AstGcdAbility = {
     id: 25871,
     type: 'gcd',
     name: "Fall Malefic",
-    potency: 270,
+    potency: 250,
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5,
+    levelModifiers: [
+        {
+            minLevel: 94,
+            potency: 270,
+        },
+    ],
 };
 
 const combust: AstGcdAbility = {
@@ -40,11 +62,19 @@ const combust: AstGcdAbility = {
     potency: 0,
     dot: {
         id: 2041,
-        tickPotency: 70,
+        tickPotency: 55,
         duration: 30,
     },
     attackType: "Spell",
     gcd: 2.5,
+    levelModifiers: [{
+        minLevel: 94,
+        dot: {
+            id: 2041,
+            tickPotency: 70,
+            duration: 30,
+        },
+    }],
 };
 
 const star: AstOgcdAbility = {
@@ -80,12 +110,18 @@ const div: AstOgcdAbility = {
     type: 'ogcd',
     name: "Divination",
     id: 16552,
-    activatesBuffs: [Divination, Divining],
+    activatesBuffs: [Divination],
     potency: null,
     attackType: "Ability",
     cooldown: {
         time: 120,
     },
+    levelModifiers: [
+        {
+            minLevel: 92,
+            activatesBuffs: [Divination, Divining],
+        },
+    ],
 };
 
 const oracle: AstOgcdAbility = {
@@ -152,7 +188,7 @@ const astralDraw: AstOgcdAbility = {
     id: 37017,
     potency: 0,
     attackType: "Ability",
-    updateGauge: (gauge: AstGauge) => {
+    updateGaugeLegacy: (gauge: AstGauge) => {
         gauge.clearCards();
         gauge.addCard("Balance");
         gauge.addCard("Arrow");
@@ -167,7 +203,7 @@ const umbralDraw: AstOgcdAbility = {
     id: 37018,
     potency: 0,
     attackType: "Ability",
-    updateGauge: (gauge: AstGauge) => {
+    updateGaugeLegacy: (gauge: AstGauge) => {
         gauge.clearCards();
         gauge.addCard("Spear");
         gauge.addCard("Bole");
@@ -182,7 +218,7 @@ const lord: AstOgcdAbility = {
     name: "Lord of Crowns",
     potency: 400,
     attackType: "Ability",
-    updateGauge: (gauge: AstGauge) => {
+    updateGaugeLegacy: (gauge: AstGauge) => {
         gauge.playCard("Lord");
     },
 };
@@ -193,7 +229,7 @@ const balance: AstOgcdAbility = {
     id: 37023,
     potency: 0,
     attackType: "Ability",
-    updateGauge: (gauge: AstGauge) => {
+    updateGaugeLegacy: (gauge: AstGauge) => {
         gauge.playCard("Balance");
     },
 };
@@ -204,7 +240,7 @@ const spear: AstOgcdAbility = {
     id: 37026,
     potency: 0,
     attackType: "Ability",
-    updateGauge: (gauge: AstGauge) => {
+    updateGaugeLegacy: (gauge: AstGauge) => {
         gauge.playCard("Spear");
     },
 };
@@ -214,17 +250,20 @@ class AstGauge {
     get cards() {
         return this._cards;
     }
+
     set cards(newCards: Set<string>) {
         this._cards = newCards;
     }
 
-    addCard(newCard: string){
+    addCard(newCard: string) {
         this._cards.add(newCard);
     }
-    playCard(played: string){
+
+    playCard(played: string) {
         this._cards.delete(played);
     }
-    clearCards(){
+
+    clearCards() {
         this._cards.clear();
     }
 
@@ -294,10 +333,26 @@ class AstCycleProcessor extends CycleProcessor {
         const astAbility = ability as AstAbility;
 
         // Update gauge from the ability itself
-        if (astAbility.updateGauge !== undefined) {
-            astAbility.updateGauge(this.gauge);
+        if (astAbility.updateGaugeLegacy !== undefined) {
+            astAbility.updateGaugeLegacy(this.gauge);
         }
         return super.use(ability);
+    }
+
+    override useOgcd(ability: OgcdAbility): AbilityUseResult {
+        // If an Ogcd isn't ready yet, but it can still be used without clipping, advance time until ready.
+        if (this.canUseWithoutClipping(ability)) {
+            const readyAt = this.cdTracker.statusOf(ability).readyAt.absolute;
+            if (this.totalTime > readyAt) {
+                this.advanceTo(readyAt);
+            }
+        }
+        // Only try to use the Ogcd if it's ready.
+        return this.cdTracker.canUse(ability) ? super.useOgcd(ability) : null;
+    }
+
+    isDiviningActive(): boolean {
+        return this.getActiveBuffData(Divining, this.currentTime)?.buff?.duration > 0;
     }
 
     useDotIfWorth() {
@@ -336,20 +391,20 @@ class AstCycleProcessor extends CycleProcessor {
 
         this.useDotIfWorth();
         this.use(spear);
-        this.use(oracle);
+        if (this.isDiviningActive()) {
+            this.use(oracle);
+        }
         //oracleReady = false;
 
         this.useDotIfWorth();
-        this.use(star);
+        this.useOgcd(star);
     }
 }
 
 export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycleProcessor> {
 
     makeDefaultSettings(): AstSettings {
-        return {
-
-        };
+        return {};
     };
 
     spec = astNewSheetSpec;
@@ -380,8 +435,8 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
                     cp.useTwoMinBurst();
                     while (cycle.cycleRemainingGcdTime > 0) {
                         cp.useDotIfWorth();
-                        if (cp.isReady(star)) {
-                            cp.use(star);
+                        if (cp.canUseWithoutClipping(star)) {
+                            cp.useOgcd(star);
                         }
                         else if (cp.currentTime > cp.nextDrawTime && cp.drawState === 1) {
                             cp.Draw();
@@ -393,8 +448,7 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
                     }
                 });
             },
-        },
-        ...rangeInc(10, 28, 2).map(i => ({
+        }, ...rangeInc(10, 28, 2).map(i => ({
             name: `Redot at ${i}s`,
             cycleTime: 120,
             apply(cp: AstCycleProcessor) {
@@ -406,8 +460,8 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
                     cp.useTwoMinBurst();
                     while (cycle.cycleRemainingGcdTime > 0) {
                         cp.useDotIfWorth();
-                        if (cp.isReady(star)) {
-                            cp.use(star);
+                        if (cp.canUseWithoutClipping(star)) {
+                            cp.useOgcd(star);
                         }
                         else if (cp.currentTime > cp.nextDrawTime && cp.drawState === 1) {
                             cp.Draw();
@@ -424,8 +478,8 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
                     cp.useTwoMinBurst();
                     while (cycle.cycleRemainingGcdTime > 0) {
                         cp.useDotIfWorth();
-                        if (cp.isReady(star)) {
-                            cp.use(star);
+                        if (cp.canUseWithoutClipping(star)) {
+                            cp.useOgcd(star);
                         }
                         else if (cp.currentTime > cp.nextDrawTime && cp.drawState === 1) {
                             cp.Draw();
@@ -437,8 +491,7 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
                     }
                 });
             },
-        })),
-        ...rangeInc(2, 16, 2).map(i => ({
+        })), ...rangeInc(2, 16, 2).map(i => ({
             name: `Delay dot to ${i}s`,
             cycleTime: 120,
             apply(cp: AstCycleProcessor) {
@@ -450,8 +503,8 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
                     cp.useTwoMinBurst();
                     while (cycle.cycleRemainingGcdTime > 0) {
                         cp.useDotIfWorth();
-                        if (cp.isReady(star)) {
-                            cp.use(star);
+                        if (cp.canUseWithoutClipping(star)) {
+                            cp.useOgcd(star);
                         }
                         else if (cp.currentTime > cp.nextDrawTime && cp.drawState === 1) {
                             cp.Draw();

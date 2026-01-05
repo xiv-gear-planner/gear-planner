@@ -1,4 +1,4 @@
-import { Buff, Ability, BuffController } from "@xivgear/core/sims/sim_types";
+import {Buff, Ability, BuffController} from "@xivgear/core/sims/sim_types";
 
 /**
  * Samurai-specific Buffs

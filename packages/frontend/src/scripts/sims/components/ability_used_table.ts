@@ -1,10 +1,10 @@
-import {CustomColumnSpec, CustomTable, HeaderRow} from "../../tables";
-import {toRelPct} from "@xivgear/core/util/strutils";
-import {AbilityIcon} from "../../components/abilities";
+import {col, CustomColumnSpec, CustomTable, HeaderRow, LazyTableStrategy} from "@xivgear/common-ui/table/tables";
+import {toRelPct} from "@xivgear/util/strutils";
+import {AbilityIcon, actionNameTranslated} from "../../components/sim/abilities";
 import {BuffListDisplay} from "./buff_list_display";
 import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
 import {AutoAttack, Buff, CombinedBuffEffect, GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
-import {ItemIcon} from "../../components/item_icon";
+import {ItemIcon} from "../../components/items/item_icon";
 import {quickElement} from "@xivgear/common-ui/components/util";
 
 /**
@@ -26,15 +26,27 @@ function roundTime(time: number): string {
     return time.toFixed(3);
 }
 
+function alignedValue(left: string, right: string): HTMLElement {
+    return quickElement('div', ['split-aligned-value'], [quickElement('span', [], [left]), quickElement('span', [], [right])]);
+}
+
+const lazy: LazyTableStrategy = {
+    immediateRows: 100,
+    minRows: 250,
+};
 
 export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
 
-    constructor(abilitiesUsed: readonly DisplayRecordFinalized[], extraColumns: CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] = []) {
+    constructor(abilitiesUsed: readonly DisplayRecordFinalized[], extraColumns: CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[], scrollRoot: HTMLElement = null) {
         super();
+        this.lazyRenderStrategy = {
+            ...lazy,
+            altRoot: scrollRoot,
+        };
         this.style.tableLayout = 'fixed';
         this.classList.add('abilities-used-table');
         this.columns = [
-            {
+            col({
                 shortName: 'time',
                 displayName: 'Time',
                 getter: used => used,
@@ -59,8 +71,8 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                         colElement.title = title;
                     }
                 },
-            },
-            {
+            }),
+            col({
                 shortName: 'ability',
                 displayName: 'Ability',
                 getter: used => isFinalizedAbilityUse(used) ? used.ability : used.label,
@@ -69,22 +81,21 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                         const out = document.createElement('div');
                         out.classList.add('ability-cell');
                         if (ability.type === 'autoattack') {
-                            out.appendChild(document.createTextNode('* '));
+                            out.classList.add('ability-autoattack');
                         }
                         else if (ability.type !== "gcd") {
-                            out.appendChild(document.createTextNode(' ⤷ '));
+                            out.classList.add('ability-ogcd');
                         }
                         if (!ability.noIcon) {
                             if (ability.itemId) {
                                 out.appendChild(new ItemIcon(ability.itemId));
+                                out.classList.add('ability-item');
                             }
                             else if (ability.id) {
                                 out.appendChild(new AbilityIcon(ability.id));
                             }
                         }
-                        const abilityNameSpan = document.createElement('span');
-                        abilityNameSpan.textContent = ability.name;
-                        abilityNameSpan.classList.add('ability-name');
+                        const abilityNameSpan = actionNameTranslated(ability);
                         out.appendChild(abilityNameSpan);
                         return out;
                     }
@@ -92,8 +103,22 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                         return document.createTextNode(ability);
                     }
                 },
-            },
-            {
+                titleSetter: (ability) => {
+                    if (ability instanceof Object) {
+                        if (ability.itemId) {
+                            return `${ability.name}: Item #${ability.itemId}`;
+                        }
+                        else if (ability.id > 0) {
+                            return `${ability.name}: Action #${ability.id}`;
+                        }
+                        else {
+                            return ability.name;
+                        }
+                    }
+                    return null;
+                },
+            }),
+            col({
                 shortName: 'unbuffed-pot',
                 displayName: 'Pot',
                 getter: used => {
@@ -101,37 +126,40 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                 },
                 renderer: (value: number | null, rowValue: DisplayRecordFinalized) => {
                     if (value !== null && isFinalizedAbilityUse(rowValue)) {
-                        if (rowValue.ability.type === 'autoattack') {
-                            const text = quickElement('span', [], [value + '*']);
-                            text.title = `${value} is the original potency, and does not reflect the weapon delay multiplier. However, the damage amount does reflect it.`;
-                            return text;
+                        if (isFinalizedAbilityUse(rowValue) && rowValue.ability.type === 'autoattack') {
+                            return alignedValue(value.toString(), '*');
                         }
                         else {
-                            return document.createTextNode(value.toString());
+                            return alignedValue(value.toString(), '');
                         }
                     }
                     else {
-                        return document.createTextNode('--');
+                        return alignedValue('--', '');
                     }
                 },
-            },
-            {
+                colStyler: (value: number | null, colElement, _, rowValue: DisplayRecordFinalized) => {
+                    if (isFinalizedAbilityUse(rowValue) && rowValue.ability.type === 'autoattack') {
+                        colElement.title = `${value} is the original potency, and does not reflect the weapon delay multiplier. However, the damage amount does reflect it.`;
+                        colElement.append(quickElement('span', ['extra-indicator'], ['*']));
+                    }
+                },
+            }),
+            col({
                 shortName: 'expected-damage',
                 displayName: 'Damage',
                 getter: used => used,
                 renderer: (used: DisplayRecordFinalized) => {
                     if (isFinalizedAbilityUse(used)) {
-
                         if (!used.totalDamage) {
-                            return document.createTextNode('--');
+                            return alignedValue('--', '');
                         }
-                        let text = used.totalDamage.toFixed(2);
-                        if (used.partialRate !== null
+                        const text = used.totalDamage.toFixed(1);
+                        if (used.partialRate !== null 
                             || (used.dotInfo && used.dotInfo.fullDurationTicks !== "indefinite" && used.dotInfo.actualTickCount < used.dotInfo.fullDurationTicks)
                             || (used.channelInfo && used.channelInfo.actualTickCount < used.channelInfo.fullDurationTicks)) {
-                            text += '*';
+                            return alignedValue(text, '*');
                         }
-                        return document.createTextNode(text);
+                        return alignedValue(text, '');
                     }
                     else {
                         return null;
@@ -159,8 +187,9 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                         }
                     }
                 },
-            },
-            {
+            }),
+            ...extraColumns,
+            col({
                 shortName: 'Total Buffs',
                 displayName: 'Total Buffs',
                 getter: used => isFinalizedAbilityUse(used) ? used.combinedEffects : undefined,
@@ -184,19 +213,23 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                     }
                     return document.createTextNode(out.join(', '));
                 },
-            },
-            {
+            }),
+            col({
                 shortName: 'buffs',
                 displayName: 'Buffs Active',
-                getter: (used: DisplayRecordFinalized) => used['buffs'] ?? [],
+                getter: (used: DisplayRecordFinalized) => 'buffs' in used ? used.buffs : [],
                 renderer: (buffs: Buff[]) => {
                     return new BuffListDisplay(buffs);
                 },
-            },
-            ...extraColumns,
+            }),
         ];
-        this.data = [new HeaderRow(), ...abilitiesUsed];
-        // this.style.tableLayout = 'auto';
+        this.setNewData(abilitiesUsed);
+    }
+
+    setNewData(used: readonly DisplayRecordFinalized[]) {
+        // With lazy rendering, faster to not attempt reuse
+        this.dataRowMap.clear();
+        this.data = [new HeaderRow(), ...used];
     }
 }
 

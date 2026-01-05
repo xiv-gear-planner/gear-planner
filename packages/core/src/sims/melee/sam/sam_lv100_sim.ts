@@ -10,7 +10,7 @@ import {
 } from "@xivgear/core/sims/cycle_sim";
 import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {formatDuration} from "@xivgear/core/util/strutils";
+import {formatDuration} from "@xivgear/util/strutils";
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import SAMGauge from "./sam_gauge";
 import {SamAbility, SAMExtraData, SAMRotationData} from "./sam_types";
@@ -156,12 +156,12 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
         }
 
         // Update gauge from the ability itself
-        if (samAbility.updateGauge !== undefined) {
+        if (samAbility.updateGaugeLegacy !== undefined) {
             // Prevent gauge updates showing incorrectly on autos before this ability
             if (ability.type === 'gcd' && cp.nextGcdTime > cp.currentTime) {
                 cp.advanceTo(cp.nextGcdTime);
             }
-            samAbility.updateGauge(cp.gauge);
+            samAbility.updateGaugeLegacy(cp.gauge);
         }
 
         const abilityUseResult = cp.use(ability);

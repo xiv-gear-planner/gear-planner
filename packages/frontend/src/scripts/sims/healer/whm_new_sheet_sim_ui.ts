@@ -1,75 +1,38 @@
-import { CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse } from "@xivgear/core/sims/cycle_sim";
-import { PreDmgUsedAbility } from "@xivgear/core/sims/sim_types";
-import { CustomColumnSpec } from "../../tables";
-import { AbilitiesUsedTable } from "../components/ability_used_table";
-import { BaseMultiCycleSimGui } from "../multicyclesim_ui";
-import { WhmExtraData, WhmSimResult, WhmSettings } from "@xivgear/core/sims/healer/whm_new_sheet_sim";
+import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
+import {col, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
+import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
+import {WhmGaugeState, WhmSettings, WhmSimResult} from "@xivgear/core/sims/healer/whm_new_sheet_sim";
+import {quickElement} from "@xivgear/common-ui/components/util";
 
-class WhmGaugeGui {
+export class WhmSimGui extends BaseMultiCycleSimGui<WhmSimResult, WhmSettings> {
 
-    static generateResultColumns(result: CycleSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
-        return [{
+    protected extraAbilityUsedColumns(result: WhmSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
+        return [col({
             shortName: 'lilies',
             displayName: 'Lilies',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
-            renderer: (usedAbility?: PreDmgUsedAbility) => {
-                if (usedAbility?.extraData !== undefined) {
-                    const blueLilies = (usedAbility.extraData as WhmExtraData).gauge.blueLilies;
-                    const redLilies = (usedAbility.extraData as WhmExtraData).gauge.redLilies;
-
-                    const div = document.createElement('div');
-                    div.style.height = '100%';
-                    div.style.display = 'flex';
-                    div.style.alignItems = 'center';
-                    div.style.justifyContent = 'center';
-                    div.style.gap = '4px';
-                    div.style.padding = '2px 0 2px 0';
-                    div.style.boxSizing = 'border-box';
-
-                    for (let i = 1; i <= 3; i++) {
-                        const stack = document.createElement('span');
-                        stack.style.clipPath = `polygon(0 50%, 50% 0, 100% 50%, 50% 100%, 0% 50%)`;
-                        stack.style.background = '#00000033';
-                        stack.style.height = '100%';
-                        stack.style.width = '16px';
-                        stack.style.display = 'inline-block';
-                        stack.style.overflow = 'hidden';
-                        if (i <= blueLilies) {
-                            stack.style.background = '#02d9c3';
-                        }
-                        div.appendChild(stack);
-                    }
-
-                    for (let i = 1; i <= 3; i++) {
-                        const stack = document.createElement('span');
-                        stack.style.clipPath = `polygon(0 50%, 50% 0, 100% 50%, 50% 100%, 0% 50%)`;
-                        stack.style.background = '#00000033';
-                        stack.style.height = '100%';
-                        stack.style.width = '16px';
-                        stack.style.display = 'inline-block';
-                        stack.style.overflow = 'hidden';
-                        if (i <= redLilies) {
-                            stack.style.background = '#ff0033';
-                        }
-                        div.appendChild(stack);
-                    }
-
-                    return div;
+            renderer: (usedAbility: PreDmgUsedAbility<WhmGaugeState> | null) => {
+                if (usedAbility === null) {
+                    return document.createTextNode("");
                 }
-                return document.createTextNode("");
+                const blueLilies = usedAbility.gaugeAfter.blueLilies;
+                const redLilies = usedAbility.gaugeAfter.redLilies;
+
+                const children = [];
+
+                for (let i = 1; i <= 3; i++) {
+                    children.push(quickElement('span', [i <= blueLilies ? 'whm-gauge-blue' : 'whm-gauge-default'], []));
+                }
+
+                for (let i = 1; i <= 3; i++) {
+                    children.push(quickElement('span', [i <= redLilies ? 'whm-gauge-red' : 'whm-gauge-default'], []));
+                }
+
+                return quickElement('div', ['icon-gauge-holder'], children);
             },
-        },
+        }),
         ];
-    }
-}
-export class WhmSimGui extends BaseMultiCycleSimGui<WhmSimResult, WhmSettings> {
-    override makeAbilityUsedTable(result: WhmSimResult): AbilitiesUsedTable {
-        const extraColumns = WhmGaugeGui.generateResultColumns(result);
-        const table = super.makeAbilityUsedTable(result);
-        const newColumns = [...table.columns];
-        newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
-        table.columns = newColumns;
-        return table;
     }
 
 }

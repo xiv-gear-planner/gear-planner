@@ -1,9 +1,11 @@
-import {makeChevronDown} from "./util";
+import {makeChevronDown} from "./icons";
+
+export type ShowHideCallback = (newState: boolean, clickCount: number) => void;
 
 export class ShowHideButton extends HTMLElement {
     private _hidden: boolean;
 
-    constructor(initiallyHidden: boolean = false, private setter: (newValue: boolean) => void) {
+    constructor(initiallyHidden: boolean = false, private callback: ShowHideCallback) {
         super();
         this._hidden = initiallyHidden;
         this.appendChild(makeChevronDown());
@@ -17,20 +19,20 @@ export class ShowHideButton extends HTMLElement {
     set isHidden(hide: boolean) {
         this._hidden = hide;
         this.setStyles();
-        this.setter(hide);
+        this.callback(hide, 1);
     }
 
-    toggle(): void {
-        this.isHidden = !this.isHidden;
+    toggle(clickCount: number = 1): void {
+        if (clickCount === 1) {
+            this.isHidden = !this.isHidden;
+        }
+        else {
+            this.callback(this.isHidden, clickCount);
+        }
     }
 
     private setStyles() {
-        if (this.isHidden) {
-            this.classList.add('hidden');
-        }
-        else {
-            this.classList.remove('hidden');
-        }
+        this.classList.toggle('hidden', this.isHidden);
     }
 }
 customElements.define("show-hide-button", ShowHideButton);

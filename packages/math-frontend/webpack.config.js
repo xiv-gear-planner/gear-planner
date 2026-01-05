@@ -1,4 +1,5 @@
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 const path = require("path");
 module.exports = (env, argv) => {
     const prod = argv.mode === 'production';
@@ -9,9 +10,10 @@ module.exports = (env, argv) => {
             clean: false
         },
         optimization: {
-            minimize: prod,
+            // Don't minimize the math stuff, formulae won't be readable
+            minimize: false,
         },
-        devtool: prod ? 'nosources-source-map' : 'source-map',
+        devtool: 'source-map',
         module: {
             rules: [
                 {
@@ -19,7 +21,7 @@ module.exports = (env, argv) => {
                     use: {
                         loader: 'ts-loader',
                         options: {
-                            "projectReferences": true
+                            projectReferences: true
                         },
                     },
                     exclude: /node_modules/,
@@ -35,6 +37,12 @@ module.exports = (env, argv) => {
         ],
         resolve: {
             extensions: ['.ts', '.js'],
+            plugins: [
+                new TsconfigPathsPlugin({
+                    logLevel: "INFO",
+                    references: ["../common-ui"]
+                }),
+            ],
         },
     }
 };

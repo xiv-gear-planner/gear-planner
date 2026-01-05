@@ -1,6 +1,6 @@
 function doubleClickHandler(event: MouseEvent) {
     // Prevent double click text selection but only if it's not an interactive element
-    if (!('value' in event.target)) {
+    if (event.target && !('value' in event.target)) {
         event.preventDefault();
     }
 }

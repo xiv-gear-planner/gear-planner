@@ -1,5 +1,6 @@
 import {DrkGaugeState} from "./drk_types";
 import {PersonalBuff} from "@xivgear/core/sims/sim_types";
+import {noStatusId} from "../../buff_helpers";
 
 export class DrkGauge {
 
@@ -45,7 +46,6 @@ export class DrkGauge {
 
     getGaugeState(): DrkGaugeState {
         return {
-            level: 100,
             blood: this.bloodGauge,
             mp: this.magicPoints,
             darkArts: this.darkArts,
@@ -64,4 +64,5 @@ export const Darkside: PersonalBuff = {
         dmgIncrease: 0.1,
     },
     maxStackingDuration: 60,
+    statusId: noStatusId(),
 };

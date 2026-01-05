@@ -1,12 +1,20 @@
-import {it} from "mocha";
-import {parseImport} from "../imports/imports";
+import {ImportSpec, parseImport as originalParseImport} from "../imports/imports";
 import * as assert from "assert";
+
+type TestImportSpec = ImportSpec & {
+    path: string[],
+    [key: string]: unknown;
+}
+
+function parseImport(...params: Parameters<typeof originalParseImport>): TestImportSpec {
+    return originalParseImport(...params) as TestImportSpec;
+}
 
 describe('Import Functionality', () => {
     it('Should recognize shortlinks', () => {
         const result = parseImport("https://xivgear.app/#/sl/583af709-becb-43b8-aea7-3ae2459d58d8");
         assert.equal(result.importType, 'shortlink');
-        assert.equal(result['rawUuid'], '583af709-becb-43b8-aea7-3ae2459d58d8');
+        assert.equal(result.rawUuid as unknown, '583af709-becb-43b8-aea7-3ae2459d58d8');
     });
     it('Should recognize share-style shortlinks', () => {
         const result = parseImport("https://share.xivgear.app/share/583af709-becb-43b8-aea7-3ae2459d58d8");
@@ -59,6 +67,14 @@ describe('Import Functionality', () => {
         assert.equal(result.importType, 'json');
         assert.equal(result['rawData'], json);
     });
+    it('Should recognize very large json without regex dying', () => {
+        const aSet = '{"name":"2.43 Relic Set","items":{"Wrist":{"id":40233,"materia":[{"id":33931},{"id":33931}]},"RingRight":{"id":40088,"materia":[{"id":33931},{"id":33931}]},"Legs":{"id":40138,"materia":[{"id":33931},{"id":33931}]},"Head":{"id":40135,"materia":[{"id":33942},{"id":33932}]},"RingLeft":{"id":40163,"materia":[{"id":33931},{"id":33931}]},"Neck":{"id":40228,"materia":[{"id":33932},{"id":33932}]},"Ears":{"id":40148,"materia":[{"id":33932},{"id":33932}]},"Body":{"id":40211,"materia":[{"id":33933},{"id":33933}]},"Hand":{"id":40137,"materia":[{"id":33931},{"id":33931}]},"Weapon":{"id":40949,"materia":[],"relicStats":{"dhit":0,"crit":306,"spellspeed":72,"determination":306,"piety":0}},"Feet":{"id":40214,"materia":[{"id":33931},{"id":33931}]}},"food":39876,"description":"(6.55) 2.43 GCD Set with Relic - Thanks to Slasher on The Balance","relicStatMemory":{}}';
+        const sets = Array(1000).fill(aSet);
+        const json = `{"name":"6.55 Savage SGE BiS","sets":[${sets.join(',')},{"name":"2.45 Non-Relic","items":{"Weapon":{"id":40182,"materia":[{"id":33931},{"id":33931}]},"Head":{"id":40135,"materia":[{"id":33931},{"id":33932}]},"Body":{"id":40211,"materia":[{"id":33931},{"id":33931}]},"Hand":{"id":40137,"materia":[{"id":33931},{"id":33931}]},"Legs":{"id":40138,"materia":[{"id":33931},{"id":33931}]},"Feet":{"id":40214,"materia":[{"id":33931},{"id":33931}]},"Ears":{"id":40148,"materia":[{"id":33932},{"id":33932}]},"Neck":{"id":40228,"materia":[{"id":33932},{"id":33932}]},"Wrist":{"id":40233,"materia":[{"id":33931},{"id":33931}]},"RingLeft":{"id":40163,"materia":[{"id":33931},{"id":33931}]},"RingRight":{"id":40088,"materia":[{"id":33931},{"id":33931}]}},"food":39876,"description":"(6.4) - Same as WHM 2.45. Lowest piety but highest DPS.","relicStatMemory":{}},{"name":"2.46 Non-Relic","items":{"Weapon":{"id":40182,"materia":[{"id":33931},{"id":33931}]},"Head":{"id":40135,"materia":[{"id":33931},{"id":33932}]},"Body":{"id":40211,"materia":[{"id":33931},{"id":33931}]},"Hand":{"id":40137,"materia":[{"id":33931},{"id":33931}]},"Legs":{"id":40138,"materia":[{"id":33931},{"id":33931}]},"Feet":{"id":40214,"materia":[{"id":33931},{"id":33931}]},"Ears":{"id":40223,"materia":[{"id":33942},{"id":33931}]},"Neck":{"id":40228,"materia":[{"id":33932},{"id":33932}]},"Wrist":{"id":40233,"materia":[{"id":33931},{"id":33931}]},"RingLeft":{"id":40163,"materia":[{"id":33931},{"id":33931}]},"RingRight":{"id":40088,"materia":[{"id":33931},{"id":33933}]}},"food":39876,"description":"(6.4) This set is slightly slower and has more piety. This should fix any MP economy issues you may be having.","relicStatMemory":{}},{"name":"2.47 Non-Relic","items":{"Weapon":{"id":40182,"materia":[{"id":33931},{"id":33931}]},"Head":{"id":40135,"materia":[{"id":33931},{"id":33932}]},"Body":{"id":40211,"materia":[{"id":33931},{"id":33931}]},"Hand":{"id":40137,"materia":[{"id":33931},{"id":33931}]},"Legs":{"id":40138,"materia":[{"id":33931},{"id":33931}]},"Feet":{"id":40214,"materia":[{"id":33931},{"id":33931}]},"Ears":{"id":40223,"materia":[{"id":33942},{"id":33942}]},"Neck":{"id":40153,"materia":[{"id":33942},{"id":33942}]},"Wrist":{"id":40233,"materia":[{"id":33931},{"id":33931}]},"RingLeft":{"id":40163,"materia":[{"id":33931},{"id":33931}]},"RingRight":{"id":40088,"materia":[{"id":33931},{"id":33931}]}},"food":39872,"description":"(6.4) With even more piety and a slower GCD, this set should give you no problems with MP.","relicStatMemory":{}}],"level":90,"job":"SGE","partyBonus":5,"race":"Helion","sims":[{"stub":"pr-sim","settings":{},"name":"Dmg/100p"},{"stub":"sge-sheet-sim","settings":{"hasBard":true,"hasScholar":true,"hasDragoon":true,"rezPerMin":0,"diagPerMin":0,"progPerMin":0,"eDiagPerMin":0,"eProgPerMin":0,"toxPerMin":0},"name":"SGE Sheet Sim"}],"itemDisplaySettings":{"minILvl":640,"maxILvl":999,"minILvlFood":640,"maxILvlFood":999,"higherRelics":true},"mfni":false,"mfp":["spellspeed","crit","dhit","determination","piety"],"mfMinGcd":2.05,"description":"Sage's Best-in-slot gear sets for Anabaseios"}`;
+        const result = parseImport(json);
+        assert.equal(result.importType, 'json');
+        assert.equal(result['rawData'], json);
+    });
     it('Should recognize bis link', () => {
         const result = parseImport('foo.bar/bis/sge/endwalker/dsr');
         assert.equal(result.importType, 'bis');
@@ -73,18 +89,14 @@ describe('Import Functionality (New)', () => {
         assert.equal(result.importType, 'shortlink');
         assert.equal(result['rawUuid'], '583af709-becb-43b8-aea7-3ae2459d58d8');
     });
-    it('Should recognize share-style shortlinks', () => {
-        const result = parseImport("https://share.xivgear.app/?page=share|583af709-becb-43b8-aea7-3ae2459d58d8");
+    it('Should recognize shortlinks with onlySetIndex', () => {
+        const result = parseImport("https://xivgear.app/?page=sl|583af709-becb-43b8-aea7-3ae2459d58d8&onlySetIndex=2");
         assert.equal(result.importType, 'shortlink');
         assert.equal(result['rawUuid'], '583af709-becb-43b8-aea7-3ae2459d58d8');
+        assert.equal(result['onlySetIndex'], 2);
     });
     it('Should recognize shortlinks (escaped)', () => {
         const result = parseImport("https://xivgear.app/?page=sl%7C583af709-becb-43b8-aea7-3ae2459d58d8");
-        assert.equal(result.importType, 'shortlink');
-        assert.equal(result['rawUuid'], '583af709-becb-43b8-aea7-3ae2459d58d8');
-    });
-    it('Should recognize share-style shortlinks (escaped)', () => {
-        const result = parseImport("https://share.xivgear.app/?page=share%7C583af709-becb-43b8-aea7-3ae2459d58d8");
         assert.equal(result.importType, 'shortlink');
         assert.equal(result['rawUuid'], '583af709-becb-43b8-aea7-3ae2459d58d8');
     });
@@ -118,5 +130,13 @@ describe('Import Functionality (New)', () => {
         assert.equal(result['path'][0], 'sge');
         assert.equal(result['path'][1], 'endwalker');
         assert.equal(result['path'][2], 'dsr');
+    });
+    it('Should recognize bis link with onlySetIndex', () => {
+        const result = parseImport('https://xivgear.app/?page=bis|sge|endwalker|dsr&onlySetIndex=2');
+        assert.equal(result.importType, 'bis');
+        assert.equal(result['path'][0], 'sge');
+        assert.equal(result['path'][1], 'endwalker');
+        assert.equal(result['path'][2], 'dsr');
+        assert.equal(result['onlySetIndex'], 2);
     });
 });

@@ -1,5 +1,6 @@
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
 import {JobName} from "@xivgear/xivmath/xivconstants";
+import {arrayEq} from "@xivgear/util/array_utils";
 
 /** For loading saved sheets via UUID */
 export const SHORTLINK_HASH = 'sl';
@@ -7,18 +8,37 @@ export const SHORTLINK_HASH = 'sl';
 export const SHARE_LINK = 'https://share.xivgear.app/share/';
 /** For loading bis sheets */
 export const BIS_HASH = 'bis';
+
+/**
+ * The BiS browser
+ */
+export const BIS_BROWSER_HASH = 'bisbrowser';
+
 /** For viewing a sheet via json blob */
 export const VIEW_SHEET_HASH = 'viewsheet';
 /** For viewing an individual set via json blob */
 export const VIEW_SET_HASH = 'viewset';
 /** Prefix for embeds */
 export const EMBED_HASH = 'embed';
+
+/**
+ * Prefix for pop-out editor/viewer.
+ */
+export const POPUP_HASH = 'popup';
+
 /** Prefix for formula pages */
 export const CALC_HASH = 'math';
 /** Path separator */
 export const PATH_SEPARATOR = '|';
 /** The query param used to represent the path */
 export const HASH_QUERY_PARAM = 'page';
+
+/**
+ * The query param used to select a single gear set out of a sheet.
+ */
+export const ONLY_SET_QUERY_PARAM = 'onlySetIndex';
+
+export const SELECTION_INDEX_QUERY_PARAM = 'selectedIndex';
 /**
  * Special hash value used to indicate that the page should stay with the old-style hash, rather than redirecting
  * to the new style query parameter.
@@ -49,36 +69,87 @@ export type SheetBasePath = {
     viewOnly: boolean
 }
 
+/**
+ * NavPath represents a more processed location of a page within the SPA. It encompasses the "type" of page (such as
+ * a local sheet editor, the "my sheets" page, or a publicly-available set), and other relevant details, like
+ * whether it is embedded or not, and view-only vs editable.
+ */
 export type NavPath = {
     type: 'mysheets',
 } | {
     type: 'newsheet',
 } | {
     type: 'importform'
-} | (SheetBasePath & ({
+} | {
+    type: 'bisbrowser',
+    path: string[],
+    // TODO: more?
+} | {
+    type: 'popup',
+    index: number,
+} | SheetBasePath & ({
     type: 'saved',
     saveKey: string
 } | {
     type: 'shortlink',
-    uuid: string
+    uuid: string,
+    onlySetIndex?: number,
+    defaultSelectionIndex?: number,
 } | {
     type: 'setjson'
     jsonBlob: object
 } | {
     type: 'sheetjson'
-    jsonBlob: object
+    jsonBlob: object,
+    onlySetIndex?: number,
+    defaultSelectionIndex?: number,
 } | {
     type: 'bis',
+    // TODO: is this being used anywhere?
     path: string[],
     job: JobName,
-    expac: string,
+    folder?: string,
     sheet: string,
-}));
+    onlySetIndex?: number,
+    defaultSelectionIndex?: number,
+});
 
 export type SheetType = NavPath['type'];
 
-export function parsePath(originalPath: string[]): NavPath | null {
-    let path = [...originalPath];
+/**
+ * NavState represents a very raw location of a page within the SPA. It encompasses the `path` query parameter, as well
+ * as a couple other optional parameters.
+ *
+ * {@link #parsePath} can turn a NavState into a NavPath.
+ */
+export class NavState {
+    constructor(private readonly _path: string[], readonly onlySetIndex: number | undefined = undefined, readonly selectIndex: number | undefined = undefined) {
+    }
+
+    get path(): string[] {
+        return [...this._path];
+    }
+
+    get encodedPath(): string {
+        return this.path.map(part => encodeURIComponent(part)).join(PATH_SEPARATOR);
+    }
+
+    isEqual(other: NavState): boolean {
+        return arrayEq(this._path, other._path) && this.onlySetIndex === other.onlySetIndex && this.selectIndex === other.selectIndex;
+    }
+
+    toString() {
+        return `NavState(${this._path.join('|')}, ${this.onlySetIndex}, ${this.selectIndex})`;
+    }
+}
+
+/**
+ * Parse a NavState into a NavPath.
+ *
+ * @param state
+ */
+export function parsePath(state: NavState): NavPath | null {
+    let path = state.path;
     let embed = false;
     if (path.length === 0) {
         return {
@@ -124,10 +195,12 @@ export function parsePath(originalPath: string[]): NavPath | null {
         }
         else {
             const json = path.slice(1).join(PATH_SEPARATOR);
-            const parsed = JSON.parse(decodeURI(json)) as SheetExport;
+            const parsed = JSON.parse(decodeURIComponent(json)) as SheetExport;
             return {
                 type: 'sheetjson',
                 jsonBlob: parsed,
+                onlySetIndex: state.onlySetIndex,
+                defaultSelectionIndex: state.selectIndex,
                 embed: false,
                 viewOnly: viewOnly,
             };
@@ -143,7 +216,7 @@ export function parsePath(originalPath: string[]): NavPath | null {
         }
         else {
             const json = path.slice(1).join(PATH_SEPARATOR);
-            const parsed = JSON.parse(decodeURI(json)) as SetExport;
+            const parsed = JSON.parse(json) as SetExport;
             const viewOnly = mainNav === VIEW_SET_HASH;
             if (!viewOnly) {
                 embedWarn();
@@ -164,22 +237,53 @@ export function parsePath(originalPath: string[]): NavPath | null {
                 uuid: path[1],
                 embed: embed,
                 viewOnly: true,
+                onlySetIndex: state.onlySetIndex,
+                defaultSelectionIndex: state.selectIndex,
             };
         }
     }
     else if (mainNav === BIS_HASH) {
-        embedWarn();
+        if (path.length === 3) {
+            return {
+                type: 'bis',
+                path: [path[1], path[2]],
+                job: path[1] as JobName,
+                sheet: path[2],
+                viewOnly: true,
+                embed: embed,
+                onlySetIndex: state.onlySetIndex,
+                defaultSelectionIndex: state.selectIndex,
+            };
+        }
         if (path.length >= 4) {
             return {
                 type: 'bis',
-                path: [path[1], path[2], path[3]],
+                path: path.slice(1),
                 job: path[1] as JobName,
-                expac: path[2],
-                sheet: path[3],
+                folder: path[2],
+                sheet: path[path.length - 1],
                 viewOnly: true,
-                embed: false,
+                embed: embed,
+                onlySetIndex: state.onlySetIndex,
+                defaultSelectionIndex: state.selectIndex,
             };
         }
+    }
+    else if (mainNav === BIS_BROWSER_HASH) {
+        embedWarn();
+        return {
+            type: 'bisbrowser',
+            path: [...path.slice(1)],
+        };
+    }
+    else if (mainNav === POPUP_HASH) {
+        // Popup is a special type of navigation, where it is expected that the GearPlanSheetGui instance is already
+        // stuffed into the window context by the opener of the window. The nav path contains the index of the set
+        // to display.
+        return {
+            type: 'popup',
+            index: parseInt(path[1]),
+        };
     }
     console.log('Unknown nav path', path);
     return null;
@@ -187,23 +291,41 @@ export function parsePath(originalPath: string[]): NavPath | null {
 
 const VERTICAL_BAR_REPLACEMENT = '\u2758';
 
-export function makeUrl(...pathParts: string[]): URL {
-    const joinedPath = pathParts
+export function makeUrlSimple(...path: string[]): URL {
+    return makeUrl(new NavState(path));
+}
+
+/**
+ * Turns a NavState into a URL.
+ *
+ * @param navState
+ */
+export function makeUrl(navState: NavState): URL {
+    const joinedPath = navState.path
         .map(pp => encodeURIComponent(pp))
         .map(pp => pp.replaceAll(PATH_SEPARATOR, VERTICAL_BAR_REPLACEMENT))
         .join(PATH_SEPARATOR);
     const currentLocation = document.location;
     const params = new URLSearchParams(currentLocation.search);
+    const baseUrl = document.location.toString();
+    params.delete(ONLY_SET_QUERY_PARAM);
+    params.delete(SELECTION_INDEX_QUERY_PARAM);
+    if (navState.onlySetIndex !== undefined) {
+        params.set(ONLY_SET_QUERY_PARAM, navState.onlySetIndex.toString());
+    }
+    else if (navState.selectIndex !== undefined) {
+        params.set(SELECTION_INDEX_QUERY_PARAM, navState.selectIndex.toString());
+    }
     if (joinedPath.length > QUERY_PATH_MAX_LENGTH) {
-        const oldStyleHash = [NO_REDIR_HASH, ...pathParts]
+        const oldStyleHash = [NO_REDIR_HASH, ...navState.path]
             .map(pp => encodeURIComponent(pp))
             .map(pp => '/' + pp)
             .join('');
         params.delete(HASH_QUERY_PARAM);
-        return new URL(`?${params.toString()}#${oldStyleHash}`, document.location.toString());
+        return new URL(`?${params.toString()}#${oldStyleHash}`, baseUrl);
     }
     params.set(HASH_QUERY_PARAM, joinedPath);
-    return new URL(`?${params.toString()}`, document.location.toString());
+    return new URL(`?${params.toString()}`, baseUrl);
 }
 
 /**
@@ -227,6 +349,16 @@ export function splitPath(input: string) {
         .filter(item => item)
         .map(item => decodeURIComponent(item))
         .map(pp => pp.replaceAll(VERTICAL_BAR_REPLACEMENT, PATH_SEPARATOR));
-    // TODO: replace | with a lookalike character?
-    // .map(item => item.replaceAll())
+}
+
+export function tryParseOptionalIntParam(input: string | undefined): number | undefined {
+    if (input) {
+        try {
+            return parseInt(input);
+        }
+        catch (e) {
+            console.error(`Error parsing '${input}'`, e);
+        }
+    }
+    return undefined;
 }

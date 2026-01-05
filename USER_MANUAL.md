@@ -1,6 +1,6 @@
 # User's Guide
 
-Welcome to xivgear.app. This short guide will show you how to use Xivgear.
+Welcome to xivgear.app. This short guide will show you how to use XivGear.
 
 ## Gear Sheets
 
@@ -54,6 +54,16 @@ of the editor area.
 
 You can manually equip materia by selecting an item, and then clicking the materia slots underneath the table for that
 item slot.
+
+#### Materia Solving
+
+You can use the meld/food solver to solve the materia and food for your gearset. Enter the desired target GCD, and specify
+if you would like it to overwrite existing food and materia.
+
+You can lock materia slots (with control + click) to keep those unchanged or empty during a solve, though of course, that may not
+guarantee that the best set is found.
+
+#### Materia Fill
 
 You can equip materia with ease by using the materia auto-fill controls in the toolbar. Drag the stats around to set 
 your materia priority. You can also enter a minimum GCD - after getting your GCD down to this number, no further SpS/SkS

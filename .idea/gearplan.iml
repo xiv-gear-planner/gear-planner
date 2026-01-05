@@ -16,6 +16,12 @@
       <excludeFolder url="file://$MODULE_DIR$/packages/core/build" />
       <excludeFolder url="file://$MODULE_DIR$/packages/math-frontend/build" />
       <excludeFolder url="file://$MODULE_DIR$/packages/math-frontend/dist" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/common-ui/build" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/data-api-client/build" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/i18n/build" />
+      <excludeFolder url="file://$MODULE_DIR$/build" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/util/build" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/account-service-client/build" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

@@ -1,10 +1,10 @@
 import {SimSpec} from "@xivgear/core/sims/sim_types";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import * as Actions from "./pld_actions_no_sks";
-import { ExternalCountSettings, CountSimResult, BaseUsageCountSim, SkillCount } from "@xivgear/core/sims/processors/count_sim";
+import {ExternalCountSettings, CountSimResult, BaseUsageCountSim, SkillCount} from "@xivgear/core/sims/processors/count_sim";
 
 export const pldUsageSimSpec: SimSpec<PldUsageSim, PldUsageSimSettings> = {
-    displayName: "PLD Lv100 Sim (sks not fully supported)",
+    displayName: "PLD Usage Sim (sks not fully supported)",
     loadSavedSimInstance(exported: ExternalCountSettings<PldUsageSimSettings>) {
         return new PldUsageSim(exported);
     },
@@ -13,8 +13,9 @@ export const pldUsageSimSpec: SimSpec<PldUsageSim, PldUsageSimSettings> = {
     },
     stub: "pld-usage-sim",
     supportedJobs: ['PLD'],
+    description: `Simulates resultant buffed damage from the abilities that would be used from a PLD rotation within 420 seconds (seven minutes). Does not support alternate killtimes.`,
     supportedLevels: [100],
-    isDefaultSim: true,
+    isDefaultSim: false,
 };
 
 export type PldUsageSimSettings = NonNullable<unknown>

@@ -1,9 +1,9 @@
-import { SimSettings } from "@xivgear/core/sims/sim_types";
-import { SimulationGui } from "../simulation_gui";
-import { EmptyObject } from "@xivgear/core/util/types";
-import { NamedSection } from "../../components/section";
-import { simpleMappedResultTable } from "../components/simple_tables";
-import { PotencyRatioSimResults } from "@xivgear/core/sims/common/potency_ratio";
+import {SimSettings} from "@xivgear/core/sims/sim_types";
+import {SimulationGui} from "../simulation_gui";
+import {EmptyObject} from "@xivgear/util/util_types";
+import {NamedSection} from "../../components/general/section";
+import {simpleMappedResultTable} from "../components/simple_tables";
+import {PotencyRatioSimResults} from "@xivgear/core/sims/common/potency_ratio";
 
 function makeDescriptionPanel() {
     const out = new NamedSection('Potency Ratio');
@@ -14,7 +14,6 @@ function makeDescriptionPanel() {
 }
 
 export class PotencyRatioSimGui extends SimulationGui<PotencyRatioSimResults, SimSettings, EmptyObject> {
-    makeToolTip = null;
     makeConfigInterface = makeDescriptionPanel;
 
     makeResultDisplay(result: PotencyRatioSimResults): HTMLElement {
@@ -26,6 +25,7 @@ export class PotencyRatioSimGui extends SimulationGui<PotencyRatioSimResults, Si
         const description = makeDescriptionPanel();
         description.appendChild(tbl);
         description.style.maxWidth = '400px';
+        description.style.margin = 'auto';
         return description;
     }
 }

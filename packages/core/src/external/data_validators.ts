@@ -62,6 +62,7 @@ export function requireArray(input: unknown): any[] {
     }
 }
 
+// hate this
 export function requireArrayTyped<T extends BuiltinType>(input: unknown, memberType: T):
     T extends 'string' ? string[] :
         T extends 'number' ? number[] :
@@ -74,7 +75,7 @@ export function requireArrayTyped<T extends BuiltinType>(input: unknown, memberT
                                 T extends 'function' ? Function[] :
                                     never {
     const asArray = requireArray(input);
-    const good = asArray.length === 0 || requireType(input[0], memberType);
+    const good = asArray.length === 0 || requireType(asArray[0], memberType);
     if (good) {
         // @ts-expect-error - idk
         return input;

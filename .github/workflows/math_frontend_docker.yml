@@ -4,6 +4,10 @@ on:
   push:
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.numbner || github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository_owner }}/xivgear-mathcorner
@@ -26,9 +30,10 @@ jobs:
       - name: Build
         run: |
           npm ci
-          npm run build
           npm run test
-          npm run docs
+          npm run -w @xivgear/math-frontend buildprod
+#         We can't do docs here, because most of the frontend stuff isn't part of the math build.
+#          npm run docs
 
       - name: Inject commit info
         run: |

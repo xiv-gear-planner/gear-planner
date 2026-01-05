@@ -1,7 +1,7 @@
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {applyDhCrit, baseDamage} from "@xivgear/xivmath/xivmath";
 import {SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
-import {EmptyObject} from "@xivgear/core/util/types";
+import {EmptyObject} from "@xivgear/util/util_types";
 
 export const potRatioSimSpec: SimSpec<PotencyRatioSim, SimSettings> = {
     displayName: "Potency Ratio",
@@ -43,5 +43,14 @@ export class PotencyRatioSim implements Simulation<PotencyRatioSimResults, SimSe
         };
     };
 
+    async simulateSimple(set: CharacterGearSet): Promise<number> {
+        return (await this.simulate(set)).mainDpsResult;
+    }
+
+
     spec = potRatioSimSpec;
+
+    settingsChanged(): void {
+
+    }
 }

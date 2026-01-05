@@ -1,5 +1,6 @@
 /* eslint-disable */
 /* tslint:disable */
+// @ts-nocheck
 /*
  * ---------------------------------------------------------------
  * ## THIS FILE WAS GENERATED VIA SWAGGER-TYPESCRIPT-API        ##
@@ -8,6 +9,31 @@
  * ## SOURCE: https://github.com/acacode/swagger-typescript-api ##
  * ---------------------------------------------------------------
  */
+
+export enum SpecialStatType {
+  Eureka = "Eureka",
+  Bozja = "Bozja",
+  OccultCrescent = "OccultCrescent",
+}
+
+export enum GearAcquisitionSource {
+  NormalRaid = "NormalRaid",
+  SavageRaid = "SavageRaid",
+  Tome = "Tome",
+  AugTome = "AugTome",
+  Crafted = "Crafted",
+  AugCrafted = "AugCrafted",
+  Relic = "Relic",
+  Dungeon = "Dungeon",
+  ExtremeTrial = "ExtremeTrial",
+  Ultimate = "Ultimate",
+  Artifact = "Artifact",
+  AllianceRaid = "AllianceRaid",
+  Criterion = "Criterion",
+  Other = "Other",
+  Custom = "Custom",
+  Unknown = "Unknown",
+}
 
 export type BaseParam = XivApiObject &
   XivApiBase & {
@@ -36,6 +62,19 @@ export type BaseParam = XivApiObject &
     braceletPercent?: number;
     /** @format int32 */
     ringPercent?: number;
+    /** @format int32 */
+    chestHeadLegsFeetPercent?: number;
+    /** @format int32 */
+    chestHeadPercent?: number;
+    /** @format int32 */
+    chestLegsFeetPercent?: number;
+    /** @format int32 */
+    chestLegsGlovesPercent?: number;
+    /** @format int32 */
+    headChestHandsLegsFeetPercent?: number;
+    /** @format int32 */
+    legsFeetPercent?: number;
+    meldParam?: number[];
   };
 
 export interface BaseParamEndpointResponse {
@@ -45,6 +84,8 @@ export interface BaseParamEndpointResponse {
 export type ClassJob = XivApiObject &
   XivApiBase & {
     abbreviation?: string;
+    abbreviationTranslations?: XivApiLangValueString;
+    nameTranslations?: XivApiLangValueString;
     /** @format int32 */
     modifierDexterity?: number;
     /** @format int32 */
@@ -108,6 +149,7 @@ export type FoodItemAction = XivApiObject &
 export type FoodItemBase = XivApiObject &
   XivApiBase & {
     name?: string;
+    nameTranslations?: XivApiLangValueString;
     icon?: Icon;
     /** @format int32 */
     levelItem?: number;
@@ -123,31 +165,8 @@ export interface FoodStatBonus {
   max: number;
 }
 
-export enum GearAcquisitionSource {
-  NormalRaid = "NormalRaid",
-  SavageRaid = "SavageRaid",
-  Tome = "Tome",
-  AugTome = "AugTome",
-  Crafted = "Crafted",
-  AugCrafted = "AugCrafted",
-  Relic = "Relic",
-  Dungeon = "Dungeon",
-  ExtremeTrial = "ExtremeTrial",
-  Ultimate = "Ultimate",
-  Artifact = "Artifact",
-  AllianceRaid = "AllianceRaid",
-  Criterion = "Criterion",
-  Other = "Other",
-  Custom = "Custom",
-  Unknown = "Unknown",
-}
-
 export type Icon = XivApiStruct &
   XivApiBase & {
-    /** @format int32 */
-    id?: number;
-    path?: string;
-    pathHD?: string;
     /** @format uri */
     pngIconUrl?: string;
   };
@@ -157,12 +176,18 @@ export type Item = ItemBase &
   XivApiBase & {
     baseParamMap?: Record<string, number>;
     baseParamMapHQ?: Record<string, number>;
+    baseParamMapSpecial?: Record<string, number>;
+    specialStatType?: SpecialStatType | null;
     classJobs?: string[];
     /** @format int32 */
     damageMagHQ?: number;
     /** @format int32 */
     damagePhysHQ?: number;
     acquisitionSource?: GearAcquisitionSource;
+    /** @format int32 */
+    defenseMagHQ?: number;
+    /** @format int32 */
+    defensePhysHQ?: number;
   };
 
 export type ItemBase = XivApiObject &
@@ -170,6 +195,7 @@ export type ItemBase = XivApiObject &
     /** @format int32 */
     ilvl?: number;
     name?: string;
+    nameTranslations?: XivApiLangValueString;
     icon?: Icon;
     equipSlotCategory?: EquipSlotCategory;
     /** @format int32 */
@@ -187,6 +213,10 @@ export type ItemBase = XivApiObject &
     rarity?: number;
     /** @format int32 */
     equipLevel?: number;
+    /** @format int32 */
+    defensePhys?: number;
+    /** @format int32 */
+    defenseMag?: number;
   };
 
 export type ItemLevel = XivApiObject &
@@ -256,13 +286,29 @@ export interface MateriaEndpointResponse {
 export type MateriaItem = XivApiObject &
   XivApiBase & {
     name?: string;
+    nameTranslations?: XivApiLangValueString;
     icon?: Icon;
     /** @format int32 */
     ilvl?: number;
   };
 
+export interface SchemaVersionEndpointResponse {
+  schemaVersion?: string;
+}
+
+export interface VersionsEndpointResponse {
+  versions?: string[];
+}
+
 export interface XivApiBase {
   schemaVersion?: XivApiSchemaVersion;
+}
+
+export interface XivApiLangValueString {
+  en?: string;
+  de?: string;
+  fr?: string;
+  ja?: string;
 }
 
 export type XivApiObject = XivApiBase & {
@@ -298,16 +344,22 @@ export interface FullRequestParams extends Omit<RequestInit, "body"> {
   cancelToken?: CancelToken;
 }
 
-export type RequestParams = Omit<FullRequestParams, "body" | "method" | "query" | "path">;
+export type RequestParams = Omit<
+  FullRequestParams,
+  "body" | "method" | "query" | "path"
+>;
 
 export interface ApiConfig<SecurityDataType = unknown> {
   baseUrl?: string;
   baseApiParams?: Omit<RequestParams, "baseUrl" | "cancelToken" | "signal">;
-  securityWorker?: (securityData: SecurityDataType | null) => Promise<RequestParams | void> | RequestParams | void;
+  securityWorker?: (
+    securityData: SecurityDataType | null,
+  ) => Promise<RequestParams | void> | RequestParams | void;
   customFetch?: typeof fetch;
 }
 
-export interface HttpResponse<D extends unknown, E extends unknown = unknown> extends Response {
+export interface HttpResponse<D extends unknown, E extends unknown = unknown>
+  extends Response {
   data: D;
   error: E;
 }
@@ -326,7 +378,8 @@ export class HttpClient<SecurityDataType = unknown> {
   private securityData: SecurityDataType | null = null;
   private securityWorker?: ApiConfig<SecurityDataType>["securityWorker"];
   private abortControllers = new Map<CancelToken, AbortController>();
-  private customFetch = (...fetchParams: Parameters<typeof fetch>) => fetch(...fetchParams);
+  private customFetch = (...fetchParams: Parameters<typeof fetch>) =>
+    fetch(...fetchParams);
 
   private baseApiParams: RequestParams = {
     credentials: "same-origin",
@@ -359,9 +412,15 @@ export class HttpClient<SecurityDataType = unknown> {
 
   protected toQueryString(rawQuery?: QueryParamsType): string {
     const query = rawQuery || {};
-    const keys = Object.keys(query).filter((key) => "undefined" !== typeof query[key]);
+    const keys = Object.keys(query).filter(
+      (key) => "undefined" !== typeof query[key],
+    );
     return keys
-      .map((key) => (Array.isArray(query[key]) ? this.addArrayQueryParam(query, key) : this.addQueryParam(query, key)))
+      .map((key) =>
+        Array.isArray(query[key])
+          ? this.addArrayQueryParam(query, key)
+          : this.addQueryParam(query, key),
+      )
       .join("&");
   }
 
@@ -372,8 +431,13 @@ export class HttpClient<SecurityDataType = unknown> {
 
   private contentFormatters: Record<ContentType, (input: any) => any> = {
     [ContentType.Json]: (input: any) =>
-      input !== null && (typeof input === "object" || typeof input === "string") ? JSON.stringify(input) : input,
-    [ContentType.Text]: (input: any) => (input !== null && typeof input !== "string" ? JSON.stringify(input) : input),
+      input !== null && (typeof input === "object" || typeof input === "string")
+        ? JSON.stringify(input)
+        : input,
+    [ContentType.Text]: (input: any) =>
+      input !== null && typeof input !== "string"
+        ? JSON.stringify(input)
+        : input,
     [ContentType.FormData]: (input: any) =>
       Object.keys(input || {}).reduce((formData, key) => {
         const property = input[key];
@@ -390,7 +454,10 @@ export class HttpClient<SecurityDataType = unknown> {
     [ContentType.UrlEncoded]: (input: any) => this.toQueryString(input),
   };
 
-  protected mergeRequestParams(params1: RequestParams, params2?: RequestParams): RequestParams {
+  protected mergeRequestParams(
+    params1: RequestParams,
+    params2?: RequestParams,
+  ): RequestParams {
     return {
       ...this.baseApiParams,
       ...params1,
@@ -403,7 +470,9 @@ export class HttpClient<SecurityDataType = unknown> {
     };
   }
 
-  protected createAbortSignal = (cancelToken: CancelToken): AbortSignal | undefined => {
+  protected createAbortSignal = (
+    cancelToken: CancelToken,
+  ): AbortSignal | undefined => {
     if (this.abortControllers.has(cancelToken)) {
       const abortController = this.abortControllers.get(cancelToken);
       if (abortController) {
@@ -447,22 +516,29 @@ export class HttpClient<SecurityDataType = unknown> {
     const payloadFormatter = this.contentFormatters[type || ContentType.Json];
     const responseFormat = format || requestParams.format;
 
-    return this.customFetch(`${baseUrl || this.baseUrl || ""}${path}${queryString ? `?${queryString}` : ""}`, {
-      ...requestParams,
-      headers: {
-        ...(requestParams.headers || {}),
-        ...(type && type !== ContentType.FormData ? { "Content-Type": type } : {}),
+    return this.customFetch(
+      `${baseUrl || this.baseUrl || ""}${path}${queryString ? `?${queryString}` : ""}`,
+      {
+        ...requestParams,
+        headers: {
+          ...(requestParams.headers || {}),
+          ...(type && type !== ContentType.FormData
+            ? { "Content-Type": type }
+            : {}),
+        },
+        signal:
+          (cancelToken
+            ? this.createAbortSignal(cancelToken)
+            : requestParams.signal) || null,
+        body:
+          typeof body === "undefined" || body === null
+            ? null
+            : payloadFormatter(body),
       },
-      signal: (cancelToken ? this.createAbortSignal(cancelToken) : requestParams.signal) || null,
-      body: typeof body === "undefined" || body === null ? null : payloadFormatter(body),
-    }).then(async (response) => {
+    ).then(async (response) => {
       const r = response.clone() as HttpResponse<T, E>;
-      try {
-          r.data = null as unknown as T;
-          r.error = null as unknown as E;
-      }catch (e) {
-         const foo = 5+5;
-      }
+      r.data = null as unknown as T;
+      r.error = null as unknown as E;
 
       const data = !responseFormat
         ? r
@@ -498,7 +574,9 @@ export class HttpClient<SecurityDataType = unknown> {
  *
  * Game data API for XivGear
  */
-export class DataApiClient<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
+export class DataApiClient<
+  SecurityDataType extends unknown,
+> extends HttpClient<SecurityDataType> {
   baseParams = {
     /**
      * No description
@@ -557,7 +635,7 @@ export class DataApiClient<SecurityDataType extends unknown> extends HttpClient<
      */
     items: (
       query: {
-        job: string;
+        job: string[];
       },
       params: RequestParams = {},
     ) =>
@@ -596,6 +674,38 @@ export class DataApiClient<SecurityDataType extends unknown> extends HttpClient<
     materia: (params: RequestParams = {}) =>
       this.request<MateriaEndpointResponse, any>({
         path: `/Materia`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+  };
+  schemaVersion = {
+    /**
+     * No description
+     *
+     * @name Versions
+     * @summary Get the Xivapi schema version used to query the data.
+     * @request GET:/SchemaVersion
+     */
+    versions: (params: RequestParams = {}) =>
+      this.request<SchemaVersionEndpointResponse, any>({
+        path: `/SchemaVersion`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+  };
+  versions = {
+    /**
+     * No description
+     *
+     * @name Versions1
+     * @summary Get versions available via Xivapi at the time the data was polled.
+     * @request GET:/Versions
+     */
+    versions1: (params: RequestParams = {}) =>
+      this.request<VersionsEndpointResponse, any>({
+        path: `/Versions`,
         method: "GET",
         format: "json",
         ...params,

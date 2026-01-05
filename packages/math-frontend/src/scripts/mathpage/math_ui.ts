@@ -19,9 +19,8 @@ import {
 } from "@xivgear/xivmath/xivconstants";
 import {setHash} from "../nav_hash";
 import {CALC_HASH} from "@xivgear/core/nav/common_nav";
-import {writeProxy} from "@xivgear/core/util/proxies";
+import {writeProxy} from "@xivgear/util/proxies";
 import {ShowHideButton} from "@xivgear/common-ui/components/show_hide_chevron";
-import {CustomRow, CustomTable, HeaderRow} from "../tables";
 import {scrollIntoView} from "@xivgear/common-ui/util/scrollutil";
 import hljs from "highlight.js/lib/core";
 import {
@@ -38,6 +37,7 @@ import {setMainContent, welcomeArea} from "../base_ui";
 import javascript from "highlight.js/lib/languages/javascript";
 import {fieldBoundLevelSelect} from "@xivgear/common-ui/components/level_picker";
 import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
+import {col, ColDefs, CustomRow, CustomTable, HeaderRow, TableSelectionModel} from "@xivgear/common-ui/table/tables";
 
 hljs.registerLanguage('javascript', javascript);
 
@@ -99,8 +99,18 @@ function getPrimaryVarSpec<X extends object>(formulaSet: MathFormulaSet<X>): Var
         };
     }
     else {
-        return formulaSet.variables.find(v => v['property'] === formulaSet.primaryVariable);
+        const found = formulaSet.variables.find(v => v['property'] === formulaSet.primaryVariable);
+        if (!found) {
+            throw new Error(`Could not find primary variable '${formulaSet.primaryVariable}' for formulaSet ${formulaSet.name}`);
+        }
+        return found;
     }
+}
+
+function isHideable(fn: {
+    hideableColumn?: boolean
+}): boolean {
+    return fn.hideableColumn ?? false;
 }
 
 /**
@@ -112,22 +122,24 @@ export class MathArea extends HTMLElement {
     private readonly subFormulaeArea: HTMLDivElement;
 
     private readonly generalSettings: GeneralSettings;
-    private _level: SupportedLevel;
+    private _level!: SupportedLevel;
     private menu: HTMLDivElement;
     private updateHook: () => void = () => undefined;
     private readonly tableArea: HTMLDivElement;
     private readonly subFormulaeOuter: HTMLDivElement;
-    private landingInner: HTMLElement;
+    private landingInner: HTMLElement | undefined = undefined;
     private landingOuter: HTMLElement;
     private displayEntries: number = 100;
-    private _loading: boolean;
+    private _loading: boolean = false;
     private readonly loader = new LoadingBlocker();
     private readonly formulaSettingsStickyHolder: Map<MathFormulaSet<object>, object> = new Map();
+    private readonly formulaVisibilityStickyHolder: Map<MathFormulaSet<object>, Map<string, boolean>> = new Map();
 
     constructor() {
         super();
         this.generalSettings = {
             classJob: 'WHM',
+            // @ts-expect-error - set below in this.level
             levelStats: undefined,
             displayType: 'Show By Tier',
         };
@@ -185,7 +197,7 @@ export class MathArea extends HTMLElement {
             }
         });
 
-        const formulaHeader = quickElement('h3', [], ['Show/Hide Formulae', showHide]);
+        const formulaHeader = quickElement('h3', ['show-hide-formula-header'], ['Show/Hide Formulae', showHide]);
         formulaHeader.addEventListener('click', ev => {
             showHide.toggle();
         });
@@ -213,6 +225,31 @@ export class MathArea extends HTMLElement {
         }
     }
 
+    private getVisibleColumns<AllInputType extends object, FsType extends MathFormulaSet<AllInputType>>(formulaSet: FsType): Map<typeof formulaSet['functions'][number]['name'], boolean> {
+        const saved = this.formulaVisibilityStickyHolder.get(formulaSet as unknown as MathFormulaSet<object>) as Map<FsType['functions'][number]['name'], boolean> | undefined;
+        if (saved) {
+            return saved;
+        }
+        else {
+            const vis = new Map<FsType['functions'][number]['name'], boolean>();
+            formulaSet.functions.forEach(fn => {
+                if (isHideable(fn)) {
+                    vis.set(fn.name as FsType['functions'][number]['name'], true);
+                }
+            });
+            this.formulaVisibilityStickyHolder.set(formulaSet as unknown as MathFormulaSet<object>, vis as unknown as Map<string, boolean>);
+            return vis;
+        }
+    }
+
+    private isColumnVisible<AllInputType extends object, FsType extends MathFormulaSet<AllInputType>>(formulaSet: FsType, formula: (FsType['functions'][number])): boolean {
+        if (!isHideable(formula)) {
+            return true;
+        }
+        return this.getVisibleColumns<AllInputType, FsType>(formulaSet).get(formula.name) ?? true;
+    }
+
+
     /**
      * Set a new formula set
      *
@@ -221,7 +258,7 @@ export class MathArea extends HTMLElement {
     setFormulaSet<AllInputType extends object>(formulaSet: MathFormulaSet<AllInputType> | null) {
         if (formulaSet !== null) {
 
-            const table = new CustomTable<FormulaSetInput<AllInputType>, (FormulaSetInput<AllInputType> | undefined)>();
+            const table = new CustomTable<FormulaSetInput<AllInputType>, TableSelectionModel<FormulaSetInput<AllInputType>, unknown, unknown, FormulaSetInput<AllInputType> | undefined>>;
             this.landingOuter.style.display = 'none';
             this.heading.textContent = formulaSet.name;
             const settings: AllInputType = this.getSettingsFor(formulaSet);
@@ -230,20 +267,28 @@ export class MathArea extends HTMLElement {
             // Callback to update UI state when any settings are changed.
             const update = async () => {
                 const rows: FormulaSetInput<AllInputType>[] = [];
-                const funcs = formulaSet.functions;
+                const funcs = formulaSet.functions.filter(fn => {
+                    if (!isHideable(fn)) {
+                        return true;
+                    }
+                    const visMap = outer.getVisibleColumns<AllInputType, typeof formulaSet>(formulaSet);
+                    return visMap.get(fn.name) ?? true;
+                });
 
                 /**
                  * Make a row given a primary value - the rest of the values are assumed to be according to use
                  * inputs.
                  *
-                 * @param primary The value for the primary value.
-                 * @param primaryFlag whether to flag this as being the user-chosen row, i.e. the row that reflects the
+                 * @param primary The value for the primary variable.
+                 * @param isPrimaryRow whether to flag this as being the user-chosen row, i.e. the row that reflects the
                  * values directly chosen by the user, not additional informational rows.
                  */
-                async function makeRow(primary?: number, primaryFlag: boolean = false): Promise<FormulaSetInput<AllInputType>> {
-                    const newPrimary = {};
+                async function makeRow(primary?: number, isPrimaryRow: boolean = false): Promise<FormulaSetInput<AllInputType>> {
+                    const newPrimary: {
+                        [key: string]: unknown
+                    } = {};
                     if (primary !== undefined) {
-                        newPrimary[formulaSet.primaryVariable as string] = primary;
+                        newPrimary[formulaSet!.primaryVariable as string] = primary;
                     }
                     const inputs = {...settings, ...newPrimary};
                     const results: ResultSet = {};
@@ -256,7 +301,7 @@ export class MathArea extends HTMLElement {
                         generalSettings: outer.generalSettings,
                         inputs: inputs,
                         inputsMax: inputs,
-                        isOriginalPrimary: primaryFlag,
+                        isOriginalPrimary: isPrimaryRow,
                         results: results,
                         isRange: false,
                     };
@@ -331,19 +376,25 @@ export class MathArea extends HTMLElement {
                     const hardMax = primaryVariableSpec.max?.(this.generalSettings) ?? Number.MAX_SAFE_INTEGER;
                     switch (this.generalSettings.displayType) {
                         case "Show By Tier": {
-                        // For tiering display, we start with the user-chosen value, and traverse both ways from
-                        // there until we have filled in enough entries to satisfy the `displayEntries` property.
+                            // For tiering display, we start with the user-chosen value, and traverse both ways from
+                            // there until we have filled in enough entries to satisfy the `displayEntries` property.
                             const base = await makeRow(currentPrimaryValue, true);
-                            // Hard limit of number of entries to calculate in each directly. This should never be
+                            // Hard limit of number of entries to calculate in each direction. This should never be
                             // hit in practice.
-                            const rangeLimit = 50000;
+                            const totalRangeLimit = 50_000;
+                            // Hard limit of number of entries to calculate in a single tier. If we hit this, we will
+                            // the computation to have hit a hard limit in that direction.
+                            const perTierLimit = 2_000;
                             const entriesRange = outer.displayEntries;
                             const lowerOut: typeof rows = [];
                             const upperOut: typeof rows = [];
                             // Compute lower values
                             {
                                 let last = base;
-                                for (let i = 0; i < rangeLimit; i++) {
+                                let inTier: number = 0;
+                                // Flag to ignore incomplete final entry
+                                let ignoreLast = false;
+                                for (let i = 0; i < totalRangeLimit; i++) {
                                     const nextVal = currentPrimaryValue - i;
                                     if (nextVal < hardMin) {
                                         break;
@@ -351,28 +402,41 @@ export class MathArea extends HTMLElement {
                                     const next = await makeRow(nextVal);
                                     // If any particular entry has identical results, combine it with the previous
                                     if (resultsEquals(last.results, next.results)) {
+                                        inTier++;
+                                        // Set the existing range start (i.e. minimum) to be the value we just tested.
+                                        // Leave the upper bound alone.
                                         last.inputs = next.inputs;
                                         last.isRange = true;
+                                        if (inTier > perTierLimit) {
+                                            // @ts-expect-error - idk
+                                            last.inputs[prop] = -Infinity;
+                                            break;
+                                        }
                                     }
                                     else {
-                                    // Otherwise, push old previous to the output list, and set a new comparison baseline.
+                                        inTier = 0;
+                                        // Otherwise, push old previous to the output list, and set a new comparison baseline.
                                         if (last !== base) {
                                             lowerOut.push(last);
                                         }
                                         last = next;
                                         if (lowerOut.length > entriesRange) {
+                                            ignoreLast = true;
                                             break;
                                         }
                                     }
                                 }
-                                if (last !== base) {
+                                if (last !== base && !ignoreLast) {
                                     lowerOut.push(last);
                                 }
                             }
                             // Compute upper values
                             {
                                 let last = base;
-                                for (let i = 0; i < rangeLimit; i++) {
+                                let inTier: number = 0;
+                                // Flag to ignore incomplete final entry
+                                let ignoreLast = false;
+                                for (let i = 0; i < totalRangeLimit; i++) {
                                     const nextVal = currentPrimaryValue + i;
                                     if (nextVal > hardMax) {
                                         break;
@@ -380,21 +444,29 @@ export class MathArea extends HTMLElement {
                                     const next = await makeRow(nextVal);
                                     // If any particular entry has identical results, combine it with the previous
                                     if (resultsEquals(last.results, next.results)) {
+                                        inTier++;
                                         last.inputsMax = next.inputsMax;
                                         last.isRange = true;
+                                        if (inTier > perTierLimit) {
+                                            // @ts-expect-error - idk
+                                            last.inputsMax[prop] = Infinity;
+                                            break;
+                                        }
                                     }
                                     else {
-                                    // Otherwise, push old previous to the output list, and set a new comparison baseline.
+                                        inTier = 0;
+                                        // Otherwise, push old previous to the output list, and set a new comparison baseline.
                                         if (last !== base) {
                                             upperOut.push(last);
                                         }
                                         last = next;
                                         if (upperOut.length > entriesRange) {
+                                            ignoreLast = true;
                                             break;
                                         }
                                     }
                                 }
-                                if (last !== base) {
+                                if (last !== base && !ignoreLast) {
                                     upperOut.push(last);
                                 }
                             }
@@ -408,7 +480,7 @@ export class MathArea extends HTMLElement {
                             break;
                         }
                         case "Show Full": {
-                        // Just calculate every desired row directly.
+                            // Just calculate every desired row directly.
                             const range = outer.displayEntries;
                             const minValue = Math.max(currentPrimaryValue - range, hardMin);
                             // If the user specifies 250, and the minimum is 200, then we want to expand the range to
@@ -454,6 +526,9 @@ export class MathArea extends HTMLElement {
                                 case 'flp':
                                     element.setAttribute('title', 'Floor to specified number of decimal places');
                                     break;
+                                case 'trunc':
+                                    element.setAttribute('title', 'Truncate to integer, i.e. round towards zero');
+                                    break;
                             }
                         });
                     const codeOuter = quickElement('div', ['code-outer'], [codeArea]);
@@ -465,7 +540,7 @@ export class MathArea extends HTMLElement {
 
             this.subFormulaeArea.replaceChildren(...newChildren);
 
-            const columns: typeof table.columns = [];
+            const columns: ColDefs<FormulaSetInput<AllInputType>> = [];
             // Input columns
             if (formulaSet.primaryVariable === 'level') {
                 columns.push({
@@ -483,7 +558,7 @@ export class MathArea extends HTMLElement {
             }
             formulaSet.variables.forEach(variable => {
                 if (variable.type === 'number') {
-                    columns.push({
+                    columns.push(col({
                         displayName: variable.label,
                         shortName: 'var-' + variable.property.toString(),
                         getter: item => {
@@ -497,17 +572,21 @@ export class MathArea extends HTMLElement {
                         },
                         renderer: value => {
                             if (value.isRange) {
-                                return document.createTextNode(`${value.min} - ${value.max}`);
+                                return document.createTextNode(`${formatInputNum(value.min)} - ${formatInputNum(value.max)}`);
                             }
                             else {
-                                return document.createTextNode(`${value.min}`);
+                                return document.createTextNode(`${formatInputNum(value.min)}`);
                             }
                         },
-                    });
+                    }));
                 }
             });
             // Output columns
             formulaSet.functions.forEach(fn => {
+                const shown = this.isColumnVisible<AllInputType, typeof formulaSet>(formulaSet, fn);
+                if (!shown) {
+                    return;
+                }
                 columns.push({
                     displayName: fn.name,
                     shortName: 'function-' + fn.fn.name,
@@ -520,6 +599,7 @@ export class MathArea extends HTMLElement {
                 });
             });
             table.columns = columns;
+            // noinspection JSUnusedGlobalSymbols
             table.selectionModel = {
                 getSelection(): undefined {
                     return undefined;
@@ -553,13 +633,7 @@ export class MathArea extends HTMLElement {
             this.landingOuter.style.display = '';
         }
         this.menu.querySelectorAll('button').forEach(btn => {
-            const active = btn.value === formulaSet?.stub;
-            if (active) {
-                btn.classList.add('active');
-            }
-            else {
-                btn.classList.remove('active');
-            }
+            btn.classList.toggle('active', btn.value === formulaSet?.stub);
         });
 
     }
@@ -597,7 +671,7 @@ export class MathArea extends HTMLElement {
         this.update();
     }
 
-    get landingContent() {
+    get landingContent(): HTMLElement | undefined {
         return this.landingInner;
     }
 
@@ -610,14 +684,14 @@ export class MathArea extends HTMLElement {
         this.updateHook();
     }
 
-    private makeEditorArea<AllArgType extends object>(formulaSet: MathFormulaSet<AllArgType>, settings: AllArgType, update: () => void) {
+    private makeEditorArea<AllInputType extends object>(formulaSet: MathFormulaSet<AllInputType>, settings: AllInputType, update: () => void) {
         const proxy = writeProxy(settings, update);
         const out = document.createElement('div');
         for (const variable of formulaSet.variables) {
             switch (variable.type) {
                 case "number": {
                     let editor: HTMLElement;
-                    const validators: FbctPostValidator<AllArgType, number>[] = [];
+                    const validators: FbctPostValidator<AllInputType, number>[] = [];
                     validators.push(clampValues(variable.min?.(this.generalSettings), variable.max?.(this.generalSettings)));
                     if (variable.integer) {
                         editor = new FieldBoundIntField(proxy, variable.property, {postValidators: validators});
@@ -629,6 +703,28 @@ export class MathArea extends HTMLElement {
                     break;
                 }
             }
+        }
+        // Per-formula column visibility controls
+        const vis = this.getVisibleColumns<AllInputType, typeof formulaSet>(formulaSet);
+        const hideableFns = formulaSet.functions.filter(fn => isHideable(fn));
+        if (hideableFns.length > 0) {
+            const visArea = document.createElement('div');
+            visArea.classList.add('formula-visibility-area');
+            hideableFns.forEach(fn => {
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = vis.get(fn.name) ?? true;
+                checkbox.id = `formula-vis-${fn.name.replace(/\s+/g, '-')}`;
+                const label = labelFor(`Include ${fn.name}`, checkbox);
+                const line = quickElement('div', [], [checkbox, label]);
+                checkbox.addEventListener('change', () => {
+                    vis.set(fn.name, checkbox.checked);
+                    // Rebuild UI to update columns
+                    this.setFormulaSet(formulaSet);
+                });
+                visArea.appendChild(line);
+            });
+            out.appendChild(visArea);
         }
         return out;
     }
@@ -645,9 +741,9 @@ export function openMath(formulaKey: string | null) {
     const mathArea = new MathArea();
     welcomeArea.id = '';
     mathArea.landingContent = welcomeArea;
-    const formulaSet = regMap.get(formulaKey);
     mathArea.classList.add('formula-top-level', 'named-section');
     setMainContent('Math', mathArea);
+    const formulaSet = formulaKey !== null ? regMap.get(formulaKey) : null;
     if (formulaSet) {
         mathArea.setFormulaSet(formulaSet);
     }
@@ -655,3 +751,19 @@ export function openMath(formulaKey: string | null) {
         mathArea.setFormulaSet(null);
     }
 }
+
+function formatInputNum(value: unknown): string {
+    if (value === -Infinity) {
+        return '-∞';
+    }
+    else if (value === Infinity) {
+        return '∞';
+    }
+    else if (typeof value === 'number') {
+        return value.toLocaleString();
+    }
+    else {
+        return String(value);
+    }
+}
+

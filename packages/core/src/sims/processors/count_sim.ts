@@ -7,13 +7,13 @@ import {
     SimSpec,
     Simulation
 } from "@xivgear/core/sims/sim_types";
-import { BuffSettingsExport, BuffSettingsManager } from "@xivgear/core/sims/common/party_comp_settings";
-import { defaultResultSettings, ResultSettings } from "@xivgear/core/sims/cycle_sim";
-import { addValues, applyStdDev, multiplyFixed, multiplyIndependent, ValueWithDev } from "@xivgear/xivmath/deviation";
-import { JobName } from "@xivgear/xivmath/xivconstants";
-import { CharacterGearSet } from "@xivgear/core/gear";
-import { abilityEquals } from "@xivgear/core/sims/ability_helpers";
-import { abilityToDamageNew, combineBuffEffects, noBuffEffects } from "@xivgear/core/sims/sim_utils";
+import {BuffSettingsExport, BuffSettingsManager} from "@xivgear/core/sims/common/party_comp_settings";
+import {defaultResultSettings, ResultSettings} from "@xivgear/core/sims/cycle_sim";
+import {addValues, applyStdDev, multiplyFixed, multiplyIndependent, ValueWithDev} from "@xivgear/xivmath/deviation";
+import {JobName} from "@xivgear/xivmath/xivconstants";
+import {CharacterGearSet} from "@xivgear/core/gear";
+import {abilityEquals} from "@xivgear/core/sims/ability_helpers";
+import {abilityToDamageNew, combineBuffEffects, noBuffEffects} from "@xivgear/core/sims/sim_utils";
 
 export type ExternalCountSettings<InternalSettingsType extends SimSettings> = {
     customSettings: InternalSettingsType,
@@ -40,7 +40,7 @@ export type BuffWindowUsages = {
 export type SkillCount = [ability: Ability, count: number];
 
 export abstract class BaseUsageCountSim<ResultType extends CountSimResult, InternalSettingsType extends SimSettings>
-implements Simulation<ResultType, InternalSettingsType, ExternalCountSettings<InternalSettingsType>> {
+    implements Simulation<ResultType, InternalSettingsType, ExternalCountSettings<InternalSettingsType>> {
 
     abstract displayName: string;
     abstract shortName: string;
@@ -64,6 +64,9 @@ implements Simulation<ResultType, InternalSettingsType, ExternalCountSettings<In
         }
     }
 
+    settingsChanged(): void {
+    }
+
     abstract makeDefaultSettings(): InternalSettingsType;
 
     async simulate(set: CharacterGearSet): Promise<ResultType> {
@@ -71,6 +74,7 @@ implements Simulation<ResultType, InternalSettingsType, ExternalCountSettings<In
         const enabledBuffs = this.buffManager.enabledBuffs;
         // Map from duration to list of enabled party buffs with that duration
         // e.g. 15 -> [Chain, Litany], 20 -> [Embolden]
+        // NOT cumulative - a 20 second buff will only be in the 20 second bucket, not any shorter bucket.
         const durationMap: Map<number, PartyBuff[]> = new Map();
         enabledBuffs.forEach(buff => {
             const duration = buff.duration;
@@ -113,6 +117,7 @@ implements Simulation<ResultType, InternalSettingsType, ExternalCountSettings<In
             console.debug(`Duration after ${duration} - raw ${JSON.stringify(thisDurationCumulative)}`);
             previous = thisDurationCumulative;
         }
+        // At this point, skillsDurationMap is done.
         // Organize into buckets
         const resultBuckets: BuffWindowUsages[] = [];
         // no buffs bucket
@@ -127,7 +132,21 @@ implements Simulation<ResultType, InternalSettingsType, ExternalCountSettings<In
         for (let i = 0; i < durationKeys.length; i++) {
             const duration = durationKeys[i];
             const minDuration = (i + 1) in durationKeys ? durationKeys[i + 1] : null;
-            const buffs = durationMap.get(duration) ?? [];
+            // We need to also include longer buffs into each bucket.
+            // e.g. if we have 3 uses in 15 seconds buffs and 2 additional in 20 seconds buffs, then we need the 3 to
+            // also include effects of the 20 second buffs.
+            const buffs: PartyBuff[] = [];
+            // Iterate over duration keys so that we include longer buffs as well.
+            // durationKeys is sorted descending, so we start at 0 and go to the current i.
+            for (let j = 0; j <= i; j++) {
+                const dur = durationKeys[j];
+                const buffsForThisDur = durationMap.get(dur) ?? [];
+                buffsForThisDur.forEach(buff => {
+                    if (!buffs.includes(buff)) {
+                        buffs.push(buff);
+                    }
+                });
+            }
             resultBuckets.push({
                 maxDuration: duration,
                 minDuration: minDuration,
@@ -180,6 +199,10 @@ implements Simulation<ResultType, InternalSettingsType, ExternalCountSettings<In
             unbuffedPps: pps,
             buffBuckets: resultBuckets,
         } satisfies CountSimResult as unknown as ResultType;
+    }
+
+    async simulateSimple(set: CharacterGearSet): Promise<number> {
+        return (await this.simulate(set)).mainDpsResult;
     }
 
     /**

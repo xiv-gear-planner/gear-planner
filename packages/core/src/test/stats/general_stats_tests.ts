@@ -1,15 +1,17 @@
 import {finalizeStats} from "@xivgear/xivmath/xivstats";
 import {RawStats} from "@xivgear/xivmath/geartypes";
-import {getLevelStats} from "@xivgear/xivmath/xivconstants";
+import {getLevelStats, getRaceStats} from "@xivgear/xivmath/xivconstants";
 import {expect} from "chai";
 import {applyDhCritFull, baseDamageFull, fl} from "@xivgear/xivmath/xivmath";
-import { multiplyFixed } from "@xivgear/xivmath/deviation";
-import { HEADLESS_SHEET_PROVIDER } from "../../sheet";
+import {multiplyFixed} from "@xivgear/xivmath/deviation";
+import {HEADLESS_SHEET_PROVIDER} from "../../sheet";
+import {AlternativeScaling} from "../../sims/sim_types";
+import {getScalingOverrides} from "../../sims/sim_utils";
 
 
 const level = 100;
 const job = 'SCH';
-const fakeSheet = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", job, level, undefined);
+const fakeSheet = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", job, level, undefined, false);
 
 const loadPromise = fakeSheet.load();
 
@@ -35,7 +37,7 @@ describe("ComputedSetStats", () => {
             wdPhys: 141,
             wdMag: 141,
             weaponDelay: 3.12,
-        }), {}, level, getLevelStats(level), job, fakeSheet.classJobStats, 0);
+        }), {}, level, getLevelStats(level), job, fakeSheet.classJobStats, 0, getRaceStats("The Lost"));
         expect(stats.aaDelay).to.eq(3.12);
         expect(stats.aaMulti).to.eq(1.87);
         expect(stats.aaStatMulti).to.eq(0.77);
@@ -51,7 +53,10 @@ describe("ComputedSetStats", () => {
         expect(stats.dhitMulti).to.eq(1.25);
         expect(stats.gcdMag(2.50)).to.eq(2.41);
         expect(stats.gcdPhys(2.50)).to.eq(2.50);
-        expect(stats.haste('Spell')).to.eq(0);
+        expect(stats.haste('Spell', 0, 0)).to.eq(0);
+        expect(stats.haste('Spell', 37, 0)).to.eq(37);
+        expect(stats.haste('Weaponskill', 37, 0)).to.eq(37);
+        expect(stats.haste('Auto-attack', 37, 0)).to.eq(37);
         expect(stats.hp).to.eq(114937);
         expect(stats.intelligence).to.eq(462);
         expect(stats.mainStatMulti).to.eq(22.58);
@@ -106,7 +111,7 @@ describe("ComputedSetStats", () => {
                 max: 79,
                 percentage: 10,
             },
-        }, level, getLevelStats(level), job, fakeSheet.classJobStats, 0);
+        }, level, getLevelStats(level), job, fakeSheet.classJobStats, 0, getRaceStats("The Lost"));
         expect(stats.aaDelay).to.eq(3.12);
         expect(stats.aaMulti).to.eq(1.87);
         expect(stats.aaStatMulti).to.eq(0.77);
@@ -122,7 +127,10 @@ describe("ComputedSetStats", () => {
         expect(stats.dhitMulti).to.eq(1.25);
         expect(stats.gcdMag(2.50)).to.eq(2.40);
         expect(stats.gcdPhys(2.50)).to.eq(2.50);
-        expect(stats.haste('Spell')).to.eq(0);
+        expect(stats.haste('Spell', 0, 0)).to.eq(0);
+        expect(stats.haste('Spell', 37, 0)).to.eq(37);
+        expect(stats.haste('Weaponskill', 37, 0)).to.eq(37);
+        expect(stats.haste('Auto-attack', 37, 0)).to.eq(37);
         expect(stats.hp).to.eq(121048);
         expect(stats.intelligence).to.eq(462);
         expect(stats.mainStatMulti).to.eq(22.58);
@@ -177,7 +185,7 @@ describe("ComputedSetStats", () => {
                 max: 79,
                 percentage: 10,
             },
-        }, level, getLevelStats(level), job, fakeSheet.classJobStats, 5);
+        }, level, getLevelStats(level), job, fakeSheet.classJobStats, 5, getRaceStats("The Lost"));
         expect(stats.aaDelay).to.eq(3.12);
         expect(stats.aaMulti).to.eq(1.87);
         expect(stats.aaStatMulti).to.eq(0.87);
@@ -193,7 +201,10 @@ describe("ComputedSetStats", () => {
         expect(stats.dhitMulti).to.eq(1.25);
         expect(stats.gcdMag(2.50)).to.eq(2.40);
         expect(stats.gcdPhys(2.50)).to.eq(2.50);
-        expect(stats.haste('Spell')).to.eq(0);
+        expect(stats.haste('Spell', 0, 0)).to.eq(0);
+        expect(stats.haste('Spell', 37, 0)).to.eq(37);
+        expect(stats.haste('Weaponskill', 37, 0)).to.eq(37);
+        expect(stats.haste('Auto-attack', 37, 0)).to.eq(37);
         expect(stats.hp).to.eq(127218);
         expect(stats.intelligence).to.eq(462);
         expect(stats.mainStatMulti).to.eq(23.78);
@@ -218,13 +229,13 @@ describe("ComputedSetStats", () => {
 
 describe("Dmg/100p for known values", () => {
     // https://docs.google.com/spreadsheets/d/1yy11-m_iWaKs8zccrjunLELEGHCDSE3YNQkhx-E_tkk/edit?gid=1658055958#gid=1658055958
-    const fakeSheetSMN = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'SMN', level, undefined);
+    const fakeSheetSMN = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'SMN', level, undefined, false);
     const loadPromiseSMN = fakeSheetSMN.load();
-    const fakeSheetSCH = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'SCH', level, undefined);
+    const fakeSheetSCH = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'SCH', level, undefined, false);
     const loadPromiseSCH = fakeSheetSCH.load();
-    const fakeSheetWAR = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'WAR', level, undefined);
+    const fakeSheetWAR = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'WAR', level, undefined, false);
     const loadPromiseWAR = fakeSheetWAR.load();
-    const fakeSheetGNB = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'GNB', level, undefined);
+    const fakeSheetGNB = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'GNB', level, undefined, false);
     const loadPromiseGNB = fakeSheetGNB.load();
     it('SMN test 1', async () => {
         await loadPromiseSMN;
@@ -247,7 +258,7 @@ describe("Dmg/100p for known values", () => {
             weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'SMN', fakeSheetSMN.classJobStats, 0);
+        {}, level, getLevelStats(level), 'SMN', fakeSheetSMN.classJobStats, 0, getRaceStats("The Lost"));
         const dmg100p = baseDamageFull(stats, 100, 'Spell', false, false);
         expect(dmg100p.expected).to.eq(913);
         expect(stats.detMulti).to.eq(1.018);
@@ -279,7 +290,7 @@ describe("Dmg/100p for known values", () => {
             weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'SMN', fakeSheetSMN.classJobStats, 0);
+        {}, level, getLevelStats(level), 'SMN', fakeSheetSMN.classJobStats, 0, getRaceStats("The Lost"));
         const dmg100p = baseDamageFull(stats, 100, 'Spell', false, false);
         expect(dmg100p.expected).to.eq(1069);
         expect(stats.detMulti).to.eq(1.023);
@@ -311,7 +322,7 @@ describe("Dmg/100p for known values", () => {
             weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'WAR', fakeSheetWAR.classJobStats, 0);
+        {}, level, getLevelStats(level), 'WAR', fakeSheetWAR.classJobStats, 0, getRaceStats("The Lost"));
         const dmg100p = baseDamageFull(stats, 100, 'Weaponskill', false, false);
         expect(dmg100p.expected).to.eq(656);
         expect(stats.mainStatValue).to.eq(1012);
@@ -343,7 +354,7 @@ describe("Dmg/100p for known values", () => {
             weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'WAR', fakeSheetWAR.classJobStats, 0);
+        {}, level, getLevelStats(level), 'WAR', fakeSheetWAR.classJobStats, 0, getRaceStats("The Lost"));
         const dmg100p = baseDamageFull(stats, 100, 'Weaponskill', false, false);
         expect(dmg100p.expected).to.eq(703);
         expect(stats.mainStatValue).to.eq(1069);
@@ -376,7 +387,7 @@ describe("Dmg/100p for known values", () => {
             weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
+        {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0, getRaceStats("The Lost"));
         const dmg100p = baseDamageFull(stats, 75, 'Spell', false, true);
         expect(dmg100p.expected).to.eq(467);
         expect(stats.determination).to.eq(440);
@@ -410,7 +421,7 @@ describe("Dmg/100p for known values", () => {
             weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
+        {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0, getRaceStats("The Lost"));
         const dmg100p = baseDamageFull(stats, 75, 'Spell', false, true);
         expect(dmg100p.expected).to.eq(474);
         expect(stats.determination).to.eq(440);
@@ -444,7 +455,7 @@ describe("Dmg/100p for known values", () => {
             weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
+        {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0, getRaceStats("The Lost"));
         const dmg100p = baseDamageFull(stats, 75, 'Spell', false, true);
         expect(dmg100p.expected).to.eq(475);
         expect(stats.determination).to.eq(440);
@@ -478,7 +489,7 @@ describe("Dmg/100p for known values", () => {
             weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
+        {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0, getRaceStats("The Lost"));
         const dmg100p = baseDamageFull(stats, 75, 'Spell', false, true);
         expect(dmg100p.expected).to.eq(476);
         expect(stats.determination).to.eq(440);
@@ -512,7 +523,7 @@ describe("Dmg/100p for known values", () => {
             weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
+        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0, getRaceStats("The Lost"));
         expect(stats.determination).to.eq(987);
         expect(stats.detMulti).to.eq(1.027);
         expect(stats.skillspeed).to.eq(420);
@@ -546,7 +557,7 @@ describe("Dmg/100p for known values", () => {
             weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
+        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0, getRaceStats("The Lost"));
         expect(stats.determination).to.eq(987);
         expect(stats.detMulti).to.eq(1.027);
         expect(stats.skillspeed).to.eq(456);
@@ -580,7 +591,7 @@ describe("Dmg/100p for known values", () => {
             weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
+        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0, getRaceStats("The Lost"));
         expect(stats.determination).to.eq(987);
         expect(stats.detMulti).to.eq(1.027);
         expect(stats.skillspeed).to.eq(492);
@@ -614,7 +625,7 @@ describe("Dmg/100p for known values", () => {
             weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
+        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0, getRaceStats("The Lost"));
         expect(stats.determination).to.eq(987);
         expect(stats.detMulti).to.eq(1.027);
         expect(stats.skillspeed).to.eq(564);
@@ -648,7 +659,7 @@ describe("Dmg/100p for known values", () => {
             weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
+        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0, getRaceStats("The Lost"));
         expect(stats.determination).to.eq(1113);
         expect(stats.detMulti).to.eq(1.033);
         expect(stats.skillspeed).to.eq(456);
@@ -682,7 +693,7 @@ describe("Dmg/100p for known values", () => {
             weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
+        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0, getRaceStats("The Lost"));
         expect(stats.determination).to.eq(1113);
         expect(stats.detMulti).to.eq(1.033);
         expect(stats.skillspeed).to.eq(600);
@@ -715,7 +726,7 @@ describe("Dmg/100p for known values", () => {
             weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
+        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0, getRaceStats("The Lost"));
         expect(stats.determination).to.eq(1667);
         expect(stats.detMulti).to.eq(1.061);
         expect(stats.skillspeed).to.eq(492);
@@ -730,7 +741,9 @@ describe("Dmg/100p for known values", () => {
 });
 
 describe("Final damage values for known values", () => {
-    const fakeSheetWAR = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'WAR', level, undefined);
+    const fakeSheetDRK = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'DRK', level, undefined, false);
+    const loadPromiseDRK = fakeSheetDRK.load();
+    const fakeSheetWAR = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'WAR', level, undefined, false);
     const loadPromiseWAR = fakeSheetWAR.load();
     it('WAR test autocrit/dh', async () => {
         await loadPromiseWAR;
@@ -754,7 +767,7 @@ describe("Final damage values for known values", () => {
             wdMag: 146,
             weaponDelay: 3.12,
         }),
-        {}, level, getLevelStats(level), 'WAR', fakeSheetWAR.classJobStats, 0);
+        {}, level, getLevelStats(level), 'WAR', fakeSheetWAR.classJobStats, 0, getRaceStats("The Lost"));
         const fellCleavePotency = 580;
         const dmg100p = baseDamageFull(stats, fellCleavePotency, 'Weaponskill', true, false);
         expect(dmg100p.expected).to.eq(25898);
@@ -779,5 +792,127 @@ describe("Final damage values for known values", () => {
         expect(finalDamage).to.not.undefined;
         expect(finalDamage.expected).to.eq(57082.42925000001);
         expect(fl(finalDamage.stdDev)).to.eq(1647);
+    });
+    it('Dark Knight known value scaling', async () => {
+        await loadPromiseDRK;
+        const stats = finalizeStats(new RawStats({
+            hp: 9822,
+            vitality: 494,
+            strength: 471,
+            dexterity: 415,
+            intelligence: 261,
+            mind: 179,
+            piety: 440,
+            crit: 420,
+            dhit: 420,
+            determination: 440,
+            tenacity: 420,
+            skillspeed: 430,
+            spellspeed: 420,
+            wdPhys: 36,
+            wdMag: 36,
+            weaponDelay: 2.96,
+        }),
+        {}, level, getLevelStats(level), 'DRK', fakeSheetDRK.classJobStats, 0, getRaceStats("The Lost"));
+
+
+        // These match up with observed values.
+
+        // 300 Potency is Hard Slash at level 100
+        const damageBeforeCrit300Potency = baseDamageFull(stats, 300, 'Ability', false, false);
+        expect(damageBeforeCrit300Potency.expected).to.eq(277);
+
+        // 460 Potency is Edge of Shadow at level 100
+        const damageBeforeCrit460 = baseDamageFull(stats, 460, 'Ability', false, false);
+        expect(damageBeforeCrit460.expected).to.eq(425);
+
+        // 580 Potency is Bloodspiller at level 100
+        const damageBeforeCrit580 = baseDamageFull(stats, 580, 'Ability', false, false);
+        expect(damageBeforeCrit580.expected).to.eq(537);
+    });
+    it('Dark Knight Living Shadow known value scaling with low strength', async () => {
+        // Based on known values from the following spreadsheet (and some testing I did myself):
+        // https://docs.google.com/spreadsheets/d/1NlVtvjxYCh-_HGFb3R0VEvbjJcBTcnNDoloo_H-WzQ8/edit?gid=566755418#gid=566755418
+        await loadPromiseDRK;
+        const stats = finalizeStats(new RawStats({
+            hp: 7707,
+            vitality: 489,
+            strength: 469,
+            dexterity: 421,
+            intelligence: 261,
+            mind: 179,
+            piety: 440,
+            crit: 420,
+            dhit: 420,
+            determination: 440,
+            tenacity: 420,
+            skillspeed: 430,
+            spellspeed: 420,
+            wdPhys: 35,
+            wdMag: 35,
+            weaponDelay: 2.96,
+        }),
+        // Using Rava for consistency with spreadsheet
+        {}, level, getLevelStats(level), 'DRK', fakeSheetDRK.classJobStats, 0, getRaceStats("Rava"));
+        expect(stats.mainStatValue).to.eq(469);
+        expect(stats.determination).to.eq(440);
+        expect(stats.wdMag).to.eq(35);
+        expect(stats.wdPhys).to.eq(35);
+
+        // These match up with observed values.
+        const livingShadowScalings: AlternativeScaling[] = ["Living Shadow Strength Scaling", "Pet Action Weapon Damage"];
+        const livingShadowScalingOverrides = getScalingOverrides(livingShadowScalings, stats);
+
+        // 420 potency Living Shadow Attack
+        const damageBeforeCrit420 = baseDamageFull(stats, 420, 'Ability', false, false, livingShadowScalingOverrides);
+        expect(damageBeforeCrit420.expected).to.eq(344);
+
+        // 570 potency Living Shadow Attack
+        const damageBeforeCrit570 = baseDamageFull(stats, 570, 'Ability', false, false, livingShadowScalingOverrides);
+        expect(damageBeforeCrit570.expected).to.eq(467);
+
+        // 620 potency Living Shadow Attack
+        const damageBeforeCrit620 = baseDamageFull(stats, 620, 'Ability', false, false, livingShadowScalingOverrides);
+        expect(damageBeforeCrit620.expected).to.eq(508);
+    });
+    it('Dark Knight Living Shadow known value scaling with higher strength', async () => {
+        await loadPromiseDRK;
+        // Based off 7.05 BiS.
+        const stats = finalizeStats(new RawStats({
+            hp: 226061,
+            vitality: 5109,
+            strength: 4842,
+            dexterity: 415,
+            intelligence: 261,
+            mind: 179,
+            piety: 440,
+            crit: 3174,
+            dhit: 1338,
+            determination: 2231,
+            tenacity: 868,
+            skillspeed: 430,
+            spellspeed: 420,
+            wdPhys: 146,
+            wdMag: 146,
+            weaponDelay: 2.96,
+        }),
+        {}, level, getLevelStats(level), 'DRK', fakeSheetDRK.classJobStats, 0, getRaceStats("The Lost"));
+        expect(stats.mainStatValue).to.eq(4842);
+
+        // These match up with observed values.
+        const livingShadowScalings: AlternativeScaling[] = ["Living Shadow Strength Scaling", "Pet Action Weapon Damage"];
+        const livingShadowScalingOverrides = getScalingOverrides(livingShadowScalings, stats);
+
+        // 420 potency Living Shadow Attack
+        const damageBeforeCrit420 = baseDamageFull(stats, 420, 'Ability', false, false, livingShadowScalingOverrides);
+        expect(damageBeforeCrit420.expected).to.eq(21762);
+
+        // 570 potency Living Shadow Attack
+        const damageBeforeCrit570 = baseDamageFull(stats, 570, 'Ability', false, false, livingShadowScalingOverrides);
+        expect(damageBeforeCrit570.expected).to.eq(29533);
+
+        // 620 potency Living Shadow Attack
+        const damageBeforeCrit620 = baseDamageFull(stats, 620, 'Ability', false, false, livingShadowScalingOverrides);
+        expect(damageBeforeCrit620.expected).to.eq(32125);
     });
 });

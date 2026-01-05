@@ -42,7 +42,7 @@ export interface WhmSheetSettings extends SimSettings {
 }
 
 export const whmSheetSpec: SimSpec<WhmSheetSim, WhmSheetSettings> = {
-    displayName: "WHM Sheet Sim (Old)",
+    displayName: "WHM (Deprecated)",
     loadSavedSimInstance(exported: WhmSheetSettings) {
         return new WhmSheetSim(exported);
     },
@@ -78,6 +78,9 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
         if (settings) {
             Object.assign(this.settings, settings);
         }
+    }
+
+    settingsChanged() {
     }
 
     extraDhRate() {
@@ -120,6 +123,10 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
         };
     }
 
+    async simulateSimple(set: CharacterGearSet): Promise<number> {
+        return (await this.simulate(set)).mainDpsResult;
+    }
+
     afflatusTime(stats: ComputedSetStats, cycle: number) {
         return 6 * stats.gcdMag(2.5) * (cycle / 360 - 1);
     }
@@ -157,7 +164,7 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
     /**
      * MP usage of a full cycle
      */
-    getMP(stats: ComputedSetStats, cycle) {
+    getMP(stats: ComputedSetStats, cycle: number) {
         let result = 0;
         // TODO: why is the dot multiplier factored in here?
         const shortGcd = stats.gcdMag(2.5);

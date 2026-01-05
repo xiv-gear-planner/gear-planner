@@ -1,7 +1,7 @@
-import {EquipSlotKey, ItemSlotExport, SetExport} from "@xivgear/xivmath/geartypes";
+import {EquipSlotKey, ItemSlotExport, SetExportExternalSingle, Substat} from "@xivgear/xivmath/geartypes";
 import {JobName, MATERIA_SLOTS_MAX, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {BaseParamToStatKey, RelevantBaseParam} from "./xivapitypes";
-import {queryBaseParams} from "../datamanager_xivapi";
+import {DATA_API_CLIENT} from "../data_api_client";
 
 const ETRO_SLOTS = ['weapon', 'offHand', 'head', 'body', 'hands', 'legs', 'feet', 'ears', 'neck', 'wrists', 'fingerL', 'fingerR'] as const;
 // Works
@@ -65,10 +65,10 @@ interface EtroMateria {
     [slot: number]: number
 }
 
-export async function getSetFromEtro(etroSetId: string) {
+export async function getSetFromEtro(etroSetId: string): Promise<SetExportExternalSingle> {
     console.log('Fetching etro set', etroSetId);
+    const baseParamsPromise = DATA_API_CLIENT.baseParams.baseParams();
     const response: EtroSet = await fetch(`https://etro.gg/api/gearsets/${etroSetId}/`).then(response => response.json()) as EtroSet;
-
     const items: {
         [K in EquipSlotKey]?: ItemSlotExport
     } = {};
@@ -82,16 +82,19 @@ export async function getSetFromEtro(etroSetId: string) {
                 relicStats = {};
                 const relicData = await getEtroRelic(relicId);
                 itemId = relicData.baseItem.id;
-                // TODO: this probably does some redundant hits on xivapi
-                const baseParams = (await queryBaseParams()).Results;
+                const baseParamsResponse = await baseParamsPromise;
+                const baseParams = baseParamsResponse.data.items!;
                 for (let i = 0; i <= 5; i++) {
-                    const paramId = relicData[`param${i}`];
+                    const paramId = relicData[`param${i}` as keyof EtroRelic];
                     if (!paramId) {
                         break;
                     }
-                    const paramData = baseParams.find(item => item.ID === paramId);
-                    const stat = BaseParamToStatKey[paramData.Name as RelevantBaseParam];
-                    relicStats[stat] = relicData[`param${i}Value`];
+                    const paramData = baseParams.find(item => item.rowId === paramId);
+                    if (paramData === undefined) {
+                        throw Error(`Could not find base param ${paramId} in base params`);
+                    }
+                    const stat = BaseParamToStatKey[paramData.name as RelevantBaseParam];
+                    relicStats[stat as Substat] = relicData[`param${i}Value` as keyof EtroRelic] as number;
                 }
             }
             else {
@@ -145,7 +148,7 @@ export async function getSetFromEtro(etroSetId: string) {
     else {
         food = undefined;
     }
-    const setImport: SetExport = {
+    const setImport: SetExportExternalSingle = {
         name: response.name,
         job: response.jobAbbrev,
         food: food,

@@ -10,6 +10,8 @@ import {
     DamageResult,
     FinalizedAbility,
     GcdAbility,
+    hasGaugeCondition,
+    hasGaugeUpdate,
     OgcdAbility,
     PartyBuff,
     PostDmgUsedAbility,
@@ -27,17 +29,42 @@ import {
 } from "@xivgear/xivmath/xivconstants";
 import {CooldownMode, CooldownTracker} from "./common/cooldown_manager";
 import {addValues, fixedValue, multiplyFixed, multiplyIndependent, ValueWithDev} from "@xivgear/xivmath/deviation";
-import {abilityEquals, animationLock, appDelay, completeComboData, FinalizedComboData} from "./ability_helpers";
-import {abilityToDamageNew, combineBuffEffects} from "./sim_utils";
+import {abilityEquals, animationLock, damageAppDelay, buffAppDelay, completeComboData, FinalizedComboData} from "./ability_helpers";
+import {abilityToDamageNew, combineBuffEffects, noBuffEffects} from "./sim_utils";
 import {BuffSettingsExport} from "./common/party_comp_settings";
 import {CycleSettings} from "./cycle_settings";
 import {buffRelevantAtSnapshot, buffRelevantAtStart} from "./buff_helpers";
+import {GaugeStateTypeOfMgr, NoopGaugeManager} from "./processors/sim_processors";
+
+/**
+ * Represents the "zero" CombinedBuffEffect object, which represents not having any offensive buffs.
+ * This should not be modified in place.
+ */
+const NO_BUFF_EFFECTS = noBuffEffects();
+
+const NO_BUFFS: CombinedBuffsAndEffects = {
+    'buffs': [],
+    'combinedEffects': NO_BUFF_EFFECTS,
+};
+
+type CombinedBuffsAndEffects = {
+    buffs: Buff[],
+    combinedEffects: CombinedBuffEffect,
+}
+
+export type GaugeManager<GaugeStateType> = {
+
+    gaugeSnapshot(): GaugeStateType;
+
+    readonly haste?: number;
+
+}
 
 /**
  * CycleContext is similar to CycleProcessor, but is scoped to within a cycle. It provides methods
  * and properties for keeping track of time relative to the cycle itself.
  */
-export class CycleContext {
+export class CycleContext<GaugeManagerType extends GaugeManager<unknown>> {
 
     cycleStartedAt: number;
     /**
@@ -56,7 +83,7 @@ export class CycleContext {
     readonly mcp: CycleProcessor;
     private lastSeenPrepullOffset: number = 0;
 
-    constructor(mcp: CycleProcessor, cycleTime: number) {
+    constructor(mcp: CycleProcessor<GaugeManagerType>, cycleTime: number) {
         this.cycleTime = cycleTime;
         this.cycleStartedAt = mcp.currentTime;
         this.fightTimeRemainingAtCycleStart = mcp.totalTime - mcp.currentTime;
@@ -209,7 +236,6 @@ export class CycleContext {
 export type AbilityUseResult = 'full' | 'partial' | 'none';
 
 
-
 /* TODO: I thought of a better way to implement this.
 
     This can all be implemented post-hoc.
@@ -277,12 +303,17 @@ export type MultiCycleSettings = {
      * How to deal with GCDs not lining up perfectly with the end of fight.
      */
     readonly cutoffMode: CutoffMode;
+    /**
+     * Enables simple mode - don't record any information that would purely be used for visuals on the report.
+     * The final DPS number is the only thing that matters.
+     */
+    readonly simpleMode?: boolean;
 }
 
-export type CycleFunction = (cycle: CycleContext) => void
+export type CycleFunction<GaugeManagerType extends GaugeManager<unknown>> = (cycle: CycleContext<GaugeManagerType>) => void
 
-export const isAbilityUse = (record: PreDmgDisplayRecordUnf): record is PreDmgAbilityUseRecordUnf => 'ability' in record;
-export const isFinalizedAbilityUse = (record: DisplayRecordFinalized): record is FinalizedAbility => 'original' in record;
+export const isAbilityUse = <X>(record: PreDmgDisplayRecordUnf<X>): record is PreDmgAbilityUseRecordUnf<X> => 'ability' in record;
+export const isFinalizedAbilityUse = <X>(record: DisplayRecordFinalized<X>): record is FinalizedAbility<X> => 'original' in record;
 
 /**
  * Represents a usage of a buff.
@@ -349,6 +380,8 @@ class ComboTracker {
     }
 }
 
+export type GaugeEnforcementMode = 'none' | 'warn' | 'reject';
+
 
 /**
  * CycleProcessor is a rotation-based simulation backend that requires actual ability uses to be specified.
@@ -356,7 +389,9 @@ class ComboTracker {
  *
  * Note about times:
  */
-export class CycleProcessor {
+export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = GaugeManager<unknown>> {
+    // TODO: this generic param doesn't work quite the way I'd like. Seems that the return type of gaugeSnapshot() is
+    // 'unknown'
 
     /**
      * The current cycle number. -1 is pre-pull, 0 is the first cycle, etc
@@ -398,7 +433,7 @@ export class CycleProcessor {
      *
      * To retrieve records after a simulation finishes, see {@link finalizedRecords}.
      */
-    readonly allRecords: PreDmgDisplayRecordUnf[] = [];
+    readonly allRecords: PreDmgDisplayRecordUnf<GaugeStateTypeOfMgr<GaugeManagerType>>[] = [];
     /**
      * Log of when party buffs were last activated.
      */
@@ -445,6 +480,7 @@ export class CycleProcessor {
      */
     readonly cdTracker: CooldownTracker;
     private _cdEnforcementMode: CooldownMode;
+    gaugeEnforcementMode: GaugeEnforcementMode;
 
     /**
      * The end-of-fight cutoff mode
@@ -477,10 +513,14 @@ export class CycleProcessor {
      */
     private _rowCount = 0;
 
+    private readonly _simple: boolean;
+
+    readonly gaugeManager: GaugeManagerType;
+
     constructor(private settings: MultiCycleSettings) {
-        // TODO: set enforcement mode
         this.cdTracker = new CooldownTracker(() => this.currentTime);
         this._cdEnforcementMode = 'warn';
+        this.gaugeEnforcementMode = 'warn';
         this.cycleTime = settings.cycleTime;
         this.totalTime = settings.totalTime;
         this.stats = settings.stats;
@@ -497,10 +537,21 @@ export class CycleProcessor {
             potency: this.stats.jobStats.aaPotency,
         };
         this.cutoffMode = settings.cutoffMode;
+        this._simple = settings.simpleMode ?? false;
+        this.gaugeManager = this.createGaugeManager();
     }
 
     get cdEnforcementMode(): CooldownMode {
         return this._cdEnforcementMode;
+    }
+
+    /**
+     * Returns the initial gauge state. Must be overridden if using a custom gauge type.
+     *
+     * @protected
+     */
+    protected createGaugeManager(): GaugeManagerType {
+        return new NoopGaugeManager() as GaugeManagerType;
     }
 
     /**
@@ -565,7 +616,7 @@ export class CycleProcessor {
      * Modifies the stack value for a given buff. The stack value provided should be the modified amount and not the final amount
      *
      * @param buff The Buff
-     * @param stacks The stack modification to add
+     * @param stacksDelta +/- change in stacks
      */
     modifyBuffStacks(buff: Buff, stacksDelta: number) {
         const activeUsages = this.getActiveBuffsData().filter(buffHist => buffHist.buff.name === buff.name);
@@ -744,13 +795,22 @@ export class CycleProcessor {
     }
 
     /**
+     * An amount of action usages that should be far beyond what would be needed for a reasonable sim. Acts as a circuit
+     * breaker for infinite loops.
+     */
+    get maxUses(): number {
+        // 4 actions per second should be more than enough, with a minimum of 100
+        return Math.max(this.totalTime * 4, 100);
+    }
+
+    /**
      * Add a special text row to the output records.
      *
      * @param message The text
      * @param time The time of the record. Current time will be used if not specified.
      */
     addSpecialRow(message: string, time?: number) {
-        if (this._rowCount++ > 10_000) {
+        if (this._rowCount++ > this.maxUses) {
             throw Error("Used too many special rows");
         }
         this.allRecords.push({
@@ -762,11 +822,11 @@ export class CycleProcessor {
     /**
      * A record of all abilities used.
      */
-    get usedAbilities(): readonly PreDmgAbilityUseRecordUnf[] {
+    get usedAbilities(): readonly PreDmgAbilityUseRecordUnf<GaugeStateTypeOfMgr<GaugeManagerType>>[] {
         return this.allRecords.filter(isAbilityUse);
     }
 
-    get postDamageRecords(): readonly PostDmgDisplayRecordUnf[] {
+    get postDamageRecords(): readonly PostDmgDisplayRecordUnf<GaugeStateTypeOfMgr<GaugeManagerType>>[] {
         return this.allRecords.map(record => {
             if (!isAbilityUse(record)) {
                 return record;
@@ -810,7 +870,7 @@ export class CycleProcessor {
     /**
      * A record of events, including special rows and such.
      */
-    get finalizedRecords(): readonly DisplayRecordFinalized[] {
+    get finalizedRecords(): readonly DisplayRecordFinalized<GaugeStateTypeOfMgr<GaugeManagerType>>[] {
         this.finalize();
         return (this.postDamageRecords.map(record => {
             if (isAbilityUse(record)) {
@@ -836,10 +896,12 @@ export class CycleProcessor {
                     totalDamage: totalDamage.expected,
                     totalDamageFull: totalDamage,
                     totalPotency: totalPotency,
+                    // buffs: this._simple ? [] : record.buffs,
                     buffs: record.buffs,
                     combinedEffects: record.combinedEffects,
+                    // ability: this._simple ? null : record.ability,
                     ability: record.ability,
-                } satisfies FinalizedAbility;
+                } satisfies FinalizedAbility<GaugeStateTypeOfMgr<GaugeManagerType>>;
             }
             else {
                 return record;
@@ -851,8 +913,8 @@ export class CycleProcessor {
         switch (this.cutoffMode) {
             case "prorate-gcd":
             case "prorate-application":
-            // For these, we use either the current time, or the total allowed time. Pro-rating the final GCD is
-            // handled in `get finalizedRecords()`
+                // For these, we use either the current time, or the total allowed time. Pro-rating the final GCD is
+                // handled in `get finalizedRecords()`
                 return Math.min(this.totalTime, this.currentTime);
             case "lax-gcd":
                 return this.nextGcdTime;
@@ -862,7 +924,7 @@ export class CycleProcessor {
                     return cutoffTime;
                 }
                 // We can also have a situation where clipping oGCDs have pushed us over
-                const potentialMax = Math.max(...this.finalizedRecords.filter<FinalizedAbility>(isFinalizedAbilityUse)
+                const potentialMax = Math.max(...this.finalizedRecords.filter<FinalizedAbility<GaugeStateTypeOfMgr<GaugeManagerType>>>(isFinalizedAbilityUse)
                     .map(record => record.usedAt + record.original.totalTimeTaken));
                 if (potentialMax > 9999999) {
                     return Math.min(this.totalTime, this.currentTime);
@@ -880,14 +942,15 @@ export class CycleProcessor {
         return ability.type === 'gcd';
     }
 
-    private getCombinedEffectsFor(ability: Ability, time = this.currentTime): {
-        buffs: ReturnType<typeof this.getActiveBuffs>,
-        combinedEffects: ReturnType<typeof combineBuffEffects>,
-    } {
-        const active = this.getActiveBuffsFor(ability, time);
-        const combined = combineBuffEffects(active);
+    private getCombinedEffectsFor(ability: Ability, time = this.currentTime): CombinedBuffsAndEffects {
+        const active: Buff[] = this.getActiveBuffsFor(ability, time);
+        if (active.length === 0) {
+            return NO_BUFFS;
+        }
+        const combined: CombinedBuffEffect = combineBuffEffects(active);
         return {
             'buffs': active,
+            // 'buffs': this._simple ? [] : active,
             'combinedEffects': combined,
         };
     }
@@ -897,12 +960,39 @@ export class CycleProcessor {
     }
 
     /**
+     * Modifies an ability for the level that is being processed by the cycle sim.
+     *
+     * @param ability the ability to modify
+     * @returns the modified ability
+     */
+    applyLevelModifiers(ability: Ability): Ability {
+        if (!ability || !ability.levelModifiers) {
+            return ability;
+        }
+        const level = this.stats.level;
+        const relevantModifications = ability.levelModifiers.filter(mod => mod.minLevel <= level);
+        if (relevantModifications.length === 0) {
+            return ability;
+        }
+        // If there's multiple, pick the one with the highest min level.
+        const modification = relevantModifications.reduce((currentLowest, mod) => currentLowest.minLevel > mod.minLevel ? currentLowest : mod);
+        const modifiedAbility: Ability = {
+            ...ability,
+            ...modification,
+            levelModifiers: [],
+            _idForCooldown: ability.id,
+        };
+        return modifiedAbility;
+    }
+
+    /**
      * Use an ability
      *
      * @param ability The ability to use
      */
     use(ability: Ability): AbilityUseResult {
         // noinspection AssignmentToFunctionParameterJS
+        ability = this.applyLevelModifiers(ability);
         ability = this.processCombo(ability);
         const isGcd = this.isGcd(ability);
         // if using a non-prorate mode, then allow oGCDs past the cutoff
@@ -934,7 +1024,7 @@ export class CycleProcessor {
             switch (this.cdEnforcementMode) {
                 case "none":
                 case "warn":
-                // CD tracker will enforce this
+                    // CD tracker will enforce this
                     break;
                 case "delay":
                     this.advanceTo(this.cdTracker.statusOf(ability).readyAt.absolute);
@@ -947,6 +1037,19 @@ export class CycleProcessor {
         if (isGcd) {
             if (this.nextGcdTime > this.currentTime) {
                 this.advanceTo(this.nextGcdTime);
+            }
+        }
+        if (hasGaugeCondition(ability)) {
+            if (!ability.gaugeConditionSatisfied(this.gaugeManager)) {
+                switch (this.gaugeEnforcementMode) {
+                    case "none":
+                        break;
+                    case "warn":
+                        console.warn(`Gauge condition not satisfied prior to cast start for ability ${ability.name}`, ability);
+                        break;
+                    case "reject":
+                        throw Error(`Ability ${ability.name} gauge condition not satisfied prior to cast start`);
+                }
             }
         }
         // We need to calculate our buff set twice. The first is because buffs may affect the cast and/or recast time.
@@ -983,6 +1086,19 @@ export class CycleProcessor {
         const animLockFinishedAt = this.currentTime + effectiveAnimLock;
         const channelFinishedAt = 'channel' in ability ? this.currentTime + ability.channel.duration : undefined;
         this.advanceTo(snapshotsAt, true);
+        if (hasGaugeCondition(ability)) {
+            if (!ability.gaugeConditionSatisfied(this.gaugeManager)) {
+                switch (this.gaugeEnforcementMode) {
+                    case "none":
+                        break;
+                    case "warn":
+                        console.warn(`Gauge condition not satisfied prior to snapshot for ability ${ability.name}`, ability);
+                        break;
+                    case "reject":
+                        throw Error(`Ability ${ability.name} gauge condition not satisfied prior to snapshot`);
+                }
+            }
+        }
         const {
             buffs,
             combinedEffects,
@@ -992,16 +1108,16 @@ export class CycleProcessor {
         // Enough time for entire GCD
         // if (gcdFinishedAt <= this.totalTime) {
         const dmgInfo = this.modifyDamage(abilityToDamageNew(this.stats, ability, combinedEffects), ability, buffs);
-        const appDelayFromSnapshot = appDelay(ability);
+        const appDelayFromSnapshot = damageAppDelay(ability);
         const appDelayFromStart = appDelayFromSnapshot + snapshotDelayFromStart;
-        const finalBuffs: Buff[] = Array.from(new Set<Buff>([
+        const finalBuffs: Buff[] = this._simple ? [] : Array.from(new Set<Buff>([
             ...preBuffs,
             ...buffs]))
             .filter(buff => {
                 return buffRelevantAtStart(buff) && preBuffs.includes(buff)
                     || buffRelevantAtSnapshot(buff) && buffs.includes(buff);
             });
-        const usedAbility: PreDmgUsedAbility = ({
+        const usedAbility: PreDmgUsedAbility<GaugeStateTypeOfMgr<GaugeManagerType>> = ({
             ability: ability,
             // We want to take the 'haste' value from the pre-snapshot values, but everything else should
             // come from when the ability snapshotted.
@@ -1021,6 +1137,7 @@ export class CycleProcessor {
             castTimeFromStart: effectiveCastTime,
             snapshotTimeFromStart: snapshotDelayFromStart,
             lockTime: effectiveAnimLock,
+            gaugeAfter: this.gaugeManager.gaugeSnapshot() as GaugeStateTypeOfMgr<GaugeManagerType>,
         });
         this.addAbilityUse(usedAbility);
         // Since we don't have proper modeling for situations where you need to delay something to catch a buff,
@@ -1029,7 +1146,8 @@ export class CycleProcessor {
         // is the snapshot-to-application delta only, and the animation lock also needs to have the time so far
         // subtracted.
         // TODO: fix this limitation
-        const buffDelay = Math.max(0, Math.min(appDelayFromSnapshot, effectiveAnimLock - snapshotDelayFromStart));
+        const buffApplicationDelay = buffAppDelay(ability);
+        const buffDelay = Math.max(0, Math.min(buffApplicationDelay, effectiveAnimLock - snapshotDelayFromStart));
         // Activate buffs afterwards
         if (ability.activatesBuffs) {
             ability.activatesBuffs.forEach(buff => this.activateBuffWithDelay(buff, buffDelay));
@@ -1096,6 +1214,55 @@ export class CycleProcessor {
         const readyAt = this.cdTracker.statusOf(action).readyAt.absolute;
         const maxDelayAt = this.nextGcdTime - animationLock(action);
         return readyAt <= Math.min(maxDelayAt, this.totalTime);
+    }
+
+    /**
+     * Given an ordered priority list of oGCDs, return a list of the highest priority two oGCDs that can be used.
+     *
+     * @param ogcds the Off-GCD abilities to check for
+     * @returns an empty list or a list of exactly two oGCDs that can be used
+     */
+    getTopTwoPriorityOgcds(ogcds: OgcdAbility[]) {
+        for (let i = 0; i < ogcds.length; i++) {
+            for (let j = 0; j < ogcds.length; j++) {
+                if (j === i) {
+                    continue;
+                }
+                const listToTry = [ogcds[i], ogcds[j]];
+                if (this.canUseOgcdsWithoutClipping(listToTry)) {
+                    return listToTry;
+                }
+            }
+        }
+        return [];
+    }
+
+    /**
+     * Determines whether or not a list of Off-GCD abilities can be used without clipping the GCD
+     *
+     * @param ogcds The Off-GCD abilities to check for
+     * @returns whether or not the abilities can be used in sequence without clipping the GCD
+     */
+    canUseOgcdsWithoutClipping(ogcds: OgcdAbility[]) {
+        const currentTime = this.currentTime;
+
+        let timeAfterOgcds = currentTime;
+        for (const ogcd of ogcds) {
+            // Time until oGCD is off CD
+            const waitTime = this.cdTracker.statusOfAt(ogcd, timeAfterOgcds).readyAt.relative;
+            // Wait for it to be off CD
+            timeAfterOgcds += waitTime;
+            // Lock or cast time
+            const lockTime = this.castTime(ogcd, this.getCombinedEffectsFor(ogcd, timeAfterOgcds).combinedEffects);
+            timeAfterOgcds += lockTime;
+            if (currentTime > timeAfterOgcds) {
+                return false;
+            }
+            else if (timeAfterOgcds > this.totalTime) {
+                return false;
+            }
+        }
+        return timeAfterOgcds <= this.nextGcdTime;
     }
 
     // Counter that makes this fail on purpose if buggy sim rotation code gets into an infinite loop
@@ -1201,8 +1368,9 @@ export class CycleProcessor {
             castTimeFromStart: 0,
             snapshotTimeFromStart: 0,
             lockTime: 0,
+            gaugeAfter: this.gaugeManager.gaugeSnapshot() as GaugeStateTypeOfMgr<GaugeManagerType>,
         });
-        const aaDelay = this.stats.aaDelay * (100 - this.stats.haste('Auto-attack') - combinedEffects.haste) / 100;
+        const aaDelay = this.stats.effectiveAaDelay(combinedEffects.haste, this.gaugeHaste);
         this.nextAutoAttackTime = this.currentTime + aaDelay;
     }
 
@@ -1264,8 +1432,8 @@ export class CycleProcessor {
 
     private combatStarting: boolean = false;
 
-    protected addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf) {
-        if (this._rowCount++ > 10_000) {
+    protected addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf<GaugeStateTypeOfMgr<GaugeManagerType>>) {
+        if (this._rowCount++ > this.maxUses) {
             throw Error("Used too many actions");
         }
         this.allRecords.push(usedAbility);
@@ -1281,8 +1449,8 @@ export class CycleProcessor {
             this.combatStarted = true;
             this.combatStarting = true;
         }
-        if (usedAbility.dot) {
-            const dotId = usedAbility.ability['dot']?.id;
+        if (usedAbility.dot && 'dot' in usedAbility.ability) {
+            const dotId = usedAbility.ability.dot?.id;
             // If the ability places a DoT, then check if we need to cut off an existing DoT
             if (dotId !== undefined) {
                 const existing = this.dotMap.get(dotId);
@@ -1340,6 +1508,10 @@ export class CycleProcessor {
         });
     }
 
+    get gaugeHaste(): number {
+        return this.gaugeManager.haste ?? 0;
+    }
+
     /**
      * Determine the effective cast time of an ability, assuming it is cast at the current time with the given set of
      * buffs.
@@ -1350,7 +1522,7 @@ export class CycleProcessor {
     castTime(ability: Ability, effects: CombinedBuffEffect): number {
         const base = ability.cast ?? (STANDARD_ANIMATION_LOCK + CASTER_TAX);
         const stats = effects.modifyStats(this.stats);
-        const haste = effects.haste + stats.haste(ability.attackType);
+        const haste = stats.haste(ability.attackType, effects.haste, this.gaugeHaste);
         return ability.fixedGcd ? base :
             (ability.attackType === "Spell") ?
                 (stats.gcdMag(base ?? this.gcdBase, haste)) :
@@ -1372,7 +1544,7 @@ export class CycleProcessor {
 
         const base = ability.gcd;
         const stats = effects.modifyStats(this.stats);
-        const haste = effects.haste + stats.haste(ability.attackType);
+        const haste = stats.haste(ability.attackType, effects.haste, this.gaugeHaste);
         return ability.fixedGcd ? base :
             (ability.attackType === "Spell") ?
                 (stats.gcdMag(base ?? this.gcdBase, haste)) :
@@ -1423,7 +1595,7 @@ export class CycleProcessor {
      *
      * @param cycleFunction
      */
-    oneCycle(cycleFunction: CycleFunction) {
+    oneCycle(cycleFunction: CycleFunction<GaugeManagerType>) {
         if (this.currentCycle < 0) {
             this.currentCycle = 0;
             this.firstCycleStartTime = this.currentTime;
@@ -1485,7 +1657,7 @@ export class CycleProcessor {
      *
      * @param cycleFunction
      */
-    remainingCycles(cycleFunction: CycleFunction) {
+    remainingCycles(cycleFunction: CycleFunction<GaugeManagerType>) {
         while (this.remainingGcdTime > 0) {
             this.oneCycle(cycleFunction);
         }
@@ -1582,9 +1754,13 @@ export class CycleProcessor {
                 }
             }
         }
+        if (hasGaugeUpdate<GaugeManagerType>(ability)) {
+            ability.updateGauge(this.gaugeManager);
+        }
         return ability;
     }
 
+    // TODO: this should not look at buffs directly. It should only be concerned with CombinedBuffEffects
     private modifyDamage(originalDamage: DamageResult, ability: Ability, buffs: Buff[]): DamageResult {
         let damage: DamageResult = originalDamage;
         for (const buff of buffs) {
@@ -1643,16 +1819,18 @@ export type SpecialRecord = {
     label: string
 }
 
-export type PreDmgAbilityUseRecordUnf = PreDmgUsedAbility;
+export type EmptyGauge = {}
 
-export type PreDmgDisplayRecordUnf = PreDmgAbilityUseRecordUnf | SpecialRecord;
+export type PreDmgAbilityUseRecordUnf<GaugeType = EmptyGauge> = PreDmgUsedAbility<GaugeType>;
 
-export type PostDmgDisplayRecordUnf = PostDmgUsedAbility | SpecialRecord;
+export type PreDmgDisplayRecordUnf<GaugeType = EmptyGauge> = PreDmgAbilityUseRecordUnf<GaugeType> | SpecialRecord;
 
-export type DisplayRecordFinalized = FinalizedAbility | SpecialRecord;
+export type PostDmgDisplayRecordUnf<GaugeType> = PostDmgUsedAbility<GaugeType> | SpecialRecord;
 
-export interface CycleSimResult extends SimResult {
-    abilitiesUsed: readonly FinalizedAbility[],
+export type DisplayRecordFinalized<GaugeType = EmptyGauge> = FinalizedAbility<GaugeType> | SpecialRecord;
+
+export interface CycleSimResult<GaugeType = EmptyGauge> extends SimResult {
+    abilitiesUsed: readonly FinalizedAbility<GaugeType>[],
     displayRecords: readonly DisplayRecordFinalized[],
     unbuffedPps: number,
     buffTimings: readonly BuffUsage[],
@@ -1725,7 +1903,7 @@ function updateComboTracker(combo: ComboData, ability: Ability, tracker: ComboTr
             tracker.lastComboAbility = null;
             break;
         case "nobreak":
-        // Do nothing
+            // Do nothing
             break;
     }
     return out;

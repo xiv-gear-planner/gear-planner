@@ -1,34 +1,57 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
     "target": "es2022",
     "sourceMap": true,
-    "outDir": "build",
+    "moduleResolution": "nodenext",
+    "outDir": "./build",
+    "module": "nodenext",
+    "strict": true,
     "noImplicitReturns": true,
+    "noImplicitAny": true,
     "strictBindCallApply": true,
-//    "strictFunctionTypes": true,
-//    "strictPropertyInitialization": true
     "allowSyntheticDefaultImports": true,
-    "rootDir": "."
+    "rootDir": ".",
+    "composite": true,
+    "skipLibCheck": true
   },
   "exclude": [
-    "node_modules"
+    "./node_modules",
+    "./dist",
+    "*.d.ts"
   ],
   "references": [
     {
-      "path": "./packages/xivmath"
+      "path": "./packages/backend-resolver"
+    },
+    {
+      "path": "./packages/common-ui"
     },
     {
       "path": "./packages/core"
     },
     {
+      "path": "./packages/data-api-client"
+    },
+    {
+      "path": "./packages/user-data-client"
+    },
+    {
+      "path": "./packages/account-service-client"
+    },
+    {
       "path": "./packages/frontend"
     },
     {
-      "path": "./packages/backend-resolver"
+      "path": "./packages/i18n"
     },
     {
-      "path": "./packages/data-api-client"
+      "path": "./packages/math-frontend"
+    },
+    {
+      "path": "./packages/util"
+    },
+    {
+      "path": "./packages/xivmath"
     }
   ]
 }

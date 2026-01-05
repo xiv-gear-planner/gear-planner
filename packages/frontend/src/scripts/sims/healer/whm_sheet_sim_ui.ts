@@ -1,10 +1,8 @@
-import { FieldBoundCheckBox, labeledCheckbox, FieldBoundFloatField, nonNegative, labelFor, quickElement } from "@xivgear/common-ui/components/util";
-import { SimulationGui } from "../simulation_gui";
-import { WhmSheetSimResult, WhmSheetSettings } from "@xivgear/core/sims/healer/whm_sheet_sim";
+import {FieldBoundCheckBox, labeledCheckbox, FieldBoundFloatField, nonNegative, labelFor, quickElement} from "@xivgear/common-ui/components/util";
+import {SimulationGui} from "../simulation_gui";
+import {WhmSheetSimResult, WhmSheetSettings} from "@xivgear/core/sims/healer/whm_sheet_sim";
 
 export class WhmSheetSimGui extends SimulationGui<WhmSheetSimResult, WhmSheetSettings, WhmSheetSettings> {
-    makeToolTip = null;
-    makeResultDisplay = null;
 
     makeConfigInterface(settings: WhmSheetSettings): HTMLElement {
 

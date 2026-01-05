@@ -1,40 +1,53 @@
 {
   "name": "gearplan",
   "version": "1.0.0",
-  "type": "module",
-  "browser": {
-    "[module-name]": false
-  },
   "workspaces": [
+    "packages/util",
+    "packages/i18n",
+    "packages/data-api-client",
+    "packages/account-service-client",
+    "packages/user-data-client",
     "packages/xivmath",
     "packages/core",
+    "packages/backend-resolver",
     "packages/common-ui",
     "packages/frontend",
-    "packages/math-frontend",
-    "packages/backend-resolver",
-    "packages/data-api-client"
+    "packages/math-frontend"
   ],
   "devDependencies": {
     "@eslint/js": "^9.13.0",
-    "@stylistic/eslint-plugin-js": "^2.9.0",
+    "@stylistic/eslint-plugin-js": "^2.13.0",
     "@types/eslint": "^9.6.1",
-    "eslint": "^9.13.0",
+    "eslint": "^9.27.0",
     "eslint-plugin-chai-friendly": "^1.0.1",
+    "eslint-plugin-named-import-spacing": "^1.0.3",
     "http-server": "^14.1.1",
     "nyc": "^17.1.0",
-    "swagger-typescript-api": "^13.0.22",
+    "stylelint": "^16.19.1",
+    "stylelint-config-standard": "^38.0.0",
+    "stylelint-config-standard-less": "^3.0.1",
+    "stylelint-less": "^3.0.1",
+    "swagger-typescript-api": "^13.1.3",
     "ts-node": "^10.9.2",
-    "typescript": "^5.6.3",
-    "typescript-eslint": "^8.10.0",
-    "webpack-dev-server": "^5.1.0"
+    "tsconfig-paths-webpack-plugin": "^4.2.0",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.32.1",
+    "webpack-bundle-analyzer": "^5.0.1",
+    "webpack-dev-server": "^5.2.1"
   },
   "scripts": {
     "build": "npm run build --workspaces",
+    "buildprod": "npm run buildprod --workspaces",
     "docs": "npx --workspaces typedoc --json build/docs.json --exclude '**/scripts/test/**/*.ts' --excludePrivate --entryPointStrategy expand src/ && npx typedoc --entryPointStrategy merge packages/*/build/docs.json --readme API_DOC.md --out packages/frontend/dist/docs",
     "test": "npm run --workspaces --if-present test",
     "serve": "npx -w @xivgear/gearplan-frontend webpack serve",
-    "lint": "npx -ws eslint ./src/**/*.ts --exit-on-fatal-error --max-warnings 0",
-    "dataschema": "npx -w @xivgear/data-api-client swagger-typescript-api -o ./src/ -n dataapi.ts -p https://data.xivgear.app/swagger/xivgear-reference-data-api-0.1.yml --api-class-name DataApiClient",
-    "dataschemalocal": "npx -w @xivgear/data-api-client swagger-typescript-api -o ./src/ -n dataapi.ts -p http://localhost:8085/swagger/xivgear-reference-data-api-0.1.yml --api-class-name DataApiClient"
+    "lint": "npx --workspaces eslint ./src/**/*.ts --exit-on-fatal-error --max-warnings 0",
+    "dataschema": "npx -w @xivgear/data-api-client swagger-typescript-api -o=./src/ -n=dataapi.ts -p=https://data.xivgear.app/swagger/xivgear-reference-data-api-0.1.yml --api-class-name=DataApiClient",
+    "dataschemalocal": "npx -w @xivgear/data-api-client swagger-typescript-api -o=./src/ -n=dataapi.ts -p=http://localhost:8085/swagger/xivgear-reference-data-api-0.1.yml --api-class-name=DataApiClient",
+    "accountschema": "npx -w @xivgear/account-service-client swagger-typescript-api -o=./src/ -n=accountsvc.ts -p=https://accountsvc.xivgear.app/swagger/xivgear-account-service-0.0.yml --api-class-name=AccountServiceClient --responses --disable-throw-on-error",
+    "accountschemalocal": "npx -w @xivgear/account-service-client swagger-typescript-api -o=./src/ -n=accountsvc.ts -p=http://localhost:8086/swagger/xivgear-account-service-0.0.yml --api-class-name=AccountServiceClient --responses --disable-throw-on-error",
+    "userdataschema": "npx -w @xivgear/user-data-client swagger-typescript-api -o=./src/ -n=userdata.ts -p=https://userdata.xivgear.app/swagger/xivgear-userdata-service-0.0.yml --api-class-name=UserDataClient --responses",
+    "userdataschemalocal": "npx -w @xivgear/user-data-client swagger-typescript-api -o=./src/ -n=userdata.ts -p=http://localhost:8087/swagger/xivgear-userdata-service-0.0.yml --api-class-name=UserDataClient --responses",
+    "proxy:userdata": "node scripts/userdata-proxy.js"
   }
 }
