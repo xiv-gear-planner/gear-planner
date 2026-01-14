@@ -404,6 +404,11 @@ export class GearPlanSheet {
         const dataManager = makeDataManager(this.allJobs, this.level, this.ilvlSync);
         await dataManager.loadData();
         await this.loadFromDataManager(dataManager);
+
+        if (this.shouldAddDefaultSimsToNewSheet) {
+            this.addDefaultSims();
+            this.shouldAddDefaultSimsToNewSheet = false;
+        }
     }
 
     /**
