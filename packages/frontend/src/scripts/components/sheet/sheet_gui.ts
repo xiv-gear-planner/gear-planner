@@ -1539,6 +1539,12 @@ export class GearPlanSheetGui extends GearPlanSheet {
         // Kick off sim loading if it hasn't already
         ASYNC_SIM_LOADER.load();
         await super.load();
+
+        if (this.shouldAddDefaultSimsToNewSheet) {
+            this.addDefaultSims();
+            this.shouldAddDefaultSimsToNewSheet = false;
+        }
+
         this.setupRealGui();
     }
 

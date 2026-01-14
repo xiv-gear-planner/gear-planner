@@ -85,13 +85,14 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
      */
     fromExport(importedData: SheetExport): SheetType {
         const sheet = this.construct(undefined, importedData, this.sheetManager);
-        // If sims are not specified at all in the import, add the defaults.
+        // If sims are not specified at all in the import, we want to add the
+        // defaults.
         // Note that this will not add sims if they are specified as [], only
         // if unspecified.
         // We check the import data here as the sheet will have sims = [] at this
         // point.
         if (importedData.sims === undefined) {
-            sheet.addDefaultSims();
+            sheet.shouldAddDefaultSimsToNewSheet = true;
         }
         return sheet;
     }
@@ -124,7 +125,7 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
             specialStats: importedData[0].specialStats ?? null,
         });
         if (importedData[0].sims === undefined) {
-            gearPlanSheet.addDefaultSims();
+            gearPlanSheet.shouldAddDefaultSimsToNewSheet = true;
         }
         // TODO
         // gearPlanSheet._selectFirstRowByDefault = true;
@@ -159,7 +160,7 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
             // ctor will auto-fill the rest
         };
         const gearPlanSheet = this.construct(sheetKey, fakeExport, this.sheetManager);
-        gearPlanSheet.addDefaultSims();
+        gearPlanSheet.shouldAddDefaultSimsToNewSheet = true;
         return gearPlanSheet;
     }
 
@@ -200,6 +201,7 @@ export class GearPlanSheet {
     private _partyBonus: PartyBonusAmount;
     private readonly _saveKey: string | undefined;
     private readonly _importedData: SheetExport;
+    shouldAddDefaultSimsToNewSheet: boolean;
 
     // Sheet data
     private _sets: CharacterGearSet[] = [];
