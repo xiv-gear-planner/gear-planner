@@ -36,6 +36,10 @@ export function getSimSpecByStub(stub: string): SimSpec<any, any> | undefined {
  * @param level The character level
  */
 export function getDefaultSims(job: JobName, level: SupportedLevel): SimSpec<any, any>[] {
+    if (simSpecs.length === 0) {
+        // TODO: just have a flag for whether it registered or not
+        console.warn('No simulations are registered - possible race condition');
+    }
     let defaultSims = [...simSpecs.filter(spec => {
         if (spec.supportedJobs !== undefined && !spec.supportedJobs.includes(job)) {
             return false;

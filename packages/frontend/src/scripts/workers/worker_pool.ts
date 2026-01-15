@@ -1,4 +1,4 @@
-import {GearPlanSheet} from "@xivgear/core/sheet";
+import {ExportTypes, GearPlanSheet} from "@xivgear/core/sheet";
 import {SETTINGS} from "@xivgear/common-ui/settings/persistent_settings";
 import {
     AnyJobContext,
@@ -114,7 +114,7 @@ class SheetWorker {
     async setSheet(sheet: GearPlanSheet): Promise<void> {
         this.reset();
         const innerReq: InitializationRequest = {
-            sheet: sheet.exportSheet(),
+            sheet: sheet.exportSheet(ExportTypes.SolverExport),
             jobType: "workerInitialization",
             data: undefined,
         };

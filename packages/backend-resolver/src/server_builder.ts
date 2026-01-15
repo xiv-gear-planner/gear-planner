@@ -11,7 +11,7 @@ import {
     TopLevelExport
 } from "@xivgear/xivmath/geartypes";
 import {getBisIndexUrl, getBisSheet, getBisSheetFetchUrl} from "@xivgear/core/external/static_bis";
-import {HEADLESS_SHEET_PROVIDER} from "@xivgear/core/sheet";
+import {ExportTypes, HEADLESS_SHEET_PROVIDER} from "@xivgear/core/sheet";
 import {JOB_DATA, JobName, MAX_PARTY_BONUS} from "@xivgear/xivmath/xivconstants";
 import cors from '@fastify/cors';
 import {
@@ -87,7 +87,7 @@ async function importExportSheet(request: SheetRequest, exportedPre: SheetExport
         }
     }
     await sheet.load();
-    return sheet.exportSheet(true, true);
+    return sheet.exportSheet(ExportTypes.FullStatsExport);
 }
 
 function buildServerBase() {

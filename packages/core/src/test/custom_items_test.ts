@@ -1,4 +1,4 @@
-import {HEADLESS_SHEET_PROVIDER} from "../sheet";
+import {ExportTypes, HEADLESS_SHEET_PROVIDER} from "../sheet";
 import {expect} from "chai";
 import {CharacterGearSet} from "../gear";
 import {FakeLocalStorage} from "./test_utils";
@@ -281,7 +281,7 @@ describe('Custom items support', () => {
         expect(set1.equipment.Weapon.gearItem).to.eq(gearItem);
         expect(set1.equipment.Weapon.melds).to.have.length(0);
 
-        const exported = sheet.exportSheet();
+        const exported = sheet.exportSheet(ExportTypes.InternalSave);
         const importedSheet = HEADLESS_SHEET_PROVIDER.fromExport(exported);
         await importedSheet.load();
 
