@@ -529,10 +529,11 @@ export class GearPlanSheet {
      * @param job New job. Leave unspecified/undefined to keep existing job.
      * @param level New level. Leave unspecified/undefined to keep existing level.
      * @param ilvlSync New ilvl sync. Leave unspecified or use special value 'keep' to keep existing ilvl sync.
+     * @param multiJob Whether to create the new sheet as a multi-job sheet or not.
      * @returns The saveKey of the new sheet.
      */
     saveAs(name: string, job: JobName, level: SupportedLevel, ilvlSync: number | 'keep' | undefined, multiJob: boolean): string {
-        const exported = this.exportSheet(true);
+        const exported = this.exportSheet(ExportTypes.InternalSaveAs);
         if (name !== undefined) {
             exported.name = name;
         }
@@ -555,8 +556,13 @@ export class GearPlanSheet {
     }
 
 
-    exportSims(external: boolean): SimExport[] {
-        return this._sims.filter(sim => !external || sim.settings.includeInExport).map(sim =>
+    exportSims(mode: SimExportMode): SimExport[] {
+        if (mode === 'none') {
+            return [];
+        }
+        return this._sims.filter(sim => {
+            return mode === 'all' || sim.settings.includeInExport === true;
+        }).map(sim =>
             ({
                 stub: sim.spec.stub,
                 settings: sim.exportSettings(),
@@ -564,23 +570,15 @@ export class GearPlanSheet {
             }));
     }
 
-    exportSheet(): SheetExport;
-    exportSheet(external: boolean): SheetExport;
-    exportSheet(external: boolean, fullStats: false): SheetExport;
-    exportSheet(external: boolean, fullStats: true): SheetStatsExport;
-
     /**
      * Export the sheet to serialized form.
      *
-     * @param external  Whether this is an external (shared publicly) or internal (saved locally). Certain properties,
-     * such as the save key, are not useful for external exports, so they are omitted.
-     * @param fullStats Whether to include the computedStats in the result. If true, returns SheetStatsExport instead
-     * of the plain SheetExport.
+     * @param opts Options for the export.
      */
-    exportSheet(external: boolean = false, fullStats: boolean = false): SheetExport | SheetStatsExport {
-        const sets = this._sets.map(set => {
+    exportSheet<X extends SheetExportOptions>(opts: X): ExportTypeFor<X> {
+        const sets: ExportTypeFor<X>['sets'] = this._sets.map(set => {
             const rawExport = this.exportGearSet(set, false);
-            if (fullStats) {
+            if (opts.includeStats) {
                 const augGs: SetStatsExport = {
                     ...rawExport,
                     computedStats: statsSerializationProxy(set.computedStats),
@@ -589,7 +587,7 @@ export class GearPlanSheet {
             }
             return rawExport;
         });
-        const simsExport: SimExport[] = this.exportSims(external);
+        const simsExport: SimExport[] = this.exportSims(opts.includeSims);
         const out: SheetExport = {
             name: this.sheetName,
             sets: sets,
@@ -610,9 +608,10 @@ export class GearPlanSheet {
             isMultiJob: this.isMultiJob,
             specialStats: this.activeSpecialStat ?? null,
         };
-        if (!external) {
+        if (opts.includeSaveKey) {
             out.saveKey = this._saveKey;
         }
+        // @ts-expect-error Don't know how to make it work - the only issue is that 'sets' is the wrong type.
         return out;
 
     }
@@ -708,10 +707,10 @@ export class GearPlanSheet {
      * Export a CharacterGearSet to a SetExport so that it can safely be serialized for saving or sharing.
      *
      * @param set The set to export.
-     * @param external true to include fields which are useful for exporting but not saving (e.g. including job name
-     * for single set exports).
+     * @param standalone true to create a single-set top-level export, i.e. include fields that would normally be at the
+     * sheet level, such as job and sims.
      */
-    exportGearSet(set: CharacterGearSet, external: boolean = false): SetExport | SetExportExternalSingle {
+    exportGearSet(set: CharacterGearSet, standalone: boolean = false): SetExport | SetExportExternalSingle {
         const items: { [K in EquipSlotKey]?: ItemSlotExport } = {};
         for (const k in set.equipment) {
             const equipmentKey = k as EquipSlotKey;
@@ -745,12 +744,12 @@ export class GearPlanSheet {
             description: set.description,
             isSeparator: set.isSeparator,
         };
-        if (external) {
+        if (standalone) {
             const ext = out as SetExportExternalSingle;
             ext.job = this.classJobName;
             ext.level = this.level;
             ext.ilvlSync = this.ilvlSync;
-            ext.sims = this.exportSims(true);
+            ext.sims = this.exportSims('all'); // TODO
             ext.customItems = this._customItems.map(ci => ci.export());
             ext.customFoods = this._customFoods.map(cf => cf.export());
             ext.partyBonus = this._partyBonus;
@@ -1676,3 +1675,84 @@ export type SlotIncompatibility = {
  * Describes the reason why two slots might be incompatible.
  */
 export type SlotIncompatibilityReason = 'materia-mismatch' | 'relic-stat-mismatch';
+
+export type SheetExportOptions = {
+    /*
+    External seems to be true for:
+    1. We are publishing or explicitly exporting a set
+    2. A full stats request
+
+
+    It is false for:
+    Meld solver - this is a unique case, as we want sims but not a save key
+
+    We should deprecate this and break it down into smaller options.
+     */
+    // external: boolean;
+    includeStats: boolean;
+    includeSims: SimExportMode;
+    includeSaveKey: boolean;
+}
+
+// TODO: make ternaries for the rest of the combinations
+type ExportTypeFor<X extends SheetExportOptions> = X extends {
+    includeStats: true
+} ? SheetStatsExport : SheetExport;
+
+export type SimExportMode = 'selected-only' | 'all' | 'none'
+
+/**
+ * Export options for the meld solver. The meld solver needs basically nothing, since it
+ * computes the stats on its own, does not save, and we send the sim over separately.
+ */
+export const SolverExport = {
+    includeStats: false,
+    includeSims: 'none',
+    includeSaveKey: false,
+} as const satisfies SheetExportOptions;
+
+/**
+ * Export options for a typical external export. We do not include a save key, and include only
+ * the sims that the user selected, and do not include stats.
+ */
+const ExternalExport = {
+    includeStats: false,
+    includeSims: 'selected-only',
+    includeSaveKey: false,
+} as const satisfies SheetExportOptions;
+
+/**
+ * Export options for a typical internal save. We include the save key, and all sims.
+ */
+const InternalSave = {
+    includeStats: false,
+    includeSims: 'all',
+    includeSaveKey: true,
+} as const satisfies SheetExportOptions;
+
+/**
+ * Export options for a typical internal save-as. Same as a normal save, but we do not need
+ * the save key since we will replace it with a new one anyway.
+ */
+const InternalSaveAs = {
+    includeStats: false,
+    includeSims: 'all',
+    includeSaveKey: false,
+} as const satisfies SheetExportOptions;
+
+/**
+ * Export options for the fulldata endpoint. Include stats and sims, but not a save key.
+ */
+const FullStatsExport = {
+    includeStats: true,
+    includeSims: 'all',
+    includeSaveKey: false,
+} as const satisfies SheetExportOptions;
+
+export const ExportTypes = {
+    SolverExport,
+    ExternalExport,
+    InternalSave,
+    InternalSaveAs,
+    FullStatsExport,
+} as const;

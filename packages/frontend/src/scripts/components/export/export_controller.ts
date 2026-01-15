@@ -12,7 +12,7 @@ import {
     makeUrl, makeUrlSimple, NavState, ONLY_SET_QUERY_PARAM, PATH_SEPARATOR, SELECTION_INDEX_QUERY_PARAM, VIEW_SET_HASH,
     VIEW_SHEET_HASH
 } from "@xivgear/core/nav/common_nav";
-import {GearPlanSheet} from "@xivgear/core/sheet";
+import {ExportTypes, GearPlanSheet} from "@xivgear/core/sheet";
 import {writeProxy} from "@xivgear/util/proxies";
 import {EquipSlots, Materia, XivItem} from "@xivgear/xivmath/geartypes";
 import {recordSheetEvent} from "../../analytics/analytics";
@@ -50,7 +50,7 @@ const sheetJson = {
     name: "JSON for Whole Sheet",
     exportInstantly: true,
     async doExport(sheet: GearPlanSheet): Promise<string> {
-        return JSON.stringify(sheet.exportSheet(true));
+        return JSON.stringify(sheet.exportSheet(ExportTypes.ExternalExport));
     },
 } as const as SheetExportMethod;
 
@@ -69,7 +69,7 @@ const sheetShortlink = {
             linkToSheet.searchParams.delete(SELECTION_INDEX_QUERY_PARAM);
         }
         else {
-            const exportedSheet = JSON.stringify(sheet.exportSheet(true));
+            const exportedSheet = JSON.stringify(sheet.exportSheet(ExportTypes.ExternalExport));
             linkToSheet = await putShortLink(exportedSheet);
         }
 
@@ -101,7 +101,7 @@ const linkPerSet = {
             linkToSheet = new URL(document.location.toString());
         }
         else {
-            const exportedSheet = JSON.stringify(sheet.exportSheet(true));
+            const exportedSheet = JSON.stringify(sheet.exportSheet(ExportTypes.ExternalExport));
             linkToSheet = await putShortLink(exportedSheet);
         }
 
@@ -145,7 +145,7 @@ const embedLinkPerSet = {
             linkToSheet = new URL(document.location.toString());
         }
         else {
-            const exportedSheet = JSON.stringify(sheet.exportSheet(true));
+            const exportedSheet = JSON.stringify(sheet.exportSheet(ExportTypes.ExternalExport));
             linkToSheet = await putShortLink(exportedSheet);
         }
 
@@ -293,7 +293,7 @@ class SimExportChooser extends HTMLElement {
     constructor(sheet: GearPlanSheet, callback: () => void) {
         super();
         const header = document.createElement('h3');
-        if (!sheet.isViewOnly) {
+        if (!sheet.isViewOnly && sheet.sims.length > 0) {
             header.textContent = 'Choose Sims to Export';
             this.appendChild(header);
             const inner = document.createElement('div');
@@ -448,7 +448,7 @@ class SheetExportModal extends ExportModal<GearPlanSheet> {
             return baseUrl;
         }
 
-        const exported = this.sheet.exportSheet(true);
+        const exported = this.sheet.exportSheet(ExportTypes.ExternalExport);
         let selectedIndex = undefined;
         if (this.sheet instanceof GearPlanSheetGui) {
             selectedIndex = this.sheet.gearPlanTable.selectedIndex ?? undefined;

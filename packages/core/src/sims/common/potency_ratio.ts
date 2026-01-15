@@ -23,14 +23,14 @@ export interface PotencyRatioSimResults extends SimResult {
 /**
  * "Simulation" that only calcuates dmg/100p.
  */
-export class PotencyRatioSim implements Simulation<PotencyRatioSimResults, SimSettings, EmptyObject> {
+export class PotencyRatioSim implements Simulation<PotencyRatioSimResults, SimSettings, SimSettings> {
     exportSettings() {
         return {
             ...this.settings,
         };
     };
 
-    settings = {};
+    settings: SimSettings = {};
     shortName = "pr-sim";
     displayName = "Dmg/100p*";
 
