@@ -1,0 +1,228 @@
+import {ExcavatorReadyBuff, FullMetalMachinistBuff, HyperchargedBuff, OverheatedBuff, ReassembledBuff, WildfireBuff} from "./mch_buffs";
+import type {MchGcdAbility, MchOgcdAbility} from "./mch_types";
+
+export const HeatedSplitShot: MchGcdAbility = {
+    type: 'gcd',
+    name: 'Heated Split Shot',
+    id: 7411,
+    potency: 220,
+    attackType: 'Weaponskill',
+    gcd: 2.5,
+    cast: 0,
+    updateGauge: (gauge) => gauge.heat += 5,
+};
+
+export const HeatedSlugShot: MchGcdAbility = {
+    type: 'gcd',
+    name: 'Heated Slug Shot',
+    id: 7412,
+    potency: 320,
+    attackType: 'Weaponskill',
+    gcd: 2.5,
+    cast: 0,
+    updateGauge: (gauge) => gauge.heat += 5,
+};
+
+export const HeatedCleanShot: MchGcdAbility = {
+    type: 'gcd',
+    name: 'Heated Clean Shot',
+    id: 7413,
+    potency: 420,
+    attackType: 'Weaponskill',
+    gcd: 2.5,
+    cast: 0,
+    updateGauge: (gauge) => {
+        gauge.heat += 5;
+        gauge.battery += 10;
+    },
+};
+
+export const Drill: MchGcdAbility = {
+    type: 'gcd',
+    name: 'Drill',
+    id: 16498,
+    potency: 660,
+    attackType: 'Weaponskill',
+    gcd: 2.5,
+    cast: 0,
+    cooldown: {
+        time: 20,
+        charges: 2,
+    },
+};
+
+export const AirAnchor: MchGcdAbility = {
+    type: 'gcd',
+    name: 'Air Anchor',
+    id: 16500,
+    potency: 660,
+    attackType: 'Weaponskill',
+    gcd: 2.5,
+    cast: 0,
+    updateGauge: (gauge) => gauge.battery += 20,
+    cooldown: {
+        time: 40,
+        reducedBy: 'skillspeed',
+    },
+};
+
+export const Chainsaw: MchGcdAbility = {
+    type: 'gcd',
+    name: 'Chainsaw',
+    id: 25788,
+    potency: 660,
+    attackType: 'Weaponskill',
+    gcd: 2.5,
+    cast: 0,
+    activatesBuffs: [ExcavatorReadyBuff],
+    updateGauge: (gauge) => gauge.battery += 20,
+    cooldown: {
+        time: 60,
+        reducedBy: 'skillspeed',
+    },
+};
+
+export const Excavator: MchGcdAbility = {
+    type: 'gcd',
+    name: 'Excavator',
+    id: 36981,
+    potency: 660,
+    attackType: 'Weaponskill',
+    gcd: 2.5,
+    cast: 0,
+    activatesBuffs: [],
+    updateGauge: (gauge) => gauge.battery += 20,
+};
+
+export const FullMetalField: MchGcdAbility = {
+    type: 'gcd',
+    name: 'Full Metal Field',
+    id: 36982,
+    potency: 900,
+    attackType: 'Weaponskill',
+    gcd: 2.5,
+    autoCrit: true,
+    autoDh: true,
+};
+
+export const BlazingShot: MchGcdAbility = {
+    type: 'gcd',
+    name: 'Blazing Shot',
+    id: 36978,
+    potency: 240,
+    attackType: 'Weaponskill',
+    gcd: 1.5,
+};
+
+export const DoubleCheck: MchOgcdAbility = {
+    type: 'ogcd',
+    name: 'Double Check',
+    id: 36979,
+    potency: 180,
+    attackType: 'Ability',
+    cooldown: {
+        time: 30,
+        charges: 3,
+    },
+};
+
+export const Checkmate: MchOgcdAbility = {
+    type: 'ogcd',
+    name: 'Checkmate',
+    id: 36980,
+    potency: 180,
+    attackType: 'Ability',
+    cooldown: {
+        time: 30,
+        charges: 3,
+    },
+};
+
+export const BarrelStabilizer: MchOgcdAbility = {
+    type: 'ogcd',
+    name: 'Barrel Stabilizer',
+    id: 7414,
+    potency: null,
+    attackType: 'Ability',
+    activatesBuffs: [FullMetalMachinistBuff, HyperchargedBuff],
+};
+
+export const Hypercharge: MchOgcdAbility = {
+    type: 'ogcd',
+    name: 'Hypercharge',
+    id: 17209,
+    potency: 0,
+    attackType: 'Ability',
+    activatesBuffs: [OverheatedBuff],
+    updateGauge: (gauge) => gauge.heat -= 50,
+    cooldown: {
+        time: 10,
+    },
+};
+
+// Check how to apply wildfire damage
+export const Wildfire: MchOgcdAbility = {
+    type: 'ogcd',
+    name: 'Wildfire',
+    id: 2878,
+    potency: 0, // potency is calculated during sim
+    attackType: 'Ability',
+    activatesBuffs: [WildfireBuff],
+    cooldown: {
+        time: 120,
+    },
+};
+
+export const Reassemble: MchOgcdAbility = {
+    type: 'ogcd',
+    name: 'Reassemble',
+    id: 2876,
+    potency: 0,
+    attackType: 'Ability',
+    activatesBuffs: [ReassembledBuff],
+    cooldown: {
+        time: 55,
+        charges: 2,
+    },
+};
+
+export const AutomatonQueen: MchOgcdAbility = {
+    type: 'ogcd',
+    name: 'Automaton Queen',
+    id: 16501,
+    potency: 0,
+    attackType: 'Ability',
+    cooldown: {
+        time: 20.5,
+    },
+};
+
+export const AutomatonQueenArmPunch: MchOgcdAbility = {
+    type: 'ogcd',
+    name: '(Automaton Queen) Arm Punch',
+    alternativeScalings: ['Pet Action Weapon Damage'], // apparently wrong, look at living shadow
+    animationLock: 0,
+    id: 16504,
+    potency: 0, // potency is calculated during sim
+    attackType: 'Ability',
+};
+
+export const AutomatonQueenPileBunker: MchOgcdAbility = {
+    type: 'ogcd',
+    name: '(Automaton Queen) Pile Bunker',
+    alternativeScalings: ['Pet Action Weapon Damage'],
+    animationLock: 0,
+    id: 16503,
+    potency: 0, // potency is calculated during sim
+    attackType: 'Ability',
+};
+
+export const AutomatonQueenCrownedCollider: MchOgcdAbility = {
+    type: 'ogcd',
+    name: '(Automaton Queen) Crowned Collider',
+    alternativeScalings: ['Pet Action Weapon Damage'],
+    animationLock: 0,
+    id: 25787,
+    potency: 0, // potency is calculated during sim
+    attackType: 'Ability',
+};
