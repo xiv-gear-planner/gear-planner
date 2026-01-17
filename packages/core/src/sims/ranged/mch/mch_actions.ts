@@ -161,6 +161,7 @@ export const Hypercharge: MchOgcdAbility = {
 };
 
 // Check how to apply wildfire damage
+// also remember that wildfire cannot dh/crit
 export const Wildfire: MchOgcdAbility = {
     type: 'ogcd',
     name: 'Wildfire',
