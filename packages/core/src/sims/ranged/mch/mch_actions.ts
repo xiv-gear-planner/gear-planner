@@ -10,7 +10,7 @@ export const HeatedSplitShot: MchGcdAbility = {
     gcd: 2.5,
     cast: 0,
     updateGauge: (gauge) => gauge.heat += 5,
-};
+} as const;
 
 export const HeatedSlugShot: MchGcdAbility = {
     type: 'gcd',
@@ -21,7 +21,7 @@ export const HeatedSlugShot: MchGcdAbility = {
     gcd: 2.5,
     cast: 0,
     updateGauge: (gauge) => gauge.heat += 5,
-};
+} as const;
 
 export const HeatedCleanShot: MchGcdAbility = {
     type: 'gcd',
@@ -35,7 +35,7 @@ export const HeatedCleanShot: MchGcdAbility = {
         gauge.heat += 5;
         gauge.battery += 10;
     },
-};
+} as const;
 
 export const Drill: MchGcdAbility = {
     type: 'gcd',
@@ -49,7 +49,7 @@ export const Drill: MchGcdAbility = {
         time: 20,
         charges: 2,
     },
-};
+} as const;
 
 export const AirAnchor: MchGcdAbility = {
     type: 'gcd',
@@ -64,7 +64,7 @@ export const AirAnchor: MchGcdAbility = {
         time: 40,
         reducedBy: 'skillspeed',
     },
-};
+} as const;
 
 export const Chainsaw: MchGcdAbility = {
     type: 'gcd',
@@ -80,7 +80,7 @@ export const Chainsaw: MchGcdAbility = {
         time: 60,
         reducedBy: 'skillspeed',
     },
-};
+} as const;
 
 export const Excavator: MchGcdAbility = {
     type: 'gcd',
@@ -92,7 +92,7 @@ export const Excavator: MchGcdAbility = {
     cast: 0,
     activatesBuffs: [],
     updateGauge: (gauge) => gauge.battery += 20,
-};
+} as const;
 
 export const FullMetalField: MchGcdAbility = {
     type: 'gcd',
@@ -103,7 +103,7 @@ export const FullMetalField: MchGcdAbility = {
     gcd: 2.5,
     autoCrit: true,
     autoDh: true,
-};
+} as const;
 
 export const BlazingShot: MchGcdAbility = {
     type: 'gcd',
@@ -112,7 +112,7 @@ export const BlazingShot: MchGcdAbility = {
     potency: 240,
     attackType: 'Weaponskill',
     gcd: 1.5,
-};
+} as const;
 
 export const DoubleCheck: MchOgcdAbility = {
     type: 'ogcd',
@@ -124,7 +124,7 @@ export const DoubleCheck: MchOgcdAbility = {
         time: 30,
         charges: 3,
     },
-};
+} as const;
 
 export const Checkmate: MchOgcdAbility = {
     type: 'ogcd',
@@ -136,16 +136,20 @@ export const Checkmate: MchOgcdAbility = {
         time: 30,
         charges: 3,
     },
-};
+} as const;
 
 export const BarrelStabilizer: MchOgcdAbility = {
     type: 'ogcd',
     name: 'Barrel Stabilizer',
     id: 7414,
-    potency: null,
+    potency: 0,
     attackType: 'Ability',
+    cast: 0,
     activatesBuffs: [FullMetalMachinistBuff, HyperchargedBuff],
-};
+    cooldown: {
+        time: 120,
+    },
+} as const;
 
 export const Hypercharge: MchOgcdAbility = {
     type: 'ogcd',
@@ -158,7 +162,7 @@ export const Hypercharge: MchOgcdAbility = {
     cooldown: {
         time: 10,
     },
-};
+} as const;
 
 // Check how to apply wildfire damage
 // also remember that wildfire cannot dh/crit
@@ -172,7 +176,7 @@ export const Wildfire: MchOgcdAbility = {
     cooldown: {
         time: 120,
     },
-};
+} as const;
 
 export const Reassemble: MchOgcdAbility = {
     type: 'ogcd',
@@ -185,7 +189,7 @@ export const Reassemble: MchOgcdAbility = {
         time: 55,
         charges: 2,
     },
-};
+} as const;
 
 export const AutomatonQueen: MchOgcdAbility = {
     type: 'ogcd',
@@ -196,7 +200,7 @@ export const AutomatonQueen: MchOgcdAbility = {
     cooldown: {
         time: 20.5,
     },
-};
+} as const;
 
 export const AutomatonQueenArmPunch: MchOgcdAbility = {
     type: 'ogcd',
@@ -206,7 +210,7 @@ export const AutomatonQueenArmPunch: MchOgcdAbility = {
     id: 16504,
     potency: 0, // potency is calculated during sim
     attackType: 'Ability',
-};
+} as const;
 
 export const AutomatonQueenPileBunker: MchOgcdAbility = {
     type: 'ogcd',
@@ -216,7 +220,7 @@ export const AutomatonQueenPileBunker: MchOgcdAbility = {
     id: 16503,
     potency: 0, // potency is calculated during sim
     attackType: 'Ability',
-};
+} as const;
 
 export const AutomatonQueenCrownedCollider: MchOgcdAbility = {
     type: 'ogcd',
@@ -226,4 +230,4 @@ export const AutomatonQueenCrownedCollider: MchOgcdAbility = {
     id: 25787,
     potency: 0, // potency is calculated during sim
     attackType: 'Ability',
-};
+} as const;
