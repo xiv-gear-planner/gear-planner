@@ -1,20 +1,15 @@
 import type {CharacterGearSet} from "../../../gear";
 import type {CycleSettings} from "../../cycle_settings";
-import {CycleProcessor, type CycleSimResult, type CycleSimResultFull, type ExternalCycleSettings, type Rotation} from "../../cycle_sim";
+import {CycleProcessor, type AbilityUseResult, type CycleSimResult, type ExternalCycleSettings, type MultiCycleSettings, type PreDmgAbilityUseRecordUnf, type Rotation} from "../../cycle_sim";
 import {BaseMultiCycleSim} from "../../processors/sim_processors";
-import type {SimSettings, SimSpec, Simulation} from "../../sim_types";
-import {HeatedCleanShot, HeatedSlugShot, HeatedSplitShot} from "./mch_actions";
+import type {Ability, SimSettings, SimSpec} from "../../sim_types";
+import {AirAnchor, BarrelStabilizer, Chainsaw, Checkmate, DoubleCheck, Drill, Excavator, HeatedCleanShot, HeatedSlugShot, HeatedSplitShot} from "./mch_actions";
+import {ExcavatorReadyBuff} from "./mch_buffs";
 import {MchGauge} from "./mch_gauge";
-import type {MchAbility, MchGcdAbility} from "./mch_types";
+import type {MchAbility, MchGcdAbility, MchOgcdAbility} from "./mch_types";
 
 /**
  * Actions TODO:
- *  - 1-2-3 combo
- *  - Drill
- *  - Air Anchor
- *  - Chainsaw
- *  - Excavator
- *  - Double check/Checkmate
  *  - Barrel Stabilizer + Full Metal Field
  *  - Hypercharge
  *  - Blazing Shot
@@ -69,15 +64,146 @@ class MchCycleProcessor extends CycleProcessor {
         return action;
     }
 
+    // Always use as soon as available
+    private canUseAirAnchor(): boolean {
+        return this.cdTracker.canUse(AirAnchor, this.nextGcdTime);
+    }
+
+    // Always use, unless < 2 charges & chainsaw is available
+    private canUseDrill(): boolean {
+        if (this.cdTracker.statusOf(Drill).currentCharges < 2
+            && (this.canUseChainsaw() || this.canUseExcavator())) {
+            // Do not use drill if Chainsaw/Excavator are available.
+            return false;
+        }
+        return this.cdTracker.canUse(Drill, this.nextGcdTime);
+    }
+
+    // Always use as soon as available
+    private canUseChainsaw(): boolean {
+        return this.cdTracker.canUse(Chainsaw, this.nextGcdTime);
+    }
+
+    // Use if Excavator Ready buff is available
+    // TODO: hold for 10 battery
+    private canUseExcavator(): boolean {
+        return this.getActiveBuffs().includes(ExcavatorReadyBuff);
+    }
+
+    // Use as soon as possible
+    // Check for 1 use of Drill is to check if rotation is started in opener (we want to use CM/DC between Chainsaw and Drill)
+    private canUseBarrelStabilizer(): boolean {
+        if (this.cdTracker.statusOf(Drill).currentCharges === 2) {
+            return false;
+        }
+        return this.cdTracker.canUse(BarrelStabilizer);
+    }
+
+    private canUseCheckmate(): boolean {
+        const cmStatus = this.cdTracker.statusOf(Checkmate);
+        const dcStatus = this.cdTracker.statusOf(DoubleCheck);
+
+        if (cmStatus.currentCharges === 0) {
+            return false;
+        }
+        if (cmStatus.currentCharges === 3) { // only on opener
+            return true;
+        }
+        if (cmStatus.currentCharges > dcStatus.currentCharges) { // prioritize the one that has more charges
+            return true;
+        }
+        if (cmStatus.cappedAt.relative < dcStatus.cappedAt.relative) { // prioritize the one that will cap earlier
+            return true;
+        }
+        // we need more conditions here
+        return true;
+    }
+
+    // basically the opposite of above
+    private canUseDoubleCheck(): boolean {
+        const cmStatus = this.cdTracker.statusOf(Checkmate);
+        const dcStatus = this.cdTracker.statusOf(DoubleCheck);
+
+        if (dcStatus.currentCharges === 0) {
+            return false;
+        }
+        if (dcStatus.currentCharges === 3) { // only on opener
+            return true;
+        }
+        if (dcStatus.currentCharges > cmStatus.currentCharges) { // prioritize the one that has more charges
+            return true;
+        }
+        if (dcStatus.cappedAt.relative < cmStatus.cappedAt.relative) { // prioritize the one that will cap earlier
+            return true;
+        }
+        // we need more conditions here
+        return false;
+    }
+
+    private getNextGcdAbility(): MchGcdAbility {
+        if (this.canUseAirAnchor()) {
+            return AirAnchor;
+        }
+        if (this.canUseDrill()) {
+            return Drill;
+        }
+        if (this.canUseChainsaw()) {
+            return Chainsaw;
+        }
+        if (this.canUseExcavator()) {
+            return Excavator;
+        }
+
+        return this.getNextComboAbility();
+    }
+
+    private getNextOgcdAbility(): MchOgcdAbility | null {
+        if (this.canUseBarrelStabilizer()) {
+            return BarrelStabilizer;
+        }
+        if (this.canUseCheckmate()) {
+            return Checkmate;
+        }
+        if (this.canUseDoubleCheck()) {
+            return DoubleCheck;
+        }
+
+        return null;
+    }
+
     private updateGauge(ability: MchAbility) {
         ability.updateGauge?.(this.gauge);
     }
 
-    useNextAbility() {
-        const ability = this.getNextComboAbility();
+    override addAbilityUse(ability: PreDmgAbilityUseRecordUnf) {
+        super.addAbilityUse({
+            ...ability,
+            extraData: {
+                gauge: {
+                    heat: this.gauge.heat,
+                    battery: this.gauge.battery,
+                },
+            },
+        });
+    }
 
+    override use(ability: Ability): AbilityUseResult {
         this.updateGauge(ability);
-        this.use(ability);
+        return super.use(ability);
+    }
+
+    executeNextGcd() {
+        const gcdAbility = this.getNextGcdAbility();
+
+        this.use(gcdAbility);
+    }
+
+    executeNextOgcd() {
+        const ogcdAbility = this.getNextOgcdAbility();
+
+        if (ogcdAbility !== null) {
+            this.use(ogcdAbility);
+        }
     }
 }
 
@@ -105,10 +231,20 @@ export class MchSheetSim extends BaseMultiCycleSim<MchSimResult, MchSimSettings,
         };
     }
 
+    override createCycleProcessor(settings: MultiCycleSettings) {
+        return new MchCycleProcessor(settings);
+    }
+
     override getRotationsToSimulate(set: CharacterGearSet): Rotation<MchCycleProcessor>[] {
         return [{
             cycleTime: 120,
-            apply: (cycleProcessor) => cycleProcessor.remainingCycles(() => cycleProcessor.useNextAbility()),
+            apply: (cycleProcessor) => {
+                while (cycleProcessor.remainingGcdTime) {
+                    cycleProcessor.executeNextGcd();
+                    cycleProcessor.executeNextOgcd();
+                    cycleProcessor.executeNextOgcd();
+                }
+            },
         }];
     }
 }
