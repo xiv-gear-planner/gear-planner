@@ -52,10 +52,22 @@ export async function xivApiSingleCols<Columns extends readonly string[]>(sheet:
     });
 }
 
+/**
+ * Get the xivapi asset URL for a given asset path and image format
+ *
+ * @param assetPath
+ * @param format
+ */
 export function xivApiAsset(assetPath: string, format: 'png' | 'jpg' | 'webp' = 'webp') {
     return `${XIVAPI_BASE_URL}/asset?path=${encodeURIComponent(assetPath)}&format=${format}`;
 }
 
+/**
+ * Get the xivapi asset URL for a given icon ID, in the default image format.
+ *
+ * @param iconId
+ * @param highRes
+ */
 export function xivApiIconUrl(iconId: number, highRes: boolean = false): string {
     // Pad to 6 digits, e.g. 19581 -> '019581'
     const asStr = iconId.toString(10).padStart(6, '0');
