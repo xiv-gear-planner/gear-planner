@@ -615,7 +615,7 @@ export class DataApiGearInfo implements GearItem {
         }
         this.equipLvl = data.equipLevel;
         this.ilvl = data.ilvl;
-        this.iconUrl = new URL(data.icon.pngIconUrl);
+        this.iconUrl = new URL(data.icon.url);
         const slotMap = new DataApiEquipSlotMap(data.equipSlotCategory);
         this.displayGearSlotName = slotMap.displayGearSlotName;
         this.occGearSlotName = slotMap.occGearSlotName;
@@ -884,7 +884,7 @@ export class DataApiFoodInfo implements FoodItem {
     constructor(data: ApiFoodData) {
         this.id = requireNumber(data.rowId);
         this.name = requireString(data.name);
-        this.iconUrl = new URL(data.icon.pngIconUrl);
+        this.iconUrl = new URL(data.icon.url);
         this.ilvl = requireNumber(data.levelItem);
         this.nameTranslation = toTranslatable(this.name, data.nameTranslations);
         for (const rawKey in data.bonusesHQ) {
@@ -922,7 +922,7 @@ export function processRawMateriaInfo(data: ApiMateriaData): Materia[] {
             name: itemName,
             nameTranslation: toTranslatable(itemName, itemData.nameTranslations),
             id: itemId,
-            iconUrl: new URL(itemData.icon.pngIconUrl),
+            iconUrl: new URL(itemData.icon.url),
             stats: stats,
             primaryStat: stat,
             primaryStatValue: stats[stat],

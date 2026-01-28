@@ -52,7 +52,7 @@ export async function xivApiSingleCols<Columns extends readonly string[]>(sheet:
     });
 }
 
-export function xivApiAsset(assetPath: string, format: 'png' | 'jpg' = 'png') {
+export function xivApiAsset(assetPath: string, format: 'png' | 'jpg' | 'webp' = 'webp') {
     return `${XIVAPI_BASE_URL}/asset?path=${encodeURIComponent(assetPath)}&format=${format}`;
 }
 
@@ -61,7 +61,7 @@ export function xivApiIconUrl(iconId: number, highRes: boolean = false): string 
     const asStr = iconId.toString(10).padStart(6, '0');
     // Get the xivapi directory, e.g. 19581 -> 019000
     const directory = asStr.substring(0, 3) + '000';
-    return xivApiAsset(`ui/icon/${directory}/${asStr}${highRes ? '_hr1' : ''}.tex`, 'png');
+    return xivApiAsset(`ui/icon/${directory}/${asStr}${highRes ? '_hr1' : ''}.tex`);
 }
 
 export function setXivApiIcon(img: HTMLImageElement, iconId: number, lrIntrinsicSize: [number, number], renderSize: [number, number]) {
