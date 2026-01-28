@@ -55,8 +55,8 @@ export async function xivApiSingleCols<Columns extends readonly string[]>(sheet:
 /**
  * Get the xivapi asset URL for a given asset path and image format
  *
- * @param assetPath
- * @param format
+ * @param assetPath The asset path, e.g. 'ui/icon/019000/019581_hr1.tex'
+ * @param format The image format, e.g. 'png'
  */
 export function xivApiAsset(assetPath: string, format: 'png' | 'jpg' | 'webp' = 'webp') {
     return `${XIVAPI_BASE_URL}/asset?path=${encodeURIComponent(assetPath)}&format=${format}`;
@@ -65,8 +65,8 @@ export function xivApiAsset(assetPath: string, format: 'png' | 'jpg' | 'webp' = 
 /**
  * Get the xivapi asset URL for a given icon ID, in the default image format.
  *
- * @param iconId
- * @param highRes
+ * @param iconId The icon id
+ * @param highRes Whether to use the high resolution (_hr1) version of the icon
  */
 export function xivApiIconUrl(iconId: number, highRes: boolean = false): string {
     // Pad to 6 digits, e.g. 19581 -> '019581'
