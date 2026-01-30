@@ -1,4 +1,4 @@
-import type {Ability, AutoAttack, GcdAbility, OgcdAbility, PreDmgUsedAbility} from "../../sim_types";
+import type {Ability, GcdAbility, OgcdAbility, PreDmgUsedAbility} from "../../sim_types";
 import type {MchGauge} from "./mch_gauge";
 
 interface MchSpecificFields {
