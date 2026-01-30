@@ -182,6 +182,7 @@ class MchCycleProcessor extends CycleProcessor {
 
         while (recastTimers.length > 0) {
             if (recastTimers[recastTimers.length - 1] < 0) {
+                console.warn('not using hypercharge due to potential gcd drift ' + recastTimers.toString());
                 return true;
             }
             recastTimers.pop();
@@ -197,14 +198,14 @@ class MchCycleProcessor extends CycleProcessor {
         if (buffs.includes(HyperchargedBuff) && !buffs.includes(FullMetalMachinistBuff)) {
             return true;
         }
-        if (this.gauge.heat <= 50) {
+        if (this.gauge.heat < 50) {
             return false;
         }
         if (this.wouldHyperchargeGcdDrift()) {
             return false;
         }
         // TODO: hold hypercharged for burst window
-        return false;
+        return true;
     }
 
     private getNextGcdAbility(): MchGcdAbility {
