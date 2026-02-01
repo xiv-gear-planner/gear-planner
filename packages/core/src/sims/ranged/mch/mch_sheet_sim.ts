@@ -16,7 +16,7 @@ import type {MchAbility, MchGcdAbility, MchOgcdAbility} from "./mch_types";
  */
 
 const COMBO_ACTIONS = [HeatedSplitShot, HeatedSlugShot, HeatedCleanShot];
-const HYPERCHARGE_GCD_DURATION = BlazingShot.gcd * 5;
+
 
 export interface MchSimSettings extends SimSettings {
     usePots: boolean;
@@ -70,8 +70,20 @@ class MchCycleProcessor extends CycleProcessor {
         return action;
     }
 
+    /**
+     * Returns the time before the next burst window.
+     *
+     * @param [delay=0] Additional delay, useful for calculating the time before some point inside the burst window.
+     */
+    private timeBeforeNextBurstWindow(delay: number = 0) {
+        return (120 + delay - this.nextGcdTime % 120) % 120;
+    }
+
     // Always use as soon as available
     private canUseAirAnchor(): boolean {
+        if (this.cdTracker.canUse(AirAnchor, this.nextGcdTime) === false) {
+            console.warn(`air anchor is back in ${this.cdTracker.statusOf(AirAnchor).readyAt.relative}, next gcd is ${this.nextGcdTime}`);
+        }
         return this.cdTracker.canUse(AirAnchor, this.nextGcdTime);
     }
 
@@ -156,6 +168,9 @@ class MchCycleProcessor extends CycleProcessor {
         if (dcStatus.currentCharges === 3) { // only on opener
             return true;
         }
+        if (this.cdTracker.canUse(Chainsaw) || this.getActiveBuffs().includes(ExcavatorReadyBuff)) { // hold during opener to after chainsaw and excavator are used
+            return false;
+        }
         if (dcStatus.currentCharges > cmStatus.currentCharges) { // prioritize the one that has more charges
             return true;
         }
@@ -182,7 +197,6 @@ class MchCycleProcessor extends CycleProcessor {
 
         while (recastTimers.length > 0) {
             if (recastTimers[recastTimers.length - 1] < 0) {
-                console.warn('not using hypercharge due to potential gcd drift ' + recastTimers.toString());
                 return true;
             }
             recastTimers.pop();
@@ -206,6 +220,13 @@ class MchCycleProcessor extends CycleProcessor {
         }
         // TODO: hold hypercharged for burst window
         return true;
+    }
+
+    private canUseReassemble(): boolean {
+        if (this.cdTracker.statusOf(Reassemble).cappedAt.relative > this.timeBeforeNextBurstWindow(5)) { // hold one charge for burst
+            return false;
+        }
+        return this.cdTracker.canUse(Reassemble);
     }
 
     private getNextGcdAbility(): MchGcdAbility {
@@ -243,6 +264,9 @@ class MchCycleProcessor extends CycleProcessor {
         }
         if (this.canUseDoubleCheck()) {
             return DoubleCheck;
+        }
+        if (this.canUseReassemble()) {
+            return Reassemble;
         }
 
         return null;
