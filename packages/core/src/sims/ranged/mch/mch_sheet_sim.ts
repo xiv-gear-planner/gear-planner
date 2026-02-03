@@ -54,11 +54,17 @@ export class MchCycleProcessor extends CycleProcessor {
     gauge = new MchGauge();
     comboState = 0;
     ogcdsRemaining = 0;
-    nextPotWindow = 0;
+    potAbility: MchOgcdAbility;
 
     constructor(settings: MultiCycleSettings, private simSettings: MchSimSettings) {
         super(settings);
         this.gcdTimer = this.gcdTime(HeatedCleanShot);
+        this.potAbility = {
+            ...potionMaxDex,
+            cooldown: {
+                time: this.simSettings.usePotsOnOddMinute ? 60 * 5 : 60 * 6,
+            },
+        };
     }
 
     private getNextComboAbility(): MchGcdAbility {
@@ -202,6 +208,10 @@ export class MchCycleProcessor extends CycleProcessor {
         return this.cdTracker.canUse(Reassemble, this.nextGcdTime);
     }
 
+    private canPot(): boolean {
+        return this.cdTracker.canUse(this.potAbility);
+    }
+
     private getNextGcdAbility(): MchGcdAbility {
         if (this.canUseBlazingShot()) {
             return BlazingShot;
@@ -241,6 +251,9 @@ export class MchCycleProcessor extends CycleProcessor {
         if (this.canUseReassemble()) {
             return Reassemble;
         }
+        if (this.canPot()) {
+            return this.potAbility;
+        }
 
         return null;
     }
@@ -254,8 +267,19 @@ export class MchCycleProcessor extends CycleProcessor {
 
     private executeLevel100Opener() {
         this.use(Reassemble);
-        this.advanceTo(5 - STANDARD_ANIMATION_LOCK * 2, true);
-        this.use(potionMaxDex);
+        if (this.simSettings.usePots) {
+            if (!this.simSettings.skipOpenerPot) {
+                this.advanceTo(5 - STANDARD_ANIMATION_LOCK * 2, true);
+                this.use(this.potAbility);
+            }
+            else {
+                this.advanceTo(5 - STANDARD_ANIMATION_LOCK * 1, true);
+                this.cdTracker.modifyCooldown(this.potAbility, 120);
+            }
+        }
+        else {
+            this.advanceTo(5 - STANDARD_ANIMATION_LOCK * 1, true);
+        }
         this.use(AirAnchor);
         this.use(DoubleCheck);
         this.use(Checkmate);
