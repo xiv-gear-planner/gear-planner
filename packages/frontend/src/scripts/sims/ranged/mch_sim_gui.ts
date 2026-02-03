@@ -1,9 +1,8 @@
-import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
+import {FieldBoundCheckBox, FieldBoundDataSelect, labeledCheckbox} from "@xivgear/common-ui/components/util";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
 import {AbilitiesUsedTable} from "../components/ability_used_table";
 import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
 import {ColDefs, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
-import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {MchSimSettings, MchSimResult} from "@xivgear/core/sims/ranged/mch/mch_sheet_sim";
 import type {MchPreDmgUsedAbility} from "@xivgear/core/sims/ranged/mch/mch_types";
 
@@ -104,9 +103,11 @@ export class MchSimGui extends BaseMultiCycleSimGui<MchSimResult, MchSimSettings
 
         const potCb = new FieldBoundCheckBox(settings, "usePots");
         const oddPotCb = new FieldBoundCheckBox(settings, "usePotsOnOddMinute");
+        const skipOpenerPot = new FieldBoundCheckBox(settings, "skipOpenerPot");
 
         configDiv.appendChild(labeledCheckbox("Use potions", potCb));
         configDiv.appendChild(labeledCheckbox("Use potions on odd minutes", oddPotCb));
+        configDiv.appendChild(labeledCheckbox("Skip opener pot and start potting on the first burst", skipOpenerPot));
         return configDiv;
     }
 

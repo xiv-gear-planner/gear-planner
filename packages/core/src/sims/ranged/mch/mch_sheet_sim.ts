@@ -1,10 +1,11 @@
+import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import type {CharacterGearSet} from "../../../gear";
 import {potionMaxDex} from "../../common/potion";
 import type {CycleSettings} from "../../cycle_settings";
 import {CycleProcessor, type AbilityUseResult, type CycleSimResult, type ExternalCycleSettings, type MultiCycleSettings, type PreDmgAbilityUseRecordUnf, type Rotation} from "../../cycle_sim";
 import {BaseMultiCycleSim} from "../../processors/sim_processors";
 import type {Ability, SimSettings, SimSpec} from "../../sim_types";
-import {AirAnchor, BarrelStabilizer, BlazingShot, Chainsaw, Checkmate, DoubleCheck, Drill, Excavator, FullMetalField, HeatedCleanShot, HeatedSlugShot, HeatedSplitShot, Hypercharge, Reassemble} from "./mch_actions";
+import {AirAnchor, AutomatonQueen, BarrelStabilizer, BlazingShot, Chainsaw, Checkmate, DoubleCheck, Drill, Excavator, FullMetalField, HeatedCleanShot, HeatedSlugShot, HeatedSplitShot, Hypercharge, Reassemble, Wildfire} from "./mch_actions";
 import {ExcavatorReadyBuff, FullMetalMachinistBuff, HyperchargedBuff, OverheatedBuff} from "./mch_buffs";
 import {MchGauge} from "./mch_gauge";
 import type {MchAbility, MchGcdAbility, MchOgcdAbility} from "./mch_types";
@@ -17,11 +18,12 @@ import type {MchAbility, MchGcdAbility, MchOgcdAbility} from "./mch_types";
 
 const COMBO_ACTIONS = [HeatedSplitShot, HeatedSlugShot, HeatedCleanShot];
 
-
 export interface MchSimSettings extends SimSettings {
     usePots: boolean;
     // if set to true, pots would be used at 0-5-10-... instead of 0-6-12-...
-    usePotsOnOddMinute: boolean;
+    usePotsOnOddMinute: boolean; // todo
+    // if set to true, the opener pot is skipped and the first pot will happen at 2
+    skipOpenerPot: boolean;
     killTime: number;
 }
 
@@ -46,12 +48,13 @@ export const mchSheetSpec: SimSpec<MchSheetSim, MchSimSettingsExternal> = {
     loadSavedSimInstance: (settings) => new MchSheetSim(settings),
 };
 
-class MchCycleProcessor extends CycleProcessor {
+export class MchCycleProcessor extends CycleProcessor {
+    public readonly gcdTimer: number;
+
     gauge = new MchGauge();
     comboState = 0;
     ogcdsRemaining = 0;
     nextPotWindow = 0;
-    gcdTimer = 2.5;
 
     constructor(settings: MultiCycleSettings, private simSettings: MchSimSettings) {
         super(settings);
@@ -79,32 +82,27 @@ class MchCycleProcessor extends CycleProcessor {
         return (120 + delay - this.nextGcdTime % 120) % 120;
     }
 
-    // Always use as soon as available
-    private canUseAirAnchor(): boolean {
-        if (this.cdTracker.canUse(AirAnchor, this.nextGcdTime) === false) {
-            console.warn(`air anchor is back in ${this.cdTracker.statusOf(AirAnchor).readyAt.relative}, next gcd is ${this.nextGcdTime}`);
-        }
-        return this.cdTracker.canUse(AirAnchor, this.nextGcdTime);
-    }
-
-    // Always use, unless < 2 charges & chainsaw is available
+    // Always use
     private canUseDrill(): boolean {
-        if (this.cdTracker.statusOf(Drill).currentCharges < 2
-            && (this.canUseChainsaw() || this.canUseExcavator())) {
-            // Do not use drill if Chainsaw/Excavator are available.
-            return false;
-        }
+        // TODO: Hold one charge for 2min burst
         return this.cdTracker.canUse(Drill, this.nextGcdTime);
     }
 
     // Always use as soon as available
+    private canUseAirAnchor(): boolean {
+        // TODO: Possibly let it drift by one GCD to realign with 2m burst for GCDs <2.5
+        return this.cdTracker.canUse(AirAnchor, this.nextGcdTime);
+    }
+
+    // Always use as soon as available
     private canUseChainsaw(): boolean {
+        // TODO: Possibly let it drift by one GCD to realign with 2m burst for GCDs <2.5
         return this.cdTracker.canUse(Chainsaw, this.nextGcdTime);
     }
 
     // Use if Excavator Ready buff is available
-    // TODO: hold for 10 battery
     private canUseExcavator(): boolean {
+        // TODO: hold for gathering 10 battery and align 100 battery on 2m burst
         return this.getActiveBuffs().includes(ExcavatorReadyBuff);
     }
 
@@ -114,7 +112,7 @@ class MchCycleProcessor extends CycleProcessor {
 
         return buffs.includes(FullMetalMachinistBuff)
             && !buffs.includes(ExcavatorReadyBuff)
-            && !this.cdTracker.canUse(Drill);
+            && !this.cdTracker.canUse(Drill, this.nextGcdTime);
     }
 
     // Use when overheated is active
@@ -122,16 +120,9 @@ class MchCycleProcessor extends CycleProcessor {
         return this.getActiveBuffs().some((buff) => buff.name === OverheatedBuff.name);
     }
 
-    // Use as soon as possible
-    // Checks for Drill charges and Chainsaw are made to position the use of BS during the opener.
+    // Use as soon as possible, timing positioned using the opener
     private canUseBarrelStabilizer(): boolean {
-        if (this.cdTracker.statusOf(Drill).currentCharges === 2) {
-            return false;
-        }
-        if (this.cdTracker.canUse(Chainsaw)) {
-            return false;
-        }
-        return this.cdTracker.canUse(BarrelStabilizer);
+        return this.cdTracker.canUse(BarrelStabilizer, this.nextGcdTime);
     }
 
     private canUseCheckmate(): boolean {
@@ -141,19 +132,10 @@ class MchCycleProcessor extends CycleProcessor {
         if (cmStatus.currentCharges === 0) {
             return false;
         }
-        if (cmStatus.currentCharges === 3) { // only on opener
-            return true;
-        }
-        if (this.cdTracker.canUse(Chainsaw) || this.getActiveBuffs().includes(ExcavatorReadyBuff)) { // hold during opener to after chainsaw and excavator are used
-            return false;
-        }
-        if (cmStatus.currentCharges > dcStatus.currentCharges) { // prioritize the one that has more charges
-            return true;
-        }
+        // TODO: hold one charge for the 2min burst
         if (cmStatus.cappedAt.relative < dcStatus.cappedAt.relative) { // prioritize the one that will cap earlier
             return true;
         }
-        // we need more conditions here
         return false;
     }
 
@@ -165,33 +147,24 @@ class MchCycleProcessor extends CycleProcessor {
         if (dcStatus.currentCharges === 0) {
             return false;
         }
-        if (dcStatus.currentCharges === 3) { // only on opener
-            return true;
-        }
-        if (this.cdTracker.canUse(Chainsaw) || this.getActiveBuffs().includes(ExcavatorReadyBuff)) { // hold during opener to after chainsaw and excavator are used
-            return false;
-        }
-        if (dcStatus.currentCharges > cmStatus.currentCharges) { // prioritize the one that has more charges
-            return true;
-        }
+        // TODO: hold one charge for the 2min burst
         if (dcStatus.cappedAt.relative < cmStatus.cappedAt.relative) { // prioritize the one that will cap earlier
             return true;
         }
-        // we need more conditions here
         return false;
     }
 
     /**
-     * Algorithm that calculates if using Hypercharge right now would make any ability drift.
+     * Algorithm that calculates if using Hypercharge right now would make any weaponskill drift.
      */
     private wouldHyperchargeGcdDrift(): boolean {
         // Yes, Blazing Shot is on a fixed 1.5s GCD timer. But with a GCD <2.5s, having a fixed 7.5s instead of 3*GCD would screw up
         // the rest of this algorithm because Air Anchor and Excavator will *always* drift by a few milliseconds, which is intended.
         const timeToHyperchargeEnd = (this.nextGcdTime - this.currentTime) + this.gcdTimer * 3;
         let recastTimers = [
-            this.cdTracker.statusOf(Drill).cappedAt.relative - timeToHyperchargeEnd,
-            this.cdTracker.statusOf(AirAnchor).readyAt.relative - timeToHyperchargeEnd,
-            this.cdTracker.statusOf(Chainsaw).readyAt.relative - timeToHyperchargeEnd,
+            this.cdTracker.statusOfAt(Drill, this.nextGcdTime).cappedAt.relative - timeToHyperchargeEnd,
+            this.cdTracker.statusOfAt(AirAnchor, this.nextGcdTime).readyAt.relative - timeToHyperchargeEnd,
+            this.cdTracker.statusOfAt(Chainsaw, this.nextGcdTime).readyAt.relative - timeToHyperchargeEnd,
             (this.getActiveBuffData(ExcavatorReadyBuff)?.end ?? Infinity) - (this.currentTime + timeToHyperchargeEnd),
         ].filter((it) => Number.isFinite(it)).sort((a, b) => b - a);
 
@@ -218,7 +191,7 @@ class MchCycleProcessor extends CycleProcessor {
         if (this.wouldHyperchargeGcdDrift()) {
             return false;
         }
-        // TODO: hold hypercharged for burst window
+        // TODO: hold 1 hypercharged for burst window
         return true;
     }
 
@@ -226,7 +199,7 @@ class MchCycleProcessor extends CycleProcessor {
         if (this.cdTracker.statusOf(Reassemble).cappedAt.relative > this.timeBeforeNextBurstWindow(5)) { // hold one charge for burst
             return false;
         }
-        return this.cdTracker.canUse(Reassemble);
+        return this.cdTracker.canUse(Reassemble, this.nextGcdTime);
     }
 
     private getNextGcdAbility(): MchGcdAbility {
@@ -279,6 +252,25 @@ class MchCycleProcessor extends CycleProcessor {
         ability.updateGauge?.(this.gauge);
     }
 
+    private executeLevel100Opener() {
+        this.use(Reassemble);
+        this.advanceTo(5 - STANDARD_ANIMATION_LOCK * 2, true);
+        this.use(potionMaxDex);
+        this.use(AirAnchor);
+        this.use(DoubleCheck);
+        this.use(Checkmate);
+        this.use(Drill);
+        this.use(Chainsaw);
+        this.use(BarrelStabilizer);
+        this.use(Excavator);
+        this.use(AutomatonQueen);
+        this.use(Reassemble);
+        this.use(Drill);
+        this.use(DoubleCheck);
+        this.use(Wildfire);
+        // rest of the opener is handled perfectly well by the normal rotation
+    }
+
     override addAbilityUse(ability: PreDmgAbilityUseRecordUnf) {
         super.addAbilityUse({
             ...ability,
@@ -304,11 +296,9 @@ class MchCycleProcessor extends CycleProcessor {
         return super.use(ability);
     }
 
-    executePrePull() {
-        this.use(Reassemble);
-        if (this.simSettings.usePots) {
-            this.use(potionMaxDex);
-        }
+    executeOpener() {
+        // TODO: Level 70, 80, 90 openers, + potential variants
+        this.executeLevel100Opener();
     }
 
     executeNextGcd() {
@@ -352,6 +342,7 @@ export class MchSheetSim extends BaseMultiCycleSim<MchSimResult, MchSimSettings,
             killTime: 510, // 8m30s
             usePots: true,
             usePotsOnOddMinute: false,
+            skipOpenerPot: false,
         };
     }
 
@@ -363,7 +354,7 @@ export class MchSheetSim extends BaseMultiCycleSim<MchSimResult, MchSimSettings,
         return [{
             cycleTime: 120,
             apply: (cycleProcessor) => {
-                cycleProcessor.executePrePull();
+                cycleProcessor.executeOpener();
                 while (cycleProcessor.remainingGcdTime) {
                     cycleProcessor.executeNextGcd();
                     cycleProcessor.executeNextOgcd();
