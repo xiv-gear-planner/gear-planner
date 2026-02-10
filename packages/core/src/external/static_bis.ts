@@ -1,3 +1,5 @@
+import {JobName} from "@xivgear/xivmath/xivconstants";
+
 export type BaseNode = {
     fileName: string,
     parent?: DirNode,
@@ -14,6 +16,11 @@ export type LeafNode = BaseNode & {
 export type DirNode = BaseNode & {
     type: 'dir',
     children: AnyNode[],
+}
+
+export type JobNode = DirNode & {
+    fileName: JobName;
+    job: JobName;
 }
 
 export type AnyNode = LeafNode | DirNode;
