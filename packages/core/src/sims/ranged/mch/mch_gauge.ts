@@ -1,3 +1,4 @@
+
 /** Manages the MCH gauges (heat and battery) */
 export class MchGauge {
     private _heat: number = 0;

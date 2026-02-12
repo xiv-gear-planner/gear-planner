@@ -16,7 +16,17 @@ import type {MchAbility, MchGcdAbility, MchOgcdAbility} from "./mch_types";
  *  - Wildfire
  */
 
+/** Array of the 1/2/3 combo actions */
 const COMBO_ACTIONS = [HeatedSplitShot, HeatedSlugShot, HeatedCleanShot];
+
+/** Constants for the rotation, per job level */
+const ROTATION_CONSTANTS = {
+    '100': {
+        toolGcds: 6 + 3 + 2 + 2 + 1 + 3, // 17 (6 Drill, 3 AA, 2+2 CS/Ex, 1 FMF, 3 BS from Hypercharged)
+        toolBattery: 60 + 40 + 40, // 140 (60 AA, 40+40 CS/Ex)
+        reassembleActions: [Drill, AirAnchor, Excavator, Chainsaw] as MchGcdAbility[],
+    },
+} as const;
 
 export interface MchSimSettings extends SimSettings {
     usePots: boolean;
@@ -37,7 +47,7 @@ export const mchSheetSpec: SimSpec<MchSheetSim, MchSimSettingsExternal> = {
     supportedLevels: [100], // TODO: support for 70, 80, 90
     isDefaultSim: true,
     maintainers: [{
-        name: 'zodiia',
+        name: 'Zodia Ware',
         contact: [{
             type: 'discord',
             discordTag: 'zodiia',
@@ -55,6 +65,11 @@ export class MchCycleProcessor extends CycleProcessor {
     comboState = 0;
     ogcdsRemaining = 0;
     potAbility: MchOgcdAbility;
+    constants: (typeof ROTATION_CONSTANTS)['100'];
+    /** How many times Hypercharge can be used before next burst */
+    hyperchargeUses = 0;
+    /** How much battery we would have on next burst as of right now */
+    batteryOnNextBurst = 0;
 
     constructor(settings: MultiCycleSettings, private simSettings: MchSimSettings) {
         super(settings);
@@ -65,18 +80,19 @@ export class MchCycleProcessor extends CycleProcessor {
                 time: this.simSettings.usePotsOnOddMinute ? 60 * 5 : 60 * 6,
             },
         };
+        switch (this.stats.level) {
+            case 100:
+                this.constants = ROTATION_CONSTANTS['100'];
+                break;
+                // TODO: level 90, 80, 70
+            default:
+                this.constants = ROTATION_CONSTANTS['100'];
+                break;
+        }
     }
 
     private getNextComboAbility(): MchGcdAbility {
-        const action = COMBO_ACTIONS[this.comboState];
-
-        if (this.comboState === 2) { // loop back to first action
-            this.comboState = 0;
-        }
-        else {
-            this.comboState += 1;
-        }
-        return action;
+        return COMBO_ACTIONS[this.comboState];
     }
 
     /**
@@ -88,76 +104,29 @@ export class MchCycleProcessor extends CycleProcessor {
         return (120 + delay - this.nextGcdTime % 120) % 120;
     }
 
-    // Always use
-    private canUseDrill(): boolean {
-        // TODO: Hold one charge for 2min burst
-        return this.cdTracker.canUse(Drill, this.nextGcdTime);
-    }
+    /**
+     * Calculates the gauge generation for the next 2 minutes.
+     * This should never be called at any other point than before a 2-min burst, or the values will be wrong.
+     *
+     * @returns The amount of gauge generated over the course of the next 2 minutes, including current gauge values.
+     */
+    private calculateGaugeUsageForNextCycle() {
+        const status = { heat: this.gauge.heat, battery: this.gauge.battery };
+        const comboGcds = Math.ceil(this.timeBeforeNextBurstWindow() / this.gcdTimer) - this.constants.toolGcds;
 
-    // Always use as soon as available
-    private canUseAirAnchor(): boolean {
-        // TODO: Possibly let it drift by one GCD to realign with 2m burst for GCDs <2.5
-        return this.cdTracker.canUse(AirAnchor, this.nextGcdTime);
-    }
-
-    // Always use as soon as available
-    private canUseChainsaw(): boolean {
-        // TODO: Possibly let it drift by one GCD to realign with 2m burst for GCDs <2.5
-        return this.cdTracker.canUse(Chainsaw, this.nextGcdTime);
-    }
-
-    // Use if Excavator Ready buff is available
-    private canUseExcavator(): boolean {
-        // TODO: hold for gathering 10 battery and align 100 battery on 2m burst
-        return this.getActiveBuffs().includes(ExcavatorReadyBuff);
-    }
-
-    // Use when hypercharged, excavator and both drills has been spent, and FMF is available
-    private canUseFullMetalField(): boolean {
-        const buffs = this.getActiveBuffs();
-
-        return buffs.includes(FullMetalMachinistBuff)
-            && !buffs.includes(ExcavatorReadyBuff)
-            && !this.cdTracker.canUse(Drill, this.nextGcdTime);
-    }
-
-    // Use when overheated is active
-    private canUseBlazingShot(): boolean {
-        return this.getActiveBuffs().some((buff) => buff.name === OverheatedBuff.name);
-    }
-
-    // Use as soon as possible, timing positioned using the opener
-    private canUseBarrelStabilizer(): boolean {
-        return this.cdTracker.canUse(BarrelStabilizer, this.nextGcdTime);
-    }
-
-    private canUseCheckmate(): boolean {
-        const cmStatus = this.cdTracker.statusOf(Checkmate);
-        const dcStatus = this.cdTracker.statusOf(DoubleCheck);
-
-        if (cmStatus.currentCharges === 0) {
-            return false;
+        // add battery from tool usage
+        status.battery += this.constants.toolBattery;
+        // add heat from combo usage
+        status.heat += comboGcds * 5;
+        // add battery from heated clean shot usage
+        status.battery += Math.floor((comboGcds + this.comboState) / 3) * 10;
+        while (status.heat >= 100) { // includes 100 because we might have one more combo use during burst. TODO greedy overcap
+            status.heat -= 65;
+            status.battery -= 10;
+            this.hyperchargeUses += 1;
         }
-        // TODO: hold one charge for the 2min burst
-        if (cmStatus.cappedAt.relative < dcStatus.cappedAt.relative) { // prioritize the one that will cap earlier
-            return true;
-        }
-        return false;
-    }
-
-    // basically the opposite of above
-    private canUseDoubleCheck(): boolean {
-        const cmStatus = this.cdTracker.statusOf(Checkmate);
-        const dcStatus = this.cdTracker.statusOf(DoubleCheck);
-
-        if (dcStatus.currentCharges === 0) {
-            return false;
-        }
-        // TODO: hold one charge for the 2min burst
-        if (dcStatus.cappedAt.relative < cmStatus.cappedAt.relative) { // prioritize the one that will cap earlier
-            return true;
-        }
-        return false;
+        this.hyperchargeUses += 1; // Hypercharged buff
+        this.batteryOnNextBurst = status.battery;
     }
 
     /**
@@ -184,12 +153,98 @@ export class MchCycleProcessor extends CycleProcessor {
         return false;
     }
 
-    private canUseHypercharge(): boolean {
-        const buffs = this.getActiveBuffs();
+    // Always use
+    private canUseDrill(): boolean {
+        // TODO: Hold one charge for 2min burst
+        return this.cdTracker.canUse(Drill, this.nextGcdTime);
+    }
 
-        // used during burst window after Full Metal Field is spent
-        if (buffs.includes(HyperchargedBuff) && !buffs.includes(FullMetalMachinistBuff)) {
+    // Always use as soon as available
+    private canUseAirAnchor(): boolean {
+        // TODO: Possibly let it drift by one GCD to realign with 2m burst for GCDs <2.5
+        return this.cdTracker.canUse(AirAnchor, this.nextGcdTime);
+    }
+
+    // Always use as soon as available
+    private canUseChainsaw(): boolean {
+        // TODO: Possibly let it drift by one GCD to realign with 2m burst for GCDs <2.5
+        return this.cdTracker.canUse(Chainsaw, this.nextGcdTime);
+    }
+
+    // Use if Excavator Ready buff is available
+    private canUseExcavator(): boolean {
+        // TODO: hold for gathering 10 battery and align 100 battery on 2m burst
+        if (this.getActiveBuffs(this.currentTime).includes(ExcavatorReadyBuff)) {
+            console.log(this.getActiveBuffs(this.currentTime));
+        }
+        return this.getActiveBuffs(this.currentTime).includes(ExcavatorReadyBuff);
+    }
+
+    // Use when hypercharged and excavator have been spent, and FMF is available
+    private canUseFullMetalField(): boolean {
+        const buffs = this.getActiveBuffs(this.currentTime);
+
+        return buffs.includes(FullMetalMachinistBuff)
+            && !buffs.includes(ExcavatorReadyBuff);
+    }
+
+    // Use when overheated is active
+    private canUseBlazingShot(): boolean {
+        return this.getActiveBuffs(this.currentTime).some((buff) => buff.name === OverheatedBuff.name);
+    }
+
+    // Use as soon as possible, timing positioned using the opener
+    private canUseBarrelStabilizer(): boolean {
+        return this.cdTracker.canUse(BarrelStabilizer, this.nextGcdTime);
+    }
+
+    private canUseCheckmate(): boolean {
+        const cmStatus = this.cdTracker.statusOf(Checkmate);
+        const dcStatus = this.cdTracker.statusOf(DoubleCheck);
+
+        if (cmStatus.currentCharges === 0) {
+            return false;
+        }
+        if ((cmStatus.cappedAt.relative - Checkmate.cooldown.time) > this.timeBeforeNextBurstWindow(5)) {
+            // hold one charge for the burst window
+            return false;
+        }
+        if (cmStatus.cappedAt.relative < dcStatus.cappedAt.relative) { // prioritize the one that will cap earlier
             return true;
+        }
+        return false;
+    }
+
+    // basically the opposite of above
+    private canUseDoubleCheck(): boolean {
+        const cmStatus = this.cdTracker.statusOf(Checkmate);
+        const dcStatus = this.cdTracker.statusOf(DoubleCheck);
+
+        if (dcStatus.currentCharges === 0) {
+            return false;
+        }
+        if ((dcStatus.cappedAt.relative - DoubleCheck.cooldown.time) > this.timeBeforeNextBurstWindow(5)) {
+            // hold one charge for the burst window
+            return false;
+        }
+        if (dcStatus.cappedAt.relative < cmStatus.cappedAt.relative) { // prioritize the one that will cap earlier
+            return true;
+        }
+        return false;
+    }
+
+    private canUseHypercharge(): boolean {
+        const buffs = this.getActiveBuffs(this.currentTime);
+
+        if (!this.cdTracker.canUse(Hypercharge)) {
+            return false;
+        }
+        // used during burst window after Full Metal Field and Excavator are spent
+        if (buffs.includes(HyperchargedBuff)) {
+            if (!buffs.includes(FullMetalMachinistBuff) && !buffs.includes(ExcavatorReadyBuff)) {
+                return true;
+            }
+            return false;
         }
         if (this.gauge.heat < 50) {
             return false;
@@ -197,7 +252,10 @@ export class MchCycleProcessor extends CycleProcessor {
         if (this.wouldHyperchargeGcdDrift()) {
             return false;
         }
-        // TODO: hold 1 hypercharged for burst window
+        if (this.hyperchargeUses === 0) {
+            console.log(this.currentTime, 'holding on heat for next burst');
+            return false;
+        }
         return true;
     }
 
@@ -205,7 +263,12 @@ export class MchCycleProcessor extends CycleProcessor {
         if (this.cdTracker.statusOf(Reassemble).cappedAt.relative > this.timeBeforeNextBurstWindow(5)) { // hold one charge for burst
             return false;
         }
-        return this.cdTracker.canUse(Reassemble, this.nextGcdTime);
+        if (this.cdTracker.canUse(Reassemble, this.nextGcdTime)) {
+            const nextGcd = this.getNextGcdAbility();
+
+            return this.constants.reassembleActions.includes(nextGcd);
+        }
+        return false;
     }
 
     private canPot(): boolean {
@@ -216,20 +279,20 @@ export class MchCycleProcessor extends CycleProcessor {
         if (this.canUseBlazingShot()) {
             return BlazingShot;
         }
-        if (this.canUseFullMetalField()) {
-            return FullMetalField;
-        }
-        if (this.canUseAirAnchor()) {
-            return AirAnchor;
-        }
-        if (this.canUseDrill()) {
-            return Drill;
-        }
         if (this.canUseChainsaw()) {
             return Chainsaw;
         }
         if (this.canUseExcavator()) {
             return Excavator;
+        }
+        if (this.canUseAirAnchor()) {
+            return AirAnchor;
+        }
+        if (this.canUseFullMetalField()) {
+            return FullMetalField;
+        }
+        if (this.canUseDrill()) {
+            return Drill;
         }
 
         return this.getNextComboAbility();
@@ -240,7 +303,11 @@ export class MchCycleProcessor extends CycleProcessor {
             return BarrelStabilizer;
         }
         if (this.canUseHypercharge()) {
+            this.hyperchargeUses -= 1;
             return Hypercharge;
+        }
+        if (this.canUseReassemble()) {
+            return Reassemble;
         }
         if (this.canUseCheckmate()) {
             return Checkmate;
@@ -248,10 +315,9 @@ export class MchCycleProcessor extends CycleProcessor {
         if (this.canUseDoubleCheck()) {
             return DoubleCheck;
         }
-        if (this.canUseReassemble()) {
-            return Reassemble;
-        }
         if (this.canPot()) {
+            this.ogcdsRemaining = 0;
+            this.advanceTo(this.nextGcdTime - STANDARD_ANIMATION_LOCK);
             return this.potAbility;
         }
 
@@ -259,10 +325,22 @@ export class MchCycleProcessor extends CycleProcessor {
     }
 
     private updateGauge(ability: MchAbility) {
-        if (ability === Hypercharge && this.getActiveBuffs().includes(HyperchargedBuff)) {
+        if (ability === Hypercharge && this.getActiveBuffs(this.currentTime).includes(HyperchargedBuff)) {
             return;
         }
         ability.updateGauge?.(this.gauge);
+    }
+
+    private updateComboStatus(ability: MchAbility) {
+        if (!(COMBO_ACTIONS as MchAbility[]).includes(ability)) {
+            return;
+        }
+        if (this.comboState === 2) { // loop back to first action
+            this.comboState = 0;
+        }
+        else {
+            this.comboState += 1;
+        }
     }
 
     private executeLevel100Opener() {
@@ -274,12 +352,13 @@ export class MchCycleProcessor extends CycleProcessor {
             }
             else {
                 this.advanceTo(5 - STANDARD_ANIMATION_LOCK * 1, true);
-                this.cdTracker.modifyCooldown(this.potAbility, 120);
+                this.cdTracker.modifyCooldown(this.potAbility, 120 - this.gcdTimer);
             }
         }
         else {
             this.advanceTo(5 - STANDARD_ANIMATION_LOCK * 1, true);
         }
+        this.calculateGaugeUsageForNextCycle();
         this.use(AirAnchor);
         this.use(DoubleCheck);
         this.use(Checkmate);
@@ -309,6 +388,7 @@ export class MchCycleProcessor extends CycleProcessor {
 
     override use(ability: Ability): AbilityUseResult {
         this.updateGauge(ability);
+        this.updateComboStatus(ability);
         if (ability === BlazingShot) { // only one ogcd on 1.5 gcd, and reduce cd for cm/dc
             this.ogcdsRemaining = 1;
             this.cdTracker.modifyCooldown(Checkmate, -15);
@@ -328,6 +408,9 @@ export class MchCycleProcessor extends CycleProcessor {
     executeNextGcd() {
         const gcdAbility = this.getNextGcdAbility();
 
+        if (this.timeBeforeNextBurstWindow(this.gcdTimer) < this.gcdTimer) { // next action will be start of 2m burst
+            this.calculateGaugeUsageForNextCycle();
+        }
         this.use(gcdAbility);
     }
 
