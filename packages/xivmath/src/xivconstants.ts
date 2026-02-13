@@ -72,11 +72,11 @@ export const STANDARD_APPLICATION_DELAY = 0.6;
 export const AUTOATTACK_APPLICATION_DELAY = 0.6;
 
 export const ALL_COMBAT_JOBS = [
-    'WHM', 'SGE', 'SCH', 'AST',
     'PLD', 'WAR', 'DRK', 'GNB',
-    'DRG', 'MNK', 'NIN', 'SAM', 'RPR', 'VPR',
+    'WHM', 'SCH', 'AST', 'SGE',
+    'MNK', 'DRG', 'NIN', 'SAM', 'RPR', 'VPR',
     'BRD', 'MCH', 'DNC',
-    'BLM', 'SMN', 'RDM', 'BLU', 'PCT',
+    'BLM', 'SMN', 'RDM', 'PCT', 'BLU',
 ] as const;
 /**
  * Supported Jobs.
