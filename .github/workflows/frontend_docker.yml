@@ -27,12 +27,16 @@ jobs:
         with:
           node-version: 20.x
 
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
       - name: Build
         run: |
-          npm ci
-          npm run test
-          npm run -w @xivgear/gearplan-frontend buildprod
-          npm run docs
+          pnpm install
+          pnpm test
+          pnpm --filter @xivgear/gearplan-frontend buildprod
+          pnpm docs
 
       - name: Inject commit info
         run: |
