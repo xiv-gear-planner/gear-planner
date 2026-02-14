@@ -68,6 +68,8 @@ module.exports = (env, argv) => {
                 "net": false,
                 "tls": false,
                 "child_process": false,
+                "path": false,
+                "os": false,
             },
             plugins: [
                 new TsconfigPathsPlugin({
