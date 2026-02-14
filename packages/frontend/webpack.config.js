@@ -18,7 +18,7 @@ module.exports = (env, argv) => {
             // Normally, webpack tries to guess the public URL of the output files, but the way it does so will break
             // if you have 3rd party scripts (cloudflare beacon, etc) on the page. This tells it that the scripts are
             // always in the same directory as the HTML document.
-            publicPath: './',
+            publicPath: '/',
         },
         optimization: {
             // Minimize for the 'npm run buildprod' mode but not the normal 'npm run build'.
