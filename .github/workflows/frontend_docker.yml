@@ -36,7 +36,7 @@ jobs:
           pnpm install
           pnpm test
           pnpm --filter @xivgear/gearplan-frontend buildprod
-          pnpm docs
+          pnpm run docs
 
       - name: Inject commit info
         run: |
