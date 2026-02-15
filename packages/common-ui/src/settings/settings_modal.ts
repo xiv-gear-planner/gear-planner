@@ -28,15 +28,15 @@ class SettingsModal extends BaseModal {
         const displaySettings = DISPLAY_SETTINGS;
         const lightModeCb = new FieldBoundCheckBox(displaySettings, 'lightMode');
         const lightModeToggle = new BoolToggle(lightModeCb, 'Light', 'Dark');
-        lightModeCb.addListener(val => recordEvent('lightModeToggle', {lightMode: val}));
+        lightModeCb.addListener((val: boolean) => recordEvent('lightModeToggle', {lightMode: val}));
         this.contentArea.append(lightModeToggle);
 
         const modernThemeCb = new FieldBoundCheckBox(displaySettings, 'modernTheme');
         const modernThemeToggle = new BoolToggle(modernThemeCb, 'Modern', 'Classic');
-        modernThemeCb.addListener(val => recordEvent('modernTheme', {modernTheme: val}));
+        modernThemeCb.addListener((val: boolean) => recordEvent('modernTheme', {modernTheme: val}));
         this.contentArea.append(modernThemeToggle);
 
-        const langDropdown = new FieldBoundDataSelect<typeof displaySettings, Language | undefined>(displaySettings, 'languageOverride', val => {
+        const langDropdown = new FieldBoundDataSelect<typeof displaySettings, Language | undefined>(displaySettings, 'languageOverride', (val: Language | undefined) => {
             if (val) {
                 return LangaugeDisplayName[val];
             }
@@ -44,7 +44,7 @@ class SettingsModal extends BaseModal {
                 return 'Auto';
             }
         }, [undefined, ...ALL_LANGS]);
-        langDropdown.addListener(val => recordEvent('langChange', {lang: val}));
+        langDropdown.addListener((val: Language | undefined) => recordEvent('langChange', {lang: val}));
         langDropdown.addListener(() => this.setDisplayRefreshLabel(true));
         langDropdown.id = 'language-picker';
         const langLabel = labelFor("Game Items Language:", langDropdown);
@@ -87,7 +87,7 @@ class SettingsModal extends BaseModal {
 }
 
 export function showSettingsModal() {
-    const dialog = new SettingsModal();
+    const dialog = document.createElement('settings-modal') as SettingsModal;
     dialog.attachAndShowExclusively();
     recordEvent('openSettingsModal');
 }

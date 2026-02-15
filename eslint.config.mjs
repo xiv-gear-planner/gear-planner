@@ -19,7 +19,6 @@ export default [
         languageOptions: {
             // parser: parser,
             parserOptions: {
-                project: ['./tsconfig.json', './packages/*/tsconfig.json'],
                 projectService: true,
             }
         },
@@ -96,6 +95,36 @@ export default [
             "camelcase": "error",
             "block-scoped-var": "error",
             "named-import-spacing/named-import-spacing": ["error", "never"],
+            // Block the use of node-specific things (see below for exceptions)
+            "no-restricted-imports": ["error", {
+                "paths": [
+                    "fs",
+                    "path",
+                    "os",
+                    "crypto",
+                    "child_process",
+                    "http",
+                    "https",
+                    "url",
+                    "process",
+                    "util"
+                ],
+                "patterns": [
+                    "node:*"
+                ]
+            }]
+        }
+    },
+    {
+        // Exceptions to disallowed node.js imports - it's fine for tests, and for the backend part since that specifically
+        // runs in node.
+        "files": [
+            "**/test/**",
+            "**/*test.ts",
+            "packages/backend-resolver/**"
+        ],
+        "rules": {
+            "no-restricted-imports": "off"
         }
     }
 ];
