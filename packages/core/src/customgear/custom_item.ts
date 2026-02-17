@@ -1,23 +1,68 @@
 import {
     CustomItemExport,
-    DisplayGearSlot,
     DisplayGearSlotInfo,
     DisplayGearSlotKey,
+    DisplayGearSlotMapping,
+    EquipSlotKey,
+    EquipSlotMap,
+    EquipSlotValue,
     GearAcquisitionSource,
     GearItem,
     IlvlSyncInfo,
     MateriaSlot,
-    OccGearSlotKey,
+    NormalOccGearSlotKey,
     RawStatKey,
-    RawStats
+    RawStats,
+    RawStatsPart
 } from "@xivgear/xivmath/geartypes";
 import {xivApiIconUrl} from "../external/xivapi";
 import {CURRENT_MAX_LEVEL, JobName, LEVEL_ITEMS, MATERIA_LEVEL_MAX_NORMAL} from "@xivgear/xivmath/xivconstants";
 import {applyStatCaps} from "../gear";
 import {GearPlanSheet} from "../sheet";
 import {toTranslatable} from "@xivgear/i18n/translation";
-import {RawStatsPart} from "@xivgear/util/util_types";
 import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
+
+class CustomItemSlotMapping implements EquipSlotMap {
+    readonly Body: EquipSlotValue = 'none';
+    readonly Ears: EquipSlotValue = 'none';
+    readonly Feet: EquipSlotValue = 'none';
+    readonly Hand: EquipSlotValue = 'none';
+    readonly Head: EquipSlotValue = 'none';
+    readonly Legs: EquipSlotValue = 'none';
+    readonly Neck: EquipSlotValue = 'none';
+    readonly OffHand: EquipSlotValue = 'none';
+    readonly RingLeft: EquipSlotValue = 'none';
+    readonly RingRight: EquipSlotValue = 'none';
+    readonly Weapon: EquipSlotValue = 'none';
+    readonly Wrist: EquipSlotValue = 'none';
+
+    constructor(slot: NormalOccGearSlotKey) {
+        switch (slot) {
+            case "Weapon2H":
+                this.Weapon = 'equip';
+                this.OffHand = 'block';
+                break;
+            case "Weapon1H":
+                this.Weapon = 'equip';
+                break;
+            case "Ring":
+                this.RingLeft = 'equip';
+                this.RingRight = 'equip';
+                break;
+            default:
+                this[slot] = 'equip';
+        }
+    }
+
+    canEquipTo(slot: EquipSlotKey): boolean {
+        return this[slot] === 'equip';
+    }
+
+    getBlockedSlots(): EquipSlotKey[] {
+        return [];
+    }
+
+}
 
 export class CustomItem implements GearItem {
 
@@ -36,10 +81,12 @@ export class CustomItem implements GearItem {
     iconUrl: URL = new URL(xivApiIconUrl(26270));
     syncedDownTo: number | null;
     private _data: CustomItemExport;
+    readonly slotMapping: CustomItemSlotMapping;
 
     private constructor(exportedData: CustomItemExport, private readonly sheet: GearPlanSheet, private readonly isUnsyncCopy: boolean = false) {
         this._data = exportedData;
         this.recheckSync();
+        this.slotMapping = new CustomItemSlotMapping(this.occGearSlotName);
     }
 
     private static defaults(): Omit<CustomItemExport, 'fakeId' | 'name' | 'slot' | 'respectCaps'> {
@@ -64,7 +111,7 @@ export class CustomItem implements GearItem {
         }, sheet);
     }
 
-    static fromScratch(fakeId: number, slot: OccGearSlotKey, sheet: GearPlanSheet): CustomItem {
+    static fromScratch(fakeId: number, slot: NormalOccGearSlotKey, sheet: GearPlanSheet): CustomItem {
         const data: CustomItemExport = {
             ...this.defaults(),
             fakeId: fakeId,
@@ -74,7 +121,7 @@ export class CustomItem implements GearItem {
             slot: slot,
         };
         // Copy relevant features of the highest ilvl available for that slot
-        const highest = sheet.highestIlvlItemForSlot(slot);
+        const highest = sheet.highestIlvlItemForSlot(slot).unsyncedVersion;
         data.ilvl = highest.ilvl;
         data.stats.vitality = highest.stats.vitality;
         data.stats.strength = highest.stats.strength;
@@ -145,12 +192,12 @@ export class CustomItem implements GearItem {
         return toTranslatable(this.name);
     }
 
-    get occGearSlotName() {
+    get occGearSlotName(): NormalOccGearSlotKey {
         return this._data.slot;
     }
 
-    get displayGearSlot(): DisplayGearSlot {
-        return DisplayGearSlotInfo[this.displayGearSlotName];
+    get displayGearSlot(): DisplayGearSlotInfo {
+        return DisplayGearSlotMapping[this.displayGearSlotName];
     }
 
     get stats(): RawStats {

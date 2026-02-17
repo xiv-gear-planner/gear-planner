@@ -14,16 +14,15 @@ export class Inactivitytimer {
 
     }
 
-    ping() {
+    ping(msOverride: number | null = null) {
         // console.debug('ping');
         this.counter++;
         const expectedCount = this.counter;
         setTimeout(() => {
             this.pingAfter(expectedCount);
-        }, this._inactivityTimeMs);
+        }, msOverride ?? this._inactivityTimeMs);
     }
 
-    // TODO: this doesn't seem to necessarily work - another incoming request can "reset" this one
     runNext() {
         this.counter++;
         const expectedCount = this.counter;

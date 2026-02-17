@@ -246,7 +246,7 @@ describe('Default sims', () => {
                                 return;
                             }
                             const gearSlot = EquipSlotInfo[slotKey].gearSlot;
-                            const item = sheet.itemsForDisplay.find((item) => item.displayGearSlot === gearSlot);
+                            const item = sheet.itemsForDisplay.find((item) => item.displayGearSlotName === gearSlot);
                             expect(item).to.not.be.undefined;
                             expect(item).to.not.be.null;
                             set.setEquip(slotKey, item);
@@ -281,7 +281,7 @@ describe('Default sims', () => {
                         return;
                     }
                     const gearSlot = EquipSlotInfo[slotKey].gearSlot;
-                    const item = sheet.itemsForDisplay.find((item) => item.displayGearSlot === gearSlot);
+                    const item = sheet.itemsForDisplay.find((item) => item.displayGearSlotName === gearSlot);
                     expect(item).to.not.be.undefined;
                     expect(item).to.not.be.null;
                     set.setEquip(slotKey, item);

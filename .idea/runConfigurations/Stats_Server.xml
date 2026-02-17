@@ -5,6 +5,7 @@
       <env name="SHORTLINK_SERVER_" value="http://localhost:8081/shortlink/ GENERATE_SOURCEMAP=false" />
     </envs>
     <option name="interpreterRef" value="project" />
+    <option name="tsnodePackageRef" value="E:\IdeaProjects\gearplan\node_modules\ts-node" />
     <option name="enabledTsNodeEsmLoader" value="false" />
     <option name="interpreterOptions" value="" />
     <option name="workingDirectory" value="E:\IdeaProjects\gearplan\packages\backend-resolver\src" />

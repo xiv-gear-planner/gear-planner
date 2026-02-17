@@ -1,5 +1,5 @@
 import {previewItemStatDetail} from "../gear";
-import {GearItem, RawStats} from "@xivgear/xivmath/geartypes";
+import {GearItem, RawStatKey, RawStats} from "@xivgear/xivmath/geartypes";
 import {expect} from 'chai';
 import {NewApiDataManager} from "../datamanager_new";
 import {ALL_COMBAT_JOBS, MAIN_STATS} from "@xivgear/xivmath/xivconstants";
@@ -84,10 +84,6 @@ describe('bug #695 - offhands have wrong stats', () => {
                     // TODO: is there a specific pattern we can use for NQ?
                     return;
                 }
-                if (item.id === 24855 || item.id === 24856) {
-                    // Vermillion cloak of casting/health - multi-slot items other than 2H weapon are not supported
-                    return;
-                }
                 if (item.id === 34455 || item.id === 34474) {
                     // Known issue with this specific PLD 1H+Shield
                     return;
@@ -126,6 +122,23 @@ describe('bug #695 - offhands have wrong stats', () => {
                     if (value !== cap) {
                         failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has ${mainStat} ${value} !== ${cap} (cap)`);
                     }
+                });
+                const defStats: RawStatKey[] = ["defensePhys", "defenseMag"];
+                defStats.forEach(defStat => {
+                    const value = item.stats[defStat];
+                    if (value === 0) {
+                        return;
+                    }
+                    const cap = item.statCaps[defStat];
+                    // For some reason, the cap is 0, but the actual value is 1 for accessories.
+                    if (value === 0 || value === 1) {
+                        return;
+                    }
+                    // Allow a margin of error of one unless we find a confirmed-wrong case.
+                    if (Math.abs(value - cap) > 1) {
+                        failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has ${defStat} ${value} !== ${cap} (cap)`);
+                    }
+
                 });
             });
             if (failures.length > 0) {

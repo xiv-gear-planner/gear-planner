@@ -387,7 +387,7 @@ export class CharacterGearSet {
         }
         this.invalidate();
         this.equipment[slot] = this.toEquippedItem(item);
-        console.log(`Set ${this.name}: slot ${slot} => ${item?.name}`);
+        // console.debug(`Set ${this.name}: slot ${slot} => ${item?.name}`);
         if (materiaAutoFillController) {
             const mode = materiaAutoFillController.autoFillMode;
             if (mode === 'leave_empty') {
@@ -637,6 +637,18 @@ export class CharacterGearSet {
                 description: 'You must equip a weapon',
             });
         }
+        this.allEquippedItems.forEach(item => {
+            item.slotMapping.getBlockedSlots().forEach(blockedSlot => {
+                const inBlockedSlot = this.equipment[blockedSlot];
+                if (inBlockedSlot) {
+                    issues.push({
+                        severity: 'error',
+                        description: `You cannot equip ${inBlockedSlot.gearItem.nameTranslation} in ${EquipSlotInfo[blockedSlot].name} because ${item.nameTranslation} prevents it.`,
+                        affectedSlots: [blockedSlot],
+                    });
+                }
+            });
+        });
         this._lastResult = {
             computedStats: computedStats,
             issues: this.isSeparator ? [] : issues,
@@ -889,7 +901,7 @@ export class CharacterGearSet {
                         if (stat === 'skillspeed') {
                             const over = override.find(over => over.basis === 'sks' && over.isPrimary);
                             const attackType = over ? over.attackType : 'Weaponskill';
-                            const haste = this.computedStats.haste(attackType) + (over ? over.haste : 0);
+                            const haste = this.computedStats.haste(attackType, over?.buffHaste ?? 0, over?.gaugeHaste ?? 0);
                             if (this.computedStats.gcdPhys(NORMAL_GCD, haste) <= prio.minGcd) {
                                 continue;
                             }
@@ -901,7 +913,7 @@ export class CharacterGearSet {
                         if (stat === 'spellspeed') {
                             const over = override.find(over => over.basis === 'sps' && over.isPrimary);
                             const attackType = over ? over.attackType : 'Spell';
-                            const haste = this.computedStats.haste(attackType) + (over ? over.haste : 0);
+                            const haste = this.computedStats.haste(attackType, over?.buffHaste ?? 0, over?.gaugeHaste ?? 0);
                             // Check if we're already there before forcing a recomp
                             if (this.computedStats.gcdMag(NORMAL_GCD, haste) <= prio.minGcd) {
                                 continue;
@@ -1184,6 +1196,40 @@ export class CharacterGearSet {
         }
         return values.reduce((a, b) => a + b) / values.length;
     }
+
+    /**
+     * Get items that could replace the given item - either identical or better.
+     *
+     * @param thisItem
+     */
+    getAltItemsFor(thisItem: GearItem): GearItem[] {
+        // Ignore this for relics - consider them to be incompatible until we can
+        // figure out a good way to do this.
+        if (thisItem.isCustomRelic) {
+            return [];
+        }
+        return this.sheet.allItems.filter(otherItem => {
+            // Cannot be the same item
+            if (!(otherItem.id !== thisItem.id
+                // Must be same slot
+                && otherItem.occGearSlotName === thisItem.occGearSlotName
+                // Must be better or same stats
+                && isSameOrBetterItem(otherItem, thisItem)
+                // Only allow items up to current max level for this job
+                && otherItem.equipLvl <= this.classJobStats.maxLevel)) {
+                return false;
+            }
+            // For unique rings specifically, we need to check if the player already has that ring equipped in the
+            // other slot, since you would not be able to equip it into both slots.
+            if (otherItem.isUnique && otherItem.displayGearSlotName === 'Ring') {
+                if (this.equipment['RingLeft']?.gearItem.id === otherItem.id
+                    || this.equipment['RingRight']?.gearItem.id === otherItem.id) {
+                    return false;
+                }
+            }
+            return true;
+        });
+    }
 }
 
 export function applyStatCaps(stats: RawStats, statCaps: { [K in RawStatKey]?: number }): RawStats {
@@ -1254,7 +1300,7 @@ export function isSameOrBetterItem(candidateItem: GearItem, baseItem: GearItem):
         const candidateValue = candidateStats[statKey as RawStatKey] as number;
         // For skill/spell speed, we want an exact match, since allowing extra sks/sps could cause
         // it to bump up a GCD tier.
-        if (statKey as RawStatKey === 'skillspeed' || statKey as RawStatKey === 'spellspeed') {
+        if (statKey as RawStatKey === 'skillspeed' || statKey as RawStatKey === 'spellspeed' || statKey as RawStatKey === 'gearHaste') {
             if (candidateValue !== baseValue) {
                 return false;
             }

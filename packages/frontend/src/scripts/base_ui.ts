@@ -1,12 +1,12 @@
 import {getCurrentState, getHash, goPath, isEmbed, processHashLegacy, processNav, setPath} from "./nav_hash";
-import {NamedSection} from "./components/section";
-import {NewSheetForm} from "./components/new_sheet_form";
-import {ImportSheetArea} from "./components/import_sheet";
+import {NamedSection} from "./components/general/section";
+import {NewSheetForm} from "./components/sheetpicker/new_sheet_form";
+import {ImportSheetArea} from "./components/import/import_sheet";
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
 import {getEmbedDiv, openEmbed} from "./embed";
 import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
-import {SheetPickerTable} from "./components/saved_sheet_picker";
-import {GearPlanSheetGui, GRAPHICAL_SHEET_PROVIDER} from "./components/sheet";
+import {SheetPickerTable} from "./components/sheetpicker/saved_sheet_picker";
+import {GearPlanSheetGui} from "./components/sheet/sheet_gui";
 import {makeUrl, NavState, splitPath} from "@xivgear/core/nav/common_nav";
 import {applyCommonTopMenuFormatting} from "@xivgear/common-ui/components/top_menu";
 import {WORKER_POOL} from "./workers/worker_pool";
@@ -22,8 +22,9 @@ import {isInIframe} from "@xivgear/common-ui/util/detect_iframe";
 import {WritableProps} from "@xivgear/common-ui/util/types";
 import {quickElement} from "@xivgear/common-ui/components/util";
 import {ACCOUNT_STATE_TRACKER} from "./account/account_state";
-import {SHEET_MANAGER} from "./components/saved_sheet_impl";
+import {SHEET_MANAGER} from "./saved_sheet_impl";
 import {USER_DATA_SYNCER} from "./account/user_data";
+import {GRAPHICAL_SHEET_PROVIDER} from "./components/sheet/provider";
 
 declare global {
     interface Document {
@@ -34,6 +35,7 @@ declare global {
     interface Window {
         currentSheet?: GearPlanSheetGui;
         currentGearSet?: CharacterGearSet;
+        parentSheet?: GearPlanSheetGui;
     }
 }
 const pageTitle = 'XivGear - FFXIV Gear Planner';
@@ -52,9 +54,9 @@ export const contentArea = document.getElementById("content-area");
 // export const midBarArea = document.getElementById("mid-controls-area");
 export const devMenuArea = document.getElementById("dev-menu-area");
 export const topMenuArea = document.getElementById("main-menu-area");
-// const editorArea = document.getElementById("editor-area");
 export const welcomeArea = document.getElementById("welcome-message");
 export const welcomeCloseButton = document.getElementById("welcome-close-button");
+const body = document.querySelector('body');
 
 export function handleWelcomeArea() {
     if (getHash()?.length > 0) {
@@ -141,12 +143,7 @@ export function formatTopMenu(nav: NavState) {
         if (href?.startsWith('?page=')) {
             const expected = splitPath(href.slice(6));
             console.debug(`Expected: ${expected}, actual: ${hash}`);
-            if (arrayEq(expected, hash)) {
-                link.classList.add('current-page');
-            }
-            else {
-                link.classList.remove('current-page');
-            }
+            link.classList.toggle('current-page', arrayEq(expected, hash));
         }
     });
 }
@@ -188,6 +185,8 @@ export async function openSheetByKey(sheetKey: string) {
         let sheet = SHEET_MANAGER.getByKey(sheetKey);
         if (!sheet || sheet.syncStatus === 'never-downloaded') {
             console.log(`Sheet status: ${sheet?.syncStatus ?? 'null'}, going to wait for login.`);
+            // TODO: this has a minor bug wherein if the connection itself fails, this will never
+            // resolve nor reject. This mostly affects local testing.
             const token = await ACCOUNT_STATE_TRACKER.verifiedTokenPromise;
             if (token) {
                 console.log('Got token, refreshing sheets');
@@ -387,7 +386,8 @@ export function earlyUiSetup() {
     });
     document.getElementById('show-hide-menu-button').addEventListener('click', (ev) => {
         ev.preventDefault();
-        topMenuArea.style.display = topMenuArea.style.display === 'none' ? '' : 'none';
+        body.classList.toggle("top-menu-hidden");
+        // topMenuArea.style.display = topMenuArea.style.display === 'none' ? '' : 'none';
     });
     const header = document.createElement("span");
     header.textContent = "Dev Menu";

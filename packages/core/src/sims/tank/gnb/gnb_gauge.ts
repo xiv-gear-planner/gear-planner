@@ -2,7 +2,9 @@ import {GnbGaugeState} from "./gnb_types";
 
 export class GnbGauge {
     private _maxCartridges: number;
-    private _cartridges: number = 0;
+    private _baseCartridges: number = 0;
+    // Set from Bloodfest
+    private _bonusCartridges: number = 0;
 
     constructor(level: number) {
         if (level >= 88) {
@@ -14,7 +16,11 @@ export class GnbGauge {
     }
 
     get cartridges(): number {
-        return this._cartridges;
+        return this._baseCartridges + this.bonusCartridges;
+    }
+
+    get bonusCartridges(): number {
+        return this._bonusCartridges;
     }
 
     get maxCartridges(): number {
@@ -26,9 +32,25 @@ export class GnbGauge {
             console.warn(`[GNB Sim] Overcapped Cartridges by ${newGauge - this._maxCartridges}.`);
         }
         if (newGauge < 0) {
-            console.warn(`[GNB Sim] Used ${this._cartridges - newGauge} cartridges when you only have ${this._cartridges}.`);
+            console.warn(`[GNB Sim] Used ${this._baseCartridges - newGauge} cartridges when you only have ${this._baseCartridges}.`);
         }
-        this._cartridges = Math.max(Math.min(newGauge, this._maxCartridges), 0);
+        this._baseCartridges = Math.max(Math.min(newGauge, this._maxCartridges), 0);
+    }
+
+    set bonusCartridges(newGauge: number) {
+        this._bonusCartridges = newGauge;
+    }
+
+    useCarts(numberToRemove: number) {
+        if (this._bonusCartridges >= numberToRemove) {
+            this.bonusCartridges -= numberToRemove;
+            return;
+        }
+        else {
+            numberToRemove = numberToRemove - this._bonusCartridges;
+            this._bonusCartridges = 0;
+        }
+        this.cartridges -= numberToRemove;
     }
 
     getGaugeState(): GnbGaugeState {

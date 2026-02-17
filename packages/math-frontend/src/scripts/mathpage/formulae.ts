@@ -1,11 +1,14 @@
 import {
     autoAttackModifier,
+    autoCritBuffDmg,
     autoDhitBonusDmg,
     critChance,
     critDmg,
+    defIncomingDmg,
     detDmg,
     dhitChance,
     dhitDmg,
+    flp,
     hpScalar,
     mainStatMulti,
     mainStatPowerMod,
@@ -24,16 +27,17 @@ import {Func, GeneralSettings, MathFormula, registerFormula} from "./math_main";
 import {DataManager, makeDataManager} from "@xivgear/core/datamanager";
 import {JobData, LevelStats} from "@xivgear/xivmath/geartypes";
 
-type SksSettings = {
+type BaseSpeedSettings = {
     baseGcd: number,
-    sks: number,
     haste: number
 }
 
-type SpsSettings = {
-    baseGcd: number,
+type SksSettings = BaseSpeedSettings & {
+    sks: number,
+}
+
+type SpsSettings = BaseSpeedSettings & {
     sps: number,
-    haste: number
 }
 
 const baseGcdVar = {
@@ -110,8 +114,8 @@ export function registerFormulae() {
         primaryVariable:
             "mainstat",
         makeDefaultInputs(generalSettings
-                              :
-                              GeneralSettings
+                          :
+                          GeneralSettings
         ) {
             return {mainstat: generalSettings.levelStats.baseMainStat};
         }
@@ -186,6 +190,31 @@ export function registerFormulae() {
     });
 
     registerFormula<{
+        'def': number
+    }>({
+        name: "Defense",
+        stub: "def",
+        functions: [formula({
+            name: "Defense/Mdef Damage Taken",
+            fn: defIncomingDmg,
+            argExtractor: async function (arg, gen: GeneralSettings) {
+                return [gen.levelStats, arg.def] as const;
+            },
+        })],
+        variables: [{
+            type: "number",
+            label: "Defense/Mdef Stat",
+            property: "def",
+            integer: true,
+            min: () => 0,
+        }],
+        primaryVariable: "def",
+        makeDefaultInputs() {
+            return {def: 0};
+        },
+    });
+
+    registerFormula<{
         'tnc': number
     }>({
         name: "Tenacity",
@@ -255,6 +284,7 @@ export function registerFormulae() {
             formula({
                 name: 'DoT Multi',
                 fn: sksTickMulti,
+                hideableColumn: true,
                 argExtractor: async function (args, gen) {
                     return [gen.levelStats, args.sks] as const;
                 },
@@ -295,6 +325,7 @@ export function registerFormulae() {
             }),
             formula({
                 name: 'DoT Multi',
+                hideableColumn: true,
                 fn: spsTickMulti,
                 argExtractor: async function (args, gen) {
                     return [gen.levelStats, args.sps] as const;
@@ -317,6 +348,76 @@ export function registerFormulae() {
                 baseGcd: 2.5,
                 sps: gen.levelStats.baseSubStat,
                 haste: 0,
+            };
+        },
+    });
+
+    registerFormula<SpsSettings & {
+        secondaryGcd: number,
+        secondaryHaste: number,
+    }>({
+        stub: 'gcd-comp',
+        name: 'GCD Comparison',
+        primaryVariable: 'sps',
+        functions: [
+            formula({
+                name: 'GCD 1',
+                fn: spsToGcd,
+                argExtractor: async function (args, gen) {
+                    return [args.baseGcd, gen.levelStats, args.sps, args.haste] as const;
+                },
+            }),
+            formula({
+                name: 'GCD 2',
+                excludeFormula: true,
+                fn: spsToGcd,
+                argExtractor: async function (args, gen) {
+                    return [args.secondaryGcd, gen.levelStats, args.sps, args.secondaryHaste] as const;
+                },
+            }),
+            formula({
+                name: 'DoT Multi',
+                hideableColumn: true,
+                fn: spsTickMulti,
+                argExtractor: async function (args, gen) {
+                    return [gen.levelStats, args.sps] as const;
+                },
+            }),
+        ],
+        variables: [
+            {
+                ...baseGcdVar,
+                label: 'Base GCD 1',
+            },
+            {
+                ...baseGcdVar,
+                property: 'secondaryGcd',
+                label: 'Base GCD 2',
+            },
+            {
+                type: "number",
+                label: "SpS/SkS",
+                property: "sps",
+                integer: true,
+                min: baseSub,
+            },
+            {
+                ...hasteVar,
+                label: 'Haste 1',
+            },
+            {
+                ...hasteVar,
+                property: 'secondaryHaste',
+                label: 'Haste 2',
+            },
+        ],
+        makeDefaultInputs: (gen: GeneralSettings) => {
+            return {
+                baseGcd: 2.5,
+                secondaryGcd: 2.0,
+                sps: gen.levelStats.baseSubStat,
+                haste: 0,
+                secondaryHaste: 0,
             };
         },
     });
@@ -351,6 +452,65 @@ export function registerFormulae() {
             property: "crit",
             integer: true,
             min: baseSub,
+        }],
+    });
+
+    registerFormula<{
+        crit: number,
+        bonusPct: number,
+    }>({
+        name: "Bonus/Auto Crit",
+        stub: "autocrit",
+        functions: [
+            formula({
+                name: "Buffed Crit Chance",
+                excludeFormula: true,
+                fn: (critChance: number, bonusCritChance: number) => flp(3, critChance + bonusCritChance),
+                argExtractor: async function (arg, gen: GeneralSettings) {
+                    return [
+                        critChance(gen.levelStats, arg.crit),
+                        flp(2, arg.bonusPct / 100),
+                    ] as const;
+                },
+            }),
+            formula({
+                name: "Autocrit Extra Multi",
+                fn: autoCritBuffDmg,
+                argExtractor: async function (arg, gen: GeneralSettings) {
+                    const cmult = critDmg(gen.levelStats, arg.crit);
+                    return [cmult, flp(2, arg.bonusPct / 100)] as const;
+                },
+            }),
+            formula({
+                name: "Autocrit Total Multi",
+                fn: (cm: number, bcm: number) => flp(5, cm * bcm),
+                excludeFormula: true,
+                argExtractor: async function (arg, gen: GeneralSettings) {
+                    const cmult = critDmg(gen.levelStats, arg.crit);
+                    return [cmult, autoCritBuffDmg(cmult, arg.bonusPct / 100)] as const;
+                },
+            }),
+        ],
+        makeDefaultInputs: (gen) => {
+            return {
+                crit: gen.levelStats.baseSubStat,
+                bonusPct: 10,
+            };
+        },
+        primaryVariable: 'crit',
+        variables: [{
+            type: "number",
+            label: "Crit Stat",
+            property: "crit",
+            integer: true,
+            min: baseSub,
+        }, {
+            type: "number",
+            label: "Crit % Buff",
+            property: "bonusPct",
+            integer: true,
+            min: () => 0,
+            max: () => 100,
         }],
     });
 

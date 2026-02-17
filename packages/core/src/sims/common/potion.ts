@@ -38,7 +38,7 @@ function makePotion(name: string, stat: Mainstat, itemId: number, bonus: number,
     };
 }
 
-export const GemdraughtGrades = [1, 2, 3] as const;
+export const GemdraughtGrades = [1, 2, 3, 4] as const;
 export type GemdraughtGrade = typeof GemdraughtGrades[number];
 
 export type PotionStat = Exclude<Mainstat, 'vitality'>;
@@ -53,7 +53,7 @@ const statToPotItemId = {
 const gradeToStatCap: number[] & {
     // Enforce that this list has the same length as GemdraughtGrades
     length: typeof GemdraughtGrades["length"]
-} = [351, 392, 461] as const;
+} = [351, 392, 461, 541] as const;
 
 /**
  * Create a gemdraught for the given

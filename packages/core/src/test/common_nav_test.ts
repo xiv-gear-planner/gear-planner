@@ -88,7 +88,9 @@ describe('parsePath', () => {
                 jsonBlob: setValue,
                 embed: false,
                 viewOnly: false,
-            });
+                defaultSelectionIndex: undefined,
+                onlySetIndex: undefined,
+            } satisfies NavPath);
         });
         it('does not try to embed import sheet', () => {
             const setValue = {
@@ -100,7 +102,9 @@ describe('parsePath', () => {
                 jsonBlob: setValue,
                 embed: false,
                 viewOnly: false,
-            });
+                defaultSelectionIndex: undefined,
+                onlySetIndex: undefined,
+            } satisfies NavPath);
         });
     });
 
@@ -115,7 +119,9 @@ describe('parsePath', () => {
                 jsonBlob: setValue,
                 embed: false,
                 viewOnly: true,
-            });
+                defaultSelectionIndex: undefined,
+                onlySetIndex: undefined,
+            } satisfies NavPath);
         });
         it('does not try to embed view sheet', () => {
             const setValue = {
@@ -127,7 +133,9 @@ describe('parsePath', () => {
                 jsonBlob: setValue,
                 embed: false,
                 viewOnly: true,
-            });
+                defaultSelectionIndex: undefined,
+                onlySetIndex: undefined,
+            } satisfies NavPath);
         });
     });
 

@@ -15,12 +15,14 @@ import {
     autoCritBuffDmg,
     autoDhitBonusDmg,
     autoDhitBuffDmg,
+    combineHasteTypes,
     critChance,
     critDmg,
+    defIncomingDmg,
     detDmg,
     dhitChance,
     dhitDmg,
-    fl,
+    fl, flp,
     mainStatMulti,
     mpTick,
     sksTickMulti,
@@ -92,10 +94,13 @@ export class RawBonusStats extends RawStats {
     dhitChance: number = 0;
     dhitDmg: number = 0;
     detMulti: number = 0;
-    bonusHaste: HasteBonus[] = [];
+    traitHaste: HasteBonus[] = [];
     // TODO: These should be used when possible
     forceCrit: boolean = false;
     forceDh: boolean = false;
+    // note that **not** all haste that seems to come from a gauge is actually gauge haste. this is specifically
+    // for Paeon at this time.
+    gaugeHaste: number = 0;
 }
 
 function clamp(min: number, max: number, value: number) {
@@ -253,8 +258,14 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
         return spsToGcd(baseGcd, this.levelStats, this.spellspeed, haste);
     }
 
-    haste(attackType: AttackType): number {
-        return sum(this.finalBonusStats.bonusHaste.map(hb => hb(attackType)));
+    haste(attackType: AttackType, buffHaste: number, gaugeHaste: number): number {
+        const traitHaste = sum(this.finalBonusStats.traitHaste.map(hb => hb(attackType)));
+        return combineHasteTypes(buffHaste, this.gearHaste, traitHaste, this.finalBonusStats.gaugeHaste);
+    }
+
+    effectiveAaDelay(buffHaste: number, gaugeHaste: number): number {
+        const effectiveHaste = this.haste('Auto-attack', buffHaste, gaugeHaste);
+        return flp(3, this.aaDelay * (100 - effectiveHaste) / 100);
     }
 
     traitMulti(attackType: AttackType): number {
@@ -319,6 +330,18 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
 
     get wdMag(): number {
         return this.currentStats.wdMag + this.finalBonusStats.wdMag;
+    }
+
+    get defensePhys(): number {
+        return this.currentStats.defensePhys + this.finalBonusStats.defensePhys;
+    }
+
+    get defenseMag(): number {
+        return this.currentStats.defenseMag + this.finalBonusStats.defenseMag;
+    }
+
+    get gearHaste(): number {
+        return this.currentStats.gearHaste + this.finalBonusStats.gearHaste;
     }
 
     get weaponDelay(): number {
@@ -438,6 +461,14 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
     get aaDelay(): number {
         return this.weaponDelay;
     };
+
+    get defenseDamageTaken(): number {
+        return defIncomingDmg(this.levelStats, this.defensePhys);
+    };
+
+    get magicDefenseDamageTaken(): number {
+        return defIncomingDmg(this.levelStats, this.defenseMag);
+    }
 
     get effectiveFoodBonuses(): RawStats {
         return this._effectiveFoodBonuses;

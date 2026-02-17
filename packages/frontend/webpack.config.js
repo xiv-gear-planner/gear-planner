@@ -6,16 +6,25 @@ const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin");
 module.exports = (env, argv) => {
     const prod = argv.mode === 'production';
     return {
-        entry: [path.resolve(__dirname, "./src/scripts/main.ts"),
-                // path.resolve(__dirname, "./src/scripts/workers/worker_main.ts"),
-        ],
+        entry: {
+            // It is not necessary to declare the webworker as an entry point, since we are using the syntax that
+            // webpack automatically recognizes and turns into a chunk.
+            main: path.resolve(__dirname, "./src/scripts/main.ts"),
+        },
         output: {
             path: path.resolve(__dirname + "/dist"),
-            clean: false
+            clean: false,
+            filename: prod ? '[name].[contenthash].js' : '[name].js',
+            // Normally, webpack tries to guess the public URL of the output files, but the way it does so will break
+            // if you have 3rd party scripts (cloudflare beacon, etc) on the page. This tells it that the scripts are
+            // always in the same directory as the HTML document.
+            publicPath: '/',
         },
         optimization: {
+            // Minimize for the 'npm run buildprod' mode but not the normal 'npm run build'.
             minimize: prod,
             chunkIds: 'named',
+            splitChunks: false,
         },
         // devtool: prod ? 'nosources-source-map' : 'source-map',
         devtool: 'source-map',
@@ -37,7 +46,8 @@ module.exports = (env, argv) => {
             new HtmlWebpackPlugin({
                 template: path.resolve(__dirname, "src/index.html"),
                 filename: "index.html",
-                inject: false
+                inject: 'head',
+                scriptLoading: 'module'
             }),
             new NodePolyfillPlugin(),
             new BeastiesWebpackPlugin({
@@ -58,6 +68,8 @@ module.exports = (env, argv) => {
                 "net": false,
                 "tls": false,
                 "child_process": false,
+                "path": false,
+                "os": false,
             },
             plugins: [
                 new TsconfigPathsPlugin({

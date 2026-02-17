@@ -1,9 +1,9 @@
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {
-    clampValuesOrUndef,
+    clampValuesOrUndef, el,
     FieldBoundCheckBox,
     FieldBoundDataSelect,
-    FieldBoundOrUndefIntField,
+    FieldBoundIntOrUndefField, labeledCheckbox,
     labelFor,
     quickElement
 } from "@xivgear/common-ui/components/util";
@@ -28,15 +28,15 @@ class SettingsModal extends BaseModal {
         const displaySettings = DISPLAY_SETTINGS;
         const lightModeCb = new FieldBoundCheckBox(displaySettings, 'lightMode');
         const lightModeToggle = new BoolToggle(lightModeCb, 'Light', 'Dark');
-        lightModeCb.addListener(val => recordEvent('lightModeToggle', {lightMode: val}));
+        lightModeCb.addListener((val: boolean) => recordEvent('lightModeToggle', {lightMode: val}));
         this.contentArea.append(lightModeToggle);
 
         const modernThemeCb = new FieldBoundCheckBox(displaySettings, 'modernTheme');
         const modernThemeToggle = new BoolToggle(modernThemeCb, 'Modern', 'Classic');
-        modernThemeCb.addListener(val => recordEvent('modernTheme', {modernTheme: val}));
+        modernThemeCb.addListener((val: boolean) => recordEvent('modernTheme', {modernTheme: val}));
         this.contentArea.append(modernThemeToggle);
 
-        const langDropdown = new FieldBoundDataSelect<typeof displaySettings, Language | undefined>(displaySettings, 'languageOverride', val => {
+        const langDropdown = new FieldBoundDataSelect<typeof displaySettings, Language | undefined>(displaySettings, 'languageOverride', (val: Language | undefined) => {
             if (val) {
                 return LangaugeDisplayName[val];
             }
@@ -44,16 +44,15 @@ class SettingsModal extends BaseModal {
                 return 'Auto';
             }
         }, [undefined, ...ALL_LANGS]);
-        langDropdown.addListener(val => recordEvent('langChange', {lang: val}));
+        langDropdown.addListener((val: Language | undefined) => recordEvent('langChange', {lang: val}));
         langDropdown.addListener(() => this.setDisplayRefreshLabel(true));
         langDropdown.id = 'language-picker';
         const langLabel = labelFor("Game Items Language:", langDropdown);
         this.contentArea.append(langLabel);
-        this.contentArea.append(document.createElement('br'));
         this.contentArea.append(langDropdown);
-        this.contentArea.append(document.createElement('br'));
+        this.contentArea.append(el('br'));
 
-        const workersCount = new FieldBoundOrUndefIntField(SETTINGS, 'workersOverride', {
+        const workersCount = new FieldBoundIntOrUndefField(SETTINGS, 'workersOverride', {
             postValidators: [clampValuesOrUndef(2, 1024)],
         });
         workersCount.style.width = '100%';
@@ -61,10 +60,17 @@ class SettingsModal extends BaseModal {
         workersCount.placeholder = 'Leave blank to use default';
         const workersLabel = labelFor("Meld Solver Workers: ", workersCount);
         workersCount.addListener(() => this.setDisplayRefreshLabel(true));
-        this.contentArea.append(document.createElement('br'));
         this.contentArea.append(workersLabel);
         this.contentArea.append(workersCount);
-        this.contentArea.append(document.createElement('br'));
+        this.contentArea.append(el('br'));
+
+        const reverseSortCb = new FieldBoundCheckBox(displaySettings, 'reverseItemSort');
+        const reverseSort = labeledCheckbox('Reverse Item Sort', reverseSortCb);
+        reverseSortCb.addListener(() => this.setDisplayRefreshLabel(true));
+
+        this.contentArea.append(reverseSort);
+        this.contentArea.append(el('br'));
+
         this.contentArea.append(this.refreshLabel);
 
         this.addCloseButton();
@@ -81,7 +87,7 @@ class SettingsModal extends BaseModal {
 }
 
 export function showSettingsModal() {
-    const dialog = new SettingsModal();
+    const dialog = document.createElement('settings-modal') as SettingsModal;
     dialog.attachAndShowExclusively();
     recordEvent('openSettingsModal');
 }

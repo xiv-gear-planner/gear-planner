@@ -2,6 +2,7 @@
 // TODO: get back to fixing this at some point
 import {
     ALL_COMBAT_JOBS,
+    ALL_SUB_STATS,
     CURRENT_MAX_LEVEL,
     defaultItemDisplaySettings,
     DefaultMateriaFillPrio,
@@ -14,9 +15,13 @@ import {
     MAIN_STATS,
     MateriaSubstat,
     RaceName,
+    SPECIAL_STAT_KEYS,
+    SPECIAL_STATS_MAPPING,
+    SpecialStatKey,
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
 import {
+    DisplayGearSlotKey,
     EquippedItem,
     EquipSlotKey,
     EquipSlots,
@@ -32,6 +37,7 @@ import {
     MateriaAutoFillPrio,
     MateriaFillMode,
     MeldableMateriaSlot,
+    NormalOccGearSlotKey,
     OccGearSlotKey,
     PartyBonusAmount,
     RawStatKey,
@@ -43,7 +49,7 @@ import {
     SimExport,
     Substat
 } from "@xivgear/xivmath/geartypes";
-import {CharacterGearSet, isSameOrBetterItem, SyncInfo} from "./gear";
+import {CharacterGearSet, SyncInfo} from "./gear";
 import {DataManager, DmJobs, makeDataManager} from "./datamanager";
 import {Inactivitytimer} from "@xivgear/util/inactivitytimer";
 import {writeProxy} from "@xivgear/util/proxies";
@@ -54,7 +60,7 @@ import {DUMMY_SHEET_MGR, SheetManager} from "./persistence/saved_sheets";
 import {CustomItem} from "./customgear/custom_item";
 import {CustomFood} from "./customgear/custom_food";
 import {statsSerializationProxy} from "@xivgear/xivmath/xivstats";
-import {isMateriaAllowed} from "./materia/materia_utils";
+import {isMateriaAllowed, materiaShortLabel} from "./materia/materia_utils";
 import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 
 export type SheetCtorArgs = ConstructorParameters<typeof GearPlanSheet>
@@ -79,13 +85,14 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
      */
     fromExport(importedData: SheetExport): SheetType {
         const sheet = this.construct(undefined, importedData, this.sheetManager);
-        // If sims are not specified at all in the import, add the defaults.
+        // If sims are not specified at all in the import, we want to add the
+        // defaults.
         // Note that this will not add sims if they are specified as [], only
         // if unspecified.
         // We check the import data here as the sheet will have sims = [] at this
         // point.
         if (importedData.sims === undefined) {
-            sheet.addDefaultSims();
+            sheet.shouldAddDefaultSimsToNewSheet = true;
         }
         return sheet;
     }
@@ -118,7 +125,7 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
             specialStats: importedData[0].specialStats ?? null,
         });
         if (importedData[0].sims === undefined) {
-            gearPlanSheet.addDefaultSims();
+            gearPlanSheet.shouldAddDefaultSimsToNewSheet = true;
         }
         // TODO
         // gearPlanSheet._selectFirstRowByDefault = true;
@@ -153,9 +160,7 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
             // ctor will auto-fill the rest
         };
         const gearPlanSheet = this.construct(sheetKey, fakeExport, this.sheetManager);
-        gearPlanSheet.addDefaultSims();
-        // TODO
-        // gearPlanSheet._selectFirstRowByDefault = true;
+        gearPlanSheet.shouldAddDefaultSimsToNewSheet = true;
         return gearPlanSheet;
     }
 
@@ -187,15 +192,16 @@ export class GearPlanSheet {
     // General sheet properties
     private _sheetName: string;
     private _description: string | undefined;
-    readonly classJobName: JobName;
+    classJobName: JobName;
     readonly altJobs: JobName[];
-    readonly isMultiJob: boolean;
-    readonly level: SupportedLevel;
-    readonly ilvlSync: number | undefined;
+    isMultiJob: boolean;
+    level: SupportedLevel;
+    ilvlSync: number | undefined;
     private _race: RaceName | undefined;
     private _partyBonus: PartyBonusAmount;
     private readonly _saveKey: string | undefined;
     private readonly _importedData: SheetExport;
+    shouldAddDefaultSimsToNewSheet: boolean;
 
     // Sheet data
     private _sets: CharacterGearSet[] = [];
@@ -262,7 +268,7 @@ export class GearPlanSheet {
             Object.assign(this._itemDisplaySettings, importedData.itemDisplaySettings);
         }
         else {
-            const defaults = getDefaultDisplaySettings(this.level, this.classJobName);
+            const defaults = getDefaultDisplaySettings(this.level, this.classJobName, this.ilvlSync);
             Object.assign(this._itemDisplaySettings, defaults);
             // TODO: investigate if this logic is worth doing
             // if (this.ilvlSync) {
@@ -398,6 +404,11 @@ export class GearPlanSheet {
         const dataManager = makeDataManager(this.allJobs, this.level, this.ilvlSync);
         await dataManager.loadData();
         await this.loadFromDataManager(dataManager);
+
+        if (this.shouldAddDefaultSimsToNewSheet) {
+            this.addDefaultSims();
+            this.shouldAddDefaultSimsToNewSheet = false;
+        }
     }
 
     /**
@@ -421,7 +432,8 @@ export class GearPlanSheet {
         for (const importedSet of saved.sets) {
             this.addGearSet(this.importGearSet(importedSet));
         }
-        if (saved.sims) {
+        // If this is an embed, we don't care about sims.
+        if (saved.sims && !this.isEmbed) {
             for (const simport of saved.sims) {
                 const simSpec = getSimSpecByStub(simport.stub);
                 if (simSpec === undefined) {
@@ -496,6 +508,7 @@ export class GearPlanSheet {
         this.requestSave();
     }
 
+
     /**
      * The description of the sheet.
      */
@@ -508,6 +521,7 @@ export class GearPlanSheet {
         this.requestSave();
     }
 
+
     /**
      * Copy this sheet to a new save slot.
      *
@@ -515,10 +529,11 @@ export class GearPlanSheet {
      * @param job New job. Leave unspecified/undefined to keep existing job.
      * @param level New level. Leave unspecified/undefined to keep existing level.
      * @param ilvlSync New ilvl sync. Leave unspecified or use special value 'keep' to keep existing ilvl sync.
+     * @param multiJob Whether to create the new sheet as a multi-job sheet or not.
      * @returns The saveKey of the new sheet.
      */
     saveAs(name: string, job: JobName, level: SupportedLevel, ilvlSync: number | 'keep' | undefined, multiJob: boolean): string {
-        const exported = this.exportSheet(true);
+        const exported = this.exportSheet(ExportTypes.InternalSaveAs);
         if (name !== undefined) {
             exported.name = name;
         }
@@ -540,8 +555,14 @@ export class GearPlanSheet {
         return this.sheetManager.saveAs(exported);
     }
 
-    exportSims(external: boolean): SimExport[] {
-        return this._sims.filter(sim => !external || sim.settings.includeInExport).map(sim =>
+
+    exportSims(mode: SimExportMode): SimExport[] {
+        if (mode === 'none') {
+            return [];
+        }
+        return this._sims.filter(sim => {
+            return mode === 'all' || sim.settings.includeInExport === true;
+        }).map(sim =>
             ({
                 stub: sim.spec.stub,
                 settings: sim.exportSettings(),
@@ -549,23 +570,15 @@ export class GearPlanSheet {
             }));
     }
 
-    exportSheet(): SheetExport;
-    exportSheet(external: boolean): SheetExport;
-    exportSheet(external: boolean, fullStats: false): SheetExport;
-    exportSheet(external: boolean, fullStats: true): SheetStatsExport;
-
     /**
      * Export the sheet to serialized form.
      *
-     * @param external  Whether this is an external (shared publicly) or internal (saved locally). Certain properties,
-     * such as the save key, are not useful for external exports, so they are omitted.
-     * @param fullStats Whether to include the computedStats in the result. If true, returns SheetStatsExport instead
-     * of the plain SheetExport.
+     * @param opts Options for the export.
      */
-    exportSheet(external: boolean = false, fullStats: boolean = false): SheetExport | SheetStatsExport {
-        const sets = this._sets.map(set => {
+    exportSheet<X extends SheetExportOptions>(opts: X): ExportTypeFor<X> {
+        const sets: ExportTypeFor<X>['sets'] = this._sets.map(set => {
             const rawExport = this.exportGearSet(set, false);
-            if (fullStats) {
+            if (opts.includeStats) {
                 const augGs: SetStatsExport = {
                     ...rawExport,
                     computedStats: statsSerializationProxy(set.computedStats),
@@ -574,7 +587,7 @@ export class GearPlanSheet {
             }
             return rawExport;
         });
-        const simsExport: SimExport[] = this.exportSims(external);
+        const simsExport: SimExport[] = this.exportSims(opts.includeSims);
         const out: SheetExport = {
             name: this.sheetName,
             sets: sets,
@@ -595,9 +608,10 @@ export class GearPlanSheet {
             isMultiJob: this.isMultiJob,
             specialStats: this.activeSpecialStat ?? null,
         };
-        if (!external) {
+        if (opts.includeSaveKey) {
             out.saveKey = this._saveKey;
         }
+        // @ts-expect-error Don't know how to make it work - the only issue is that 'sets' is the wrong type.
         return out;
 
     }
@@ -693,10 +707,10 @@ export class GearPlanSheet {
      * Export a CharacterGearSet to a SetExport so that it can safely be serialized for saving or sharing.
      *
      * @param set The set to export.
-     * @param external true to include fields which are useful for exporting but not saving (e.g. including job name
-     * for single set exports).
+     * @param standalone true to create a single-set top-level export, i.e. include fields that would normally be at the
+     * sheet level, such as job and sims.
      */
-    exportGearSet(set: CharacterGearSet, external: boolean = false): SetExport | SetExportExternalSingle {
+    exportGearSet(set: CharacterGearSet, standalone: boolean = false): SetExport | SetExportExternalSingle {
         const items: { [K in EquipSlotKey]?: ItemSlotExport } = {};
         for (const k in set.equipment) {
             const equipmentKey = k as EquipSlotKey;
@@ -730,12 +744,12 @@ export class GearPlanSheet {
             description: set.description,
             isSeparator: set.isSeparator,
         };
-        if (external) {
+        if (standalone) {
             const ext = out as SetExportExternalSingle;
             ext.job = this.classJobName;
             ext.level = this.level;
             ext.ilvlSync = this.ilvlSync;
-            ext.sims = this.exportSims(true);
+            ext.sims = this.exportSims('all'); // TODO
             ext.customItems = this._customItems.map(ci => ci.export());
             ext.customFoods = this._customFoods.map(cf => cf.export());
             ext.partyBonus = this._partyBonus;
@@ -750,7 +764,7 @@ export class GearPlanSheet {
             if (set.materiaMemory) {
                 out.materiaMemory = set.materiaMemory.export();
             }
-            if (set.jobOverride) {
+            if (this.isMultiJob && set.jobOverride) {
                 out.jobOverride = set.jobOverride;
             }
         }
@@ -833,7 +847,7 @@ export class GearPlanSheet {
      * Returns the starting set of data for a new custom item.
      * @param slot The slot for which to make the custom item.
      */
-    newCustomItem(slot: OccGearSlotKey): CustomItem {
+    newCustomItem(slot: NormalOccGearSlotKey): CustomItem {
         const item = CustomItem.fromScratch(this.nextCustomItemId, slot, this);
         this._customItems.push(item);
         this.recheckCustomItems();
@@ -1087,9 +1101,20 @@ export class GearPlanSheet {
 
     /**
      * Determine whether a stat is relevant to this sheet based on its job.
+     *
+     * Relevant means:
+     * * The stat is not undefined.
+     * * If it is the main stat (including vit), then it is the primary stat for the job.
+     *    * Vit is not relevant for any job since it is not the main stat of any job.
+     * * If it is a substat, it is not filtered out by the job.
+     * * If it is gear haste, it is only relevant if we have an active special stat which cares about haste.
+     *
      * @param stat
      */
     isStatRelevant(stat: RawStatKey | undefined): boolean {
+        if (stat === undefined) {
+            return false;
+        }
         if (!this.classJobEarlyStats) {
             // Not sure what the best way to handle this is
             return true;
@@ -1097,12 +1122,42 @@ export class GearPlanSheet {
         if (MAIN_STATS.includes(stat as typeof MAIN_STATS[number])) {
             return (stat === this.classJobEarlyStats.mainStat);
         }
+        if (stat === 'gearHaste') {
+            const specialStat = this.activeSpecialStat;
+            return SPECIAL_STATS_MAPPING[specialStat]?.showHaste ?? false;
+        }
         if (this.classJobEarlyStats.irrelevantSubstats) {
             return !this.classJobEarlyStats.irrelevantSubstats.includes(stat as Substat);
         }
         else {
             return true;
         }
+    }
+
+    /**
+     * Determine whether a stat can naturally appear on gear. Like {@link #isStatRelevant}, but returns false if the
+     * stat does not appear on gear for this class. e.g. returns false for DH on tanks and healers.
+     *
+     * @param stat
+     */
+    isStatPossibleOnGear(stat: RawStatKey | undefined): boolean {
+        const role = this.classJobEarlyStats.role;
+        if (stat === 'vitality') {
+            return true;
+        }
+        if (stat === 'dhit' && (role === 'Healer' || role === 'Tank')) {
+            return false;
+        }
+        return this.isStatRelevant(stat);
+    }
+
+    /**
+     * Determine whether a stat should be shown by default on the custom item UI. Same as {@link #isStatPossibleOnGear}.
+     *
+     * @param stat The stat
+     */
+    isStatRelevantForCustomItems(stat: RawStatKey | undefined): boolean {
+        return this.isStatPossibleOnGear(stat);
     }
 
     /**
@@ -1332,27 +1387,8 @@ export class GearPlanSheet {
         this._sets.forEach(set => set.forceRecalc());
     }
 
-    /**
-     * Get items that could replace the given item - either identical or better.
-     *
-     * @param thisItem
-     */
-    getAltItemsFor(thisItem: GearItem): GearItem[] {
-        // Ignore this for relics - consider them to be incompatible until we can
-        // figure out a good way to do this.
-        if (thisItem.isCustomRelic) {
-            return [];
-        }
-        return this.dataManager.allItems.filter(otherItem => {
-            // Cannot be the same item
-            return otherItem.id !== thisItem.id
-                // Must be same slot
-                && otherItem.occGearSlotName === thisItem.occGearSlotName
-                // Must be better or same stats
-                && isSameOrBetterItem(otherItem, thisItem)
-                // Only allow items up to current max level for this job
-                && otherItem.equipLvl <= this.classJobStats.maxLevel;
-        });
+    get allItems(): GearItem[] {
+        return this.dataManager.allItems;
     }
 
     /**
@@ -1412,4 +1448,311 @@ export class GearPlanSheet {
         });
         this.recalcAll();
     }
+
+    checkCompatibility(setA: CharacterGearSet, setB: CharacterGearSet): SetCompatibilityReport {
+        const incomp: SlotIncompatibility[] = [];
+        const slotsA = new Map<number, EquippedItem[]>();
+        const slotsB = new Map<number, EquippedItem[]>();
+        EquipSlots.forEach(slot => {
+            const itemA = setA.equipment[slot];
+            const itemB = setB.equipment[slot];
+            if (itemA) {
+                const id = itemA.gearItem.id;
+                slotsA.set(id, [...(slotsA.get(id) ?? []), itemA]);
+            }
+            if (itemB) {
+                const id = itemB.gearItem.id;
+                slotsB.set(id, [...(slotsB.get(id) ?? []), itemB]);
+            }
+        });
+        outer: for (const [id, itemsA] of slotsA) {
+            const itemsB = slotsB.get(id) ?? [];
+            // Item not equipped in other set - no incompatibility
+            if (itemsB.length === 0) {
+                continue;
+            }
+            if (itemsA.length === 1 && itemsB.length === 1) {
+                // Simple case for non-ring items
+                const compat = checkItemCompat(itemsA[0], itemsB[0]);
+                if (compat !== 'compatible') {
+                    incomp.push(compat);
+                }
+            }
+            else {
+                // Complex cases for rings:
+                // If both sets have two of the same ring, then we compare first-to-first, second-to-second, and then
+                // first-to-second and second-to-first, keeping whichever combination results in fewer incompatibilities.
+                // If one set has two of the same ring while the other set has one, then we compare that one to
+                // both and report both (since the user can fix this by making *either* ring compatible).
+                if (itemsA.length === 2 && itemsB.length === 2) {
+                    const compat00 = checkItemCompat(itemsA[0], itemsB[0]);
+                    const compat11 = checkItemCompat(itemsA[1], itemsB[1]);
+                    if (compat00 === 'compatible' && compat11 === 'compatible') {
+                        // Rings are compatible already
+                        continue;
+                    }
+                    const compat01 = checkItemCompat(itemsA[0], itemsB[1]);
+                    const compat10 = checkItemCompat(itemsA[1], itemsB[0]);
+                    if (compat01 === 'compatible' && compat10 === 'compatible') {
+                        // Rings are fully compatible if we switch left/right ring
+                        continue;
+                    }
+                    if (compat00 === 'compatible' || compat11 === 'compatible') {
+                        // Either 00 are compatible or 11. Case where both are compatible is already handled.
+                        if (compat00 === 'compatible') {
+                            incomp.push(compat11 as SlotIncompatibility);
+                        }
+                        else {
+                            incomp.push(compat00);
+                        }
+                    }
+                    else if (compat01 === 'compatible' || compat10 === 'compatible') {
+                        // Either 01 are compatible or 10. Case where both are compatible is already handled.
+                        if (compat01 === 'compatible') {
+                            incomp.push(compat10 as SlotIncompatibility);
+                        }
+                        else {
+                            incomp.push(compat01);
+                        }
+                    }
+                    else {
+                        // Nothing is compatible. Just go with 00 and 11.
+                        incomp.push(compat00, compat11);
+                    }
+                }
+                else {
+                    let base: EquippedItem;
+                    let others: EquippedItem[];
+                    if (itemsA.length === 1) {
+                        base = itemsA[0];
+                        others = itemsB;
+                    }
+                    else if (itemsB.length === 1) {
+                        base = itemsB[0];
+                        others = itemsA;
+                    }
+                    else {
+                        // ERROR
+                        // TODO
+                        throw new Error("TODO this is a bug");
+                    }
+                    const possibilities: SlotIncompatibility[] = [];
+                    for (const other of others) {
+                        const compat = checkItemCompat(base, other);
+                        if (compat === 'compatible') {
+                            continue outer;
+                        }
+                        possibilities.push(compat);
+                    }
+                    incomp.push(...possibilities);
+                }
+            }
+        }
+        return new SetCompatibilityReport(setA, setB, incomp);
+    }
+
+    applicableSpecialStat(): SpecialStatKey | null {
+        if (!this.ilvlSync) {
+            return null;
+        }
+        for (const specialstatkey of SPECIAL_STAT_KEYS) {
+            const mapping = SPECIAL_STATS_MAPPING[specialstatkey];
+            if (mapping && mapping.level === this.level && mapping.ilvls.includes(this.ilvlSync)) {
+                return specialstatkey;
+            }
+        }
+        return null;
+    }
 }
+
+function checkItemCompat(itemA: EquippedItem, itemB: EquippedItem): SlotIncompatibility | 'compatible' {
+
+    if (itemA.gearItem.id !== itemB.gearItem.id) {
+        return 'compatible';
+    }
+    const slot = itemA.gearItem.displayGearSlotName;
+    if (itemA.gearItem.isCustomRelic) {
+        // Dealing with relics
+        const badSubStats: string[] = [];
+        ALL_SUB_STATS.forEach(stat => {
+            const statValueA = itemA.relicStats[stat];
+            const statValueB = itemB.relicStats[stat];
+            if (statValueA !== statValueB) {
+                badSubStats.push(`${stat}: ${statValueA} ≠ ${statValueB}`);
+            }
+        });
+        if (badSubStats.length > 0) {
+            return {
+                slotKey: slot,
+                itemA: itemA,
+                itemB: itemB,
+                reason: 'relic-stat-mismatch',
+                subIssues: badSubStats,
+                hardBlocker: true,
+            };
+        }
+    }
+    else {
+        // Dealing with materia slots
+        const numMeldSlots = Math.max(itemA.melds.length, itemB.melds.length);
+        const issues: string[] = [];
+        for (let i = 0; i < numMeldSlots; i++) {
+            const slotNum = i + 1;
+            const meldA = itemA.melds[i]?.equippedMateria;
+            const meldB = itemB.melds[i]?.equippedMateria;
+            const descA = meldA ? materiaShortLabel(meldA) : 'empty';
+            const descB = meldB ? materiaShortLabel(meldB) : 'empty';
+            if (meldA?.id !== meldB?.id) {
+                issues.push(`Slot ${slotNum}: ${descA} ≠ ${descB}`);
+            }
+        }
+        if (issues.length > 0) {
+            return {
+                slotKey: slot,
+                itemA: itemA,
+                itemB: itemB,
+                reason: 'materia-mismatch',
+                subIssues: issues,
+                // If the item is not unique, then it's not a hard blocker since you could buy multiple of
+                // the item and fill them with different materia.
+                hardBlocker: itemA.gearItem.isUnique,
+            };
+        }
+    }
+    return 'compatible';
+}
+
+/**
+ * Describes the level of compatibility between two sets.
+ *
+ * compatible: Any common items in both sets have the same melds or custom relic stats.
+ *
+ * soft-incompatible: One or more items use different melds/stats between the two sets, but the items in question
+ * are not unique. You can still assemble both sets, but you will need to buy/craft duplicate items.
+ *
+ * hard-incompatible: One or more items use different melds/stats between the two sets, and at least one such item
+ * is unique. It will not be possible to assemble both sets.
+ */
+export type SetCompatibilityLevel = 'compatible' | 'soft-incompatible' | 'hard-incompatible';
+
+/**
+ * Describes the (in)compatibility between two gear sets.
+ */
+export class SetCompatibilityReport {
+    constructor(readonly setA: CharacterGearSet, readonly setB: CharacterGearSet, readonly incompatibleSlots: SlotIncompatibility[]) {
+    }
+
+    get compatibilityLevel(): SetCompatibilityLevel {
+        if (this.incompatibleSlots.length === 0) {
+            return 'compatible';
+        }
+        else {
+            return this.incompatibleSlots.some(incomp => incomp.hardBlocker) ? 'hard-incompatible' : 'soft-incompatible';
+        }
+    }
+}
+
+/**
+ * Describes a slot incompatibility between two gear sets.
+ */
+export type SlotIncompatibility = {
+    slotKey: DisplayGearSlotKey;
+    itemA: EquippedItem;
+    itemB: EquippedItem;
+    reason: SlotIncompatibilityReason;
+    /**
+     * Human-readable details about the incompatibility.
+     */
+    subIssues: string[];
+    /**
+     * Whether this is a hard blocker. If true, it means that the item is not unique, and you cannot assemble both sets.
+     * If false, you can work around it using duplicate items.
+     */
+    hardBlocker: boolean;
+}
+
+/**
+ * Describes the reason why two slots might be incompatible.
+ */
+export type SlotIncompatibilityReason = 'materia-mismatch' | 'relic-stat-mismatch';
+
+export type SheetExportOptions = {
+    /*
+    External seems to be true for:
+    1. We are publishing or explicitly exporting a set
+    2. A full stats request
+
+
+    It is false for:
+    Meld solver - this is a unique case, as we want sims but not a save key
+
+    We should deprecate this and break it down into smaller options.
+     */
+    // external: boolean;
+    includeStats: boolean;
+    includeSims: SimExportMode;
+    includeSaveKey: boolean;
+}
+
+// TODO: make ternaries for the rest of the combinations
+type ExportTypeFor<X extends SheetExportOptions> = X extends {
+    includeStats: true
+} ? SheetStatsExport : SheetExport;
+
+export type SimExportMode = 'selected-only' | 'all' | 'none'
+
+/**
+ * Export options for the meld solver. The meld solver needs basically nothing, since it
+ * computes the stats on its own, does not save, and we send the sim over separately.
+ */
+export const SolverExport = {
+    includeStats: false,
+    includeSims: 'none',
+    includeSaveKey: false,
+} as const satisfies SheetExportOptions;
+
+/**
+ * Export options for a typical external export. We do not include a save key, and include only
+ * the sims that the user selected, and do not include stats.
+ */
+const ExternalExport = {
+    includeStats: false,
+    includeSims: 'selected-only',
+    includeSaveKey: false,
+} as const satisfies SheetExportOptions;
+
+/**
+ * Export options for a typical internal save. We include the save key, and all sims.
+ */
+const InternalSave = {
+    includeStats: false,
+    includeSims: 'all',
+    includeSaveKey: true,
+} as const satisfies SheetExportOptions;
+
+/**
+ * Export options for a typical internal save-as. Same as a normal save, but we do not need
+ * the save key since we will replace it with a new one anyway.
+ */
+const InternalSaveAs = {
+    includeStats: false,
+    includeSims: 'all',
+    includeSaveKey: false,
+} as const satisfies SheetExportOptions;
+
+/**
+ * Export options for the fulldata endpoint. Include stats and sims, but not a save key.
+ */
+const FullStatsExport = {
+    includeStats: true,
+    includeSims: 'all',
+    includeSaveKey: false,
+} as const satisfies SheetExportOptions;
+
+export const ExportTypes = {
+    SolverExport,
+    ExternalExport,
+    InternalSave,
+    InternalSaveAs,
+    FullStatsExport,
+} as const;

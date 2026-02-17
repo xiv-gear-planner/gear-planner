@@ -5,16 +5,18 @@
   "scripts": {
     "build": "tsc --build",
     "buildprod": "tsc --build",
-    "test": "ts-mocha --exit src/test/**/*test.ts src/test/**/*tests.ts"
+    "test": "ts-mocha --exit \"src/test/**/*test.ts\" \"src/test/**/*tests.ts\""
   },
   "dependencies": {
-    "@xivgear/data-api-client": "^1.0.0",
-    "@xivgear/i18n": "^1.0.0",
-    "@xivgear/util": "^1.0.0",
-    "@xivgear/xivmath": "^1.0.0"
+    "@xivgear/data-api-client": "workspace:*",
+    "@xivgear/i18n": "workspace:*",
+    "@xivgear/util": "workspace:*",
+    "@xivgear/xivmath": "workspace:*"
   },
   "devDependencies": {
     "@types/chai": "^4.3.20",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.15.18",
     "chai": "^4.5.0",
     "ts-loader": "^9.5.2",
     "ts-mocha": "^10.1.0",

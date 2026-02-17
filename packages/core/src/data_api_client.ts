@@ -22,6 +22,7 @@ export function setDataManagerErrorReporter(reporter: DataManagerErrorReporter) 
 }
 
 async function retryFetch(...params: Parameters<typeof fetch>): Promise<Response> {
+    const url = params[0];
     let tries = 5;
     while (true) {
         tries--;
@@ -33,18 +34,21 @@ async function retryFetch(...params: Parameters<typeof fetch>): Promise<Response
             continue;
         }
         if (result.status >= 400) {
-            const content = JSON.stringify(await result.json());
+            let content: string;
+            try {
+                content = JSON.stringify(await result.json());
+            }
+            catch (e) {
+                console.error(`Data API error: ${result.status}: ${result.statusText} (failed to parse content)`, params[0], e);
+                throw Error(`Data API error on ${url}: ${result.status}: ${result.statusText} (failed to parse content: ${e})`);
+            }
             console.error(`Data API error: ${result.status}: ${result.statusText}`, params[0], content);
-            const error = Error(`Data API error: ${result.status}: ${result.statusText} (${params[0]}\n${content}`);
-            // TODO: it would be nice to be able to record these, but they would create an unacceptable
-            // dependency loop.
-            // recordError("datamanager", error, {fetchUrl: String(params[0])});
-            throw error;
+            throw Error(`Data API error on ${url}: ${result.status}: ${result.statusText} (${params[0]}\n${content}`);
         }
         if (!result.ok) {
             console.error(`Data API error: ${result.status}: ${result.statusText}`, params[0]);
             errorReporter(result, params);
-            throw new Error(`Data API error: ${result.status}: ${result.statusText} (${params[0]}`);
+            throw new Error(`Data API error on ${url}: ${result.status}: ${result.statusText} (${params[0]}`);
         }
         return result;
     }

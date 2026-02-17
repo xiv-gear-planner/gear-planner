@@ -5,11 +5,11 @@ import {
     DisplayRecordFinalized,
     ExternalCycleSettings
 } from "@xivgear/core/sims/cycle_sim";
-import {SimulationGui} from "./simulation_gui";
+import {SimSettingsUpdateCallback, SimulationGui} from "./simulation_gui";
 import {SimSettings} from "@xivgear/core/sims/sim_types";
 import {cycleSettingsGui} from "./components/cycle_settings_components";
 import {writeProxy} from "@xivgear/util/proxies";
-import {NamedSection} from "../components/section";
+import {NamedSection} from "../components/general/section";
 import {BuffSettingsArea} from "./party_comp_settings";
 import {ResultSettingsArea} from "./components/result_settings";
 import {applyStdDev} from "@xivgear/xivmath/deviation";
@@ -42,7 +42,7 @@ export class BaseMultiCycleSimGui<ResultType extends CycleSimResult, InternalSet
      * @param settings       This sim's settings object.
      * @param updateCallback A callback which should be called if any settings change.
      */
-    makeCustomConfigInterface(settings: InternalSettingsType, updateCallback: () => void): HTMLElement | null {
+    makeCustomConfigInterface(settings: InternalSettingsType, updateCallback: SimSettingsUpdateCallback): HTMLElement | null {
         return null;
     }
 
@@ -53,10 +53,10 @@ export class BaseMultiCycleSimGui<ResultType extends CycleSimResult, InternalSet
      * @param settings
      * @param updateCallback
      */
-    makeConfigInterface(settings: InternalSettingsType, updateCallback: () => void): HTMLElement {
+    makeConfigInterface(settings: InternalSettingsType, updateCallback: SimSettingsUpdateCallback): HTMLElement {
         // TODO: need internal settings panel
         const div = document.createElement("div");
-        div.appendChild(cycleSettingsGui(writeProxy(this.sim.cycleSettings, updateCallback)));
+        div.appendChild(cycleSettingsGui(writeProxy(this.sim.cycleSettings, updateCallback), updateCallback));
         const custom = this.makeCustomConfigInterface(settings, updateCallback);
         if (custom) {
             custom.classList.add('custom-sim-settings-area');

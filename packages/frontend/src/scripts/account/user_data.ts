@@ -9,10 +9,15 @@ import {Language} from "@xivgear/i18n/translation";
 import {SheetExport, SheetSummary} from "@xivgear/xivmath/geartypes";
 import {SheetHandle, SheetManager} from "@xivgear/core/persistence/saved_sheets";
 import {JobName, SupportedLevel} from "@xivgear/xivmath/xivconstants";
-import {SHEET_MANAGER} from "../components/saved_sheet_impl";
+import {SHEET_MANAGER} from "../saved_sheet_impl";
 import {RefreshLoop} from "@xivgear/util/refreshloop";
 import {Inactivitytimer} from "@xivgear/util/inactivitytimer";
 import {recordError} from "@xivgear/common-ui/analytics/analytics";
+
+// Refresh every 5 minutes by default
+const SYNC_INTERVAL_LOGGED_IN = 5 * 60 * 1_000;
+// 10 minutes if client appears to be logged out
+const SYNC_INTERVAL_NOT_LOGGED_IN = 10 * 60 * 1_000;
 
 const userDataClient = new UserDataClient<never>({
     baseUrl: document.location.hostname === 'localhost' ? 'http://localhost:8087' : 'https://userdata.xivgear.app',
@@ -67,11 +72,10 @@ export class UserDataSyncer {
             await this.syncSheets();
         }, () => {
             if (this.accountStateTracker.hasVerifiedToken) {
-                // Refresh every 3 minutes by default
-                return 180_000;
+                return SYNC_INTERVAL_LOGGED_IN;
             }
             else {
-                return 600_000;
+                return SYNC_INTERVAL_NOT_LOGGED_IN;
             }
         });
         this.sheetInactivityTimer = new Inactivitytimer(15_000, () => {

@@ -15,12 +15,20 @@ import {NewApiDataManager} from "./datamanager_new";
  */
 export type BaseParamMap = { [rawStat in RawStatKey]?: BaseParamInfo }
 
+
+export type BaseParamInfo = {
+    slots: BaseParamSlotInfo,
+    /**
+     * meldParam is job-specific weighting for stats.
+     */
+    meldParam: number[],
+}
 /**
  * Mapping from gear slot to the stat 'weighting' of that gear slot for a particular base param.
  *
  * These values are usually between 67 and 140 (excluding shields).
  */
-export type BaseParamInfo = Record<OccGearSlotKey, number>
+export type BaseParamSlotInfo = Record<OccGearSlotKey, number>
 
 export interface DataManager {
     readonly primaryClassJob: JobName;

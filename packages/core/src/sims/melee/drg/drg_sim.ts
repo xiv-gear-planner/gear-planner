@@ -1,4 +1,11 @@
-import {Ability, GcdAbility, Buff, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
+import {
+    Ability,
+    GcdAbility,
+    OgcdAbility,
+    Buff,
+    SimSettings,
+    SimSpec
+} from "@xivgear/core/sims/sim_types";
 import {
     CycleProcessor,
     CycleSimResult,
@@ -17,11 +24,12 @@ import {
     LanceChargeBuff,
     LifeSurgeBuff
 } from "./drg_types";
+//import {animationLock} from '../../ability_helpers';
 //import {Litany} from "@xivgear/core/sims/buffs"
 import * as Actions from './drg_actions';
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
 import {potionMaxStr} from "@xivgear/core/sims/common/potion";
-//import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
+import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 
 function formatTime(time: number) {
     const negative = time < 0;
@@ -42,9 +50,11 @@ export interface DrgSettings extends SimSettings {
     // the length of the fight in seconds
     fightTime: number;
     // ePT opener. (false is TT opener)
-    useEptOpener: boolean;
+    /*useEptOpener: boolean;
     // double Mirage Dive.
-    useDoubleMd: boolean;
+    useDoubleMd: boolean;*/
+    // max. acceptable clip for SkS.
+    acceptableClipSks: number;
 }
 
 export interface DrgSettingsExternal extends ExternalCycleSettings<DrgSettings> {
@@ -83,9 +93,12 @@ class RotationState {
     get combo() {
         return this._combo;
     }
+
     set combo(newCombo) {
         this._combo = newCombo;
-        if (this._combo >= 10) this._combo = 0;
+        if (this._combo >= 10) {
+            this._combo = 0;
+        }
     }
 }
 
@@ -164,7 +177,9 @@ class DrgCycleProcessor extends CycleProcessor<DrgGaugeManager> {
 
     getRemainingBuffDuration(buffToFind: Buff) {
         const buffData = this.getActiveBuffData(buffToFind);
-        if (buffData === null) return 0;
+        if (buffData === null) {
+            return 0;
+        }
         return buffData.end - this.currentTime;
     }
 }
@@ -199,8 +214,9 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
             // This is chosen since it's two pots, five bursts,
             // and is somewhat even between the two main GCDs.
             fightTime: (8 * 60) + 30,
-            useEptOpener: true,
-            useDoubleMd: false,
+            /*useEptOpener: false,
+            useDoubleMd: false,*/
+            acceptableClipSks: 0.1,
         };
     }
 
@@ -215,6 +231,46 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
         ////////
         ///oGCDs
         ////////
+
+        const gcd = cp.stats.gcdPhys(2.5);
+
+        if (this.canDo9Gsk(cp)) {
+            const lcDelay = this.getMinDelay9Lc(cp);
+            const gskDelay = this.getMinDelay9Gsk(cp);
+            const timeUntilNextGcd = cp.nextGcdTime - cp.currentTime;
+            const blCooldown = cp.timeUntilReady(Actions.BattleLitany);
+            //const lcCooldown = cp.timeUntilReady(Actions.LanceCharge);
+            //const gskCooldown = cp.timeUntilReady(Actions.Geirskogul);
+            //console.log("Next GCD: %.2f, LC: %.2f, BL: %.2f, Gsk: %.2f", timeUntilNextGcd, lcCooldown, blCooldown, gskCooldown);
+            if (blCooldown < timeUntilNextGcd) {
+                cp.advanceTo(cp.currentTime + lcDelay);
+                this.use(cp, Actions.BattleLitany);
+            }
+            if (this.canUseWithClipping(cp, Actions.Geirskogul)) {
+                const gcdTime = cp.currentTime;
+                this.use(cp, cp.lifeSurgeAction);
+                cp.advanceTo(Math.max(cp.currentTime, gcdTime + lcDelay));
+                this.use(cp, Actions.LanceCharge);
+                cp.advanceTo(Math.max(cp.currentTime, gcdTime + gskDelay));
+                this.useWithClipping(cp, Actions.Geirskogul);
+            }
+        }
+        else if (this.canDo9Lc(cp)) {
+            const lcDelay = this.getMinDelay9Lc(cp);
+            const currentTime = cp.currentTime;
+            //const timeUntilNextGcd = cp.nextGcdTime - currentTime;
+            //const lcCooldown = cp.timeUntilReady(Actions.LanceCharge);
+            //const blCooldown = cp.timeUntilReady(Actions.BattleLitany);
+            //const gskCooldown = cp.timeUntilReady(Actions.Geirskogul);
+            //console.log("Next GCD: %.2f, LC: %.2f, BL: %.2f, Gsk: %.2f", timeUntilNextGcd, lcCooldown, blCooldown, gskCooldown);
+            if (cp.canUseWithoutClipping(Actions.BattleLitany)) {
+                this.use(cp, Actions.BattleLitany);
+            }
+            if (this.canUseWithClipping(cp, Actions.LanceCharge)) {
+                cp.advanceTo(Math.max(cp.currentTime, currentTime + lcDelay));
+                this.useWithClipping(cp, Actions.LanceCharge);
+            }
+        }
 
         // Priority: Hard cooldowns (use ASAP)
         // Test them in order of time until ready.
@@ -231,10 +287,16 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
             if (cp.canUseWithoutClipping(ogcd)) {
                 this.use(cp, ogcd);
             }
+            else if (gcd <= 2.47 && (ogcd.name === "Jump" || ogcd.name === "High Jump")) {
+                // If SkS then HJ should be used with clipping.
+                if (this.canUseWithClipping(cp, ogcd)) {
+                    this.useWithClipping(cp, ogcd);
+                }
+            }
         }
 
-        // Mirage Dive is higher priority because of double MD.
-        if (cp.isBuffActive(DiveReady)) {
+        // Mirage Dive is higher priority with double MD.
+        /*if (this.settings.useDoubleMd && cp.isBuffActive(DiveReady)) {
             // For double MD: wait until Lance Charge & Geirskogul to use Mirage Dive.
             const timeForDive = cp.getRemainingBuffDuration(DiveReady);
 
@@ -256,28 +318,24 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
             else if (cp.canUseWithoutClipping(Actions.MirageDive)) {
                 this.use(cp, Actions.MirageDive);
             }
-        }
+        }*/
 
         const nextGCD = cp.comboActions[cp.rotationState.combo];
 
         // Life Surge priority:
-        // FIXME: Hard-coded because the level modifier is not working and I have failed to find the source.
+        // FIXME: On faster GCD speeds it will use two Life Surge charges on odd minute...
         let needsLsNextGcd = false;
-        /*const lcOffset = this.settings.useEptOpener ? 5.35 : 2.94;
-        const nextGCDTimeIntoOneMinute = cp.nextGcdTime % 60;
-        if (lcOffset < nextGCDTimeIntoOneMinute && nextGCDTimeIntoOneMinute < lcOffset + 20) {*/
-        /*if (cp.isBuffActive(LanceChargeBuff) && cp.isBuffActive(LifeOfTheDragon)) {*/
-        // These nested ifs look ugly but I think it keeps the logic readable so I'll keep it that way for now.
         if (!cp.isBuffActive(LifeSurgeBuff)) {
             if (cp.isBuffActive(LanceChargeBuff) && cp.isBuffActive(LifeOfTheDragon)) {
                 if (nextGCD.name === "Drakesbane" || nextGCD.name === "Heavens' Thrust") {
                     needsLsNextGcd = cp.canUseWithoutClipping(cp.lifeSurgeAction);
                 }
+
                 // If double MD, check if we need to use LS on a weaker GCD like Chaotic Spring. Only relevant if we have more than 1 charge of LS.
                 // It would be ideal to actually calculate the ideal GCDs ahead of time (stored in rotation state maybe),
                 // For now the only use case is Chaotic Spring when doing double MD.
                 // There would be other use cases in the future if we want to compare additional openers and/or prevent triple-weaving.
-                if (cp.lifeSurgeAction.cooldown.charges > 1 && this.settings.useDoubleMd) {
+                /*if (cp.lifeSurgeAction.cooldown.charges > 1 && this.settings.useDoubleMd) {
                     // The combo loops every 10 minutes, so we can simply check if we are during the 6-minute burst.
                     const nextGCDTimeIntoTenMinutes = cp.nextGcdTime % (10 * 60);
                     const sixMinutes = 6 * 60;
@@ -297,7 +355,7 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
                             }
                         }
                     }
-                }
+                }*/
             }
         }
         if (needsLsNextGcd) {
@@ -320,7 +378,7 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
         if (cp.gaugeManager.firstmindsFocus === 2) {
             // How many combo GCDs until we overcap WWT?
             const gcdsUntilOvercap = 5 - (cp.rotationState.combo % 5);
-            const timeUntilOvercap = cp.stats.gcdPhys(2.5) * gcdsUntilOvercap;
+            const timeUntilOvercap = gcd * gcdsUntilOvercap;
 
             // Time until Lance Charge, Geirskogul.
             const timeUntilLC = cp.timeUntilReady(Actions.LanceCharge) + Actions.LanceCharge.appDelay;
@@ -339,11 +397,12 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
                             (canFitInLC && timeLeftInGsk > timeUntilLC) ||
                             (canFitInGsk && timeLeftInLC > timeUntilGsk);
 
-            if (canFitInBoth || canFitInLC || canFitInGsk) {
+            // Only worry about this for 2.4 and 2.5
+            if (gcd === 2.5 && (canFitInBoth || canFitInLC || canFitInGsk)) {
                 // Don't use it yet.
 
                 // Special exception for TT+double MD, don't wait for Gsk or we will overcap because of MD's higher priority.
-                if (!this.settings.useEptOpener && this.settings.useDoubleMd) {
+                /*if (!this.settings.useEptOpener && this.settings.useDoubleMd) {
                     // This happens on the 3, 8, and 10 minute bursts.
                     // The combo loops every 10 minutes, so we can simply check.
                     const currentTimeIntoTenMinutes = cp.currentTime % (10 * 60);
@@ -368,7 +427,7 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
                             }
                         }
                     }
-                }
+                }*/
             }
             else {
                 if (cp.canUseWithoutClipping(Actions.WyrmwindThrust)) {
@@ -398,6 +457,11 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
         if (cp.isBuffActive(DragonsFlight)) {
             if (cp.canUseWithoutClipping(Actions.RiseOfTheDragon)) {
                 this.use(cp, Actions.RiseOfTheDragon);
+            }
+        }
+        if (cp.isBuffActive(DiveReady)) {
+            if (cp.canUseWithoutClipping(Actions.MirageDive)) {
+                this.use(cp, Actions.MirageDive);
             }
         }
 
@@ -430,38 +494,121 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
         return cp.use(ability);
     }
 
-    private useOpener(cp: DrgCycleProcessor, useEptOpener: boolean, useDoubleMd: boolean) {
-        if (useEptOpener) {
-            this.use(cp, Actions.ElusiveJump);
-            cp.advanceTo(15 - 0.85);
-            this.use(cp, Actions.EnhancedPiercingTalon);
-            this.use(cp, Actions.TrueThrust);
+    // Use oGCD within acceptable clipping margin.
+    private useWithClipping(cp: DrgCycleProcessor, ability: OgcdAbility): AbilityUseResult {
+        if (cp.currentTime >= cp.totalTime) {
+            return null;
+        }
+
+        if (this.canUseWithClipping(cp, ability)) {
+            const readyAt = cp.cdTracker.statusOf(ability).readyAt.absolute;
+            if (cp.totalTime > readyAt) {
+                cp.advanceTo(readyAt);
+            }
+        }
+
+        // Only use potion if enabled in settings
+        if (!this.settings.usePotion && ability.name.includes("of Strength")) {
+            return null;
+        }
+
+        return cp.use(ability);
+    }
+
+    // Check if oGCD is usable within acceptable clipping margin.
+    private canUseWithClipping(cp: DrgCycleProcessor, action: OgcdAbility): boolean {
+        const readyAt = cp.cdTracker.statusOf(action).readyAt.absolute;
+        const maxDelayAt = cp.nextGcdTime;
+        if (readyAt > cp.totalTime) {
+            return false;
+        }
+        return (readyAt - maxDelayAt) <= this.settings.acceptableClipSks;
+    }
+
+    // Check if we can do 9 GCD Geirskogul, since that is the most restrictive one.
+    // It also happens to be the same as double-weaving LC and BL and still getting 9 GCDs.
+    private canDo9Gsk(cp: DrgCycleProcessor): boolean {
+        return cp.stats.gcdPhys(2.5) <= 2.42;
+    }
+
+    private getMinDelay9Gsk(cp: DrgCycleProcessor): number {
+        const gcd = cp.stats.gcdPhys(2.5);
+        const timeLeftOnGsk = LifeOfTheDragon.duration - (9 * gcd - STANDARD_ANIMATION_LOCK - Actions.Geirskogul.buffApplicationDelay);
+        return Math.max(0.05 - timeLeftOnGsk, 0);
+    }
+
+    // Check if we can do 9 GCD LC (or BL).
+    private canDo9Lc(cp: DrgCycleProcessor): boolean {
+        return cp.stats.gcdPhys(2.5) <= 2.49;
+    }
+
+    private getMinDelay9Lc(cp: DrgCycleProcessor): number {
+        const gcd = cp.stats.gcdPhys(2.5);
+        const timeLeftOnLc = LanceChargeBuff.duration - (9 * gcd - STANDARD_ANIMATION_LOCK - Actions.LanceCharge.appDelay);
+        return Math.max(0.05 - timeLeftOnLc, 0);
+    }
+
+    private useOpener(cp: DrgCycleProcessor) { //, useEptOpener: boolean, useDoubleMd: boolean) {
+        const gcd = cp.stats.gcdPhys(2.5);
+
+        const canDo9Gsk = this.canDo9Gsk(cp);
+        const canDo9Lc = this.canDo9Lc(cp);
+
+        // Geirskogul delay.
+        let gskDelay = 0;
+        if (canDo9Gsk) {
+            gskDelay = this.getMinDelay9Gsk(cp);
+        }
+
+        // Lance Charge delay.
+        let lcDelay = 0;
+        if (canDo9Lc) {
+            lcDelay = this.getMinDelay9Lc(cp);
+        }
+        const canDoubleWeaveLc = (lcDelay + 3 * STANDARD_ANIMATION_LOCK < gcd);
+
+        this.use(cp, Actions.TrueThrust);
+        this.useComboGCD(cp);
+        if (canDo9Gsk) {
+            cp.advanceTo(cp.currentTime + lcDelay);
             this.use(cp, potionMaxStr);
             this.useComboGCD(cp);
-            if (useDoubleMd) {
-                // Delay Lance Charge by at least 0.2 when doing double MD to catch Mirage Dive.
-                cp.advanceTo(cp.currentTime + 0.2 + 0.1);
-            }
-            this.use(cp, Actions.LanceCharge);
+            cp.advanceTo(cp.currentTime + lcDelay);
             this.use(cp, Actions.BattleLitany);
             this.useComboGCD(cp);
+            const gcdTime = cp.currentTime;
+            this.use(cp, cp.lifeSurgeAction);
+            cp.advanceTo(Math.max(cp.currentTime, gcdTime + lcDelay));
+            this.use(cp, Actions.LanceCharge);
+            cp.advanceTo(Math.max(cp.currentTime, gcdTime + gskDelay));
             this.use(cp, Actions.Geirskogul);
         }
         else {
-            this.use(cp, Actions.TrueThrust);
-            this.useComboGCD(cp);
-            if (useDoubleMd) {
-                // Delay Lance Charge by at least 0.2 when doing double MD to catch Mirage Dive.
-                cp.advanceTo(cp.currentTime + 0.2 + 0.1);
+            if (canDo9Lc) {
+                if (canDoubleWeaveLc) {
+                    cp.advanceTo(cp.currentTime + lcDelay);
+                    this.use(cp, Actions.LanceCharge);
+                    this.use(cp, potionMaxStr);
+                }
+                else {
+                    this.use(cp, potionMaxStr);
+                    cp.advanceTo(cp.currentTime + lcDelay - STANDARD_ANIMATION_LOCK);
+                    this.use(cp, Actions.LanceCharge);
+                }
             }
-            this.use(cp, Actions.LanceCharge);
-            this.use(cp, potionMaxStr);
+            else {
+                if (lcDelay > 0) {
+                    cp.advanceTo(cp.currentTime + lcDelay);
+                }
+                this.use(cp, Actions.LanceCharge);
+                this.use(cp, potionMaxStr);
+            }
             this.useComboGCD(cp);
             this.use(cp, Actions.BattleLitany);
             this.use(cp, Actions.Geirskogul);
         }
         this.useComboGCD(cp);
-        if (useDoubleMd) {
+        if (gcd < 2.48) {
             this.use(cp, Actions.DragonfireDive);
         }
         else {
@@ -474,8 +621,16 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
         }
         this.use(cp, cp.lifeSurgeAction);
         this.useComboGCD(cp);
-        if (!useDoubleMd) {
+        if (gcd >= 2.48) {
             this.use(cp, Actions.DragonfireDive);
+        }
+        else {
+            if (cp.stats.level >= 74) {
+                this.use(cp, Actions.HighJump);
+            }
+            else {
+                this.use(cp, Actions.Jump);
+            }
         }
         this.use(cp, Actions.Nastrond);
         this.useComboGCD(cp);
@@ -486,27 +641,14 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
         if (cp.stats.level >= 100) {
             this.use(cp, Actions.Starcross);
         }
-        if (cp.stats.level >= 88) {
+        if (cp.stats.level >= 88 && !canDo9Gsk) {
             this.use(cp, cp.lifeSurgeAction);
         }
         this.useComboGCD(cp);
         if (cp.stats.level >= 92) {
             this.use(cp, Actions.RiseOfTheDragon);
         }
-        if (!useDoubleMd) {
-            this.use(cp, Actions.MirageDive);
-        }
-        else {
-            this.useComboGCD(cp);
-            this.useComboGCD(cp);
-            if (cp.stats.level >= 74) {
-                this.use(cp, Actions.HighJump);
-            }
-            else {
-                this.use(cp, Actions.Jump);
-            }
-            this.use(cp, Actions.MirageDive);
-        }
+        this.use(cp, Actions.MirageDive);
     }
 
     private printCooldownDrift(cp: DrgCycleProcessor, abilityName: string) {
@@ -602,20 +744,31 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
 
         console.log(`[DRG Sim] Running Rotation for ${gcd} GCD...`);
 
-        return [true, false].flatMap(useEptOpener =>
-            [true, false].flatMap(useDoubleMd => ({
-                name: `${useEptOpener ? "ePT" : "TT"} Opener${useDoubleMd ? " (Double MD)" : ""}`,
-                cycleTime: 120,
-                apply(cp: DrgCycleProcessor) {
-                    outer.settings.useEptOpener = useEptOpener;
-                    outer.settings.useDoubleMd = useDoubleMd;
-                    outer.useOpener(cp, useEptOpener, useDoubleMd);
-                    cp.remainingCycles(() => {
-                        outer.useDrgRotation(cp);
-                    });
-                    outer.printDriftAndUsageSummary(cp);
-                },
-            }))
-        );
+        /*const useEptOpener = this.settings.useEptOpener;
+        const useDoubleMd = this.settings.useDoubleMd;
+
+        return [{
+            cycleTime: 120,
+            apply(cp: DrgCycleProcessor) {
+                outer.settings.useEptOpener = useEptOpener;
+                outer.settings.useDoubleMd = useDoubleMd;
+                outer.useOpener(cp, useEptOpener, useDoubleMd);
+                cp.remainingCycles(() => {
+                    outer.useDrgRotation(cp);
+                });
+                outer.printDriftAndUsageSummary(cp);
+            },
+        }];*/
+
+        return [{
+            cycleTime: 120,
+            apply(cp: DrgCycleProcessor) {
+                outer.useOpener(cp);
+                cp.remainingCycles(() => {
+                    outer.useDrgRotation(cp);
+                });
+                outer.printDriftAndUsageSummary(cp);
+            },
+        }];
     }
 }

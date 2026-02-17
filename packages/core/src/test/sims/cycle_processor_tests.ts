@@ -3,7 +3,7 @@ import {describe, it} from "mocha";
 import * as assert from "assert";
 import {assertClose} from "@xivgear/util/test/test_utils";
 import {assertSimAbilityResults, setPartyBuffEnabled, UseResult} from "./sim_test_utils";
-import {JobMultipliers} from "@xivgear/xivmath/geartypes";
+import {JobMultipliers, RawStats} from "@xivgear/xivmath/geartypes";
 import {getClassJobStats, getLevelStats, getRaceStats, STANDARD_APPLICATION_DELAY} from "@xivgear/xivmath/xivconstants";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {Divination, Dokumori, Litany} from "@xivgear/core/sims/buffs";
@@ -222,7 +222,7 @@ const jobStatMultipliers: JobMultipliers = {
     vitality: 100,
 };
 // Stats from a set. These should be the stats WITH items and race bonus, but WITHOUT party bonus
-const rawStats = {
+const rawStats = new RawStats({
     // From https://share.xivgear.app/share/74fb005d-086f-45d3-bee8-9a211559f7df
     crit: 2287,
     determination: 1806,
@@ -240,8 +240,7 @@ const rawStats = {
     wdMag: 132,
     wdPhys: 132,
     weaponDelay: 3.44,
-    racialStrengthModifier: 3,
-};
+});
 // Finalize the stats (add class modifiers, party bonus, etc)
 const stats = finalizeStats(rawStats, {}, 90, getLevelStats(90), 'WHM', {
     ...getClassJobStats('WHM'),

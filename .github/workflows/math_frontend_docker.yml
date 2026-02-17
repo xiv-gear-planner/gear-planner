@@ -27,11 +27,15 @@ jobs:
         with:
           node-version: 20.x
 
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
       - name: Build
         run: |
-          npm ci
-          npm run test
-          npm run -w @xivgear/math-frontend buildprod
+          pnpm install
+          pnpm test
+          pnpm --filter @xivgear/math-frontend buildprod
 #         We can't do docs here, because most of the frontend stuff isn't part of the math build.
 #          npm run docs
 

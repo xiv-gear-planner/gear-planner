@@ -59,6 +59,16 @@ export const ReadyToBreakBuff: Buff = {
     statusId: 3886,
 };
 
+export const BloodfestBuff: Buff = {
+    name: "Bloodfest",
+    duration: 30,
+    selfOnly: true,
+    effects: {
+        // Increases maximum carts by 3
+    },
+    statusId: 5051,
+};
+
 export const ReadyToReignBuff: Buff = {
     name: "Ready To Reign",
     duration: 30,

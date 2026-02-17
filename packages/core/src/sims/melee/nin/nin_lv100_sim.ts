@@ -61,7 +61,9 @@ class RotationState {
 
     set combo(newCombo: number) {
         this._combo = newCombo;
-        if (this._combo >= 3) this._combo = 0;
+        if (this._combo >= 3) {
+            this._combo = 0;
+        }
     }
 }
 

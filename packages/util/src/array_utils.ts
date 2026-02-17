@@ -42,15 +42,15 @@ export function rangeInc(startInclusive: number, endInclusive: number, increment
 /**
  * Determine if two arrays have equal members. Not a deep equals - only inspects one level.
  *
+ * null and undefined are both acceptable inputs, but are not considered equal to each other, nor are they equivalent
+ * to an empty array.
+ *
  * @param left The first array
  * @param right The second array
  */
-export function arrayEq(left: unknown[] | undefined, right: unknown[] | undefined) {
-    if (left === undefined && right === undefined) {
-        return true;
-    }
-    if (left === undefined || right === undefined) {
-        return false;
+export function arrayEq(left: unknown[] | undefined | null, right: unknown[] | undefined | null) {
+    if (!Array.isArray(left) || !Array.isArray(right)) {
+        return left === right;
     }
     if (left.length !== right.length) {
         return false;
@@ -63,3 +63,6 @@ export function arrayEq(left: unknown[] | undefined, right: unknown[] | undefine
     return true;
 }
 
+export function arrayEqTyped<X>(left: X[] | undefined, right: X[] | undefined): boolean {
+    return arrayEq(left, right);
+}

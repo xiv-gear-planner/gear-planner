@@ -11,6 +11,8 @@
  */
 
 export enum SpecialStatType {
+  Eureka = "Eureka",
+  Bozja = "Bozja",
   OccultCrescent = "OccultCrescent",
 }
 
@@ -35,112 +37,125 @@ export enum GearAcquisitionSource {
 
 export type BaseParam = XivApiObject &
   XivApiBase & {
-    name?: string;
+    name: string;
     /** @format int32 */
-    twoHandWeaponPercent?: number;
+    twoHandWeaponPercent: number;
     /** @format int32 */
-    oneHandWeaponPercent?: number;
+    oneHandWeaponPercent: number;
     /** @format int32 */
-    offHandPercent?: number;
+    offHandPercent: number;
     /** @format int32 */
-    headPercent?: number;
+    headPercent: number;
     /** @format int32 */
-    chestPercent?: number;
+    chestPercent: number;
     /** @format int32 */
-    handsPercent?: number;
+    handsPercent: number;
     /** @format int32 */
-    legsPercent?: number;
+    legsPercent: number;
     /** @format int32 */
-    feetPercent?: number;
+    feetPercent: number;
     /** @format int32 */
-    earringPercent?: number;
+    earringPercent: number;
     /** @format int32 */
-    necklacePercent?: number;
+    necklacePercent: number;
     /** @format int32 */
-    braceletPercent?: number;
+    braceletPercent: number;
     /** @format int32 */
-    ringPercent?: number;
+    ringPercent: number;
+    /** @format int32 */
+    chestHeadLegsFeetPercent: number;
+    /** @format int32 */
+    chestHeadPercent: number;
+    /** @format int32 */
+    chestLegsFeetPercent: number;
+    /** @format int32 */
+    chestLegsGlovesPercent: number;
+    /** @format int32 */
+    headChestHandsLegsFeetPercent: number;
+    /** @format int32 */
+    legsFeetPercent: number;
+    meldParam: number[];
   };
 
 export interface BaseParamEndpointResponse {
-  items?: BaseParam[];
+  items: BaseParam[];
 }
 
 export type ClassJob = XivApiObject &
   XivApiBase & {
-    abbreviation?: string;
-    abbreviationTranslations?: XivApiLangValueString;
-    nameTranslations?: XivApiLangValueString;
+    abbreviation: string;
+    abbreviationTranslations: XivApiLangValueString;
+    nameTranslations: XivApiLangValueString;
     /** @format int32 */
-    modifierDexterity?: number;
+    modifierDexterity: number;
     /** @format int32 */
-    modifierHitPoints?: number;
+    modifierHitPoints: number;
     /** @format int32 */
-    modifierIntelligence?: number;
+    modifierIntelligence: number;
     /** @format int32 */
-    modifierMind?: number;
+    modifierMind: number;
     /** @format int32 */
-    modifierPiety?: number;
+    modifierPiety: number;
     /** @format int32 */
-    modifierStrength?: number;
+    modifierStrength: number;
     /** @format int32 */
-    modifierVitality?: number;
+    modifierVitality: number;
   };
 
 export type EquipSlotCategory = XivApiObject &
   XivApiBase & {
     /** @format int32 */
-    mainHand?: number;
+    mainHand: number;
     /** @format int32 */
-    offHand?: number;
+    offHand: number;
     /** @format int32 */
-    head?: number;
+    head: number;
     /** @format int32 */
-    body?: number;
+    body: number;
     /** @format int32 */
-    gloves?: number;
+    gloves: number;
     /** @format int32 */
-    legs?: number;
+    legs: number;
     /** @format int32 */
-    feet?: number;
+    feet: number;
     /** @format int32 */
-    ears?: number;
+    ears: number;
     /** @format int32 */
-    neck?: number;
+    neck: number;
     /** @format int32 */
-    wrists?: number;
+    wrists: number;
     /** @format int32 */
-    fingerL?: number;
+    fingerL: number;
     /** @format int32 */
-    fingerR?: number;
+    fingerR: number;
   };
 
 export type Food = FoodItemBase &
   XivApiObject &
   XivApiBase & {
-    bonuses?: Record<string, FoodStatBonus>;
-    bonusesHQ?: Record<string, FoodStatBonus>;
+    bonuses: Record<string, FoodStatBonus>;
+    bonusesHQ: Record<string, FoodStatBonus>;
   };
 
 export interface FoodEndpointResponse {
-  items?: Food[];
+  items: Food[];
 }
 
 export type FoodItemAction = XivApiObject &
   XivApiBase & {
-    data?: number[];
+    data: number[];
   };
 
 export type FoodItemBase = XivApiObject &
   XivApiBase & {
-    name?: string;
-    nameTranslations?: XivApiLangValueString;
-    icon?: Icon;
+    name: string;
+    nameTranslations: XivApiLangValueString;
+    icon: Icon;
     /** @format int32 */
-    levelItem?: number;
-    itemAction?: FoodItemAction;
+    levelItem: number;
+    itemAction: FoodItemAction;
     /** @format int32 */
-    foodItemId?: number;
+    foodItemId: number;
   };
 
 export interface FoodStatBonus {
@@ -150,149 +165,171 @@ export interface FoodStatBonus {
   max: number;
 }
 
+export interface GameVersion {
+  names: string[];
+  key: string;
+}
+
 export type Icon = XivApiStruct &
   XivApiBase & {
+    /**
+     * @deprecated
+     * @format uri
+     */
+    pngIconUrl: string;
     /** @format uri */
-    pngIconUrl?: string;
+    url: string;
   };
 
 export type Item = ItemBase &
   XivApiObject &
   XivApiBase & {
-    baseParamMap?: Record<string, number>;
-    baseParamMapHQ?: Record<string, number>;
-    baseParamMapSpecial?: Record<string, number>;
-    specialStatType?: SpecialStatType | null;
-    classJobs?: string[];
+    baseParamMap: Record<string, number>;
+    baseParamMapHQ: Record<string, number>;
+    baseParamMapSpecial: Record<string, number>;
+    specialStatType: SpecialStatType | null;
+    classJobs: string[];
     /** @format int32 */
-    damageMagHQ?: number;
+    damageMagHQ: number;
     /** @format int32 */
-    damagePhysHQ?: number;
-    acquisitionSource?: GearAcquisitionSource;
+    damagePhysHQ: number;
+    acquisitionSource: GearAcquisitionSource;
+    /** @format int32 */
+    defenseMagHQ: number;
+    /** @format int32 */
+    defensePhysHQ: number;
   };
 
 export type ItemBase = XivApiObject &
   XivApiBase & {
     /** @format int32 */
-    ilvl?: number;
-    name?: string;
-    nameTranslations?: XivApiLangValueString;
-    icon?: Icon;
-    equipSlotCategory?: EquipSlotCategory;
+    ilvl: number;
+    name: string;
+    nameTranslations: XivApiLangValueString;
+    icon: Icon;
+    equipSlotCategory: EquipSlotCategory;
     /** @format int32 */
-    damageMag?: number;
+    damageMag: number;
     /** @format int32 */
-    damagePhys?: number;
+    damagePhys: number;
     /** @format int32 */
-    delayMs?: number;
+    delayMs: number;
     /** @format int32 */
-    materiaSlotCount?: number;
-    advancedMeldingPermitted?: boolean;
-    canBeHq?: boolean;
-    unique?: boolean;
+    materiaSlotCount: number;
+    advancedMeldingPermitted: boolean;
+    canBeHq: boolean;
+    unique: boolean;
     /** @format int32 */
-    rarity?: number;
+    rarity: number;
     /** @format int32 */
-    equipLevel?: number;
+    equipLevel: number;
+    /** @format int32 */
+    defensePhys: number;
+    /** @format int32 */
+    defenseMag: number;
   };
 
 export type ItemLevel = XivApiObject &
   XivApiBase & {
     /** @format int32 */
-    criticalHit?: number;
+    criticalHit: number;
     /** @format int32 */
-    defense?: number;
+    defense: number;
     /** @format int32 */
-    delay?: number;
+    delay: number;
     /** @format int32 */
-    determination?: number;
+    determination: number;
     /** @format int32 */
-    dexterity?: number;
+    dexterity: number;
     /** @format int32 */
-    directHitRate?: number;
+    directHitRate: number;
     /** @format int32 */
-    HP?: number;
+    HP: number;
     /** @format int32 */
-    intelligence?: number;
+    intelligence: number;
     /** @format int32 */
-    magicDefense?: number;
+    magicDefense: number;
     /** @format int32 */
-    magicalDamage?: number;
+    magicalDamage: number;
     /** @format int32 */
-    mind?: number;
+    mind: number;
     /** @format int32 */
-    physicalDamage?: number;
+    physicalDamage: number;
     /** @format int32 */
-    piety?: number;
+    piety: number;
     /** @format int32 */
-    skillSpeed?: number;
+    skillSpeed: number;
     /** @format int32 */
-    spellSpeed?: number;
+    spellSpeed: number;
     /** @format int32 */
-    strength?: number;
+    strength: number;
     /** @format int32 */
-    tenacity?: number;
+    tenacity: number;
     /** @format int32 */
-    vitality?: number;
+    vitality: number;
   };
 
 export interface ItemLevelEndpointResponse {
-  items?: ItemLevel[];
+  items: ItemLevel[];
 }
 
 export interface ItemsEndpointResponse {
-  items?: Item[];
+  items: Item[];
 }
 
 export interface JobEndpointResponse {
-  items?: ClassJob[];
+  items: ClassJob[];
 }
 
 export type Materia = XivApiObject &
   XivApiBase & {
-    item?: MateriaItem[];
-    value?: number[];
+    item: MateriaItem[];
+    value: number[];
     /** @format int32 */
-    baseParam?: number;
+    baseParam: number;
   };
 
 export interface MateriaEndpointResponse {
-  items?: Materia[];
+  items: Materia[];
 }
 
 export type MateriaItem = XivApiObject &
   XivApiBase & {
-    name?: string;
-    nameTranslations?: XivApiLangValueString;
-    icon?: Icon;
+    name: string;
+    nameTranslations: XivApiLangValueString;
+    icon: Icon;
     /** @format int32 */
-    ilvl?: number;
+    ilvl: number;
   };
 
 export interface SchemaVersionEndpointResponse {
-  schemaVersion?: string;
+  schemaVersion: string;
 }
 
 export interface VersionsEndpointResponse {
-  versions?: string[];
+  versions: string[];
+}
+
+export interface VersionsFullEndpointResponse {
+  versions: GameVersion[];
 }
 
 export interface XivApiBase {
-  schemaVersion?: XivApiSchemaVersion;
+  schemaVersion: XivApiSchemaVersion;
 }
 
 export interface XivApiLangValueString {
-  en?: string;
-  de?: string;
-  fr?: string;
-  ja?: string;
+  en: string;
+  de: string;
+  fr: string;
+  ja: string;
 }
 
 export type XivApiObject = XivApiBase & {
   /** @format int32 */
-  primaryKey?: number;
+  primaryKey: number;
   /** @format int32 */
-  rowId?: number;
+  rowId: number;
 };
 
 export type XivApiSchemaVersion = object;
@@ -345,6 +382,7 @@ type CancelToken = Symbol | string | number;
 
 export enum ContentType {
   Json = "application/json",
+  JsonApi = "application/vnd.api+json",
   FormData = "multipart/form-data",
   UrlEncoded = "application/x-www-form-urlencoded",
   Text = "text/plain",
@@ -411,12 +449,20 @@ export class HttpClient<SecurityDataType = unknown> {
       input !== null && (typeof input === "object" || typeof input === "string")
         ? JSON.stringify(input)
         : input,
+    [ContentType.JsonApi]: (input: any) =>
+      input !== null && (typeof input === "object" || typeof input === "string")
+        ? JSON.stringify(input)
+        : input,
     [ContentType.Text]: (input: any) =>
       input !== null && typeof input !== "string"
         ? JSON.stringify(input)
         : input,
-    [ContentType.FormData]: (input: any) =>
-      Object.keys(input || {}).reduce((formData, key) => {
+    [ContentType.FormData]: (input: any) => {
+      if (input instanceof FormData) {
+        return input;
+      }
+
+      return Object.keys(input || {}).reduce((formData, key) => {
         const property = input[key];
         formData.append(
           key,
@@ -427,7 +473,8 @@ export class HttpClient<SecurityDataType = unknown> {
               : `${property}`,
         );
         return formData;
-      }, new FormData()),
+      }, new FormData());
+    },
     [ContentType.UrlEncoded]: (input: any) => this.toQueryString(input),
   };
 
@@ -513,13 +560,14 @@ export class HttpClient<SecurityDataType = unknown> {
             : payloadFormatter(body),
       },
     ).then(async (response) => {
-      const r = response.clone() as HttpResponse<T, E>;
+      const r = response as HttpResponse<T, E>;
       r.data = null as unknown as T;
       r.error = null as unknown as E;
 
+      const responseToParse = responseFormat ? response.clone() : response;
       const data = !responseFormat
         ? r
-        : await response[responseFormat]()
+        : await responseToParse[responseFormat]()
             .then((data) => {
               if (r.ok) {
                 r.data = data;
@@ -677,12 +725,27 @@ export class DataApiClient<
      * No description
      *
      * @name Versions1
-     * @summary Get versions available via Xivapi at the time the data was polled.
+     * @summary Get versions available via Xivapi at the time the data was pulled. Returns a flattened list of known version names.
      * @request GET:/Versions
      */
     versions1: (params: RequestParams = {}) =>
       this.request<VersionsEndpointResponse, any>({
         path: `/Versions`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name Versions2
+     * @summary Get versions available via Xivapi at the time the data was pulled. Returns the same shape as Xivapi's verion endpoint would.
+     * @request GET:/Versions/Full
+     */
+    versions2: (params: RequestParams = {}) =>
+      this.request<VersionsFullEndpointResponse, any>({
+        path: `/Versions/Full`,
         method: "GET",
         format: "json",
         ...params,

@@ -1,4 +1,4 @@
-import {makeChevronDown} from "./util";
+import {makeChevronDown} from "./icons";
 
 export type ShowHideCallback = (newState: boolean, clickCount: number) => void;
 
@@ -32,12 +32,7 @@ export class ShowHideButton extends HTMLElement {
     }
 
     private setStyles() {
-        if (this.isHidden) {
-            this.classList.add('hidden');
-        }
-        else {
-            this.classList.remove('hidden');
-        }
+        this.classList.toggle('hidden', this.isHidden);
     }
 }
 customElements.define("show-hide-button", ShowHideButton);

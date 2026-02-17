@@ -19,7 +19,6 @@ export default [
         languageOptions: {
             // parser: parser,
             parserOptions: {
-                project: ['./tsconfig.json', './packages/*/tsconfig.json'],
                 projectService: true,
             }
         },
@@ -67,6 +66,18 @@ export default [
                 "imports": "never",
                 "exports": "never",
             }],
+            "curly": ["error", "all"],
+            "@stylistic/js/lines-between-class-members": [
+                "error",
+                {
+                    enforce: [
+                        {
+                            blankLine: "always", prev: "*", next: "method"
+                        }
+                    ]
+                },
+                {exceptAfterSingleLine: true}
+            ],
             "getter-return": "error",
             "use-isnan": "error",
             "eqeqeq": "error",
@@ -83,7 +94,37 @@ export default [
             "prefer-const": "error",
             "camelcase": "error",
             "block-scoped-var": "error",
-            "named-import-spacing/named-import-spacing": ["error", "never"]
+            "named-import-spacing/named-import-spacing": ["error", "never"],
+            // Block the use of node-specific things (see below for exceptions)
+            "no-restricted-imports": ["error", {
+                "paths": [
+                    "fs",
+                    "path",
+                    "os",
+                    "crypto",
+                    "child_process",
+                    "http",
+                    "https",
+                    "url",
+                    "process",
+                    "util"
+                ],
+                "patterns": [
+                    "node:*"
+                ]
+            }]
+        }
+    },
+    {
+        // Exceptions to disallowed node.js imports - it's fine for tests, and for the backend part since that specifically
+        // runs in node.
+        "files": [
+            "**/test/**",
+            "**/*test.ts",
+            "packages/backend-resolver/**"
+        ],
+        "rules": {
+            "no-restricted-imports": "off"
         }
     }
 ];

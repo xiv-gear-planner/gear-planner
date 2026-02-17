@@ -1,10 +1,10 @@
 import {AutoAttack, GcdAbility, OgcdAbility, SimSpec} from "@xivgear/core/sims/sim_types";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {TechnicalFinish} from "@xivgear/core/sims/buffs";
+import {StandardFinishBuff, TechnicalFinish} from "@xivgear/core/sims/buffs";
 import {ExternalCountSettings, CountSimResult, BaseUsageCountSim, SkillCount} from "@xivgear/core/sims/processors/count_sim";
 
 export const dncDtSheetSpec: SimSpec<DncDtSim, DncDtSimSettings> = {
-    displayName: "DNC Level 100 Sim",
+    displayName: "DNC Lv100 Sim",
     loadSavedSimInstance(exported: ExternalCountSettings<DncDtSimSettings>) {
         return new DncDtSim(exported);
     },
@@ -63,7 +63,7 @@ const fountainFall: GcdAbility = {
 const saberDance: GcdAbility = {
     name: 'Saber Dance',
     type: 'gcd',
-    potency: 520,
+    potency: 540,
     attackType: 'Weaponskill',
     gcd: 2.50,
     id: 16005,
@@ -87,6 +87,7 @@ const standardFinish: GcdAbility = {
     attackType: 'Weaponskill',
     gcd: 1.50,
     fixedGcd: true,
+    activatesBuffs: [StandardFinishBuff],
     id: 16003,
 } as const satisfies GcdAbility;
 
@@ -136,7 +137,7 @@ const fd3: OgcdAbility = {
 const fd4: OgcdAbility = {
     name: 'Fan Dance IV',
     type: 'ogcd',
-    potency: 420,
+    potency: 460,
     attackType: 'Ability',
     cooldown: {
         time: 1,
@@ -150,6 +151,7 @@ const finishingMove: GcdAbility = {
     potency: 850,
     attackType: 'Weaponskill',
     gcd: 2.50,
+    activatesBuffs: [StandardFinishBuff],
     // TODO: dt skill
     id: 40001,
 } as const satisfies GcdAbility;
@@ -157,7 +159,7 @@ const finishingMove: GcdAbility = {
 const lastDance: GcdAbility = {
     name: 'Last Dance',
     type: 'gcd',
-    potency: 520,
+    potency: 540,
     attackType: 'Weaponskill',
     gcd: 2.50,
     // TODO: dt skill
@@ -381,7 +383,7 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
         const FanDanceIIITotal = FanDanceTotal / 2 + 2;
         const FanDanceIII15 = FanDance15 / 2 + 1;
         const FanDanceIII20 = FanDance20 / 2 + 1;
-        const FanDanceIII30 = FanDance30 / 2 + 11;
+        const FanDanceIII30 = FanDanceIII20;
 
         const FullCycleTime = this.totalCycleTime(set);
 

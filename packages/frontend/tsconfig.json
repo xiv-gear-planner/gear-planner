@@ -26,6 +26,15 @@
     },
     {
       "path": "../user-data-client"
+    },
+    {
+      "path": "../data-api-client"
+    },
+    {
+      "path": "../i18n"
+    },
+    {
+      "path": "../util"
     }
   ]
 }

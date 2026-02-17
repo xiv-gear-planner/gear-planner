@@ -23,7 +23,7 @@ export class CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType> ex
     private table: CustomTable<RowDataType, any>;
     private readonly span: HTMLSpanElement;
 
-    constructor(table: CustomTable<RowDataType, any>, columnDef: CustomColumn<RowDataType, CellDataType, ColumnDataType>, row: CustomTableHeaderRow<RowDataType>) {
+    constructor(table: CustomTable<RowDataType, any>, private readonly columnDef: CustomColumn<RowDataType, CellDataType, ColumnDataType>, private readonly row: CustomTableHeaderRow<RowDataType>) {
         super();
         this.table = table;
         this._colDef = columnDef;
@@ -31,9 +31,6 @@ export class CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType> ex
         this.appendChild(this.span);
         this.refreshFull();
         setCellProps(this, columnDef);
-        if (columnDef.headerStyler) {
-            columnDef.headerStyler(columnDef.dataValue, this, row);
-        }
         this.refreshSelection();
     }
 
@@ -41,12 +38,15 @@ export class CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType> ex
         return this._colDef;
     }
 
-    setName() {
+    private setText() {
         this.span.textContent = this.colDef.displayName;
     }
 
     refreshFull() {
-        this.setName();
+        this.setText();
+        if (this.columnDef.headerStyler) {
+            this.columnDef.headerStyler(this.columnDef.dataValue, this, this.row);
+        }
     }
 
     refreshSelection() {
@@ -397,13 +397,26 @@ export type LazyTableStrategy = {
     rootMargin?: number,
 }
 
-export const NoLazyRender: LazyTableStrategy = {
+const NoLazyRender: LazyTableStrategy = {
     minRows: Number.MAX_SAFE_INTEGER,
     immediateRows: Number.MAX_SAFE_INTEGER,
 } as const;
 
+/**
+ * Strategy for breaking the table rows into thead and tbody elements.
+ *
+ * singlebody: The default. Puts everything into a single tbody.
+ * autoheadbody: Puts rows into thead or tbody elements, grouped with adjacent members. A header will put itself and
+ * any subsequent non-data rows into a thead element, while every set of data rows goes into a tbody. Special rows go
+ * into whatever the last element was.
+ * manual: Manually control this, by using SpecialTBody, SpecialTHead, SpecialTFoot (not implemented yet).
+ */
+export type TableSectionMode = 'singlebody' | 'autoheadbody' | 'manual';
+
+export type TableRowType<RowDataType> = RowDataType | HeaderRow | TitleRow
+
 export class CustomTable<RowDataType, SelectionType extends TableSelectionModel<RowDataType, unknown, unknown, unknown> = TableSelectionModel<RowDataType, unknown, unknown, never>> extends HTMLTableElement {
-    _data: (RowDataType | HeaderRow | TitleRow)[] = [];
+    _data: TableRowType<RowDataType>[] = [];
     dataRowMap: Map<RowDataType, CustomRow<RowDataType>> = new Map<RowDataType, CustomRow<RowDataType>>();
     selectionRefreshables: SelectionRefresh[] = [];
     _rows: RefreshableRow<RowDataType>[] = [];
@@ -412,6 +425,7 @@ export class CustomTable<RowDataType, SelectionType extends TableSelectionModel<
     selectionModel: SelectionType = noopSelectionModel as SelectionType;
     rowTitleSetter: ((row: RowDataType) => string | null) | null = null;
     lazyRenderStrategy: LazyTableStrategy = NoLazyRender;
+    sectionMode: TableSectionMode = 'singlebody';
 
     constructor() {
         super();
@@ -449,7 +463,7 @@ export class CustomTable<RowDataType, SelectionType extends TableSelectionModel<
         this.refreshFull();
     }
 
-    set data(newData: (RowDataType | HeaderRow | TitleRow)[]) {
+    set data(newData: TableRowType<RowDataType>[]) {
         this._data = newData;
         this._onRowColChange();
     }
@@ -464,6 +478,46 @@ export class CustomTable<RowDataType, SelectionType extends TableSelectionModel<
 
     protected makeHeaderRow(item: HeaderRow): CustomTableHeaderRow<RowDataType> {
         return new CustomTableHeaderRow(this);
+    }
+
+    private getRowElement(item: TableRowType<RowDataType>, rowNum: number, observer: IntersectionObserver | null): Node {
+        if (item instanceof HeaderRow) {
+            return this.makeHeaderRow(item);
+        }
+        else if (item instanceof TitleRow) {
+            return new CustomTableTitleRow(this, item.title);
+        }
+        else if (item instanceof SpecialRow) {
+            const out = new CustomTableTitleRow(this, item.creator(this));
+            item.finisher(out, this);
+            return out;
+        }
+        else {
+            // Try to find existing row first
+            const row = this.dataRowMap.get(item);
+            if (row !== undefined) {
+                return row;
+            }
+            else {
+                // Otherwise, create new row
+                const newRow = this.makeDataRow(item);
+                this.dataRowMap.set(item, newRow);
+                // Lazy-load outside of the threshold
+                const lazy = this.lazyRenderStrategy;
+                if (rowNum < lazy.immediateRows) {
+                    newRow.refreshFull();
+                }
+                else {
+                    newRow.refreshFull(false);
+                    // setTimeout(async () => {
+                    //     // newRow.refreshFull(true);
+                    // }, lazy.delay(rowNum));
+                    observer?.observe(newRow);
+                }
+                return newRow;
+            }
+        }
+
     }
 
     /**
@@ -498,44 +552,33 @@ export class CustomTable<RowDataType, SelectionType extends TableSelectionModel<
         }
         for (let i = 0; i < len; i++) {
             const item = this._data[i];
-            if (item instanceof HeaderRow) {
-                const header = this.makeHeaderRow(item);
-                newRowElements.push(header);
-            }
-            else if (item instanceof TitleRow) {
-                newRowElements.push(new CustomTableTitleRow(this, item.title));
-            }
-            else if (item instanceof SpecialRow) {
-                const out = new CustomTableTitleRow(this, item.creator(this));
-                item.finisher(out, this);
-                newRowElements.push(out);
+            const rowElement = this.getRowElement(item, i, observer);
+            newRowElements.push(rowElement);
+        }
+        if (this.sectionMode === 'singlebody') {
+            // This one is easy - dump everything into the main tbody.
+            this.tBodies[0].replaceChildren(...newRowElements);
+        }
+        else if (this.sectionMode === 'autoheadbody') {
+            // For autoheadbody, we split on the first data row.
+            // Anything above that goes into the thead, below goes in tbody.
+            let mainTheadElements: Node[];
+            let mainTbodyElements: Node[];
+            const firstDataIndex = newRowElements.findIndex(node => node instanceof CustomRow);
+            if (firstDataIndex >= 0) {
+                mainTheadElements = newRowElements.slice(0, firstDataIndex);
+                mainTbodyElements = newRowElements.slice(firstDataIndex);
             }
             else {
-                // Try to find existing row first
-                const row = this.dataRowMap.get(item);
-                if (row !== undefined) {
-                    newRowElements.push(row);
-                }
-                else {
-                    // Otherwise, create new row
-                    const newRow = this.makeDataRow(item);
-                    this.dataRowMap.set(item, newRow);
-                    // Lazy-load outside of the threshold
-                    if (i < lazy.immediateRows) {
-                        newRow.refreshFull();
-                    }
-                    else {
-                        newRow.refreshFull(false);
-                        // setTimeout(async () => {
-                        //     // newRow.refreshFull(true);
-                        // }, lazy.delay(i));
-                        observer?.observe(newRow);
-                    }
-                    newRowElements.push(newRow);
-                }
+                mainTheadElements = newRowElements;
+                mainTbodyElements = [];
             }
+            (this.tHead ?? this.createTHead()).replaceChildren(...mainTheadElements);
+            this.tBodies[0].replaceChildren(...mainTbodyElements);
         }
-        this.tBodies[0].replaceChildren(...newRowElements);
+        else {
+            throw new Error("Unhandled section mode: " + this.sectionMode);
+        }
         this.selectionRefreshables = [];
         this._rows = [];
         for (const value of newRowElements.values()) {

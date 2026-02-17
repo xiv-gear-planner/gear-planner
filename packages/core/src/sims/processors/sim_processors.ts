@@ -237,10 +237,13 @@ export abstract class BaseMultiCycleSim<
 
     protected computeCacheKey(set: CharacterGearSet): RotationCacheKey {
         const stats = set.computedStats;
-        const sps = stats.spellspeed;
-        const sks = stats.skillspeed;
-        const wdly = stats.weaponDelay;
-        return [sps, sks, wdly];
+        return [
+            stats.spellspeed,
+            stats.skillspeed,
+            stats.weaponDelay,
+            stats.gearHaste,
+            stats.job,
+        ];
     }
 
     async simulate(set: CharacterGearSet): Promise<FullResultType> {

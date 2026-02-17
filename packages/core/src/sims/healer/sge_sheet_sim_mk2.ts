@@ -73,7 +73,7 @@ const eDosis: GcdAbility = {
             dot: {
                 id: 2864,
                 duration: 30,
-                tickPotency: 80,
+                tickPotency: 85,
             },
             id: 24314,
         },
@@ -135,7 +135,7 @@ export interface SgeNewSheetSettingsExternal extends ExternalCycleSettings<SgeNe
 }
 
 export const sgeNewSheetSpec: SimSpec<SgeSheetSim, SgeNewSheetSettingsExternal> = {
-    displayName: "SGE Sim Mk.II",
+    displayName: "SGE Sim",
     loadSavedSimInstance(exported: SgeNewSheetSettingsExternal) {
         return new SgeSheetSim(exported);
     },

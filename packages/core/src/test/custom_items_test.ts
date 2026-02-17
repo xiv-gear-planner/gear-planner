@@ -1,4 +1,4 @@
-import {HEADLESS_SHEET_PROVIDER} from "../sheet";
+import {ExportTypes, HEADLESS_SHEET_PROVIDER} from "../sheet";
 import {expect} from "chai";
 import {CharacterGearSet} from "../gear";
 import {FakeLocalStorage} from "./test_utils";
@@ -25,6 +25,7 @@ describe('Custom items support', () => {
         customStats.wdPhys = 200;
         customStats.spellspeed = 500;
         customStats.mind = 1000;
+        customStats.gearHaste = 5;
         custom.customData.largeMateriaSlots = 2;
         custom.customData.smallMateriaSlots = 1;
         custom.respectCaps = false;
@@ -32,6 +33,8 @@ describe('Custom items support', () => {
 
         expect(custom.materiaSlots.length).to.equal(3);
         expect(custom.unsyncedVersion.materiaSlots.length).to.equal(3);
+
+        expect(custom.stats.gearHaste).to.eq(5);
 
         const gearItem = sheet.itemById(custom.id);
         // Should be exactly the same object, there's no cloning going on
@@ -49,18 +52,26 @@ describe('Custom items support', () => {
 
         expect(set1.computedStats.wdPhys).to.eq(200);
         expect(set1.computedStats.wdMag).to.eq(200);
+        expect(set1.computedStats.gearHaste).to.eq(5);
+        expect(set1.computedStats.haste('Weaponskill', 0, 0)).to.eq(5);
 
         expect(set2.computedStats.wdPhys).to.eq(200);
         expect(set2.computedStats.wdMag).to.eq(200);
+        expect(set2.computedStats.gearHaste).to.eq(5);
+        expect(set2.computedStats.haste('Weaponskill', 0, 0)).to.eq(5);
 
         // now make it respect caps and expect it to change
         custom.respectCaps = true;
         sheet.recheckCustomItems();
         expect(set1.computedStats.wdPhys).to.eq(127);
         expect(set1.computedStats.wdMag).to.eq(127);
+        expect(set1.computedStats.gearHaste).to.eq(5);
+        expect(set1.computedStats.haste('Weaponskill', 0, 0)).to.eq(5);
 
         expect(set2.computedStats.wdPhys).to.eq(127);
         expect(set2.computedStats.wdMag).to.eq(127);
+        expect(set2.computedStats.gearHaste).to.eq(5);
+        expect(set2.computedStats.haste('Weaponskill', 0, 0)).to.eq(5);
 
         expect(custom.materiaSlots.length).to.equal(3);
         expect(custom.unsyncedVersion.materiaSlots.length).to.equal(3);
@@ -270,7 +281,7 @@ describe('Custom items support', () => {
         expect(set1.equipment.Weapon.gearItem).to.eq(gearItem);
         expect(set1.equipment.Weapon.melds).to.have.length(0);
 
-        const exported = sheet.exportSheet();
+        const exported = sheet.exportSheet(ExportTypes.InternalSave);
         const importedSheet = HEADLESS_SHEET_PROVIDER.fromExport(exported);
         await importedSheet.load();
 

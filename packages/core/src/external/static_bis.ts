@@ -1,3 +1,5 @@
+import {JobName} from "@xivgear/xivmath/xivconstants";
+
 export type BaseNode = {
     fileName: string,
     parent?: DirNode,
@@ -16,9 +18,14 @@ export type DirNode = BaseNode & {
     children: AnyNode[],
 }
 
+export type JobNode = DirNode & {
+    fileName: JobName;
+    job: JobName;
+}
+
 export type AnyNode = LeafNode | DirNode;
 
-const STATIC_SERVER: URL = new URL("https://staticbis.xivgear.app/");
+export const STATIC_SERVER: URL = new URL("https://staticbis.xivgear.app/");
 
 const STORAGE_KEY = 'staticbis-server-override';
 

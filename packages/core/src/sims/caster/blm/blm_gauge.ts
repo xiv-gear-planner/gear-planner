@@ -109,7 +109,9 @@ export class BlmGaugeManager implements GaugeManager<BlmGaugeState> {
 
     set paradox(newParadox: boolean) {
         // If below level 90, just don't.
-        if (this.level < 90) return;
+        if (this.level < 90) {
+            return;
+        }
 
         if (this._paradox && newParadox) {
             console.warn("[BLM Sim] Overwrote Paradox.");
@@ -119,7 +121,9 @@ export class BlmGaugeManager implements GaugeManager<BlmGaugeState> {
 
     set astralSoul(newAstralSoul: number) {
         // If below level 100, just don't.
-        if (this.level < 100) return;
+        if (this.level < 100) {
+            return;
+        }
 
         if (newAstralSoul > 6) {
             console.warn(`[BLM Sim] Overcapped Astral Soul by ${newAstralSoul - 6}.`);

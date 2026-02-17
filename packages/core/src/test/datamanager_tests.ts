@@ -23,7 +23,7 @@ describe('New Datamanager', () => {
         eq(codexOfAscension.name, 'Codex of Ascension');
         eq(codexOfAscension.nameTranslation.en, 'Codex of Ascension');
         eq(codexOfAscension.nameTranslation.de, 'Kodex des Aufstiegs');
-        eq(codexOfAscension.iconUrl.toString(), 'https://beta.xivapi.com/api/1/asset/ui/icon/033000/033387_hr1.tex?format=png');
+        eq(codexOfAscension.iconUrl.toString(), 'https://v2.xivapi.com/api/asset?path=ui%2Ficon%2F033000%2F033387_hr1.tex&format=webp');
 
         // XivCombatItem props
         deq(codexOfAscension.stats, new RawStats({
@@ -34,6 +34,8 @@ describe('New Datamanager', () => {
             determination: 214,
             vitality: 412,
             weaponDelay: 3.12,
+            defenseMag: 0,
+            defensePhys: 0,
         }));
 
         // GearItem props
@@ -45,9 +47,10 @@ describe('New Datamanager', () => {
 
         deq(codexOfAscension.statCaps, {
             // Primary stats
-            strength: 416,
-            dexterity: 416,
-            intelligence: 416,
+            // The "Wrong" primary stats are reduced to 70% due to BaseParam.MeldParam
+            strength: 291,
+            dexterity: 291,
+            intelligence: 291,
             mind: 416,
 
             // Substats
@@ -65,6 +68,10 @@ describe('New Datamanager', () => {
             weaponDelay: 0, // TODO: ?
             vitality: 412,
             hp: 0,
+            // Weapons don't have def/mdef
+            defenseMag: 0,
+            defensePhys: 0,
+            gearHaste: 999_999,
         });
         eq(codexOfAscension.materiaSlots.length, 2);
         eq(codexOfAscension.isCustomRelic, false);
@@ -98,6 +105,39 @@ describe('New Datamanager', () => {
         eq(food.bonuses.determination.max, 73);
         eq(food.bonuses.determination.percentage, 10);
     }).timeout(20_000);
+    it('handles multi-slot items correctly', async () => {
+        const dm = new NewApiDataManager(['BLM'], 100);
+        await dm.loadData();
+        const verm = dm.itemById(24855);
+        eq(verm.displayGearSlotName, 'Body');
+        eq(verm.occGearSlotName, 'ChestHead');
+        expect(verm.slotMapping.getBlockedSlots()).to.deep.eq(['Head']);
+        deq(verm.stats, new RawStats({
+            vitality: 157,
+            intelligence: 177,
+            crit: 125,
+            dhit: 179,
+            defensePhys: 312,
+            defenseMag: 545,
+        }));
+        deq(verm.statCaps, new RawStats({
+            vitality: 157,
+            intelligence: 177,
+            mind: 124,
+            dexterity: 124,
+            strength: 124,
+            piety: 125,
+            defensePhys: 312,
+            defenseMag: 545,
+            gearHaste: 999999,
+            crit: 179,
+            dhit: 179,
+            skillspeed: 179,
+            spellspeed: 179,
+            tenacity: 179,
+            determination: 179,
+        }));
+    });
     describe('syncs levels correctly', () => {
 
         // Test cases from https://github.com/xiv-gear-planner/gear-planner/issues/317
@@ -127,6 +167,22 @@ describe('New Datamanager', () => {
                 const item = dm.itemById(42192);
                 expect(item.isSyncedDown).to.eq(true);
                 expect(item.syncedDownTo).to.eq(660);
+                expect(item.unsyncedVersion.stats.defenseMag).to.eq(758 + 84);
+                expect(item.unsyncedVersion.stats.defensePhys).to.eq(433 + 48);
+                // Tested in instance
+                expect(item.stats.defenseMag).to.eq(837);
+                expect(item.stats.defensePhys).to.eq(478);
+            });
+            it('should remove all def when downsyncing accessories', () => {
+                // Dark Horse Champion's Earring of Healing
+                const item = dm.itemById(43161);
+                expect(item.isSyncedDown).to.eq(true);
+                expect(item.syncedDownTo).to.eq(665);
+                expect(item.unsyncedVersion.stats.defenseMag).to.eq(1);
+                expect(item.unsyncedVersion.stats.defensePhys).to.eq(1);
+                // Tested in instance
+                expect(item.stats.defenseMag).to.eq(0);
+                expect(item.stats.defensePhys).to.eq(0);
             });
             it('should downsync a lvl95 i666 weapon to 665', () => {
                 // Skydeep Milpreves
@@ -315,7 +371,7 @@ describe('New Datamanager', () => {
             expect(item.stats.piety).to.eq(251);
         });
         it('handles Occult Crescent item, no bonus', () => {
-            // Arcanaut's RObe of Healing +2
+            // Arcanaut's Robe of Healing +2
             const item = dm.itemById(47844, false);
             expect(item.stats.wdMag).to.eq(0);
             expect(item.stats.mind).to.eq(501);
@@ -323,7 +379,7 @@ describe('New Datamanager', () => {
             expect(item.stats.determination).to.eq(271);
         });
         it('handles Occult Crescent item, with bonus', () => {
-            // Arcanaut's RObe of Healing +2
+            // Arcanaut's Robe of Healing +2
             const item = dm.itemById(47844, false);
             item.activeSpecialStat = SpecialStatType.OccultCrescent;
             expect(item.stats.wdMag).to.eq(0);

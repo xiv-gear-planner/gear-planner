@@ -8,7 +8,8 @@ body {
   --border-style: solid;
   --border-color-input: var(--border-color-default);
   --border-color-highlight: #888890;
-  --table-bg-color: #202027;
+  --default-table-bg-color: #202027;
+  --table-bg-color: var(--default-table-bg-color);
   --color-sps-sks: #22ff22;
   --color-crit: #ff2222;
   --color-dhit: #ff8800;
@@ -35,7 +36,7 @@ body {
   --standard-border-radius: 5px;
   --optional-border-radius: 0;
   --action-col-width: 73px;
-  --set-name-col-width: 300px;
+  --set-name-col-width: ~"min(300px, max(calc(30vw - 100px), 160px))";
   //--item-name-col-width: 300px;
   --item-name-col-width: 100%;
   --item-name-col-max-width: 300px;
@@ -47,7 +48,9 @@ body {
   --faint-border: 1px solid #60606680;
   --plain-link-color: #4f84ff;
   --plain-link-hover-color: #76cfff;
-  --edge-padding: 4px;
+  --editor-sides-padding: 4px;
+  --editor-bottom-padding: 8px;
+  --editor-top-padding: 8px;
   --stat-col-width: 40px;
   --chance-stat-col-width: 157px;
   --multi-stat-col-width: 120px;
@@ -86,12 +89,18 @@ body {
 
   --perfect-tiering-box-shadow: 0 0 5px -1px inset color-mix(in srgb, var(--stat-color) 50%, var(--border-color));
 
+  --cell-padding-top: 1px;
+  --cell-padding-bottom: 1px;
+  --cell-padding-left: 3px;
+  --cell-padding-right: 3px;
+  --default-table-row-height: 23px;
+
   &.light-mode {
     --bg-color: #e7dcd9;
     --fg-color: #000000;
     --border-color: #a59083;
     --border-color-highlight: #150f0f;
-    --table-bg-color: #fff8f1;
+    --default-table-bg-color: #fff8f1;
     --table-bg-color-selected: #fdebd3;
     --table-bg-color-hover: #f1d8b8;
     --input-hover-background-color: var(--table-bg-color-hover);
@@ -136,13 +145,7 @@ body {
   margin: 0;
 
   @media screen and (max-width: 600px) {
-    //color: red;
-    //width: 80vw;
-    //height: 80vh;
-    //transform: scale(1.25);
     transform-origin: 0 0;
-    --set-name-col-width: 150px;
-    //--item-name-col-width: 150px;
     [col-id='mats'] {
       display: none;
     }
@@ -249,6 +252,12 @@ body {
     a:active {
       //background-image: linear-gradient(var(--button-active-background-color) 80%, var(--bg-color));
       background-color: var(--button-active-background-color);
+    }
+  }
+
+  &.top-menu-hidden {
+    div#main-menu-area {
+      display: none;
     }
   }
 
@@ -372,31 +381,6 @@ body {
   }
 }
 
-// TODO
-div#editor-area {
-  text-align: center;
-  overflow-y: scroll;
-  flex-basis: 60%;
-  .flex-transition();
-  //flex-shrink: 99;
-  flex-grow: 9999;
-  min-height: 60%;
-  max-height: 100%;
-  border-top: 2px var(--standard-border-part);
-  margin-top: 5px;
-  padding-top: 8px;
-  padding-bottom: 8px;
-
-  table {
-    text-align: left;
-  }
-}
-
-// TODO
-div#main-page-padding {
-  flex-grow: 9999999;
-}
-
 .table-item-selected-bg {
   background-color: var(--table-bg-color-selected);
 }
@@ -487,19 +471,13 @@ table {
 
       span.header-cell-detail {
         font-weight: normal;
-        font-size: 60%;
+        //font-size: 60%;
         opacity: 60%;
-        vertical-align: bottom;
+        line-height: 0;
+        //vertical-align: bottom;
         display: inline-block;
       }
 
-      span.header-cell-gear {
-        position: absolute;
-        right: 2px;
-        bottom: 0;
-        font-size: 16px;
-        opacity: 30%;
-      }
     }
 
     &:first-child {
@@ -529,6 +507,7 @@ table {
     // This is already handled in custom tables.
     td, th {
       position: relative;
+      padding: var(--cell-padding-top) var(--cell-padding-right) var(--cell-padding-bottom) var(--cell-padding-left);
 
       &[is-selected="true"] {
         .table-item-selected-bg();
@@ -578,9 +557,6 @@ table {
     //
     //  background-color: red;
     //}
-    th, td {
-      padding: 1px 3px 1px 3px;
-    }
 
     td {
       border-left: var(--standard-border);
@@ -702,6 +678,7 @@ input {
     color: var(--fg-color);
     .standard-border-radius();
     border-color: var(--border-color);
+
     &:invalid {
       border-color: var(--error-border-color);
     }
@@ -735,6 +712,7 @@ textarea {
 table.gear-plan-table {
   border-collapse: separate;
   border-spacing: 0;
+  overflow: clip;
   //overflow-x: scroll;
   // Dumb. Gross. Why can't position: sticky have any reasonable way of working with variable-width columns?
   //background-color: var(--table-bg-color);
@@ -765,7 +743,7 @@ table.gear-plan-table {
       background-color: color-mix(in srgb, var(--table-bg-color) 60%, transparent);
 
       th {
-        height: 54px;
+        height: 40px;
         border-top: var(--thick-border);
         border-bottom: var(--thick-border);
 
@@ -811,7 +789,8 @@ table.gear-plan-table {
     td:nth-child(2) {
       // love css - why is there no "just keep this in place"
       // option for stickies?
-      left: calc(var(--action-col-width));
+      //left: calc(var(--action-col-width) + var(--cell-padding-left));
+      //left: calc(var(--action-col-width) + var(--cell-padding-left) + var(--cell-padding-right));
       border-right: var(--standard-border);
       white-space: nowrap;
       width: var(--set-name-col-width);
@@ -828,6 +807,14 @@ table.gear-plan-table {
       td, th {
         //background-color: var(--table-bg-color-selected) !important;
       }
+    }
+
+    th {
+      cursor: default;
+    }
+
+    td, th.hoverable {
+      cursor: pointer;
     }
 
     td, th {
@@ -876,7 +863,8 @@ table.gear-plan-table {
       }
 
       &:nth-child(2) {
-        left: calc(var(--action-col-width));
+        //left: calc(var(--action-col-width) + var(--cell-padding-left) + var(--cell-padding-right));
+        left: var(--action-col-width);
       }
 
       &[col-id^="sim-col-"] {
@@ -895,6 +883,7 @@ table.gear-plan-table {
   }
 
   &.view-only {
+    --action-col-width: 10px;
     .stat-col {
       text-align: center;
     }
@@ -982,7 +971,7 @@ div.chance-stat-display, div.multiplier-stat-display, div.multiplier-mit-stat-di
 }
 
 
-#new-sheet-form, save-as-modal {
+#new-sheet-form, save-as-modal, change-props-modal {
   fieldset {
     text-align: center;
     display: inline-grid;
@@ -1072,13 +1061,17 @@ job-picker {
 
     table.gear-sheets-table {
       overflow: auto;
-      padding: 0;
       width: 100%;
 
+      thead {
+        position: sticky;
+        top: 0;
+        z-index: var(--zi-sets-table-header-row);
+      }
 
       tr {
-        height: 23px;
-        max-height: 23px;
+        height: var(--default-table-row-height);
+        max-height: var(--default-table-row-height);
 
         &:not(:has(th)) {
           cursor: pointer;
@@ -1094,18 +1087,10 @@ job-picker {
         }
       }
 
-      tr:first-child {
-        th {
-          position: sticky;
-          top: 0;
-          z-index: 1;
-        }
-      }
-
       td {
         border: none;
         border-top: var(--standard-border);
-        height: 23px;
+        height: var(--default-table-row-height);
 
         &[col-id="sheetjob"] {
           width: 60px;
@@ -1178,8 +1163,8 @@ job-picker {
 
       td[col-id="sheetactions"] {
         width: 52px;
-        max-height: 23px;
-        height: 23px;
+        max-height: var(--default-table-row-height);
+        height: var(--default-table-row-height);
 
         .svg-glyph {
           font-size: 13.2px;
@@ -1254,8 +1239,8 @@ job-picker {
       width: 100%;
 
       tr {
-        height: 23px;
-        max-height: 23px;
+        height: var(--default-table-row-height);
+        max-height: var(--default-table-row-height);
         cursor: pointer;
       }
 
@@ -1320,8 +1305,8 @@ job-picker {
       // TODO: repurpose as icon row?
       td[col-id="sheetactions"] {
         width: 50px;
-        max-height: 23px;
-        height: 23px;
+        max-height: var(--default-table-row-height);
+        height: var(--default-table-row-height);
 
         .svg-glyph {
           font-size: 13.2px;
@@ -1372,24 +1357,16 @@ gear-plan {
   }
 
   .gear-sheet-table-area {
-    //.gear-sheet-table-area-inner {
-    //  margin: auto;
-    //  width: fit-content;
-    //}
     .flex-transition();
+    // needed in order for the dragging to not have a small jump when you start the drag, since it is calculated using
+    // offsetHeight which does NOT include margin.
+    box-sizing: border-box;
 
-    table {
-      //margin: auto;
-    }
-
-    /*flex-grow: 0;*/
-    /*flex-shrink: 9999;*/
-    flex-basis: content;
-    //overflow: auto;
+    //flex-basis: 25%;
     min-height: 0;
-    flex-shrink: 1;
-    flex-grow: 1;
-    max-height: 100%;
+    flex-shrink: 0;
+    flex-grow: 999;
+    max-height: 25%;
     width: fit-content;
     max-width: 100%;
     margin: 0 auto 0 auto;
@@ -1406,7 +1383,7 @@ gear-plan {
       display: flex;
 
       .gear-sheet-table-holder {
-        scrollbar-gutter: stable both-edges;
+        scrollbar-gutter: stable;
         scrollbar-width: thin;
         box-sizing: border-box;
         overflow: auto;
@@ -1471,14 +1448,15 @@ gear-plan {
 
   .gear-sheet-editor-area {
     flex-basis: var(--bottom-flex-basis);
-    flex-shrink: 1;
-    flex-grow: 9999;
+    flex-basis: 100%;
+    flex-shrink: 99999;
+    flex-grow: 0;
     //min-height: fit-content;
     height: 60%;
     max-height: 100%;
     border-top: 2px var(--standard-border-part);
-    padding-left: var(--edge-padding);
-    padding-right: var(--edge-padding);
+    padding-left: var(--editor-sides-padding);
+    padding-right: var(--editor-sides-padding);
   }
 }
 
@@ -1487,13 +1465,17 @@ gear-plan {
   text-align: center;
   overflow: auto;
   //margin-top: 5px;
-  padding-top: 8px;
-  padding-bottom: 8px;
+  padding-top: var(--editor-top-padding);
+  padding-bottom: var(--editor-bottom-padding);
 
   table {
     text-align: left;
     //padding: 5px;
   }
+
+  container-name: gear-sheet-editor-area;
+  //noinspection CssInvalidPropertyValue
+  container-type: scroll-state;
 }
 
 table.gear-items-edit-table, table.food-items-edit-table {
@@ -1567,7 +1549,7 @@ table.gear-items-table, table.food-items-table {
     position: relative;
   }
 
-  td[col-id='mats'], td[col-id='wd'] {
+  td[col-id='mats'], td[col-id='wd'], td[col-id='haste'] {
     text-align: center;
   }
 
@@ -1680,7 +1662,7 @@ table all-slot-materia-manager {
   //display: table-caption;
   max-width: 100%;
   display: inline-block;
-  min-height: 23px;
+  min-height: var(--default-table-row-height);
 
   & > span {
     vertical-align: middle;
@@ -1707,7 +1689,7 @@ slot-materia-manager {
   slot-materia-popup {
     cursor: default;
 
-    td:has(img), .materia-picker-remove {
+    td:has(img), .materia-picker-special-button {
       cursor: pointer;
     }
   }
@@ -1806,6 +1788,7 @@ slot-materia-popup {
     // For classic theme only - want to be able to see the border
     border-top: var(--standard-border) !important;
     text-align: center;
+    padding: 0 !important;
   }
 
   td {
@@ -1836,20 +1819,40 @@ slot-materia-popup {
     }
   }
 
-  .materia-picker-remove {
-    text-align: center;
-    font-weight: bold;
-
-    svg {
-      fill: #831818;
-    }
+  .materia-picker-special-button {
+    padding-top: 6px;
+    padding-bottom: 6px;
 
     &:hover {
-      svg {
-        fill: red;
+      background-color: var(--bg-color);
+    }
+
+    text-align: center;
+
+    &.materia-picker-lock {
+      padding-left: 5px;
+      padding-right: 8px;
+
+      &.unlocked {
+        opacity: 0.5;
       }
     }
+
+    &.materia-picker-remove {
+
+      svg {
+        fill: #831818;
+      }
+
+      &:hover {
+        svg {
+          fill: red;
+        }
+      }
+    }
+
   }
+
 }
 
 sim-result-display {
@@ -1890,7 +1893,7 @@ add-sim-dialog {
 
       td[col-id="sim-job-icon"] {
         width: 1px;
-        height: 23px;
+        height: var(--default-table-row-height);
 
         img {
           height: 100%;
@@ -1978,7 +1981,7 @@ add-sim-dialog {
   }
 }
 
-gear-set-editor, separator-editor {
+gear-set-editor, separator-editor, div.gear-set-popout-open-placeholder {
   div.gear-set-editor-button-area {
     width: 100%;
     text-align: center;
@@ -2033,7 +2036,7 @@ import-set-dialog {
 }
 
 div.gear-sheet-toolbar-holder {
-  min-height: 15px;
+  min-height: 30px;
   position: relative;
   padding-left: 8px;
   padding-right: 8px;
@@ -2161,6 +2164,16 @@ div.gear-sheet-toolbar-holder {
         // The element can still go off the left.
         position: sticky;
       }
+
+      .materia-fill-button {
+        box-sizing: content-box;
+        padding: 5px 8px;
+        margin-bottom: 10px;
+
+        > svg {
+          padding-right: 5px;
+        }
+      }
     }
 
     > button {
@@ -2190,7 +2203,7 @@ div.gear-sheet-toolbar-holder {
         }
       }
 
-      svg {
+      > svg {
         margin: auto;
         width: 100%;
         height: 100%;
@@ -2733,6 +2746,7 @@ food-stat-bonus {
     flex-grow: 0;
     flex-shrink: 0;
     display: block;
+    line-height: 1;
   }
 
   .food-effective {
@@ -2815,9 +2829,12 @@ table.food-items-table {
 
     food-stat-bonus {
       flex-direction: column;
+      padding-top: 2px;
+      padding-bottom: 2px;
 
       > * {
         text-align: left;
+        line-height: normal;
       }
     }
   }
@@ -2858,15 +2875,7 @@ gear-set-viewer {
   padding-left: 5px;
   padding-right: 5px;
   // Users have reported privacy thing blocking the bottom
-  padding-bottom: 90px;
-  //margin-left: 5px;
-  //margin-right: 5px;
-  //.left-side-gear-table, .right-side-gear-table {
-  //  table {
-  //    margin-left: 5px !important;
-  //    margin-right: 5px !important;
-  //  }
-  //}
+  padding-bottom: 100px;
   display: block;
   --standard-border-radius: 10px;
 
@@ -2905,6 +2914,7 @@ gear-set-viewer {
     display: flex;
     flex-direction: row;
     box-sizing: border-box;
+    position: relative;
     --materia-total-cols: auto;
 
     @media screen and (width <= 600px) {
@@ -3006,6 +3016,7 @@ gear-set-viewer {
 
       tr > td[col-id='itemname'] {
         padding-left: 0 !important;
+
         .item-name-holder, .food-name-holder {
           display: flex;
           flex-direction: row;
@@ -3554,6 +3565,12 @@ svg.gear-set-error-icon {
   margin-right: 5px;
 }
 
+.gear-set-editor-button-area {
+  svg {
+    margin-right: 3px;
+  }
+}
+
 gear-set-issues-modal {
 
   &.has-issues {
@@ -3612,14 +3629,6 @@ gear-set-issues-modal {
     overflow: auto;
   }
 
-}
-
-.invert-input-colors {
-  --input-background-color: var(--bg-color);
-
-  input, textarea {
-    background-color: var(--bg-color);
-  }
 }
 
 #content-area > .named-section {
@@ -3724,6 +3733,11 @@ settings-modal {
       display: block;
     }
 
+    > br {
+      height: 10px;
+      display: unset;
+    }
+
     #language-picker {
       width: 100%;
     }
@@ -3796,9 +3810,15 @@ expandable-text {
     height: 100%;
     box-sizing: border-box;
 
+    .scroll-table-holder {
+      scrollbar-width: thin;
+    }
+
     table {
       background: none;
-      padding: 0;
+      padding-top: 0 !important;
+      padding-left: 0 !important;
+      padding-bottom: 0 !important;
     }
   }
 
@@ -3819,9 +3839,13 @@ expandable-text {
         min-height: 100px;
       }
 
-      @media screen and (max-width: 625px) {
+      @media screen and (width <= 625px) {
         grid-template-columns: 100%;
-        grid-template-rows: auto auto 1fr;
+        grid-template-rows: auto 1fr;
+        .cycle-sim-main-holder {
+          display: none;
+        }
+
         .cycle-sim-abilities-holder {
           grid-column-end: span 1;
           min-height: 100px;

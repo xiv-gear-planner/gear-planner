@@ -2,14 +2,15 @@
   "name": "@xivgear/gearplan-frontend",
   "version": "1.0.0",
   "dependencies": {
-    "@types/jsdom": "^21.1.7",
-    "@webcomponents/webcomponentsjs": "^2.8.0",
-    "@xivgear/account-service-client": "^1.0.0",
-    "@xivgear/user-data-client": "^1.0.0",
-    "@xivgear/common-ui": "^1.0.0",
-    "@xivgear/core": "^1.0.0",
-    "@xivgear/util": "^1.0.0",
-    "@xivgear/xivmath": "^1.0.0"
+    "@ungap/custom-elements": "1.3.0",
+    "@xivgear/account-service-client": "workspace:*",
+    "@xivgear/common-ui": "workspace:*",
+    "@xivgear/core": "workspace:*",
+    "@xivgear/data-api-client": "workspace:*",
+    "@xivgear/i18n": "workspace:*",
+    "@xivgear/user-data-client": "workspace:*",
+    "@xivgear/util": "workspace:*",
+    "@xivgear/xivmath": "workspace:*"
   },
   "exports": {
     "./*": "./src/scripts/*.ts"
@@ -39,6 +40,6 @@
     "web": "webpack --mode=development",
     "webprod": "webpack --mode=production",
     "less": "lessc --source-map ./src/style.less dist/style.css",
-    "test": "ts-mocha --parallel=true src/scripts/test/**/*test.ts src/scripts/test/**/*tests.ts"
+    "test": "ts-mocha --parallel=true \"src/scripts/test/**/*test.ts\" \"src/scripts/test/**/*tests.ts\""
   }
 }

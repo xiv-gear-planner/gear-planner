@@ -12,7 +12,7 @@ import {RawBonusStats, StatModification, StatPreModifications} from "./xivstats"
 import {TranslatableString} from "@xivgear/i18n/translation";
 import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 
-export interface DisplayGearSlot {
+export interface DisplayGearSlotInfo {
 
 }
 
@@ -22,13 +22,24 @@ export interface DisplayGearSlot {
 export const DisplayGearSlots = ['Weapon', 'OffHand', 'Head', 'Body', 'Hand', 'Legs', 'Feet', 'Ears', 'Neck', 'Wrist', 'Ring'] as const;
 export type DisplayGearSlotKey = typeof DisplayGearSlots[number];
 // Slots that an item actually occupies. 2H and 1H weapons are distinct here.
-// TODO: this stuff *could* be XIVAPI-ified later, which would especially be useful if SE adds more gear that blocks out
-// other slots. It seems to return a '1' for the primary slot, and a '-1' for blocked slots.
-export const OccGearSlots = ['Weapon2H', 'Weapon1H', 'OffHand', 'Head', 'Body', 'Hand', 'Legs', 'Feet', 'Ears', 'Neck', 'Wrist', 'Ring'] as const;
+// TODO: since we have implemented EquipSlotMap, this can be used in significantly fewer places.
+// In fact, it is already technically wrong for things like Vermilion Cloak, which is equipped to body+head, but it
+// isn't a huge practical concern because it only used in Eureka, where its ilvl of 300 does not get synced down.
+// "Normal" slots
+export const NormalOccGearSlots = [
+    'Weapon2H', 'Weapon1H', 'OffHand', 'Head', 'Body', 'Hand', 'Legs', 'Feet', 'Ears', 'Neck', 'Wrist', 'Ring',
+] as const;
+export type NormalOccGearSlotKey = typeof NormalOccGearSlots[number];
+// Unusual slots - not displayed as much in the UI
+export const SpecialOccGearSlots = [
+    'ChestHead', 'ChestHeadLegsFeet', 'ChestLegsFeet', 'ChestLegsGloves', 'HeadChestHandsLegsFeet', 'LegsFeet',
+] as const;
+// All slots
+export const OccGearSlots = [...NormalOccGearSlots, ...SpecialOccGearSlots] as const;
 export type OccGearSlotKey = typeof OccGearSlots[number];
 
 // For future use, in the event that these actually require properties
-export const DisplayGearSlotInfo: Record<DisplayGearSlotKey, DisplayGearSlot> = {
+export const DisplayGearSlotMapping: Record<DisplayGearSlotKey, DisplayGearSlotInfo> = {
     Weapon: {},
     OffHand: {},
     Head: {},
@@ -43,7 +54,7 @@ export const DisplayGearSlotInfo: Record<DisplayGearSlotKey, DisplayGearSlot> = 
 } as const;
 
 export interface EquipSlot {
-    get gearSlot(): DisplayGearSlot;
+    get gearSlot(): DisplayGearSlotKey;
 
     slot: keyof EquipmentSet;
 
@@ -58,68 +69,97 @@ export const EquipSlotInfo: Record<EquipSlotKey, EquipSlot> = {
     Weapon: {
         slot: 'Weapon',
         name: 'Weapon',
-        gearSlot: DisplayGearSlotInfo.Weapon,
+        gearSlot: 'Weapon',
     },
     OffHand: {
         slot: 'OffHand',
         name: 'Off-Hand',
-        gearSlot: DisplayGearSlotInfo.OffHand,
+        gearSlot: 'OffHand',
     },
     Head: {
         slot: 'Head',
         name: 'Head',
-        gearSlot: DisplayGearSlotInfo.Head,
+        gearSlot: 'Head',
     },
     Body: {
         slot: 'Body',
         name: 'Body',
-        gearSlot: DisplayGearSlotInfo.Body,
+        gearSlot: 'Body',
     },
     Hand: {
         slot: 'Hand',
         name: 'Hand',
-        gearSlot: DisplayGearSlotInfo.Hand,
+        gearSlot: 'Hand',
     },
     Legs: {
         slot: 'Legs',
         name: 'Legs',
-        gearSlot: DisplayGearSlotInfo.Legs,
+        gearSlot: 'Legs',
     },
     Feet: {
         slot: 'Feet',
         name: 'Feet',
-        gearSlot: DisplayGearSlotInfo.Feet,
+        gearSlot: 'Feet',
     },
     Ears: {
         slot: 'Ears',
         name: 'Ears',
-        gearSlot: DisplayGearSlotInfo.Ears,
+        gearSlot: 'Ears',
     },
     Neck: {
         slot: 'Neck',
         name: 'Neck',
-        gearSlot: DisplayGearSlotInfo.Neck,
+        gearSlot: 'Neck',
     },
     Wrist: {
         slot: 'Wrist',
         name: 'Wrist',
-        gearSlot: DisplayGearSlotInfo.Wrist,
+        gearSlot: 'Wrist',
     },
     RingLeft: {
         slot: 'RingLeft',
         name: 'Left Ring',
-        gearSlot: DisplayGearSlotInfo.Ring,
+        gearSlot: 'Ring',
     },
     RingRight: {
         slot: 'RingRight',
         name: 'Right Ring',
-        gearSlot: DisplayGearSlotInfo.Ring,
+        gearSlot: 'Ring',
     },
 } as const;
 
 // type KeyOfType<T, V> = keyof {
 //     [K in keyof T as T[K] extends V ? K : never]: any
 // };
+
+/**
+ * The relationship between an item and a slot has three states:
+ * 1. The item cannot be equipped in the slot, e.g. cannot equip a head item in the leg slot.
+ * 2. The item can be equipped in the slot, e.g. a ring can be equipped to left right or right ring slot.
+ * 3. The item cannot be equipped in the slot, but if equipped into its correct slot, will block this slot.
+ * e.g. Vermilion Cloak.
+ *
+ * */
+export type EquipSlotValue = 'none' | 'equip' | 'block';
+
+/**
+ * The relationship between an item and all slots.
+ */
+export type EquipSlotMap = {
+    [K in EquipSlotKey]: EquipSlotValue;
+} & {
+    /**
+     * Whether the item can be equipped to the slot. Usually this is only true for a single slot, but rings can
+     * be equipped to both left and right ring slots.
+     * @param slot
+     */
+    canEquipTo(slot: EquipSlotKey): boolean;
+    /**
+     * Get the list of slots which will be blocked from equipping items if this item is equipped.
+     * e.g. Vermilion Cloak blocks the head slot despite being equipped to body slot.
+     */
+    getBlockedSlots(): EquipSlotKey[];
+}
 
 
 export interface XivItem {
@@ -152,7 +192,7 @@ export interface GearItem extends XivCombatItem {
     /**
      * Which gear slot to populate in the UI
      */
-    displayGearSlot: DisplayGearSlot;
+    displayGearSlot: DisplayGearSlotInfo;
     /**
      * Which gear slot to populate in the UI
      */
@@ -203,6 +243,8 @@ export interface GearItem extends XivCombatItem {
     usableByJob(job: JobName): boolean;
 
     activeSpecialStat: SpecialStatType | null;
+
+    readonly slotMapping: EquipSlotMap;
 }
 
 export interface FoodStatBonus {
@@ -274,9 +316,16 @@ export interface ComputedSetStats extends RawStats {
     gcdMag(baseGcd: number, haste?: number): number,
 
     /**
-     * Base haste value for a given attack type
+     * Combined haste value for a given attack type
      */
-    haste(attackType: AttackType): number;
+    haste(attackType: AttackType, buffHaste: number, gaugeHaste: number): number;
+
+    /**
+     * Compute the effective auto-attack delay. Assumes the attack has the type 'Auto-attack'.
+     *
+     * @param buffHaste The amount of haste from buffs.
+     */
+    effectiveAaDelay(buffHaste: number, gaugeHaste: number): number;
 
     /**
      * Crit chance. Ranges from 0 to 1.
@@ -373,6 +422,16 @@ export interface ComputedSetStats extends RawStats {
      */
     readonly aaDelay: number;
 
+    /**
+     * The damage taken ratio based on the defense stat. e.g. 0.95 would mean 5% damage reduction.
+     */
+    readonly defenseDamageTaken: number;
+
+    /**
+     * The damage taken ratio based on the magic defense stat. e.g. 0.95 would mean 5% damage reduction.
+     */
+    readonly magicDefenseDamageTaken: number;
+
     readonly effectiveFoodBonuses: RawStats;
 
     withModifications(modifications: StatModification, pre?: StatPreModifications): ComputedSetStats;
@@ -402,9 +461,14 @@ export interface RawStats {
     wdPhys: number,
     wdMag: number,
     weaponDelay: number,
+    defenseMag: number;
+    defensePhys: number;
+    gearHaste: number;
 }
 
 export type RawStatKey = keyof RawStats;
+
+export type RawStatsPart = Partial<RawStats>;
 
 /**
  * Stats that should not have ilvl caps applied
@@ -429,13 +493,15 @@ export class RawStats implements RawStats {
     wdPhys: number = 0;
     wdMag: number = 0;
     weaponDelay: number = 0;
+    defenseMag: number = 0;
+    defensePhys: number = 0;
+    gearHaste: number = 0;
 
     constructor(values: ({ [K in RawStatKey]?: number } | undefined) = undefined) {
         if (values) {
             Object.assign(this, values);
         }
     }
-
 }
 
 export interface LevelStats {
@@ -508,12 +574,20 @@ export interface JobDataConst {
      * True if this class uses 1H+Offhand rather than 2H weapons
      */
     readonly offhand?: boolean;
+    // /**
+    //  * Stat cap multipliers. e.g. Healers have a 10% VIT penalty, so it would be {'Vitality': 0.90}
+    //  */
+    // readonly itemStatCapMultipliers?: {
+    //     [K in RawStatKey]?: number
+    // };
     /**
-     * Stat cap multipliers. e.g. Healers have a 10% VIT penalty, so it would be {'Vitality': 0.90}
+     * Which BaseParam.MeldParam index to use for calculating stat caps.
+     * Makes hardcoded itemStatCapMultipliers obsolete.
+     * Since these only have numeric indices with no indication of which is which, it is derived from looking at gear
+     * pieces of the same ilvl and comparing their stats across different jobs. However, there are many rows which are
+     * identical for
      */
-    readonly itemStatCapMultipliers?: {
-        [K in RawStatKey]?: number
-    };
+    readonly meldParamIndex: number;
     /**
      * Auto-attack potency amount
      */
@@ -562,9 +636,13 @@ export type GcdDisplayOverride = {
      */
     attackType: AttackType,
     /**
-     * Additional haste to use for this calculation (e.g. for PoM)
+     * Additional buff haste to use for this calculation (e.g. for PoM)
      */
-    haste?: number,
+    buffHaste?: number,
+    /**
+     * Additional gauge haste to use for this calculation (e.g. Paeon)
+     */
+    gaugeHaste?: number,
     /**
      * Whether this calc uses SpS or SkS formula
      */
@@ -595,8 +673,10 @@ export interface JobData extends JobDataConst {
 export interface JobTrait {
     minLevel?: number,
     maxLevel?: number,
-    apply: (stats: RawBonusStats) => void;
+    apply: TraitFunc,
 }
+
+export type TraitFunc = (stats: RawBonusStats) => void;
 
 export type GearSlotItem = {
     slot: EquipSlot;
@@ -805,7 +885,7 @@ export type CustomItemExport = {
     materiaGrade: number;
     name: string;
     fakeId: number;
-    slot: OccGearSlotKey;
+    slot: NormalOccGearSlotKey;
     isUnique: boolean;
     stats: RawStats;
     respectCaps: boolean;

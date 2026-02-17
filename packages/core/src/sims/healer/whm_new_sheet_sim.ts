@@ -31,7 +31,7 @@ const filler: GcdAbility = {
     id: 25859,
     type: 'gcd',
     name: "Glare III",
-    potency: 340,
+    potency: 350,
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5,
@@ -124,7 +124,7 @@ const misery: GcdAbility & HasGaugeUpdate<WhmGaugeManager> & HasGaugeCondition<W
     id: 16535,
     type: 'gcd',
     name: "Afflatus Misery",
-    potency: 1360,
+    potency: 1400,
     attackType: "Spell",
     gcd: 2.5,
     updateGauge: gauge => gauge.redLilies -= 3,
@@ -144,7 +144,7 @@ const glare4: GcdAbility = {
 
 class WhmGaugeManager implements GaugeManager<WhmGaugeState> {
     private _blueLilies: number = 0;
-    private _redLilies: number = 0;
+    private _redLilies: number = 3;
 
     get blueLilies(): number {
         return this._blueLilies;
@@ -190,7 +190,7 @@ export interface WhmSettingsExternal extends ExternalCycleSettings<WhmSettings> 
 }
 
 export const whmNewSheetSpec: SimSpec<WhmSim, WhmSettingsExternal> = {
-    displayName: "WHM New Sim",
+    displayName: "WHM Sim",
     loadSavedSimInstance(exported: WhmSettingsExternal) {
         return new WhmSim(exported);
     },

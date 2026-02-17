@@ -74,18 +74,23 @@ class RotationState {
     get combo() {
         return this._combo;
     };
+
     get deliriumCombo() {
         return this._deliriumCombo;
     };
 
     set combo(newCombo) {
         this._combo = newCombo;
-        if (this._combo >= 3) this._combo = 0;
+        if (this._combo >= 3) {
+            this._combo = 0;
+        }
     }
 
     set deliriumCombo(newCombo) {
         this._deliriumCombo = newCombo;
-        if (this._deliriumCombo >= 3) this._deliriumCombo = 0;
+        if (this._deliriumCombo >= 3) {
+            this._deliriumCombo = 0;
+        }
     }
 }
 
@@ -593,7 +598,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
     }
 
     private useLevel80OrBelowOpener(cp: DrkCycleProcessor, prepullTBN: boolean) {
-        if (prepullTBN) {
+        if (prepullTBN && cp.totalTime >= 3) {
             this.use(cp, Actions.TheBlackestNight);
             cp.advanceTo(3 - STANDARD_ANIMATION_LOCK);
             // Hacky out of combat mana tick.
@@ -604,10 +609,9 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             cp.advanceTo(1 - STANDARD_ANIMATION_LOCK);
         }
         this.use(cp, Actions.Unmend);
-        cp.advanceForLateWeave([potionMaxStr]);
         this.use(cp, potionMaxStr);
-        this.use(cp, Actions.HardSlash);
         this.use(cp, cp.getEdgeAction());
+        this.use(cp, Actions.HardSlash);
         if (cp.stats.level >= 80) {
             this.use(cp, Actions.LivingShadow);
         }
@@ -638,7 +642,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
     }
 
     private useLevel90Opener(cp: DrkCycleProcessor, prepullTBN: boolean) {
-        if (prepullTBN) {
+        if (prepullTBN && cp.totalTime >= 3) {
             this.use(cp, Actions.TheBlackestNight);
             cp.advanceTo(3 - STANDARD_ANIMATION_LOCK);
             // Hacky out of combat mana tick.
@@ -649,10 +653,9 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             cp.advanceTo(1 - STANDARD_ANIMATION_LOCK);
         }
         this.use(cp, Actions.Unmend);
-        cp.advanceForLateWeave([potionMaxStr]);
         this.use(cp, potionMaxStr);
-        this.use(cp, Actions.HardSlash);
         this.use(cp, Actions.EdgeOfShadow);
+        this.use(cp, Actions.HardSlash);
         this.use(cp, Actions.LivingShadow);
         this.use(cp, Actions.SyphonStrike);
         this.use(cp, Actions.Souleater);
@@ -684,7 +687,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
     }
 
     private useLevel100Opener(cp: DrkCycleProcessor, prepullTBN: boolean) {
-        if (prepullTBN) {
+        if (prepullTBN && cp.totalTime >= 3) {
             this.use(cp, Actions.TheBlackestNight);
             cp.advanceTo(3 - STANDARD_ANIMATION_LOCK);
             // Hacky out of combat mana tick.
@@ -695,10 +698,9 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             cp.advanceTo(1 - STANDARD_ANIMATION_LOCK);
         }
         this.use(cp, Actions.Unmend);
-        cp.advanceForLateWeave([potionMaxStr]);
         this.use(cp, potionMaxStr);
-        this.use(cp, Actions.HardSlash);
         this.use(cp, Actions.EdgeOfShadow);
+        this.use(cp, Actions.HardSlash);
         this.use(cp, Actions.LivingShadow);
         this.use(cp, Actions.SyphonStrike);
         this.use(cp, Actions.Souleater);
