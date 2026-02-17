@@ -26,7 +26,7 @@ import {
     MateriaSlot,
     OccGearSlotKey,
     RawStatKey,
-    RawStats,
+    RawStats, RawStatsPart,
     RelicStatModel
 } from "@xivgear/xivmath/geartypes";
 import {BaseParamToStatKey, RelevantBaseParam} from "./external/xivapitypes";
@@ -41,7 +41,6 @@ import {
 import {BaseParamMap, DataManager, DmJobs} from "./datamanager";
 import {applyStatCaps} from "./gear";
 import {toTranslatable, TranslatableString} from "@xivgear/i18n/translation";
-import {RawStatsPart} from "@xivgear/util/util_types";
 import {ApiFoodData, ApiItemData, ApiMateriaData, checkResponse, DATA_API_CLIENT} from "./data_api_client";
 import {addStats} from "@xivgear/xivmath/xivstats";
 import {arrayEqTyped} from "@xivgear/util/array_utils";

@@ -468,6 +468,8 @@ export interface RawStats {
 
 export type RawStatKey = keyof RawStats;
 
+export type RawStatsPart = Partial<RawStats>;
+
 /**
  * Stats that should not have ilvl caps applied
  */
