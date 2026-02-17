@@ -369,10 +369,6 @@ importers:
   packages/user-data-client: {}
 
   packages/util:
-    dependencies:
-      '@xivgear/xivmath':
-        specifier: workspace:*
-        version: link:../xivmath
     devDependencies:
       '@types/chai':
         specifier: ^4.3.20
