@@ -11,6 +11,15 @@
   "references": [
     {
       "path": "../core"
+    },
+    {
+      "path": "../util"
+    },
+    {
+      "path": "../xivmath"
+    },
+    {
+      "path": "../i18n"
     }
   ]
 }

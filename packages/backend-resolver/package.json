@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "@fastify/cors": "8.5.0",
-    "@xivgear/core": "1.0.0",
-    "@xivgear/xivmath": "1.0.0",
+    "@xivgear/core": "workspace:*",
+    "@xivgear/xivmath": "workspace:*",
     "fastify": "^4.29.1",
     "fastify-ip": "1.1.0",
     "fastify-web-response": "^0.1.2",
@@ -24,7 +24,9 @@
   "devDependencies": {
     "@types/isomorphic-fetch": "^0.0.39",
     "@types/jsdom": "^21.1.7",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^22.15.18",
+    "ts-mocha": "^10.1.0",
     "ts-node": "^10.9.2"
   }
 }

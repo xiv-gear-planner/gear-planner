@@ -1,18 +1,21 @@
 FROM node:20 as build
 
+RUN npm install -g pnpm
+
 WORKDIR /build
 COPY . .
-RUN npm ci
+RUN pnpm install
 
 # Only build modules which are actually needed for this part of the project.
-RUN npm run -w @xivgear/backend-resolver build
+RUN pnpm --filter @xivgear/backend-resolver build
 
-RUN npm run test
+RUN pnpm test
 
 # To be run from project root
 FROM node:20
+RUN npm install -g pnpm
 WORKDIR /app
 COPY --from=build /build /app
 EXPOSE 30000
 # -T == transpile only. Reduces memory usage.
-CMD npx ts-node -T ./packages/backend-resolver/src/server.ts
+CMD pnpm --filter @xivgear/backend-resolver exec ts-node -T ./packages/backend-resolver/src/server.ts
