@@ -40,7 +40,6 @@ module.exports = (env, argv) => {
             plugins: [
                 new TsconfigPathsPlugin({
                     logLevel: "INFO",
-                    references: ["../common-ui"]
                 }),
             ],
         },

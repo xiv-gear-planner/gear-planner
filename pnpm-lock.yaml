@@ -314,7 +314,7 @@ importers:
         specifier: ^0.28.4
         version: 0.28.17(typescript@5.9.3)
       webpack:
-        specifier: ^5.99.8
+        specifier: ^5.105.2
         version: 5.105.2(webpack-cli@5.1.4)
       webpack-cli:
         specifier: ^5.1.4
@@ -387,7 +387,7 @@ importers:
         specifier: ^0.28.4
         version: 0.28.17(typescript@5.9.3)
       webpack:
-        specifier: ^5.99.8
+        specifier: ^5.105.2
         version: 5.105.2(webpack-cli@5.1.4)
       webpack-cli:
         specifier: ^5.1.4
