@@ -5,7 +5,7 @@
     "./*": "./src/*.ts"
   },
   "scripts": {
-    "build": "tsc --build",
+    "build": "tsgo --build",
     "buildprod": "tsc --build"
   },
   "files": [

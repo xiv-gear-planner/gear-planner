@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "build": "tsc --build",
+    "build": "tsgo --build",
     "buildprod": "tsc --build",
     "test": "ts-mocha --parallel=true \"src/test/**/*.ts\""
   },
