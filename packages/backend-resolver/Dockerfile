@@ -18,4 +18,4 @@ WORKDIR /app
 COPY --from=build /build /app
 EXPOSE 30000
 # -T == transpile only. Reduces memory usage.
-CMD pnpm --filter @xivgear/backend-resolver exec ts-node -T ./packages/backend-resolver/src/server.ts
+CMD pnpm --filter @xivgear/backend-resolver exec ts-node -T ./src/server.ts
