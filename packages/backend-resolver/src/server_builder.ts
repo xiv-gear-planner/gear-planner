@@ -289,7 +289,17 @@ export function buildStatsServer() {
         request.log.info(pathPaths, 'Path');
         const navResult = resolveNavData(nav);
         if (nav !== null && navResult !== null && navResult.sheetData !== null) {
-            const exported: ExportedData = await navResult.sheetData;
+            // Future TODO: add parameter to allow a single to be re-exported as a full sheet
+            let exported: ExportedData = await navResult.sheetData;
+            if (osIndex !== undefined && 'sets' in exported) {
+                const singleMaybe = extractSingleSet(exported as SheetExport, osIndex);
+                if (singleMaybe === undefined) {
+                    reply.status(500);
+                    reply.send(`Error: Set index ${osIndex} is not valid.`);
+                    return;
+                }
+                exported = singleMaybe;
+            }
             reply.header("cache-control", "max-age=7200, public");
             reply.send(exported);
             return;

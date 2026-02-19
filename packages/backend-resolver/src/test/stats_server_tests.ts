@@ -1,7 +1,7 @@
 import '../polyfills';
 import {expect} from "chai";
 import {buildStatsServer, EmbedCheckResponse} from "../server_builder";
-import {SheetStatsExport} from "@xivgear/xivmath/geartypes";
+import {SheetStatsExport, SheetExport, SetExportExternalSingle} from "@xivgear/xivmath/geartypes";
 import {BIS_HASH} from "@xivgear/core/nav/common_nav";
 
 // TODO: add tests for validateEmbed with direct URL (on a different branch)
@@ -234,6 +234,24 @@ describe('stats server', () => {
                 expect(stats.hp).to.equal(78455);
             }).timeout(30_000);
 
+            it("can serve correct data with onlySetIndex", async () => {
+                const response = await fastify.inject({
+                    method: 'GET',
+                    url: '/fulldata?page=sl|f9b260a9-650c-445a-b3eb-c56d8d968501&onlySetIndex=1',
+                });
+                expect(response.statusCode).to.equal(200);
+                const json = response.json() as SheetStatsExport;
+                // When onlySetIndex is used, it returns a SetExport style object but wrapped in SheetStatsExport if /fulldata
+                // Actually, importExportSheet handles the extraction.
+                // If osIndex is provided, it calls extractSingleSet.
+                // extractSingleSet returns a SetExportExternalSingle.
+                // Then it's passed to HEADLESS_SHEET_PROVIDER.fromSetExport.
+                // Then exported via FullStatsExport.
+                expect(json.sets.length).to.equal(1);
+                expect(json.sets[0].name).to.equal("6.4 Week 1 2.43 a");
+                expect(json.sets[0].computedStats.hp).to.be.greaterThan(0);
+            }).timeout(30_000);
+
         });
     });
 
@@ -247,6 +265,37 @@ describe('stats server', () => {
             expect(response.statusCode).to.equal(404);
         });
 
+        it("can serve correct data", async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: '/basedata?page=sl|f9b260a9-650c-445a-b3eb-c56d8d968501',
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as SheetExport;
+            expect(json.name).to.equal("WHM 6.4 copy");
+            expect(json.level).to.equal(90);
+            expect(json.job).to.equal("WHM");
+            expect(json.race).to.equal("Xaela");
+            expect(json.sets.length).to.equal(13);
+            const firstSet = json.sets[0];
+            expect(firstSet.name).to.equal("6.4 Never gonna");
+            expect(firstSet.items.Weapon?.id).to.equal(40173);
+            expect(firstSet).to.not.have.property('computedStats');
+        }).timeout(30_000);
+
+        it("can serve correct data with onlySetIndex", async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: '/basedata?page=sl|f9b260a9-650c-445a-b3eb-c56d8d968501&onlySetIndex=1',
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as SetExportExternalSingle;
+            expect(json.name).to.equal("6.4 Week 1 2.43 a");
+            expect(json.job).to.equal("WHM");
+            expect(json.level).to.equal(90);
+            expect(json).to.not.have.property('sets');
+            expect(json).to.not.have.property('computedStats');
+        }).timeout(30_000);
     });
 
     describe("validateEmbed endpoint", () => {
