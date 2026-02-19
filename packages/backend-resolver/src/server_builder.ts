@@ -12,7 +12,7 @@ import {
 } from "@xivgear/xivmath/geartypes";
 import {getBisIndexUrl, getBisSheet, getBisSheetFetchUrl} from "@xivgear/core/external/static_bis";
 import {ExportTypes, HEADLESS_SHEET_PROVIDER} from "@xivgear/core/sheet";
-import {JOB_DATA, JobName, MAX_PARTY_BONUS} from "@xivgear/xivmath/xivconstants";
+import {ALL_COMBAT_JOBS, JOB_DATA, JobName, MAX_PARTY_BONUS} from "@xivgear/xivmath/xivconstants";
 import cors from '@fastify/cors';
 import {
     DEFAULT_DESC,
@@ -31,7 +31,7 @@ import {
 } from "@xivgear/core/nav/common_nav";
 import {nonCachedFetch} from "./polyfills";
 import fastifyWebResponse from "fastify-web-response";
-import {getFrontendPath, getFrontendServer} from "./frontend_file_server";
+import {getFrontendClientPath, getFrontendServer} from "./frontend_file_server";
 import process from "process";
 import {extractSingleSet} from "@xivgear/core/util/sheet_utils";
 import {getJobIcons} from "./preload_helpers";
@@ -123,8 +123,8 @@ async function importExportSheet(request: SheetRequest, exportedPre: SheetExport
     sheet.setViewOnly();
     const pb = request.query.partyBonus;
     if (pb) {
-        const parsed = parseInt(pb);
-        if (!isNaN(parsed) && parsed >= 0 && parsed <= MAX_PARTY_BONUS) {
+        const parsed = parseFloat(pb);
+        if (!isNaN(parsed) && Number.isInteger(parsed) && parsed >= 0 && parsed <= MAX_PARTY_BONUS) {
             sheet.partyBonus = parsed as PartyBonusAmount;
         }
         else {
@@ -176,6 +176,7 @@ type NavResult = {
     name: Promise<string | undefined>,
     description: Promise<string | undefined>,
     job: Promise<JobName | undefined>,
+    multiJob: Promise<boolean | undefined>,
 }
 
 type SheetSummaryData = {
@@ -215,6 +216,7 @@ function fillSheetData(sheetPreloadUrl: URL | null, sheetData: Promise<ExportedD
         name: processed.then(p => p.name),
         description: processed.then(p => p.desc),
         job: processed.then(p => p.job),
+        multiJob: processed.then(p => p.multiJob),
     };
 }
 
@@ -241,6 +243,7 @@ function fillBisBrowserData(path: string[]): NavResult {
     return {
         description: Promise.resolve(label ? `Best-in-Slot Gear Sets for ${label} in Final Fantasy XIV` : "Best-in-Slot Gear Sets for Final Fantasy XIV"),
         job: Promise.resolve(job),
+        multiJob: Promise.resolve(false),
         name: Promise.resolve(label ? label + ' BiS' : undefined),
         fetchPreloads: [getBisIndexUrl()],
         imagePreloads: Promise.resolve(images),
@@ -333,7 +336,17 @@ export function buildStatsServer() {
         request.log.info(pathPaths, 'Path');
         const navResult = resolveNavData(nav);
         if (nav !== null && navResult !== null && navResult.sheetData !== null) {
-            const exported: ExportedData = await navResult.sheetData;
+            // Future TODO: add parameter to allow a single to be re-exported as a full sheet
+            let exported: ExportedData = await navResult.sheetData;
+            if (osIndex !== undefined && 'sets' in exported) {
+                const singleMaybe = extractSingleSet(exported as SheetExport, osIndex);
+                if (singleMaybe === undefined) {
+                    reply.status(500);
+                    reply.send(`Error: Set index ${osIndex} is not valid.`);
+                    return;
+                }
+                exported = singleMaybe;
+            }
             reply.header("cache-control", "max-age=7200, public");
             reply.send(exported);
             return;
@@ -511,7 +524,7 @@ export function buildPreviewServer() {
 
 
         const serverUrl = getFrontendServer();
-        const clientUrl = getFrontendPath();
+        const clientUrl = getFrontendClientPath();
         // Fetch original index.html
         const responsePromise = nonCachedFetch(serverUrl + '/index.html', undefined);
         try {
@@ -589,7 +602,15 @@ export function buildPreviewServer() {
                 // The rest are part of the static html
                 const job = await navResult.job;
                 if (job) {
-                    addFetchPreload(`https://data.xivgear.app/Items?job=${job}`);
+                    const multiJob = await navResult.multiJob;
+                    if (multiJob) {
+                        const thisJob = JOB_DATA[job];
+                        const jobs = ALL_COMBAT_JOBS.filter(j => JOB_DATA[j]?.role === thisJob?.role).join(",");
+                        addFetchPreload(`https://data.xivgear.app/Items?job=${jobs}`);
+                    }
+                    else {
+                        addFetchPreload(`https://data.xivgear.app/Items?job=${job}`);
+                    }
                 }
                 navResult.fetchPreloads.forEach(preload => addFetchPreload(preload.toString()));
                 // TODO: image preloads need to account for hr vs non-hr images
