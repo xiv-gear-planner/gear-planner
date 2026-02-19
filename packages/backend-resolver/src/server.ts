@@ -1,6 +1,6 @@
 import * as process from "process";
 import {setServerOverride} from "@xivgear/core/external/shortlink_server";
-import {setFrontendClient, setFrontendServer} from "./frontend_file_server";
+import {setFrontendClientPath, setFrontendServer} from "./frontend_file_server";
 import {buildPreviewServer, buildStatsServer} from "./server_builder";
 import {FastifyInstance} from "fastify";
 import {setDataApi} from "@xivgear/core/data_api_client";
@@ -34,7 +34,7 @@ const frontendClientOverride = process.env.FRONTEND_CLIENT;
 if (frontendClientOverride) {
     console.log(`Frontend client override: '${frontendClientOverride}';`);
     validateUrl(frontendClientOverride, 'frontend client');
-    setFrontendClient(frontendClientOverride);
+    setFrontendClientPath(frontendClientOverride);
 }
 
 const dataApiOverride = process.env.DATA_API;

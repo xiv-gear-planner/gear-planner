@@ -85,12 +85,18 @@ importers:
       '@fastify/cors':
         specifier: 8.5.0
         version: 8.5.0
+      '@types/chai':
+        specifier: ^4.3.20
+        version: 4.3.20
       '@xivgear/core':
         specifier: workspace:*
         version: link:../core
       '@xivgear/xivmath':
         specifier: workspace:*
         version: link:../xivmath
+      chai:
+        specifier: ^4.5.0
+        version: 4.5.0
       fastify:
         specifier: ^4.29.1
         version: 4.29.1

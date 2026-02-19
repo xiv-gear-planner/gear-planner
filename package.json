@@ -39,7 +39,7 @@
     "accountschemalocal": "pnpm --filter @xivgear/account-service-client exec swagger-typescript-api generate -o ./src/ -n accountsvc.ts -p http://localhost:8086/swagger/xivgear-account-service-0.0.yml --api-class-name AccountServiceClient --responses --disable-throw-on-error",
     "userdataschema": "pnpm --filter @xivgear/user-data-client exec swagger-typescript-api generate -o ./src/ -n userdata.ts -p https://userdata.xivgear.app/swagger/xivgear-userdata-service-0.0.yml --api-class-name UserDataClient --responses",
     "userdataschemalocal": "pnpm --filter @xivgear/user-data-client exec swagger-typescript-api generate -o ./src/ -n userdata.ts -p http://localhost:8087/swagger/xivgear-userdata-service-0.0.yml --api-class-name UserDataClient --responses",
-    "clean": "rm -rf packages/*/dist packages/*/build ./build",
+    "clean": "rm -rf packages/*/dist packages/*/build ./build packages/*/.nyc_output",
     "proxy:userdata": "node scripts/userdata-proxy.js"
   }
 }
