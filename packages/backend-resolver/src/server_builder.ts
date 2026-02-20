@@ -440,6 +440,7 @@ export function buildStatsServer() {
         reply.send(out);
     });
 
+    /*
     // Creates a shortlink, and returns the canonical URL for it
 
     // Creates shortlinks for a single set export; returns normal and embed URLs
@@ -495,6 +496,7 @@ export function buildStatsServer() {
             reply.code(500).send({error: 'Failed to create sheet shortlinks'});
         }
     });
+     */
 
     return fastifyInstance;
 }
