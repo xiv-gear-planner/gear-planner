@@ -252,6 +252,21 @@ describe('stats server', () => {
                 expect(json.sets[0].computedStats.hp).to.be.greaterThan(0);
             }).timeout(30_000);
 
+            it("uses params from encoded url when not provided directly", async () => {
+                const encoded = encodeURIComponent('https://foo.bar/?page=sl|f9b260a9-650c-445a-b3eb-c56d8d968501&onlySetIndex=1');
+                const response = await fastify.inject({
+                    method: 'GET',
+                    url: `/fulldata?url=${encoded}`,
+                });
+                expect(response.statusCode).to.equal(200);
+                const json = response.json() as SheetStatsExport;
+                // When onlySetIndex is provided, it extracts that set and returns it as a SetExport (which is then wrapped by importExportSheet)
+                // The name of the resulting SheetStatsExport will be the name of the set if it was extracted.
+                expect(json.name).to.equal('6.4 Week 1 2.43 a');
+                expect(json.sets.length).to.equal(1);
+                expect(json.sets[0].name).to.equal('6.4 Week 1 2.43 a');
+            }).timeout(30_000);
+
         });
     });
 
@@ -295,6 +310,19 @@ describe('stats server', () => {
             expect(json.level).to.equal(90);
             expect(json).to.not.have.property('sets');
             expect(json).to.not.have.property('computedStats');
+        }).timeout(30_000);
+
+        it("uses params from encoded url when not provided directly", async () => {
+            const encoded = encodeURIComponent('https://foo.bar/?page=sl|f9b260a9-650c-445a-b3eb-c56d8d968501&onlySetIndex=1');
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/basedata?url=${encoded}&onlySetIndex=2`,
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as SheetExport | SetExportExternalSingle;
+            // Should resolve the same sheet as in fulldata test, but with onlySetIndex
+            // It should take onlySetIndex=2 since direct URL params take priority over anything packed into the encoded url
+            expect(json.name).to.equal('6.4 Week 1 2.38');
         }).timeout(30_000);
     });
 
@@ -388,6 +416,17 @@ describe('stats server', () => {
             const json = response.json();
             expect(json.isValid).to.be.false;
         });
+
+        it("uses params from encoded url", async () => {
+            const encoded = encodeURIComponent('https://foo.bar/?page=embed|sl|f9b260a9-650c-445a-b3eb-c56d8d968501&onlySetIndex=1');
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/validateEmbed?url=${encoded}`,
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as EmbedCheckResponse;
+            expect(json.isValid).to.be.true;
+        }).timeout(30_000);
     });
 
 });

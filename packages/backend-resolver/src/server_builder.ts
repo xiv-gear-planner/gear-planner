@@ -1,7 +1,7 @@
 import 'global-jsdom/register';
 import './polyfills';
 import Fastify, {FastifyRequest} from "fastify";
-import {getShortLink, getShortlinkFetchUrl, putShortLink} from "@xivgear/core/external/shortlink_server";
+import {getShortLink, getShortlinkFetchUrl} from "@xivgear/core/external/shortlink_server";
 import {
     PartyBonusAmount,
     SetExport,
@@ -26,8 +26,7 @@ import {
     PREVIEW_MAX_DESC_LENGTH,
     PREVIEW_MAX_NAME_LENGTH,
     SELECTION_INDEX_QUERY_PARAM,
-    tryParseOptionalIntParam,
-    EMBED_HASH
+    tryParseOptionalIntParam
 } from "@xivgear/core/nav/common_nav";
 import {nonCachedFetch} from "./polyfills";
 import fastifyWebResponse from "fastify-web-response";
@@ -87,19 +86,19 @@ function getMergedQueryParams(request: SheetRequest): Record<string, string | un
     return result;
 }
 
-function toEmbedUrl(normalUrl: URL): URL {
-    const out = new URL(normalUrl.toString());
-    const cur = out.searchParams.get(HASH_QUERY_PARAM) || '';
-    if (cur.startsWith(EMBED_HASH + PATH_SEPARATOR)) {
-        return out;
-    }
-    out.searchParams.set(HASH_QUERY_PARAM, `${EMBED_HASH}${PATH_SEPARATOR}${cur}`);
-    return out;
-}
+// function toEmbedUrl(normalUrl: URL): URL {
+//     const out = new URL(normalUrl.toString());
+//     const cur = out.searchParams.get(HASH_QUERY_PARAM) || '';
+//     if (cur.startsWith(EMBED_HASH + PATH_SEPARATOR)) {
+//         return out;
+//     }
+//     out.searchParams.set(HASH_QUERY_PARAM, `${EMBED_HASH}${PATH_SEPARATOR}${cur}`);
+//     return out;
+// }
 
-function isRecord(x: unknown): x is Record<string, unknown> {
-    return typeof x === 'object' && x !== null;
-}
+// function isRecord(x: unknown): x is Record<string, unknown> {
+//     return typeof x === 'object' && x !== null;
+// }
 
 async function importExportSheet(request: SheetRequest, exportedPre: SheetExport | SetExport, nav?: NavPath): Promise<SheetStatsExport> {
     const exportedInitial: SheetExport | SetExport = exportedPre;
