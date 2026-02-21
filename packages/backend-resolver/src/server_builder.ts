@@ -26,6 +26,7 @@ import {
     PREVIEW_MAX_DESC_LENGTH,
     PREVIEW_MAX_NAME_LENGTH,
     SELECTION_INDEX_QUERY_PARAM,
+    splitHashLegacy,
     tryParseOptionalIntParam
 } from "@xivgear/core/nav/common_nav";
 import {nonCachedFetch} from "./polyfills";
@@ -51,12 +52,17 @@ function doInit() {
     // registerDefaultSims();
 }
 
-type SheetRequest = FastifyRequest<{
+export type SheetRequest = FastifyRequest<{
     Querystring: Record<string, string | undefined>;
     Params: Record<string, string>;
 }>;
 
-function getMergedQueryParams(request: SheetRequest): Record<string, string | undefined> {
+/**
+ * getMergedQueryParams combines the normal query parameters with whatever is present on the URL provided via the ?url=
+ * query parameter specifically. The normal query parameters take precedence.
+ * @param request
+ */
+export function getMergedQueryParams(request: SheetRequest): Record<string, string | undefined> {
     const result: Record<string, string | undefined> = {...(request.query ?? {})};
     // Try to pull from the full URL provided via ?url=
     const urlRaw = request.query?.['url'];
@@ -79,6 +85,13 @@ function getMergedQueryParams(request: SheetRequest): Record<string, string | un
                 result[key] = value;
             }
         });
+        // Also parse paths for hash-based URLs
+        if (result[HASH_QUERY_PARAM] === undefined && u.hash) {
+            const hashParts = splitHashLegacy(u.hash);
+            if (hashParts.length > 0) {
+                result[HASH_QUERY_PARAM] = hashParts.join(PATH_SEPARATOR);
+            }
+        }
     }
     catch (e) {
         // If URL parsing fails entirely, keep existing result
