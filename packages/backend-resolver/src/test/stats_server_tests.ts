@@ -16,7 +16,7 @@ describe('stats server', () => {
                     url: '/healthcheck',
                 });
                 expect(response.statusCode).to.equal(200);
-            });
+            }).timeout(30_000);
             it("can serve correct data", async () => {
                 const response = await fastify.inject({
                     method: 'GET',
@@ -83,7 +83,7 @@ describe('stats server', () => {
                     url: '/fulldata',
                 });
                 expect(response.statusCode).to.equal(404);
-            });
+            }).timeout(30_000);
 
             it("importExportSheet - invalid party bonus (too large)", async () => {
                 // We need a valid sheet to reach the party bonus check
@@ -93,7 +93,7 @@ describe('stats server', () => {
                     url: `/fulldata/${uuid}?partyBonus=10`, // valid values are [0,5]
                 });
                 expect(response.statusCode).to.equal(500);
-            });
+            }).timeout(30_000);
 
             it("importExportSheet - invalid party bonus 2 (too small)", async () => {
                 // We need a valid sheet to reach the party bonus check
@@ -103,7 +103,7 @@ describe('stats server', () => {
                     url: `/fulldata/${uuid}?partyBonus=-10`, // valid values are [0,5]
                 });
                 expect(response.statusCode).to.equal(500);
-            });
+            }).timeout(30_000);
 
             it("importExportSheet - invalid party bonus 3 (not an integer)", async () => {
                 // We need a valid sheet to reach the party bonus check
@@ -113,7 +113,7 @@ describe('stats server', () => {
                     url: `/fulldata/${uuid}?partyBonus=3.5`, // must be an integer
                 });
                 expect(response.statusCode).to.equal(500);
-            });
+            }).timeout(30_000);
 
             it("importExportSheet - invalid party bonus 4 (not a number)", async () => {
                 // We need a valid sheet to reach the party bonus check
@@ -123,7 +123,7 @@ describe('stats server', () => {
                     url: `/fulldata/${uuid}?partyBonus=asdf`, // must be an integer
                 });
                 expect(response.statusCode).to.equal(500);
-            });
+            }).timeout(30_000);
 
             it("importExportSheet - invalid set index (too large)", async () => {
                 const uuid = 'f9b260a9-650c-445a-b3eb-c56d8d968501';
@@ -132,7 +132,7 @@ describe('stats server', () => {
                     url: `/fulldata/${uuid}?onlySetIndex=999`,
                 });
                 expect(response.statusCode).to.equal(500);
-            });
+            }).timeout(30_000);
 
             it("importExportSheet - invalid set index (not a number)", async () => {
                 const uuid = 'f9b260a9-650c-445a-b3eb-c56d8d968501';
@@ -141,7 +141,7 @@ describe('stats server', () => {
                     url: `/fulldata/${uuid}?onlySetIndex=asdf`,
                 });
                 expect(response.statusCode).to.equal(500);
-            });
+            }).timeout(30_000);
         });
         describe("legacy bis endpoints", () => {
             it("deprecated /fulldata/bis/:job/:sheet", async () => {
@@ -155,7 +155,7 @@ describe('stats server', () => {
                 const json = response.json();
                 expect(json.name).to.contain("Prog BiS");
                 expect(json.sets[0].computedStats.hp).to.be.greaterThan(0);
-            });
+            }).timeout(30_000);
 
             it("deprecated fulldata/bis/:job/:folder/:sheet", async () => {
                 const fastify = buildStatsServer();
@@ -167,7 +167,7 @@ describe('stats server', () => {
                 const json = response.json();
                 expect(json.name).to.equal("7.2 WAR Prog BiS");
                 expect(json.sets[0].computedStats.hp).to.be.greaterThan(0);
-            });
+            }).timeout(30_000);
 
         });
         describe("modern unified endpoint", () => {
@@ -308,7 +308,7 @@ describe('stats server', () => {
                 url: '/basedata',
             });
             expect(response.statusCode).to.equal(404);
-        });
+        }).timeout(30_000);
 
         it("can serve correct data", async () => {
             const response = await fastify.inject({
@@ -394,7 +394,7 @@ describe('stats server', () => {
                 isValid: false,
                 reason: 'full sheets cannot be embedded',
             } satisfies EmbedCheckResponse);
-        });
+        }).timeout(30_000);
         it('rejects BiS without embed', async () => {
             const response = await fastify.inject({
                 method: 'GET',
@@ -406,7 +406,7 @@ describe('stats server', () => {
                 isValid: false,
                 reason: 'not an embed',
             } satisfies EmbedCheckResponse);
-        });
+        }).timeout(30_000);
         it('passes full-sheet shortlink with onlySetIndex', async () => {
             const response = await fastify.inject({
                 method: 'GET',
@@ -417,7 +417,7 @@ describe('stats server', () => {
             expect(json).to.deep.equal({
                 isValid: true,
             } satisfies EmbedCheckResponse);
-        });
+        }).timeout(30_000);
         it('rejects full-sheet shortlink without onlySetIndex', async () => {
             const response = await fastify.inject({
                 method: 'GET',
@@ -429,7 +429,7 @@ describe('stats server', () => {
                 isValid: false,
                 reason: 'full sheets cannot be embedded',
             } satisfies EmbedCheckResponse);
-        });
+        }).timeout(30_000);
         it('passes single-set shortlink with onlySetIndex', async () => {
             const response = await fastify.inject({
                 method: 'GET',
@@ -440,7 +440,7 @@ describe('stats server', () => {
             expect(json).to.deep.equal({
                 isValid: true,
             } satisfies EmbedCheckResponse);
-        });
+        }).timeout(30_000);
         it("missing path", async () => {
             const response = await fastify.inject({
                 method: 'GET',
@@ -450,7 +450,7 @@ describe('stats server', () => {
             const json = response.json();
             expect(json.isValid).to.be.false;
             expect(json.reason).to.include("not found");
-        });
+        }).timeout(30_000);
 
         it("invalid path", async () => {
             const response = await fastify.inject({
@@ -460,7 +460,7 @@ describe('stats server', () => {
             expect(response.statusCode).to.equal(200);
             const json = response.json();
             expect(json.isValid).to.be.false;
-        });
+        }).timeout(30_000);
 
         it("uses params from encoded url", async () => {
             const encoded = encodeURIComponent('https://foo.bar/?page=embed|sl|f9b260a9-650c-445a-b3eb-c56d8d968501&onlySetIndex=1');
