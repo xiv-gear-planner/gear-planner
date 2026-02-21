@@ -26,6 +26,7 @@ import {
     PREVIEW_MAX_DESC_LENGTH,
     PREVIEW_MAX_NAME_LENGTH,
     SELECTION_INDEX_QUERY_PARAM,
+    splitHashLegacy,
     tryParseOptionalIntParam
 } from "@xivgear/core/nav/common_nav";
 import {nonCachedFetch} from "./polyfills";
@@ -51,10 +52,66 @@ function doInit() {
     // registerDefaultSims();
 }
 
-type SheetRequest = FastifyRequest<{
+export type SheetRequest = FastifyRequest<{
     Querystring: Record<string, string | undefined>;
     Params: Record<string, string>;
 }>;
+
+/**
+ * getMergedQueryParams combines the normal query parameters with whatever is present on the URL provided via the ?url=
+ * query parameter specifically. The normal query parameters take precedence.
+ * @param request
+ */
+export function getMergedQueryParams(request: SheetRequest): Record<string, string | undefined> {
+    const result: Record<string, string | undefined> = {...(request.query ?? {})};
+    // Try to pull from the full URL provided via ?url=
+    const urlRaw = request.query?.['url'];
+    if (!urlRaw) {
+        return result;
+    }
+    let decoded = urlRaw;
+    try {
+        decoded = decodeURIComponent(urlRaw);
+    }
+    catch (e) {
+        // If decoding fails, assume it's already decoded
+    }
+    try {
+        // Use a dummy base to handle relative URLs or bare query strings
+        const u = new URL(decoded, 'https://dummy.invalid/');
+        // Merge all params from the parsed URL, but do not override direct params
+        u.searchParams.forEach((value, key) => {
+            if (result[key] === undefined) {
+                result[key] = value;
+            }
+        });
+        // Also parse paths for hash-based URLs
+        if (result[HASH_QUERY_PARAM] === undefined && u.hash) {
+            const hashParts = splitHashLegacy(u.hash);
+            if (hashParts.length > 0) {
+                result[HASH_QUERY_PARAM] = hashParts.join(PATH_SEPARATOR);
+            }
+        }
+    }
+    catch (e) {
+        // If URL parsing fails entirely, keep existing result
+    }
+    return result;
+}
+
+// function toEmbedUrl(normalUrl: URL): URL {
+//     const out = new URL(normalUrl.toString());
+//     const cur = out.searchParams.get(HASH_QUERY_PARAM) || '';
+//     if (cur.startsWith(EMBED_HASH + PATH_SEPARATOR)) {
+//         return out;
+//     }
+//     out.searchParams.set(HASH_QUERY_PARAM, `${EMBED_HASH}${PATH_SEPARATOR}${cur}`);
+//     return out;
+// }
+
+// function isRecord(x: unknown): x is Record<string, unknown> {
+//     return typeof x === 'object' && x !== null;
+// }
 
 async function importExportSheet(request: SheetRequest, exportedPre: SheetExport | SetExport, nav?: NavPath): Promise<SheetStatsExport> {
     const exportedInitial: SheetExport | SetExport = exportedPre;
@@ -106,7 +163,7 @@ function buildServerBase() {
         strict: true,
     });
     fastifyInstance.register(cors, {
-        methods: ['GET', 'OPTIONS'],
+        methods: ['GET', 'PUT', 'OPTIONS'],
         strictPreflight: false,
     });
 
@@ -242,9 +299,10 @@ export function buildStatsServer() {
     const fastifyInstance = buildServerBase();
 
     fastifyInstance.get('/validateEmbed', async (request: SheetRequest, reply) => {
-        const path = request.query?.[HASH_QUERY_PARAM] ?? '';
-        const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
-        const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
+        const merged = getMergedQueryParams(request);
+        const path = merged[HASH_QUERY_PARAM] ?? '';
+        const osIndex: number | undefined = tryParseOptionalIntParam(merged[ONLY_SET_QUERY_PARAM]);
+        const selIndex: number | undefined = tryParseOptionalIntParam(merged[SELECTION_INDEX_QUERY_PARAM]);
         const pathPaths = path.split(PATH_SEPARATOR);
         const state = new NavState(pathPaths, osIndex, selIndex);
         const nav = parsePath(state);
@@ -280,9 +338,10 @@ export function buildStatsServer() {
     });
 
     fastifyInstance.get('/basedata', async (request: SheetRequest, reply) => {
-        const path = request.query?.[HASH_QUERY_PARAM] ?? '';
-        const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
-        const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
+        const merged = getMergedQueryParams(request);
+        const path = merged[HASH_QUERY_PARAM] ?? '';
+        const osIndex: number | undefined = tryParseOptionalIntParam(merged[ONLY_SET_QUERY_PARAM]);
+        const selIndex: number | undefined = tryParseOptionalIntParam(merged[SELECTION_INDEX_QUERY_PARAM]);
         const pathPaths = path.split(PATH_SEPARATOR);
         const state = new NavState(pathPaths, osIndex, selIndex);
         const nav = parsePath(state);
@@ -309,9 +368,10 @@ export function buildStatsServer() {
 
     fastifyInstance.get('/fulldata', async (request: SheetRequest, reply) => {
         // TODO: deduplicate this code
-        const path = request.query?.[HASH_QUERY_PARAM] ?? '';
-        const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
-        const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
+        const merged = getMergedQueryParams(request);
+        const path = merged[HASH_QUERY_PARAM] ?? '';
+        const osIndex: number | undefined = tryParseOptionalIntParam(merged[ONLY_SET_QUERY_PARAM]);
+        const selIndex: number | undefined = tryParseOptionalIntParam(merged[SELECTION_INDEX_QUERY_PARAM]);
         const pathPaths = path.split(PATH_SEPARATOR);
         const state = new NavState(pathPaths, osIndex, selIndex);
         const nav = parsePath(state);
@@ -341,6 +401,8 @@ export function buildStatsServer() {
         };
         const rawData = await getShortLink(request.params['uuid'] as string);
         const out = await importExportSheet(request, JSON.parse(rawData), nav);
+        // @ts-expect-error - adding deprecation warning to response
+        out['_DEPRECATION_WARNING'] = 'This endpoint is deprecated. Use /fulldata?page= or /fulldata?url= instead, e.g. /fulldata?page=sl|<uuid> instead.';
         reply.header("cache-control", "max-age=7200, public");
         reply.send(out);
     });
@@ -361,6 +423,8 @@ export function buildStatsServer() {
         };
         const rawData = await getBisSheet([request.params['job'] as JobName, request.params['sheet'] as string]);
         const out = await importExportSheet(request, JSON.parse(rawData), nav);
+        // @ts-expect-error - adding deprecation warning to response
+        out['_DEPRECATION_WARNING'] = 'This endpoint is deprecated. Use /fulldata?page= or /fulldata?url= instead, e.g. /fulldata?page=bis|<job>|<sheet> instead.';
         reply.header("cache-control", "max-age=7200, public");
         reply.send(out);
     });
@@ -382,9 +446,70 @@ export function buildStatsServer() {
         };
         const rawData = await getBisSheet([request.params['job'], request.params['folder'], request.params['sheet']]);
         const out = await importExportSheet(request, JSON.parse(rawData), nav);
+        // @ts-expect-error - adding deprecation warning to response
+        out['_DEPRECATION_WARNING'] = 'This endpoint is deprecated. Use /fulldata?page= or /fulldata?url= instead, e.g. /fulldata?page=bis|<job>|<folder>|<sheet> instead.';
         reply.header("cache-control", "max-age=7200, public");
         reply.send(out);
     });
+
+    /*
+    // Creates a shortlink, and returns the canonical URL for it
+
+    // Creates shortlinks for a single set export; returns normal and embed URLs
+    fastifyInstance.put('/putset', async (request: FastifyRequest<{
+        Body: SetExportExternalSingle,
+    }>, reply) => {
+        try {
+            const b = request.body;
+            // Basic validation: must be an object and not contain a 'sets' array (which would indicate SheetExport)
+            if (!isRecord(b) || Array.isArray((b as {sets?: unknown}).sets)) {
+                reply.code(400).send({error: 'Body must be a single set export object'});
+                return;
+            }
+            const contentStr = JSON.stringify(b);
+            const normalUrl = await putShortLink(contentStr, false);
+            const embedUrl = toEmbedUrl(normalUrl);
+            reply.send({url: normalUrl.toString(), embedUrl: embedUrl.toString()});
+        }
+        catch (e) {
+            request.log.error(e, 'Error creating set shortlink');
+            reply.code(500).send({error: 'Failed to create set shortlink'});
+        }
+    });
+
+    // Creates a shortlink for a full sheet, and per-set links via onlySetIndex
+    fastifyInstance.put('/putsheet', async (request: FastifyRequest<{
+        Body: SheetExport,
+    }>, reply) => {
+        try {
+            const b = request.body;
+            // Basic validation: must be an object with a sets array
+            if (!isRecord(b) || !('sets' in b) || !Array.isArray((b as {sets?: unknown}).sets)) {
+                reply.code(400).send({error: 'Body must be a sheet export object with a sets array'});
+                return;
+            }
+            const contentStr = JSON.stringify(b);
+            const baseUrl = await putShortLink(contentStr, false);
+            const setsOut: { index: number, url: string, embedUrl: string }[] = [];
+            const sheet = b as unknown as SheetExport;
+            for (let i = 0; i < sheet.sets.length; i++) {
+                const set = sheet.sets[i];
+                if (set && !set.isSeparator) {
+                    const setUrl = new URL(baseUrl.toString());
+                    setUrl.searchParams.set(ONLY_SET_QUERY_PARAM, i.toString());
+                    const embedSetUrl = toEmbedUrl(setUrl);
+                    setsOut.push({index: i, url: setUrl.toString(), embedUrl: embedSetUrl.toString()});
+                }
+            }
+            reply.send({url: baseUrl.toString(), sets: setsOut});
+        }
+        catch (e) {
+            request.log.error(e, 'Error creating sheet shortlinks');
+            reply.code(500).send({error: 'Failed to create sheet shortlinks'});
+        }
+    });
+     */
+
     return fastifyInstance;
 }
 
@@ -417,9 +542,10 @@ export function buildPreviewServer() {
         // Fetch original index.html
         const responsePromise = nonCachedFetch(serverUrl + '/index.html', undefined);
         try {
-            const path = request.query[HASH_QUERY_PARAM] ?? '';
-            const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
-            const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
+            const merged = getMergedQueryParams(request);
+            const path = merged[HASH_QUERY_PARAM] ?? '';
+            const osIndex: number | undefined = tryParseOptionalIntParam(merged[ONLY_SET_QUERY_PARAM]);
+            const selIndex: number | undefined = tryParseOptionalIntParam(merged[SELECTION_INDEX_QUERY_PARAM]);
             const pathPaths = path.split(PATH_SEPARATOR);
             const state = new NavState(pathPaths, osIndex, selIndex);
             const nav = parsePath(state);

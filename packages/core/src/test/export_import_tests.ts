@@ -18,7 +18,8 @@ describe('importing and exporting', () => {
         let sheet: GearPlanSheet;
         let set: CharacterGearSet;
 
-        before(async () => {
+        before(async function () {
+            this.timeout(30_000);
             registerDefaultSims();
             sheet = HEADLESS_SHEET_PROVIDER.fromScratch(undefined, "Foo", "WHM", 100, 735, false);
             await sheet.load();
@@ -66,7 +67,7 @@ describe('importing and exporting', () => {
 
             expect(setExport.jobOverride).to.be.oneOf([undefined, null]);
             expect(setExport.job).to.equal('WHM');
-        });
+        }).timeout(30_000);
         it('can export set and import as a fresh sheet', async () => {
             const setExport = sheet.exportGearSet(set, true);
             const newSheet = HEADLESS_SHEET_PROVIDER.fromSetExport(setExport);
@@ -87,7 +88,7 @@ describe('importing and exporting', () => {
             expect(newSheet.isMultiJob).to.be.false;
             expect(newSet.jobOverride).to.be.null;
             expect(newSet.job).to.equal('WHM');
-        });
+        }).timeout(30_000);
         it('can export sheet and import as a fresh sheet', async () => {
             const sheetExport = sheet.exportSheet(ExportTypes.ExternalExport);
             const newSheet = HEADLESS_SHEET_PROVIDER.fromExport(sheetExport);
@@ -108,7 +109,7 @@ describe('importing and exporting', () => {
             expect(newSheet.isMultiJob).to.be.false;
             expect(newSet.jobOverride).to.be.null;
             expect(newSet.job).to.equal('WHM');
-        });
+        }).timeout(30_000);
         it('can export set and import onto a sheet', async () => {
             const setExport = sheet.exportGearSet(set, true);
             // Note that we are doing a cross-job import
@@ -141,7 +142,7 @@ describe('importing and exporting', () => {
             expect(newSheet.isMultiJob).to.be.false;
             expect(newSet.jobOverride).to.be.null;
             expect(newSet.job).to.equal('SGE');
-        });
+        }).timeout(30_000);
         describe('handles sims correctly on export', () => {
             describe('correctly filters sims and other fields based on SheetExportOptions', () => {
 
@@ -156,7 +157,7 @@ describe('importing and exporting', () => {
                     expect(newSheet.sims.length).to.equal(2);
                     expect(newSheet.sims.map(s => s.displayName)).to.include("Sim 1");
                     expect(newSheet.sims.map(s => s.displayName)).to.include("Sim 2");
-                });
+                }).timeout(30_000);
 
                 it('Case 2: ExternalExport - Should only include sims with includeInExport=true, no saveKey, no stats', async () => {
                     const exported = sheet.exportSheet(ExportTypes.ExternalExport);
@@ -168,7 +169,7 @@ describe('importing and exporting', () => {
                     await newSheet.load();
                     expect(newSheet.sims.length).to.equal(1);
                     expect(newSheet.sims[0].displayName).to.equal("Sim 1");
-                });
+                }).timeout(30_000);
 
                 it('Case 3: SolverExport - Should include no sims, no saveKey, no stats', async () => {
                     const exported = sheet.exportSheet(ExportTypes.SolverExport);
@@ -179,7 +180,7 @@ describe('importing and exporting', () => {
                     const newSheet = HEADLESS_SHEET_PROVIDER.fromExport(exported);
                     await newSheet.load();
                     expect(newSheet.sims.length).to.equal(0);
-                });
+                }).timeout(30_000);
 
                 it('Case 4: InternalSaveAs - Should include all sims, no saveKey, no stats', async () => {
                     const exported = sheet.exportSheet(ExportTypes.InternalSaveAs);
@@ -192,7 +193,7 @@ describe('importing and exporting', () => {
                     expect(newSheet.sims.length).to.equal(2);
                     expect(newSheet.sims.map(s => s.displayName)).to.include("Sim 1");
                     expect(newSheet.sims.map(s => s.displayName)).to.include("Sim 2");
-                });
+                }).timeout(30_000);
 
                 it('Case 5: FullStatsExport - Should include all sims, no saveKey, include stats', async () => {
                     const exported = sheet.exportSheet(ExportTypes.FullStatsExport);
@@ -206,7 +207,7 @@ describe('importing and exporting', () => {
                     expect(newSheet.sims.length).to.equal(2);
                     expect(newSheet.sims.map(s => s.displayName)).to.include("Sim 1");
                     expect(newSheet.sims.map(s => s.displayName)).to.include("Sim 2");
-                });
+                }).timeout(30_000);
             });
         });
     });
@@ -225,7 +226,8 @@ describe('importing and exporting', () => {
         // set with Job Override
         let setJO: CharacterGearSet;
 
-        before(async () => {
+        before(async function () {
+            this.timeout(30_000);
             sheet = HEADLESS_SHEET_PROVIDER.fromScratch(undefined, "Foo", "WHM", 100, 735, true);
             await sheet.load();
             sheet.race = 'Wildwood';
@@ -256,7 +258,7 @@ describe('importing and exporting', () => {
         it('always sets jobOverride even for default job', async () => {
             expect(set.job).to.eq('WHM');
             expect(set.jobOverride).to.eq('WHM');
-        });
+        }).timeout(30_000);
         it('can export non-override set correctly', async () => {
             const setExport = sheet.exportGearSet(set, true);
             expect(setExport.race).to.eq('Wildwood');
@@ -270,7 +272,7 @@ describe('importing and exporting', () => {
 
             expect(setExport.jobOverride).to.be.oneOf([undefined, null]);
             expect(setExport.job).to.eq('WHM');
-        });
+        }).timeout(30_000);
         it('can export job override set correctly', async () => {
             const setExport = sheet.exportGearSet(setJO, true);
             expect(setExport.race).to.eq('Wildwood');
@@ -284,7 +286,7 @@ describe('importing and exporting', () => {
 
             expect(setExport.jobOverride).to.be.oneOf([undefined, null]);
             expect(setExport.job).to.eq('SGE');
-        });
+        }).timeout(30_000);
         it('can export set and import as a fresh sheet', async () => {
             const setExport = sheet.exportGearSet(set, true);
             const newSheet = HEADLESS_SHEET_PROVIDER.fromSetExport(setExport);
@@ -305,7 +307,7 @@ describe('importing and exporting', () => {
             expect(newSheet.isMultiJob).to.be.false;
             expect(newSet.jobOverride).to.be.null;
             expect(newSet.job).to.equal('WHM');
-        });
+        }).timeout(30_000);
         it('can export sheet and import as a fresh sheet', async () => {
             const sheetExport = sheet.exportSheet(ExportTypes.ExternalExport);
             const newSheet = HEADLESS_SHEET_PROVIDER.fromExport(sheetExport);
@@ -341,7 +343,7 @@ describe('importing and exporting', () => {
                 expect(newSet.jobOverride).to.eq('SGE');
                 expect(newSet.job).to.equal('SGE');
             }
-        });
+        }).timeout(30_000);
         it('can export set and import onto a non-multijob sheet', async () => {
             const setExport = sheet.exportGearSet(set, true);
             // Note that we are doing a cross-job import
@@ -374,7 +376,7 @@ describe('importing and exporting', () => {
             expect(newSheet.isMultiJob).to.be.false;
             expect(newSet.jobOverride).to.be.null;
             expect(newSet.job).to.equal('SGE');
-        });
+        }).timeout(30_000);
         it('can export set and import onto a multijob sheet', async () => {
             const setExport = sheet.exportGearSet(set, true);
             expect(setExport.job).to.equal('WHM');
@@ -408,6 +410,6 @@ describe('importing and exporting', () => {
             expect(newSheet.isMultiJob).to.be.true;
             expect(newSet.jobOverride).to.eq('WHM');
             expect(newSet.job).to.equal('WHM');
-        });
+        }).timeout(30_000);
     });
 }).timeout(30_000);

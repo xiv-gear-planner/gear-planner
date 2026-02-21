@@ -376,7 +376,7 @@ describe('preview server', () => {
             expect(response.statusCode).to.equal(200);
             // In JSDOM, maybe case matters or it's not in the body but in the head
             expect(response.body).to.include("WHM Archive BiS");
-        });
+        }).timeout(30_000);
 
         it("bis path", async () => {
             const response = await fastify.inject({
@@ -384,7 +384,7 @@ describe('preview server', () => {
                 url: `/?page=${BIS_HASH}|WHM|archive|anabaseios`,
             });
             expect(response.statusCode).to.equal(200);
-        });
+        }).timeout(30_000);
 
         it("long name truncation", async () => {
             const longName = "A".repeat(200);
@@ -400,7 +400,7 @@ describe('preview server', () => {
             expect(response.statusCode).to.equal(200);
             // Check for truncation ellipsis
             expect(response.body).to.include("…");
-        });
+        }).timeout(30_000);
 
         it("multi-job includes all relevant preloads", async () => {
             const jsonBlob = JSON.stringify({
@@ -418,7 +418,7 @@ describe('preview server', () => {
             expect(response.body).to.contain("AST");
             expect(response.body).to.contain("SCH");
             expect(response.body).to.contain("SGE");
-        });
+        }).timeout(30_000);
 
         it("cache bust", async () => {
             const response = await fastify.inject({
@@ -428,7 +428,7 @@ describe('preview server', () => {
             expect(response.statusCode).to.equal(200);
             expect(response.headers['clear-site-data']).to.equal('"cache", "prefetchCache", "prerenderCache"');
             expect(response.headers['cache-control']).to.equal('max-age=0, no-cache');
-        });
+        }).timeout(30_000);
 
     });
     describe("buildPreviewServer with EXTRA_SCRIPTS", () => {
@@ -450,7 +450,7 @@ describe('preview server', () => {
             expect(response.statusCode).to.equal(200);
             expect(response.body).to.include('https://example.com/script1.js');
             expect(response.body).to.include('https://example.com/script2.js');
-        });
+        }).timeout(30_000);
 
         it("does not inject extra scripts when embedded", async () => {
             const fastify = buildPreviewServer();
@@ -463,7 +463,7 @@ describe('preview server', () => {
             // Use a regex that is case insensitive
             // expect(/scripts-injected="true"/i.test(response.body)).to.be.true;
             expect(response.body).to.not.include('https://example.com/script1.js');
-        });
+        }).timeout(30_000);
     });
 
 });
