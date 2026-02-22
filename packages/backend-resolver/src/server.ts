@@ -24,9 +24,11 @@ function validateUrl(url: string, description: string) {
 // Using undefined instead of null so that it can be directly used in place of an optional field
 function optionalUrl(url: string | null | undefined, description: string): URL | undefined {
     if (!url) {
+        console.log(`URL '${description}' is not specified/empty, leaving as default`);
         return undefined;
     }
     try {
+        console.log(`URL '${description}' is overridden to '${url}'`);
         return new URL(url);
     }
     catch (e) {
