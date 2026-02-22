@@ -4,7 +4,6 @@ import {
     labeledRadioButton,
     makeActionButton
 } from "@xivgear/common-ui/components/util";
-import {putShortLink} from "@xivgear/core/external/shortlink_server";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {
@@ -17,6 +16,7 @@ import {writeProxy} from "@xivgear/util/proxies";
 import {EquipSlots, Materia, XivItem} from "@xivgear/xivmath/geartypes";
 import {recordSheetEvent} from "../../analytics/analytics";
 import {GearPlanSheetGui} from "../sheet/sheet_gui";
+import {DEFAULT_SHORTLINK_SERVICE} from "../../services/default_services";
 
 type ExportMethod<X> = {
     /**
@@ -70,7 +70,7 @@ const sheetShortlink = {
         }
         else {
             const exportedSheet = JSON.stringify(sheet.exportSheet(ExportTypes.ExternalExport));
-            linkToSheet = await putShortLink(exportedSheet);
+            linkToSheet = await DEFAULT_SHORTLINK_SERVICE.putShortLink(exportedSheet);
         }
 
         return urlToString(linkToSheet);
@@ -102,7 +102,7 @@ const linkPerSet = {
         }
         else {
             const exportedSheet = JSON.stringify(sheet.exportSheet(ExportTypes.ExternalExport));
-            linkToSheet = await putShortLink(exportedSheet);
+            linkToSheet = await DEFAULT_SHORTLINK_SERVICE.putShortLink(exportedSheet);
         }
 
         for (const i in sets) {
@@ -146,7 +146,7 @@ const embedLinkPerSet = {
         }
         else {
             const exportedSheet = JSON.stringify(sheet.exportSheet(ExportTypes.ExternalExport));
-            linkToSheet = await putShortLink(exportedSheet);
+            linkToSheet = await DEFAULT_SHORTLINK_SERVICE.putShortLink(exportedSheet);
         }
 
         for (const i in sets) {
@@ -195,7 +195,7 @@ const setShortlink = {
     exportInstantly: false,
     async doExport(set: CharacterGearSet, viewOnly: boolean): Promise<string> {
         const exportedSheet = JSON.stringify(set.sheet.exportGearSet(set, true));
-        const linkToSheet = await putShortLink(exportedSheet);
+        const linkToSheet = await DEFAULT_SHORTLINK_SERVICE.putShortLink(exportedSheet);
         return urlToString(linkToSheet);
     },
 } as const as SetExportMethod;
@@ -208,7 +208,7 @@ const setEmbedShortLink = {
     exportInstantly: false,
     async doExport(set: CharacterGearSet, viewOnly: boolean): Promise<string> {
         const exportedSheet = JSON.stringify(set.sheet.exportGearSet(set, true));
-        const linkToSheet = await putShortLink(exportedSheet, true);
+        const linkToSheet = await DEFAULT_SHORTLINK_SERVICE.putShortLink(exportedSheet, true);
         return urlToString(linkToSheet);
     },
 } as const as SetExportMethod;

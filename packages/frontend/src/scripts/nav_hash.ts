@@ -12,7 +12,6 @@ import {
 } from "@xivgear/core/nav/common_nav";
 import {earlyEmbedInit} from "./embed";
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
-import {getShortLink} from "@xivgear/core/external/shortlink_server";
 import {getBisIndexAt, getBisSheet} from "@xivgear/core/external/static_bis";
 
 import {
@@ -32,6 +31,7 @@ import {BisBrowser} from "./components/bisbrowser/bis_browser";
 import {cleanUrlParams, getQueryParams, manipulateUrlParams} from "@xivgear/common-ui/nav/common_frontend_nav";
 import {PopoutEditor} from "./components/sheet/editor/popout_editor";
 import {openPopout} from "./popout";
+import {DEFAULT_SHORTLINK_SERVICE} from "./services/default_services";
 
 // let expectedHash: string[] | undefined = undefined;
 
@@ -154,7 +154,7 @@ async function doNav(navState: NavState) {
             case "shortlink": {
                 showLoadingScreen();
                 const uuid = nav.uuid;
-                const resolved: string | null = await getShortLink(uuid);
+                const resolved: string | null = await DEFAULT_SHORTLINK_SERVICE.getShortLink(uuid);
                 if (resolved) {
                     const json = JSON.parse(resolved);
                     openExport(json, true, nav.onlySetIndex, nav.defaultSelectionIndex);

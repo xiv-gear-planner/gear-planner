@@ -2,7 +2,9 @@ import {EMBED_HASH, makeUrl, NavState, SHORTLINK_HASH} from "../nav/common_nav";
 
 const DEFAULT_SHORTLINK_SERVER: URL = new URL("https://api.xivgear.app/shortlink/");
 
-
+/**
+ * Provides the service of retrieving and putting shortlinks
+ */
 export interface ShortlinkService {
     getShortlinkFetchUrl(stub: string): URL;
 
@@ -43,12 +45,31 @@ export class ShortlinkServiceImpl implements ShortlinkService {
             }
         });
     }
-
-    setServerOverride(serverOverride: string) {
-        // Validate URL
-        new URL(serverOverride);
-        this.server = serverOverride;
-    }
 }
 
-export const DEFAULT_SHORTLINK_PROVIDER = new ShortlinkServiceImpl();
+export class MockShortlinkService implements ShortlinkService{
+    private readonly entries = new Map<string, string>();
+
+    getShortlinkFetchUrl(stub: string): URL {
+        return new URL(`http://mockshortlink.test/${encodeURIComponent(stub)}`);
+    }
+
+    async getShortLink(uuid: string): Promise<string> {
+        const content = this.entries.get(uuid);
+        if (content === undefined) {
+            throw new Error(`Shortlink not found: ${uuid}`);
+        }
+        return content;
+    }
+
+    async putShortLink(content: string, embed?: boolean): Promise<URL> {
+        const uuid = crypto.randomUUID();
+        this.entries.set(uuid, content);
+        if (embed) {
+            return makeUrl(new NavState([EMBED_HASH, SHORTLINK_HASH, uuid]));
+        }
+        else {
+            return makeUrl(new NavState([SHORTLINK_HASH, uuid]));
+        }
+    }
+}

@@ -3,11 +3,11 @@ import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 import {makeActionButton} from "@xivgear/common-ui/components/util";
 import {JobName} from "@xivgear/xivmath/xivconstants";
 import {parseImport} from "@xivgear/core/imports/imports";
-import {getShortLink} from "@xivgear/core/external/shortlink_server";
 import {getSetFromEtro} from "@xivgear/core/external/etro_import";
 import {getBisSheet} from "@xivgear/core/external/static_bis";
 import {SetExport} from "@xivgear/xivmath/geartypes";
 import {GearPlanSheetGui} from "../sheet/sheet_gui";
+import {DEFAULT_SHORTLINK_SERVICE} from "../../services/default_services";
 
 export class ImportSetsModal extends BaseModal {
     private readonly loader: LoadingBlocker;
@@ -93,7 +93,7 @@ export class ImportSetsModal extends BaseModal {
                     }
                     return;
                 case "shortlink":
-                    this.doAsyncImport(() => getShortLink(decodeURIComponent(parsed.rawUuid)), parsed.onlySetIndex);
+                    this.doAsyncImport(() => DEFAULT_SHORTLINK_SERVICE.getShortLink(decodeURIComponent(parsed.rawUuid)), parsed.onlySetIndex);
                     return;
                 case "etro":
                     this.ready = false;

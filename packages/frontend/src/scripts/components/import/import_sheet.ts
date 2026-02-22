@@ -1,7 +1,6 @@
 import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 import {makeActionButton} from "@xivgear/common-ui/components/util";
 import {parseImport} from "@xivgear/core/imports/imports";
-import {getShortLink} from "@xivgear/core/external/shortlink_server";
 import {getSetFromEtro} from "@xivgear/core/external/etro_import";
 import {getBisSheet} from "@xivgear/core/external/static_bis";
 import {NamedSection} from "../general/section";
@@ -9,6 +8,7 @@ import {GearPlanSheetGui} from "../sheet/sheet_gui";
 import {JobName} from "@xivgear/xivmath/xivconstants";
 import {extractSingleSet} from "@xivgear/core/util/sheet_utils";
 import {GRAPHICAL_SHEET_PROVIDER} from "../sheet/provider";
+import {DEFAULT_SHORTLINK_SERVICE} from "../../services/default_services";
 
 export class ImportSheetArea extends NamedSection {
     private readonly loader: LoadingBlocker;
@@ -69,7 +69,7 @@ export class ImportSheetArea extends NamedSection {
                     }
                     return;
                 case "shortlink":
-                    this.doAsyncImport(() => getShortLink(decodeURIComponent(parsed.rawUuid)), parsed.onlySetIndex);
+                    this.doAsyncImport(() => DEFAULT_SHORTLINK_SERVICE.getShortLink(decodeURIComponent(parsed.rawUuid)), parsed.onlySetIndex);
                     return;
                 case "etro":
                     this.ready = false;
