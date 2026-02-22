@@ -1,7 +1,7 @@
 import '../polyfills';
 import {expect} from "chai";
 import {buildStatsServer, EmbedCheckResponse} from "../server_builder";
-import {SheetStatsExport, SheetExport, SetExportExternalSingle} from "@xivgear/xivmath/geartypes";
+import {SheetExport, SheetStatsExport} from "@xivgear/xivmath/geartypes";
 import {BIS_HASH} from "@xivgear/core/nav/common_nav";
 
 // TODO: add tests for validateEmbed with direct URL (on a different branch)

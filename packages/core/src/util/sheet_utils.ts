@@ -1,5 +1,4 @@
 import {SetExportExternalSingle, SheetExport} from "@xivgear/xivmath/geartypes";
-import {SheetExportOptions} from "../sheet";
 
 /**
  * Given a full sheet export, create a single-set export matching the containing sheet.
