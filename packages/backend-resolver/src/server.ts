@@ -1,10 +1,14 @@
 import * as process from "process";
 import {setServerOverride} from "@xivgear/core/external/shortlink_server";
 import {setFrontendClientPath, setFrontendServer} from "./frontend_file_server";
-import {buildPreviewServer, buildStatsServer} from "./server_builder";
-import {FastifyInstance} from "fastify";
 import {setDataApi} from "@xivgear/core/data_api_client";
+import {ServerBase} from "./server_base";
+import {StatsServer} from "./stats_server";
+import {PreviewServer} from "./preview_server";
 
+/*
+This file is the entry point
+ */
 
 function validateUrl(url: string, description: string) {
     try {
@@ -44,22 +48,13 @@ if (dataApiOverride) {
     setDataApi(dataApiOverride);
 }
 
-let fastify: FastifyInstance;
+let server: ServerBase;
 if (process.env.IS_PREVIEW_SERVER === 'true') {
     console.log('Building preview server');
-    fastify = buildPreviewServer();
+    server = new PreviewServer();
 }
 else {
     console.log('Building stats server');
-    fastify = buildStatsServer();
+    server = new StatsServer();
 }
-
-fastify.listen({
-    port: 30000,
-    host: '0.0.0.0',
-}, (err, addr) => {
-    if (err) {
-        fastify.log.error(err);
-        process.exit(1);
-    }
-});
+server.setupAndStart();

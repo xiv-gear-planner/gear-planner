@@ -2,13 +2,13 @@ import '../polyfills';
 import {expect} from "chai";
 import {getJobIcons} from "../preload_helpers";
 import {ALL_COMBAT_JOBS, JOB_DATA} from "@xivgear/xivmath/xivconstants";
-import {getMergedQueryParams, SheetRequest} from "../server_builder";
 import {
     HASH_QUERY_PARAM,
     ONLY_SET_QUERY_PARAM,
     PATH_SEPARATOR,
     SELECTION_INDEX_QUERY_PARAM
 } from "@xivgear/core/nav/common_nav";
+import {getMergedQueryParams, SheetRequest} from "../server_utils";
 
 describe('misc helpers', () => {
     describe("getJobIcons", () => {
