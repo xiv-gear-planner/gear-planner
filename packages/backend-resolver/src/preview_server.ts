@@ -1,7 +1,7 @@
 import {ServerBase} from "./server_base";
 import {FastifyInstance} from "fastify";
 import fastifyWebResponse from "fastify-web-response";
-import {getFrontendClientPath, getFrontendServer} from "./frontend_file_server";
+import {FrontendFileServerProvider} from "./frontend_file_server";
 import {nonCachedFetch} from "./polyfills";
 import {
     DEFAULT_DESC,
@@ -20,9 +20,13 @@ import 'global-jsdom/register';
 import './polyfills';
 import {ALL_COMBAT_JOBS, JOB_DATA} from "@xivgear/xivmath/xivconstants";
 import process from "process";
-import {getMergedQueryParams, resolveNavData, SheetRequest} from "./server_utils";
+import {getMergedQueryParams, NavDataService, SheetRequest} from "./server_utils";
 
 export class PreviewServer extends ServerBase {
+    constructor(private readonly frontendPaths: FrontendFileServerProvider, private readonly navDataService: NavDataService) {
+        super();
+    }
+
     setup(fastifyInstance: FastifyInstance): void {
         // TODO: split preview and stats server into different images, since stats server does not need DOM stuff
         const parser = new DOMParser();
@@ -44,8 +48,8 @@ export class PreviewServer extends ServerBase {
         fastifyInstance.get('/', async (request: SheetRequest, reply) => {
 
 
-            const serverUrl = getFrontendServer();
-            const clientUrl = getFrontendClientPath();
+            const serverUrl = this.frontendPaths.staticFilePath;
+            const clientUrl = this.frontendPaths.frontendClientPath;
             // Fetch original index.html
             const responsePromise = nonCachedFetch(serverUrl + '/index.html', undefined);
             try {
@@ -57,7 +61,7 @@ export class PreviewServer extends ServerBase {
                 const state = new NavState(pathPaths, osIndex, selIndex);
                 const nav = parsePath(state);
                 request.log.info(pathPaths, 'Path');
-                const navResult = resolveNavData(nav);
+                const navResult = this.navDataService.resolveNavData(nav);
                 if (navResult !== null) {
                     let name = await navResult.name || "";
                     let desc = await navResult.description || "";

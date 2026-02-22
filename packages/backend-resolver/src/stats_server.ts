@@ -2,7 +2,7 @@ import {ServerBase} from "./server_base";
 import {FastifyInstance} from "fastify";
 import 'global-jsdom/register';
 import './polyfills';
-import {getShortLink} from "@xivgear/core/external/shortlink_server";
+import {ShortlinkService} from "@xivgear/core/external/shortlink_server";
 import {
     PartyBonusAmount,
     SetExport,
@@ -25,7 +25,7 @@ import {
     tryParseOptionalIntParam
 } from "@xivgear/core/nav/common_nav";
 import {extractSingleSet, extractSingleSetAsSheet, inflateSetExport} from "@xivgear/core/util/sheet_utils";
-import {ExportedData, getMergedQueryParams, resolveNavData, SheetRequest} from "./server_utils";
+import {ExportedData, getMergedQueryParams, NavDataService, SheetRequest} from "./server_utils";
 
 export type EmbedCheckResponse = {
     isValid: true,
@@ -35,6 +35,11 @@ export type EmbedCheckResponse = {
 }
 
 export class StatsServer extends ServerBase {
+
+    constructor(private readonly shortlinkService: ShortlinkService, private readonly navDataService: NavDataService) {
+        super();
+    }
+
     setup(fastifyInstance: FastifyInstance): void {
         fastifyInstance.get('/validateEmbed', async (request: SheetRequest, reply) => {
             const merged = getMergedQueryParams(request);
@@ -45,7 +50,7 @@ export class StatsServer extends ServerBase {
             const state = new NavState(pathPaths, osIndex, selIndex);
             const nav = parsePath(state);
             request.log.info(pathPaths, 'Path');
-            const navResult = resolveNavData(nav);
+            const navResult = this.navDataService.resolveNavData(nav);
             if (nav !== null && navResult !== null && navResult.sheetData !== null) {
                 const exported: ExportedData = await navResult.sheetData;
                 reply.header("cache-control", "max-age=7200, public");
@@ -86,7 +91,7 @@ export class StatsServer extends ServerBase {
             const state = new NavState(pathPaths, osIndex, selIndex);
             const nav = parsePath(state);
             request.log.info(pathPaths, 'Path');
-            const navResult = resolveNavData(nav);
+            const navResult = this.navDataService.resolveNavData(nav);
             // Must exist
             if (!(nav !== null && navResult !== null && navResult.sheetData !== null)) {
                 reply.status(404);
@@ -131,7 +136,7 @@ export class StatsServer extends ServerBase {
             const state = new NavState(pathPaths, osIndex, selIndex);
             const nav = parsePath(state);
             request.log.info(pathPaths, 'Path');
-            const navResult = resolveNavData(nav);
+            const navResult = this.navDataService.resolveNavData(nav);
             if (nav !== null && navResult !== null && navResult.sheetData !== null) {
                 const exported: ExportedData = await navResult.sheetData;
                 const out = await importExportSheet(request, exported as (SetExport | SheetExport), nav);
@@ -154,7 +159,7 @@ export class StatsServer extends ServerBase {
                 embed: false,
                 viewOnly: true,
             };
-            const rawData = await getShortLink(request.params['uuid'] as string);
+            const rawData = await this.getShortLink(request.params['uuid'] as string);
             const out = await importExportSheet(request, JSON.parse(rawData), nav);
             // @ts-expect-error - adding deprecation warning to response
             out['_DEPRECATION_WARNING'] = 'This endpoint is deprecated. Use /fulldata?page= or /fulldata?url= instead, e.g. /fulldata?page=sl|<uuid> instead.';
@@ -264,6 +269,9 @@ export class StatsServer extends ServerBase {
          */
     }
 
+    private async getShortLink(param: string) {
+        return await this.shortlinkService.getShortLink(param);
+    }
 }
 
 async function importExportSheet(request: SheetRequest, exportedPre: SheetExport | SetExport, nav?: NavPath): Promise<SheetStatsExport> {

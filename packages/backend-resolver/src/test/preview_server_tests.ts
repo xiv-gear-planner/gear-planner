@@ -3,6 +3,9 @@ import {BIS_BROWSER_HASH, BIS_HASH, SHORTLINK_HASH} from "@xivgear/core/nav/comm
 import {ALL_COMBAT_JOBS} from "@xivgear/xivmath/xivconstants";
 import '../polyfills';
 import {PreviewServer} from "../preview_server";
+import {ShortlinkServiceImpl} from "@xivgear/core/external/shortlink_server";
+import {NavDataServiceImpl} from "../server_utils";
+import {frontendPaths} from "../frontend_file_server";
 
 function readPreviewProps(document: Document): Record<string, string> {
     const out: Record<string, string> = {};
@@ -19,9 +22,14 @@ function readPreviewProps(document: Document): Record<string, string> {
     return out;
 }
 
+function makePreviewServer() {
+    const previewServer = new PreviewServer(frontendPaths(), new NavDataServiceImpl(new ShortlinkServiceImpl()));
+    return previewServer.setupForTest();
+}
+
 describe('preview server', () => {
     describe("preview endpoint", () => {
-        const fastify = new PreviewServer().setupForTest();
+        const fastify = makePreviewServer();
         const parser = new DOMParser();
         const slTitle = 'WHM 6.4 copy - XivGear - FFXIV Gear Planner';
         it("resolves shortlink", async () => {
@@ -442,7 +450,7 @@ describe('preview server', () => {
         });
 
         it("injects extra scripts for normal pages", async () => {
-            const fastify = new PreviewServer().setupForTest();
+            const fastify = makePreviewServer();
             const response = await fastify.inject({
                 method: 'GET',
                 url: `/?page=${SHORTLINK_HASH}|f9b260a9-650c-445a-b3eb-c56d8d968501`,
@@ -453,7 +461,7 @@ describe('preview server', () => {
         }).timeout(30_000);
 
         it("does not inject extra scripts when embedded", async () => {
-            const fastify = new PreviewServer().setupForTest();
+            const fastify = makePreviewServer();
             const response = await fastify.inject({
                 method: 'GET',
                 url: `/?page=embed|sl|f9b260a9-650c-445a-b3eb-c56d8d968501&onlySetIndex=1`,

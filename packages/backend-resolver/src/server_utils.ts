@@ -1,37 +1,48 @@
 import 'global-jsdom/register';
 import './polyfills';
 import {FastifyRequest} from "fastify";
-import {getShortLink, getShortlinkFetchUrl} from "@xivgear/core/external/shortlink_server";
 import {SetExport, SetExportExternalSingle, SheetExport, TopLevelExport} from "@xivgear/xivmath/geartypes";
 import {getBisIndexUrl, getBisSheet, getBisSheetFetchUrl} from "@xivgear/core/external/static_bis";
 import {JOB_DATA, JobName} from "@xivgear/xivmath/xivconstants";
 import {HASH_QUERY_PARAM, NavPath, PATH_SEPARATOR, splitHashLegacy} from "@xivgear/core/nav/common_nav";
 import {getJobIcons} from "./preload_helpers";
+import {ShortlinkService} from "@xivgear/core/external/shortlink_server";
 
-export function resolveNavData(nav: NavPath | null): NavResult | null {
-    if (nav === null) {
-        return null;
-    }
-    switch (nav.type) {
-        case "newsheet":
-        case "importform":
-        case "saved":
-            return null;
-        case "shortlink":
-            // TODO: combine these into one call
-            return fillSheetData(getShortlinkFetchUrl(nav.uuid), getShortLink(nav.uuid).then(JSON.parse), nav.onlySetIndex);
-        case "setjson":
-            return fillSheetData(null, Promise.resolve(nav.jsonBlob as TopLevelExport), undefined);
-        case "sheetjson":
-            return fillSheetData(null, Promise.resolve(nav.jsonBlob as TopLevelExport), nav.onlySetIndex);
-        case "bis":
-            return fillSheetData(getBisSheetFetchUrl(nav.path), getBisSheet(nav.path).then(JSON.parse), nav.onlySetIndex);
-        case "bisbrowser":
-            return fillBisBrowserData(nav.path);
-    }
-    throw Error(`Unable to resolve nav result: ${nav.type}`);
+export interface NavDataService {
+    resolveNavData(nav: NavPath | null): NavResult | null;
 }
 
+export class NavDataServiceImpl implements NavDataService {
+    constructor(readonly shortlinkService: ShortlinkService) {
+    }
+
+    resolveNavData(nav: NavPath | null): NavResult | null {
+        if (nav === null) {
+            return null;
+        }
+        switch (nav.type) {
+            case "newsheet":
+            case "importform":
+            case "saved":
+                return null;
+            case "shortlink":
+                // TODO: combine these into one call
+                return fillSheetData(
+                    this.shortlinkService.getShortlinkFetchUrl(nav.uuid),
+                    this.shortlinkService.getShortLink(nav.uuid).then(JSON.parse),
+                    nav.onlySetIndex);
+            case "setjson":
+                return fillSheetData(null, Promise.resolve(nav.jsonBlob as TopLevelExport), undefined);
+            case "sheetjson":
+                return fillSheetData(null, Promise.resolve(nav.jsonBlob as TopLevelExport), nav.onlySetIndex);
+            case "bis":
+                return fillSheetData(getBisSheetFetchUrl(nav.path), getBisSheet(nav.path).then(JSON.parse), nav.onlySetIndex);
+            case "bisbrowser":
+                return fillBisBrowserData(nav.path);
+        }
+        throw Error(`Unable to resolve nav result: ${nav.type}`);
+    }
+}
 
 function fillSheetData(sheetPreloadUrl: URL | null, sheetData: Promise<ExportedData>, osIndex: number | undefined): NavResult {
     const processed: Promise<SheetSummaryData> = sheetData.then(exported => {
