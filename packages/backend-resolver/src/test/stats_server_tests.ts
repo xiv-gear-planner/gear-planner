@@ -334,11 +334,12 @@ describe('stats server', () => {
                 url: '/basedata?page=sl|f9b260a9-650c-445a-b3eb-c56d8d968501&onlySetIndex=1',
             });
             expect(response.statusCode).to.equal(200);
-            const json = response.json() as SetExportExternalSingle;
-            expect(json.name).to.equal("6.4 Week 1 2.43 a");
+            const json = response.json() as SheetExport;
+            expect(json.name).to.equal("WHM 6.4 copy");
+            expect(json.sets[0].name).to.equal("6.4 Week 1 2.43 a");
             expect(json.job).to.equal("WHM");
             expect(json.level).to.equal(90);
-            expect(json).to.not.have.property('sets');
+            expect(json.sets.length).to.equal(1);
             expect(json).to.not.have.property('computedStats');
         }).timeout(30_000);
 
@@ -349,10 +350,11 @@ describe('stats server', () => {
                 url: `/basedata?url=${encoded}&onlySetIndex=2`,
             });
             expect(response.statusCode).to.equal(200);
-            const json = response.json() as SheetExport | SetExportExternalSingle;
+            const json = response.json() as SheetExport;
             // Should resolve the same sheet as in fulldata test, but with onlySetIndex
             // It should take onlySetIndex=2 since direct URL params take priority over anything packed into the encoded url
-            expect(json.name).to.equal('6.4 Week 1 2.38');
+            expect(json.name).to.equal("WHM 6.4 copy");
+            expect(json.sets[0].name).to.equal('6.4 Week 1 2.38');
         }).timeout(30_000);
 
         it("should resolve data from a legacy hash in the url parameter", async () => {
@@ -368,6 +370,47 @@ describe('stats server', () => {
             const json = response.json() as SheetExport;
             expect(json.name).to.equal("WHM 6.4 copy");
             expect(json.job).to.equal("WHM");
+        }).timeout(30_000);
+
+        // Additional tests for new exportAsSheet flag
+        it("exports as sheet when exportAsSheet=true", async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: '/basedata?page=sl|f9b260a9-650c-445a-b3eb-c56d8d968501&exportAsSheet=true',
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as SheetExport;
+            expect(json).to.have.property('sets');
+            expect(json.sets.length).to.equal(13);
+            expect(json.name).to.equal("WHM 6.4 copy");
+        }).timeout(30_000);
+
+        it("exports single set as sheet with one set when exportAsSheet=true", async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: '/basedata?page=sl|0cd5874c-6322-4396-99be-2089d6222d9c&exportAsSheet=true',
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as SheetExport;
+            expect(json).to.have.property('sets');
+            expect(json.sets.length).to.equal(1);
+            // This shortlink (0cd5874c-6322-4396-99be-2089d6222d9c) is a single set.
+            // When exported as a sheet, the sheet name should be the set name.
+            expect(json.name).to.be.ok;
+            expect(json.sets[0].name).to.be.ok;
+        }).timeout(30_000);
+
+        it("exports single set from full sheet as sheet with one set when exportAsSheet=true and onlySetIndex is provided", async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: '/basedata?page=sl|f9b260a9-650c-445a-b3eb-c56d8d968501&onlySetIndex=1&exportAsSheet=true',
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as SheetExport;
+            expect(json).to.have.property('sets');
+            expect(json.sets.length).to.equal(1);
+            expect(json.sets[0].name).to.equal("6.4 Week 1 2.43 a");
+            expect(json.name).to.equal("WHM 6.4 copy");
         }).timeout(30_000);
     });
 

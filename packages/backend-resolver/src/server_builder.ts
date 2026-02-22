@@ -16,7 +16,7 @@ import {ALL_COMBAT_JOBS, JOB_DATA, JobName, MAX_PARTY_BONUS} from "@xivgear/xivm
 import cors from '@fastify/cors';
 import {
     DEFAULT_DESC,
-    DEFAULT_NAME,
+    DEFAULT_NAME, EXPORT_AS_SHEET_PARAM,
     HASH_QUERY_PARAM,
     NavPath,
     NavState,
@@ -33,7 +33,7 @@ import {nonCachedFetch} from "./polyfills";
 import fastifyWebResponse from "fastify-web-response";
 import {getFrontendClientPath, getFrontendServer} from "./frontend_file_server";
 import process from "process";
-import {extractSingleSet} from "@xivgear/core/util/sheet_utils";
+import {extractSingleSet, extractSingleSetAsSheet, inflateSetExport} from "@xivgear/core/util/sheet_utils";
 import {getJobIcons} from "./preload_helpers";
 import FastifyIP from 'fastify-ip';
 
@@ -342,16 +342,34 @@ export function buildStatsServer() {
         const path = merged[HASH_QUERY_PARAM] ?? '';
         const osIndex: number | undefined = tryParseOptionalIntParam(merged[ONLY_SET_QUERY_PARAM]);
         const selIndex: number | undefined = tryParseOptionalIntParam(merged[SELECTION_INDEX_QUERY_PARAM]);
+        // This flag indicates that if the result would be a single set, that we instead want a full sheet.
+        const exportAsSheet = merged[EXPORT_AS_SHEET_PARAM] === 'true';
         const pathPaths = path.split(PATH_SEPARATOR);
         const state = new NavState(pathPaths, osIndex, selIndex);
         const nav = parsePath(state);
         request.log.info(pathPaths, 'Path');
         const navResult = resolveNavData(nav);
-        if (nav !== null && navResult !== null && navResult.sheetData !== null) {
-            // Future TODO: add parameter to allow a single to be re-exported as a full sheet
-            let exported: ExportedData = await navResult.sheetData;
-            if (osIndex !== undefined && 'sets' in exported) {
-                const singleMaybe = extractSingleSet(exported as SheetExport, osIndex);
+        // Must exist
+        if (!(nav !== null && navResult !== null && navResult.sheetData !== null)) {
+            reply.status(404);
+            return;
+        }
+        // At this point, we have data but it could be either a set or sheet
+        let exported: ExportedData = await navResult.sheetData;
+        const isSingleSet = !('sets' in exported);
+        if (isSingleSet) {
+            // We have a single set.
+            // If this flag is set, convert it back to a full sheet.
+            if (exportAsSheet) {
+                exported = inflateSetExport(exported as SetExportExternalSingle);
+            }
+        }
+        else {
+            // We have a full sheet.
+            if (osIndex !== undefined) {
+                // user wants just a single set out of this sheet, so extract accordingly.
+                // This doesn't change the form of the data - it just filters everything else out of the 'sets' array.
+                const singleMaybe = extractSingleSetAsSheet(exported as SheetExport, osIndex);
                 if (singleMaybe === undefined) {
                     reply.status(500);
                     reply.send(`Error: Set index ${osIndex} is not valid.`);
@@ -359,11 +377,10 @@ export function buildStatsServer() {
                 }
                 exported = singleMaybe;
             }
-            reply.header("cache-control", "max-age=7200, public");
-            reply.send(exported);
-            return;
         }
-        reply.status(404);
+        reply.header("cache-control", "max-age=7200, public");
+        reply.send(exported);
+        return;
     });
 
     fastifyInstance.get('/fulldata', async (request: SheetRequest, reply) => {

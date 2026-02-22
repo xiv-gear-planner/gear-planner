@@ -658,14 +658,14 @@ export function getDefaultDisplaySettings(level: SupportedLevel, job: JobName, i
     if (job === 'BLU' && level === JOB_DATA.BLU.maxLevel) {
         return BLU_ITEM_DISPLAY;
     }
-    const out = LEVEL_ITEMS[level].defaultDisplaySettings;
+    // Make a defensive copy - there was a bug where this could get modified and would affect subsequent defaults
+    const out = {
+        ...LEVEL_ITEMS[level].defaultDisplaySettings,
+    };
     // Special logic for current-content sync
     if (isync !== undefined && level === CURRENT_MAX_LEVEL) {
-        return {
-            ...out,
-            minILvl: isync - 5,
-            maxILvl: isync,
-        };
+        out.minILvl = isync - 5;
+        out.maxILvl = isync;
     }
     return out;
 }
@@ -921,7 +921,7 @@ export function bluWdfromInt(gearIntStat: number): number {
     return BLU_INT_WD[BLU_INT_WD.length - 1][1];
 }
 
-export const defaultItemDisplaySettings: ItemDisplaySettings = {
+export const defaultItemDisplaySettings: Readonly<ItemDisplaySettings> = {
     minILvl: 680,
     maxILvl: 999,
     minILvlFood: 770,

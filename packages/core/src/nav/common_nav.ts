@@ -39,6 +39,8 @@ export const HASH_QUERY_PARAM = 'page';
 export const ONLY_SET_QUERY_PARAM = 'onlySetIndex';
 
 export const SELECTION_INDEX_QUERY_PARAM = 'selectedIndex';
+
+export const EXPORT_AS_SHEET_PARAM = 'exportAsSheet';
 /**
  * Special hash value used to indicate that the page should stay with the old-style hash, rather than redirecting
  * to the new style query parameter.
