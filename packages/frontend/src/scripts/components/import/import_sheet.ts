@@ -2,7 +2,7 @@ import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 import {makeActionButton} from "@xivgear/common-ui/components/util";
 import {parseImport} from "@xivgear/core/imports/imports";
 import {getSetFromEtro} from "@xivgear/core/external/etro_import";
-import {getBisSheet} from "@xivgear/core/external/static_bis";
+import {DEFAULT_BIS_SERVICE} from "@xivgear/core/external/static_bis";
 import {NamedSection} from "../general/section";
 import {GearPlanSheetGui} from "../sheet/sheet_gui";
 import {JobName} from "@xivgear/xivmath/xivconstants";
@@ -93,7 +93,7 @@ export class ImportSheetArea extends NamedSection {
                     });
                     return;
                 case "bis":
-                    this.doAsyncImport(() => getBisSheet(parsed.path), parsed.onlySetIndex);
+                    this.doAsyncImport(() => DEFAULT_BIS_SERVICE.getBisSheet(parsed.path), parsed.onlySetIndex);
                     return;
             }
         }

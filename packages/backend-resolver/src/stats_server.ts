@@ -10,7 +10,7 @@ import {
     SheetExport,
     SheetStatsExport
 } from "@xivgear/xivmath/geartypes";
-import {getBisSheet} from "@xivgear/core/external/static_bis";
+import {BisService} from "@xivgear/core/external/static_bis";
 import {ExportTypes, HEADLESS_SHEET_PROVIDER} from "@xivgear/core/sheet";
 import {JobName, MAX_PARTY_BONUS} from "@xivgear/xivmath/xivconstants";
 import {
@@ -36,7 +36,7 @@ export type EmbedCheckResponse = {
 
 export class StatsServer extends ServerBase {
 
-    constructor(private readonly shortlinkService: ShortlinkService, private readonly navDataService: NavDataService) {
+    constructor(private readonly shortlinkService: ShortlinkService, private readonly navDataService: NavDataService, private readonly bisService: BisService) {
         super();
     }
 
@@ -181,7 +181,7 @@ export class StatsServer extends ServerBase {
                 embed: false,
                 viewOnly: true,
             };
-            const rawData = await getBisSheet([request.params['job'] as JobName, request.params['sheet'] as string]);
+            const rawData = await this.bisService.getBisSheet([request.params['job'] as JobName, request.params['sheet'] as string]);
             const out = await importExportSheet(request, JSON.parse(rawData), nav);
             // @ts-expect-error - adding deprecation warning to response
             out['_DEPRECATION_WARNING'] = 'This endpoint is deprecated. Use /fulldata?page= or /fulldata?url= instead, e.g. /fulldata?page=bis|<job>|<sheet> instead.';
@@ -204,7 +204,7 @@ export class StatsServer extends ServerBase {
                 embed: false,
                 viewOnly: true,
             };
-            const rawData = await getBisSheet([request.params['job'], request.params['folder'], request.params['sheet']]);
+            const rawData = await this.bisService.getBisSheet([request.params['job'], request.params['folder'], request.params['sheet']]);
             const out = await importExportSheet(request, JSON.parse(rawData), nav);
             // @ts-expect-error - adding deprecation warning to response
             out['_DEPRECATION_WARNING'] = 'This endpoint is deprecated. Use /fulldata?page= or /fulldata?url= instead, e.g. /fulldata?page=bis|<job>|<folder>|<sheet> instead.';

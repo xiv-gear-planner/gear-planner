@@ -47,11 +47,18 @@ export class ShortlinkServiceImpl implements ShortlinkService {
     }
 }
 
-export class MockShortlinkService implements ShortlinkService{
+export class MockShortlinkService implements ShortlinkService {
     private readonly entries = new Map<string, string>();
 
+    constructor(private readonly baseUrl: string) {
+    }
+
+    addShortlink(uuid: string, content: string) {
+        this.entries.set(uuid, content);
+    }
+
     getShortlinkFetchUrl(stub: string): URL {
-        return new URL(`http://mockshortlink.test/${encodeURIComponent(stub)}`);
+        return new URL(`${this.baseUrl}/${encodeURIComponent(stub)}`);
     }
 
     async getShortLink(uuid: string): Promise<string> {

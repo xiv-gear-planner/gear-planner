@@ -3,9 +3,9 @@ import {BIS_BROWSER_HASH, BIS_HASH, SHORTLINK_HASH} from "@xivgear/core/nav/comm
 import {ALL_COMBAT_JOBS} from "@xivgear/xivmath/xivconstants";
 import '../polyfills';
 import {PreviewServer} from "../preview_server";
-import {ShortlinkServiceImpl} from "@xivgear/core/external/shortlink_server";
 import {NavDataServiceImpl} from "../server_utils";
 import {frontendPaths} from "../frontend_file_server";
+import {makeMockBisService, makeMockShortlinkService} from "./test_utils";
 
 function readPreviewProps(document: Document): Record<string, string> {
     const out: Record<string, string> = {};
@@ -23,7 +23,9 @@ function readPreviewProps(document: Document): Record<string, string> {
 }
 
 function makePreviewServer() {
-    const previewServer = new PreviewServer(frontendPaths(), new NavDataServiceImpl(new ShortlinkServiceImpl()));
+    const sls = makeMockShortlinkService();
+    const bis = makeMockBisService();
+    const previewServer = new PreviewServer(frontendPaths(), new NavDataServiceImpl(sls, bis));
     return previewServer.setupForTest();
 }
 
@@ -158,7 +160,7 @@ describe('preview server', () => {
 
             const shortlinkPreload = preloads[preloads.length - 1];
             expect(shortlinkPreload.getAttribute('rel')).to.equal("preload");
-            expect(shortlinkPreload.getAttribute('href')).to.equal(`https://staticbis.xivgear.app/sge/archive/anabaseios.json`);
+            expect(shortlinkPreload.getAttribute('href')).to.equal(`https://mockbis.xivgear.app/sge/archive/anabaseios.json`);
             expect(shortlinkPreload.getAttribute('as')).to.equal("fetch");
             expect(shortlinkPreload.hasAttribute('crossorigin')).to.be.true;
 
@@ -198,7 +200,7 @@ describe('preview server', () => {
 
             const shortlinkPreload = preloads[preloads.length - 1];
             expect(shortlinkPreload.getAttribute('rel')).to.equal("preload");
-            expect(shortlinkPreload.getAttribute('href')).to.equal(`https://staticbis.xivgear.app/sge/archive/anabaseios.json`);
+            expect(shortlinkPreload.getAttribute('href')).to.equal(`https://mockbis.xivgear.app/sge/archive/anabaseios.json`);
             expect(shortlinkPreload.getAttribute('as')).to.equal("fetch");
             expect(shortlinkPreload.hasAttribute('crossorigin')).to.be.true;
 
@@ -232,7 +234,7 @@ describe('preview server', () => {
 
             const shortlinkPreload = preloads[preloads.length - 1];
             expect(shortlinkPreload.getAttribute('rel')).to.equal("preload");
-            expect(shortlinkPreload.getAttribute('href')).to.equal(`https://staticbis.xivgear.app/sge/archive/anabaseios.json`);
+            expect(shortlinkPreload.getAttribute('href')).to.equal(`https://mockbis.xivgear.app/sge/archive/anabaseios.json`);
             expect(shortlinkPreload.getAttribute('as')).to.equal("fetch");
             expect(shortlinkPreload.hasAttribute('crossorigin')).to.be.true;
 
@@ -261,12 +263,12 @@ describe('preview server', () => {
 
             const bisIndexPreload = preloads[preloads.length - 1 - (ALL_COMBAT_JOBS.length)];
             expect(bisIndexPreload.getAttribute('rel')).to.equal("preload");
-            expect(bisIndexPreload.getAttribute('href')).to.equal('https://staticbis.xivgear.app/_index.json');
+            expect(bisIndexPreload.getAttribute('href')).to.equal('https://mockbis.xivgear.app/_index.json');
             expect(bisIndexPreload.getAttribute('as')).to.equal("fetch");
             expect(bisIndexPreload.hasAttribute('crossorigin')).to.be.true;
 
             expect(bisIndexPreload.getAttribute('rel')).to.equal("preload");
-            expect(bisIndexPreload.getAttribute('href')).to.equal('https://staticbis.xivgear.app/_index.json');
+            expect(bisIndexPreload.getAttribute('href')).to.equal('https://mockbis.xivgear.app/_index.json');
             expect(bisIndexPreload.getAttribute('as')).to.equal("fetch");
             expect(bisIndexPreload.hasAttribute('crossorigin')).to.be.true;
 
@@ -295,7 +297,7 @@ describe('preview server', () => {
 
             const bisIndexPreload = preloads[preloads.length - 1];
             expect(bisIndexPreload.getAttribute('rel')).to.equal("preload");
-            expect(bisIndexPreload.getAttribute('href')).to.equal('https://staticbis.xivgear.app/_index.json');
+            expect(bisIndexPreload.getAttribute('href')).to.equal('https://mockbis.xivgear.app/_index.json');
             expect(bisIndexPreload.getAttribute('as')).to.equal("fetch");
             expect(bisIndexPreload.hasAttribute('crossorigin')).to.be.true;
 
@@ -330,7 +332,7 @@ describe('preview server', () => {
 
             const bisIndexPreload = preloads[preloads.length - 1];
             expect(bisIndexPreload.getAttribute('rel')).to.equal("preload");
-            expect(bisIndexPreload.getAttribute('href')).to.equal('https://staticbis.xivgear.app/_index.json');
+            expect(bisIndexPreload.getAttribute('href')).to.equal('https://mockbis.xivgear.app/_index.json');
             expect(bisIndexPreload.getAttribute('as')).to.equal("fetch");
             expect(bisIndexPreload.hasAttribute('crossorigin')).to.be.true;
 
@@ -359,7 +361,7 @@ describe('preview server', () => {
 
             const bisIndexPreload = preloads[preloads.length - 1];
             expect(bisIndexPreload.getAttribute('rel')).to.equal("preload");
-            expect(bisIndexPreload.getAttribute('href')).to.equal('https://staticbis.xivgear.app/_index.json');
+            expect(bisIndexPreload.getAttribute('href')).to.equal('https://mockbis.xivgear.app/_index.json');
             expect(bisIndexPreload.getAttribute('as')).to.equal("fetch");
             expect(bisIndexPreload.hasAttribute('crossorigin')).to.be.true;
 

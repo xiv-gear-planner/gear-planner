@@ -3,14 +3,15 @@ import {expect} from "chai";
 import {SheetExport, SheetStatsExport} from "@xivgear/xivmath/geartypes";
 import {BIS_HASH} from "@xivgear/core/nav/common_nav";
 import {EmbedCheckResponse, StatsServer} from "../stats_server";
-import {ShortlinkServiceImpl} from "@xivgear/core/external/shortlink_server";
 import {NavDataServiceImpl} from "../server_utils";
+import {makeMockBisService, makeMockShortlinkService} from "./test_utils";
 
 // TODO: add tests for validateEmbed with direct URL (on a different branch)
 
 function makeStatsServer() {
-    const sls = new ShortlinkServiceImpl();
-    const statsServer = new StatsServer(sls, new NavDataServiceImpl(sls));
+    const sls = makeMockShortlinkService();
+    const bis = makeMockBisService();
+    const statsServer = new StatsServer(sls, new NavDataServiceImpl(sls, bis), bis);
     return statsServer.setupForTest();
 }
 

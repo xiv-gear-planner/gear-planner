@@ -2,7 +2,7 @@ import 'global-jsdom/register';
 import './polyfills';
 import {FastifyRequest} from "fastify";
 import {SetExport, SetExportExternalSingle, SheetExport, TopLevelExport} from "@xivgear/xivmath/geartypes";
-import {getBisIndexUrl, getBisSheet, getBisSheetFetchUrl} from "@xivgear/core/external/static_bis";
+import {BisService} from "@xivgear/core/external/static_bis";
 import {JOB_DATA, JobName} from "@xivgear/xivmath/xivconstants";
 import {HASH_QUERY_PARAM, NavPath, PATH_SEPARATOR, splitHashLegacy} from "@xivgear/core/nav/common_nav";
 import {getJobIcons} from "./preload_helpers";
@@ -13,7 +13,7 @@ export interface NavDataService {
 }
 
 export class NavDataServiceImpl implements NavDataService {
-    constructor(readonly shortlinkService: ShortlinkService) {
+    constructor(readonly shortlinkService: ShortlinkService, readonly bisService: BisService) {
     }
 
     resolveNavData(nav: NavPath | null): NavResult | null {
@@ -36,9 +36,9 @@ export class NavDataServiceImpl implements NavDataService {
             case "sheetjson":
                 return fillSheetData(null, Promise.resolve(nav.jsonBlob as TopLevelExport), nav.onlySetIndex);
             case "bis":
-                return fillSheetData(getBisSheetFetchUrl(nav.path), getBisSheet(nav.path).then(JSON.parse), nav.onlySetIndex);
+                return fillSheetData(this.bisService.getBisSheetFetchUrl(nav.path), this.bisService.getBisSheet(nav.path).then(JSON.parse), nav.onlySetIndex);
             case "bisbrowser":
-                return fillBisBrowserData(nav.path);
+                return fillBisBrowserData(nav.path, this.bisService);
         }
         throw Error(`Unable to resolve nav result: ${nav.type}`);
     }
@@ -78,7 +78,7 @@ function fillSheetData(sheetPreloadUrl: URL | null, sheetData: Promise<ExportedD
     };
 }
 
-function fillBisBrowserData(path: string[]): NavResult {
+function fillBisBrowserData(path: string[], bisService: BisService): NavResult {
     const job = (path.find(element => element.toUpperCase() in JOB_DATA)?.toUpperCase() as JobName ?? undefined);
     // Join the path parts with spaces, but make each individual part either start with a capital, or entirely capitalized
     // if it looks like a job name. If path is empty, use undefined instead.
@@ -103,7 +103,7 @@ function fillBisBrowserData(path: string[]): NavResult {
         job: Promise.resolve(job),
         multiJob: Promise.resolve(false),
         name: Promise.resolve(label ? label + ' BiS' : undefined),
-        fetchPreloads: [getBisIndexUrl()],
+        fetchPreloads: [bisService.getBisIndexUrl()],
         imagePreloads: Promise.resolve(images),
         sheetData: null,
     };

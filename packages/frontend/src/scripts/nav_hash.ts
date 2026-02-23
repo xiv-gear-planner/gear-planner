@@ -12,7 +12,7 @@ import {
 } from "@xivgear/core/nav/common_nav";
 import {earlyEmbedInit} from "./embed";
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
-import {getBisIndexAt, getBisSheet} from "@xivgear/core/external/static_bis";
+import {DEFAULT_BIS_SERVICE} from "@xivgear/core/external/static_bis";
 
 import {
     formatTopMenu,
@@ -179,7 +179,7 @@ async function doNav(navState: NavState) {
             case "bis": {
                 showLoadingScreen();
                 try {
-                    const resolved: string | null = await getBisSheet(nav.path);
+                    const resolved: string | null = await DEFAULT_BIS_SERVICE.getBisSheet(nav.path);
                     if (resolved) {
                         const json = JSON.parse(resolved);
                         openExport(json, true, nav.onlySetIndex, nav.defaultSelectionIndex);
@@ -202,7 +202,7 @@ async function doNav(navState: NavState) {
                 showLoadingScreen();
                 try {
                     // TODO: have it display a placeholder component until loaded
-                    const current = await getBisIndexAt(nav.path);
+                    const current = await DEFAULT_BIS_SERVICE.getBisIndexAt(nav.path);
                     if (current.type === 'error') {
                         showFatalError(current.reason);
                         return;
