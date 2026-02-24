@@ -161,6 +161,7 @@ export function getMergedQueryParams(request: SheetRequest): Record<string, stri
 export function toEmbedUrl(normalUrl: URL): URL {
     const out = new URL(normalUrl.toString());
     const cur = out.searchParams.get(HASH_QUERY_PARAM) || '';
+    // If it's already embedded, ignore
     if (cur.startsWith(EMBED_HASH + PATH_SEPARATOR)) {
         return out;
     }

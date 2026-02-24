@@ -1,5 +1,5 @@
 import {ServerBase} from "./server_base";
-import {FastifyInstance} from "fastify";
+import {FastifyInstance, FastifyRequest} from "fastify";
 import 'global-jsdom/register';
 import './polyfills';
 import {ShortlinkService} from "@xivgear/core/external/shortlink_server";
@@ -25,21 +25,45 @@ import {
     tryParseOptionalIntParam
 } from "@xivgear/core/nav/common_nav";
 import {extractSingleSet, extractSingleSetAsSheet, inflateSetExport} from "@xivgear/core/util/sheet_utils";
-import {
-    ExportedData,
-    getMergedQueryParams,
-    isRecord,
-    NavDataService,
-    SheetRequest,
-    toEmbedUrl
-} from "./server_utils";
-import {FastifyRequest} from "fastify";
+import {ExportedData, getMergedQueryParams, isRecord, NavDataService, SheetRequest, toEmbedUrl} from "./server_utils";
 
 export type EmbedCheckResponse = {
     isValid: true,
 } | {
     isValid: false,
     reason: string,
+}
+
+export type PutSetResponse = {
+    /**
+     * The direct URL to this set
+     */
+    url: string,
+    /**
+     * The embedded version of the direct URL to this set
+     */
+    embedUrl: string,
+}
+
+export type PutSheetResponse = {
+    /**
+     * The direct URL to the overall sheet.
+     */
+    url: string,
+    /**
+     * URLs for each individual set. Does not include separators. Use the index property to correlate them back to
+     * sets in the original input.
+     */
+    sets: ({
+        /**
+         * The index of the set based on the original list.
+         */
+        index: number,
+        /**
+         * A URL which links to the sheet, but with this set pre-selected.
+         */
+        preSelectUrl: string,
+    } & PutSetResponse)[],
 }
 
 export class StatsServer extends ServerBase {
@@ -220,53 +244,70 @@ export class StatsServer extends ServerBase {
             reply.send(out);
         });
 
-        // Creates a shortlink, and returns the canonical URL for it
-        // Creates shortlinks for a single set export; returns normal and embed URLs
+        // Creates a shortlink, and returns the canonical URL for it, both in normal and embedded form.
         fastifyInstance.put('/putset', async (request: FastifyRequest<{
             Body: SetExportExternalSingle,
         }>, reply) => {
             try {
                 const b = request.body;
-                // Basic validation: must be an object and not contain a 'sets' array (which would indicate SheetExport)
-                if (!isRecord(b) || Array.isArray((b as {sets?: unknown}).sets)) {
-                    reply.code(400).send({error: 'Body must be a single set export object'});
+                if (!isValidSet(b)) {
+                    reply.code(400).send({error: 'Body must be a single set export'});
                     return;
                 }
                 const contentStr = JSON.stringify(b);
                 const normalUrl = await this.shortlinkService.putShortLink(contentStr, false);
                 const embedUrl = toEmbedUrl(normalUrl);
-                reply.send({url: normalUrl.toString(), embedUrl: embedUrl.toString()});
+                const out: PutSetResponse = {
+                    url: normalUrl.toString(),
+                    embedUrl: embedUrl.toString(),
+                };
+                reply.send(out);
             }
             catch (e) {
                 request.log.error(e, 'Error creating set shortlink');
                 reply.code(500).send({error: 'Failed to create set shortlink'});
             }
         });
-        // Creates a shortlink for a full sheet, and per-set links via onlySetIndex
+        // Creates a shortlink for a full sheet, and per-set links.
+        // The per-set links include an onlySetIndex link, an onlySetIndex+embed link, and a selectedIndex link.
         fastifyInstance.put('/putsheet', async (request: FastifyRequest<{
             Body: SheetExport,
         }>, reply) => {
             try {
                 const b = request.body;
-                // Basic validation: must be an object with a sets array
-                if (!isRecord(b) || !('sets' in b) || !Array.isArray((b as {sets?: unknown}).sets)) {
-                    reply.code(400).send({error: 'Body must be a sheet export object with a sets array'});
+                if (!isValidSheet(b)) {
+                    reply.code(400).send({error: 'Body must be a sheet export'});
                     return;
                 }
                 const contentStr = JSON.stringify(b);
                 const baseUrl = await this.shortlinkService.putShortLink(contentStr, false);
-                const setsOut: { index: number, url: string, embedUrl: string }[] = [];
+                const setsOut: PutSheetResponse['sets'] = [];
                 const sheet = b as unknown as SheetExport;
                 for (let i = 0; i < sheet.sets.length; i++) {
                     const set = sheet.sets[i];
+                    // Skip separators
                     if (set && !set.isSeparator) {
+                        // Start with the base URL and add the onlySetIndex parameter
                         const setUrl = new URL(baseUrl.toString());
                         setUrl.searchParams.set(ONLY_SET_QUERY_PARAM, i.toString());
+                        // Modify it into the embed URL as well
                         const embedSetUrl = toEmbedUrl(setUrl);
-                        setsOut.push({index: i, url: setUrl.toString(), embedUrl: embedSetUrl.toString()});
+                        // Start over for the pre-select URL
+                        const preSelectUrl = new URL(baseUrl.toString());
+                        preSelectUrl.searchParams.set(SELECTION_INDEX_QUERY_PARAM, i.toString());
+                        setsOut.push({
+                            index: i,
+                            url: setUrl.toString(),
+                            embedUrl: embedSetUrl.toString(),
+                            preSelectUrl: preSelectUrl.toString(),
+                        });
                     }
                 }
-                reply.send({url: baseUrl.toString(), sets: setsOut});
+                const out: PutSheetResponse = {
+                    url: baseUrl.toString(),
+                    sets: setsOut,
+                };
+                reply.send(out);
             }
             catch (e) {
                 request.log.error(e, 'Error creating sheet shortlinks');
@@ -278,6 +319,16 @@ export class StatsServer extends ServerBase {
     private async getShortLink(param: string) {
         return await this.shortlinkService.getShortLink(param);
     }
+}
+
+function isValidSet(b: unknown): b is SetExportExternalSingle {
+    return isRecord(b) && !('sets' in b);
+}
+
+function isValidSheet(b: unknown): b is SheetExport {
+    return isRecord(b) && 'sets' in b && Array.isArray((b as {
+        sets?: unknown
+    }).sets);
 }
 
 async function importExportSheet(request: SheetRequest, exportedPre: SheetExport | SetExport, nav?: NavPath): Promise<SheetStatsExport> {
