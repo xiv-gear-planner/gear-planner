@@ -4,10 +4,9 @@ import {makeActionButton} from "@xivgear/common-ui/components/util";
 import {JobName} from "@xivgear/xivmath/xivconstants";
 import {parseImport} from "@xivgear/core/imports/imports";
 import {getSetFromEtro} from "@xivgear/core/external/etro_import";
-import {DEFAULT_BIS_SERVICE} from "@xivgear/core/external/static_bis";
+import {DEFAULT_BIS_SERVICE, DEFAULT_SHORTLINK_SERVICE} from "../../services/default_services";
 import {SetExport} from "@xivgear/xivmath/geartypes";
 import {GearPlanSheetGui} from "../sheet/sheet_gui";
-import {DEFAULT_SHORTLINK_SERVICE} from "../../services/default_services";
 
 export class ImportSetsModal extends BaseModal {
     private readonly loader: LoadingBlocker;

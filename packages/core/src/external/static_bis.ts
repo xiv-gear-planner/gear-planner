@@ -340,5 +340,4 @@ export function stripFilename(filename: string): string {
     return filename;
 }
 
-export const DEFAULT_BIS_SERVICE = new BisServiceImpl();
 

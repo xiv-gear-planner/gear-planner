@@ -1,6 +1,7 @@
-import {MockBisService, DirNode, LeafNode, isLeafNode} from '@xivgear/core/external/static_bis';
+import {MockBisService, DirNode, LeafNode, AnyNode} from '@xivgear/core/external/static_bis';
 import {expect} from 'chai';
 
+const isLeafNode = (node: AnyNode): node is LeafNode => node && node.type === 'file';
 describe('MockBisService dynamic index', () => {
     it('should generate index from added sheets', async () => {
         const bis = new MockBisService();

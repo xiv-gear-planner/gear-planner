@@ -2,23 +2,15 @@ import '../polyfills';
 import {expect} from "chai";
 import {SheetExport, SheetStatsExport} from "@xivgear/xivmath/geartypes";
 import {BIS_HASH} from "@xivgear/core/nav/common_nav";
-import {EmbedCheckResponse, StatsServer} from "../stats_server";
-import {NavDataServiceImpl} from "../server_utils";
-import {makeMockBisService, makeMockShortlinkService} from "./test_utils";
+import {EmbedCheckResponse} from "../stats_server";
+import {makeMockBisService, makeMockShortlinkService, makeStatsServer} from "./test_utils";
 
 // TODO: add tests for validateEmbed with direct URL (on a different branch)
-
-function makeStatsServer() {
-    const sls = makeMockShortlinkService();
-    const bis = makeMockBisService();
-    const statsServer = new StatsServer(sls, new NavDataServiceImpl(sls, bis), bis);
-    return statsServer.setupForTest();
-}
 
 describe('stats server', () => {
     describe("fulldata endpoint", () => {
         describe("legacy direct UUID endpoint", () => {
-            const fastify = makeStatsServer();
+            const fastify = makeStatsServer().setupForTest();
             it("responds to health check", async () => {
                 const response = await fastify.inject({
                     method: 'GET',
@@ -154,7 +146,7 @@ describe('stats server', () => {
         });
         describe("legacy bis endpoints", () => {
             it("deprecated /fulldata/bis/:job/:sheet", async () => {
-                const fastify = makeStatsServer();
+                const fastify = makeStatsServer().setupForTest();
                 const response = await fastify.inject({
                     method: 'GET',
                     url: '/fulldata/bis/war/prog',
@@ -167,7 +159,7 @@ describe('stats server', () => {
             }).timeout(30_000);
 
             it("deprecated fulldata/bis/:job/:folder/:sheet", async () => {
-                const fastify = makeStatsServer();
+                const fastify = makeStatsServer().setupForTest();
                 const response = await fastify.inject({
                     method: 'GET',
                     url: '/fulldata/bis/war/archive/7.2-prog',
@@ -180,7 +172,7 @@ describe('stats server', () => {
 
         });
         describe("modern unified endpoint", () => {
-            const fastify = makeStatsServer();
+            const fastify = makeStatsServer().setupForTest();
 
             it("can serve correct data", async () => {
                 const response = await fastify.inject({
@@ -310,7 +302,7 @@ describe('stats server', () => {
     });
 
     describe('/basedata endpoint', () => {
-        const fastify = makeStatsServer();
+        const fastify = makeStatsServer().setupForTest();
         it("404 on missing data", async () => {
             const response = await fastify.inject({
                 method: 'GET',
@@ -424,7 +416,7 @@ describe('stats server', () => {
     });
 
     describe("validateEmbed endpoint", () => {
-        const fastify = makeStatsServer();
+        const fastify = makeStatsServer().setupForTest();
         it('passes BiS with onlySetIndex', async () => {
             const response = await fastify.inject({
                 method: 'GET',

@@ -25,7 +25,15 @@ import {
     tryParseOptionalIntParam
 } from "@xivgear/core/nav/common_nav";
 import {extractSingleSet, extractSingleSetAsSheet, inflateSetExport} from "@xivgear/core/util/sheet_utils";
-import {ExportedData, getMergedQueryParams, NavDataService, SheetRequest} from "./server_utils";
+import {
+    ExportedData,
+    getMergedQueryParams,
+    isRecord,
+    NavDataService,
+    SheetRequest,
+    toEmbedUrl
+} from "./server_utils";
+import {FastifyRequest} from "fastify";
 
 export type EmbedCheckResponse = {
     isValid: true,
@@ -212,7 +220,6 @@ export class StatsServer extends ServerBase {
             reply.send(out);
         });
 
-        /*
         // Creates a shortlink, and returns the canonical URL for it
         // Creates shortlinks for a single set export; returns normal and embed URLs
         fastifyInstance.put('/putset', async (request: FastifyRequest<{
@@ -226,7 +233,7 @@ export class StatsServer extends ServerBase {
                     return;
                 }
                 const contentStr = JSON.stringify(b);
-                const normalUrl = await putShortLink(contentStr, false);
+                const normalUrl = await this.shortlinkService.putShortLink(contentStr, false);
                 const embedUrl = toEmbedUrl(normalUrl);
                 reply.send({url: normalUrl.toString(), embedUrl: embedUrl.toString()});
             }
@@ -247,7 +254,7 @@ export class StatsServer extends ServerBase {
                     return;
                 }
                 const contentStr = JSON.stringify(b);
-                const baseUrl = await putShortLink(contentStr, false);
+                const baseUrl = await this.shortlinkService.putShortLink(contentStr, false);
                 const setsOut: { index: number, url: string, embedUrl: string }[] = [];
                 const sheet = b as unknown as SheetExport;
                 for (let i = 0; i < sheet.sets.length; i++) {
@@ -266,7 +273,6 @@ export class StatsServer extends ServerBase {
                 reply.code(500).send({error: 'Failed to create sheet shortlinks'});
             }
         });
-         */
     }
 
     private async getShortLink(param: string) {

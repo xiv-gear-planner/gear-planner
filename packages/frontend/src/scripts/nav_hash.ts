@@ -12,7 +12,7 @@ import {
 } from "@xivgear/core/nav/common_nav";
 import {earlyEmbedInit} from "./embed";
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
-import {DEFAULT_BIS_SERVICE} from "@xivgear/core/external/static_bis";
+import {DEFAULT_BIS_SERVICE} from "./services/default_services";
 
 import {
     formatTopMenu,

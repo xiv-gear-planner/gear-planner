@@ -4,7 +4,7 @@ import {FastifyRequest} from "fastify";
 import {SetExport, SetExportExternalSingle, SheetExport, TopLevelExport} from "@xivgear/xivmath/geartypes";
 import {BisService} from "@xivgear/core/external/static_bis";
 import {JOB_DATA, JobName} from "@xivgear/xivmath/xivconstants";
-import {HASH_QUERY_PARAM, NavPath, PATH_SEPARATOR, splitHashLegacy} from "@xivgear/core/nav/common_nav";
+import {EMBED_HASH, HASH_QUERY_PARAM, NavPath, PATH_SEPARATOR, splitHashLegacy} from "@xivgear/core/nav/common_nav";
 import {getJobIcons} from "./preload_helpers";
 import {ShortlinkService} from "@xivgear/core/external/shortlink_server";
 
@@ -158,19 +158,19 @@ export function getMergedQueryParams(request: SheetRequest): Record<string, stri
     return result;
 }
 
-// function toEmbedUrl(normalUrl: URL): URL {
-//     const out = new URL(normalUrl.toString());
-//     const cur = out.searchParams.get(HASH_QUERY_PARAM) || '';
-//     if (cur.startsWith(EMBED_HASH + PATH_SEPARATOR)) {
-//         return out;
-//     }
-//     out.searchParams.set(HASH_QUERY_PARAM, `${EMBED_HASH}${PATH_SEPARATOR}${cur}`);
-//     return out;
-// }
+export function toEmbedUrl(normalUrl: URL): URL {
+    const out = new URL(normalUrl.toString());
+    const cur = out.searchParams.get(HASH_QUERY_PARAM) || '';
+    if (cur.startsWith(EMBED_HASH + PATH_SEPARATOR)) {
+        return out;
+    }
+    out.searchParams.set(HASH_QUERY_PARAM, `${EMBED_HASH}${PATH_SEPARATOR}${cur}`);
+    return out;
+}
 
-// function isRecord(x: unknown): x is Record<string, unknown> {
-//     return typeof x === 'object' && x !== null;
-// }
+export function isRecord(x: unknown): x is Record<string, unknown> {
+    return typeof x === 'object' && x !== null;
+}
 
 
 type NavResult = {
