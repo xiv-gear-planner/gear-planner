@@ -2,7 +2,7 @@ import '../polyfills';
 import {expect} from "chai";
 import {SheetExport} from "@xivgear/xivmath/geartypes";
 import {makeStatsServer} from "./test_utils";
-import {PutSetResponse, PutSheetResponse} from "../stats_server";
+import {PutSetResponse, PutSheetResponse} from "../stats_server_schema_types";
 
 describe("shortlink put endpoints", () => {
 
@@ -12,7 +12,10 @@ describe("shortlink put endpoints", () => {
         const response = await fastify.inject({
             method: 'PUT',
             url: '/putset',
-            payload: { name: 'Test Set', items: {} },
+            payload: {
+                name: 'Test Set',
+                items: {},
+            },
         });
         expect(response.statusCode).to.equal(200);
         const json = response.json() as PutSetResponse;
@@ -27,14 +30,28 @@ describe("shortlink put endpoints", () => {
     }).timeout(30_000);
 
     it("PUT /putsheet returns per-set normal and embed urls", async () => {
-        const payload = {
+        const payload: SheetExport = {
             name: 'Sheet',
+            job: 'SGE',
+            level: 100,
+            sims: [],
             sets: [
-                { name: 'A', items: {} },
-                { isSeparator: true },
-                { name: 'B', items: {} },
+                {
+                    name: 'A',
+                    items: {},
+                },
+                {
+                    name: 'Separator',
+                    isSeparator: true,
+                    // TODO: this really shouldn't be required
+                    items: {},
+                },
+                {
+                    name: 'B',
+                    items: {},
+                },
             ],
-        } as unknown as SheetExport;
+        };
         const response = await fastify.inject({
             method: 'PUT',
             url: '/putsheet',

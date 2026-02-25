@@ -141,8 +141,8 @@ importers:
         specifier: ^22.15.18
         version: 22.19.11
       ts-json-schema-generator:
-        specifier: ^1.2.0
-        version: 1.2.0
+        specifier: ^2.5.0
+        version: 2.5.0
       ts-mocha:
         specifier: ^10.1.0
         version: 10.1.0(mocha@10.8.2)
@@ -1664,6 +1664,10 @@ packages:
     resolution: {integrity: sha512-y4Mg2tXshplEbSGzx7amzPwKKOCGuoSRP/CjEdwwk0FOGlUbq6lKuoyDZTNZkmxHdJtp54hdfY/JUrdL7Xfdug==}
     engines: {node: '>=14'}
 
+  commander@14.0.3:
+    resolution: {integrity: sha512-H+y0Jo/T1RZ9qPP4Eh1pkcQcLRglraJaSLoyOtHxu6AapkjWVCy2Sit1QQ4x3Dng8qDlSsZEet7g5Pq06MvTgw==}
+    engines: {node: '>=20'}
+
   commander@2.20.3:
     resolution: {integrity: sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==}
 
@@ -1674,10 +1678,6 @@ packages:
   commander@8.3.0:
     resolution: {integrity: sha512-OkTL9umf+He2DZkUq8f8J9of7yL6RJKI24dVITBmNfZBmri9zYZQrKkuXiKhyfPSu8tUhnVBB1iKXevvnlR4Ww==}
     engines: {node: '>= 12'}
-
-  commander@9.5.0:
-    resolution: {integrity: sha512-KRs7WVDKg86PWiuAqhDrAQnTXZKraVcCc6vFdL14qrZ/DcWwuRo7VoiYXalXO7S5GKpqYiVEwCbgFDfxNHKJBQ==}
-    engines: {node: ^12.20.0 || >=14}
 
   comment-json@4.1.0:
     resolution: {integrity: sha512-WEghmVYaNq9NlWbrkzQTSsya9ycLyxJxpTQfZEan6a5Jomnjw18zS3Podf8q1Zf9BvonvQd/+Z7Z39L7KKzzdQ==}
@@ -4179,9 +4179,9 @@ packages:
     peerDependencies:
       typescript: '>=4.8.4'
 
-  ts-json-schema-generator@1.2.0:
-    resolution: {integrity: sha512-tUMeO3ZvA12d3HHh7T/AK8W5hmUhDRNtqWRHSMN3ZRbUFt+UmV0oX8k1RK4SA+a+BKNHpmW2v06MS49e8Fi3Yg==}
-    engines: {node: '>=10.0.0'}
+  ts-json-schema-generator@2.5.0:
+    resolution: {integrity: sha512-sYY7AInozRbtj9OD3ynJJuMDWZ5lGxzxTevtmH3W9Hnd2J2szBC0HdPqSyuIirXnQ6g8KDJxS/HENoypUwBrlg==}
+    engines: {node: '>=22.0.0'}
     hasBin: true
 
   ts-loader@9.5.4:
@@ -4294,11 +4294,6 @@ packages:
 
   typescript-json-schema@0.67.1:
     resolution: {integrity: sha512-vKTZB/RoYTIBdVP7E7vrgHMCssBuhja91wQy498QIVhvfRimaOgjc98uwAXmZ7mbLUytJmOSbF11wPz+ByQeXg==}
-    hasBin: true
-
-  typescript@4.9.5:
-    resolution: {integrity: sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==}
-    engines: {node: '>=4.2.0'}
     hasBin: true
 
   typescript@5.5.4:
@@ -6129,13 +6124,13 @@ snapshots:
 
   commander@10.0.1: {}
 
+  commander@14.0.3: {}
+
   commander@2.20.3: {}
 
   commander@7.2.0: {}
 
   commander@8.3.0: {}
-
-  commander@9.5.0: {}
 
   comment-json@4.1.0:
     dependencies:
@@ -8914,15 +8909,15 @@ snapshots:
     dependencies:
       typescript: 5.9.3
 
-  ts-json-schema-generator@1.2.0:
+  ts-json-schema-generator@2.5.0:
     dependencies:
       '@types/json-schema': 7.0.15
-      commander: 9.5.0
-      glob: 8.1.0
+      commander: 14.0.3
       json5: 2.2.3
       normalize-path: 3.0.0
       safe-stable-stringify: 2.5.0
-      typescript: 4.9.5
+      tslib: 2.8.1
+      typescript: 5.9.3
 
   ts-loader@9.5.4(typescript@5.9.3)(webpack@5.105.2):
     dependencies:
@@ -9105,8 +9100,6 @@ snapshots:
     transitivePeerDependencies:
       - '@swc/core'
       - '@swc/wasm'
-
-  typescript@4.9.5: {}
 
   typescript@5.5.4: {}
 

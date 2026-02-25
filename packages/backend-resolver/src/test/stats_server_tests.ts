@@ -2,8 +2,8 @@ import '../polyfills';
 import {expect} from "chai";
 import {SheetExport, SheetStatsExport} from "@xivgear/xivmath/geartypes";
 import {BIS_HASH} from "@xivgear/core/nav/common_nav";
-import {EmbedCheckResponse} from "../stats_server";
-import {makeMockBisService, makeMockShortlinkService, makeStatsServer} from "./test_utils";
+import {makeStatsServer} from "./test_utils";
+import {EmbedCheckResponse} from "../stats_server_schema_types";
 
 // TODO: add tests for validateEmbed with direct URL (on a different branch)
 

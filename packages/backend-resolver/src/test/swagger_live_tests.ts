@@ -53,7 +53,10 @@ describe("Swagger UI Live Schema Tests", () => {
         expect(hasSchemaWithDescription('The direct URL to the overall sheet.')).to.be.true; // PutSheetResponse
 
         // Check for specific structures
-        const hasEmbedCheck = schemaValues.some(s => s.anyOf && s.anyOf.some((a: any) => a.required && a.required.includes('isValid')));
+        const hasEmbedCheck = schemaValues.some(s =>
+            s.anyOf && s.anyOf.some((a: any) => a.properties && a.properties.isValid) ||
+            s.properties && s.properties.isValid
+        );
         expect(hasEmbedCheck).to.be.true;
     }).timeout(30_000);
 

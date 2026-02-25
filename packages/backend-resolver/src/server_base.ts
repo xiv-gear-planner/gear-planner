@@ -2,10 +2,6 @@ import Fastify from "fastify";
 import FastifyIP from "fastify-ip";
 import cors from "@fastify/cors";
 import process from "process";
-import fastifySwagger from "@fastify/swagger";
-import fastifySwaggerUi from "@fastify/swagger-ui";
-import fs from "node:fs";
-import path from "node:path";
 
 let initDone = false;
 
@@ -58,7 +54,7 @@ export abstract class ServerBase {
         this.fastifyInstance.get('/healthcheck', {
             schema: {
                 tags: ['internal'],
-                response: { 200: { type: 'string' } },
+                response: {200: {type: 'string'}},
             },
         }, async (request, reply) => {
             return 'up';
@@ -81,6 +77,18 @@ export abstract class ServerBase {
 
     setupForTest(): FastifyInstance {
         this.setupOnly();
+        this.fastifyInstance.setErrorHandler((error, request, reply) => {
+            console.error(error);
+            reply.status(500).send({error: error});
+        });
+        this.fastifyInstance.setSchemaErrorFormatter((errors, dataVar) => {
+            return new Error(errors.map((error) => {
+                return `${dataVar} ${error.message}`;
+            }).join('\n'));
+        });
+        this.fastifyInstance.addHook('onResponse', (request, reply, payload) => {
+            request.log.debug({payload});
+        });
         return this.fastifyInstance;
     }
 

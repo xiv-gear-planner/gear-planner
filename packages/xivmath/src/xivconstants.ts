@@ -684,10 +684,9 @@ export const FAKE_MAIN_STATS = ['determination', 'piety'] as const;
  */
 export const SPECIAL_SUB_STATS = ['crit', 'dhit', 'spellspeed', 'skillspeed', 'tenacity'] as const;
 /**
- * All sub-stats
+ * All sub-stats. The type is specified explicitly because ts-json-schema-generator can't infer list concat types.
  */
-export const ALL_SUB_STATS = [...FAKE_MAIN_STATS, ...SPECIAL_SUB_STATS] as const;
-// export const ALL_SUB_STATS: ((typeof FAKE_MAIN_STATS[number]) | (typeof SPECIAL_SUB_STATS[number]))[] = [...FAKE_MAIN_STATS, ...SPECIAL_SUB_STATS] as const;
+export const ALL_SUB_STATS: readonly [...typeof FAKE_MAIN_STATS, ...typeof SPECIAL_SUB_STATS] = [...FAKE_MAIN_STATS, ...SPECIAL_SUB_STATS] as const;
 /**
  * All stats
  */
