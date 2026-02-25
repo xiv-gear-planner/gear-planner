@@ -2,6 +2,10 @@ import Fastify from "fastify";
 import FastifyIP from "fastify-ip";
 import cors from "@fastify/cors";
 import process from "process";
+import fastifySwagger from "@fastify/swagger";
+import fastifySwaggerUi from "@fastify/swagger-ui";
+import fs from "node:fs";
+import path from "node:path";
 
 let initDone = false;
 
@@ -51,7 +55,12 @@ export abstract class ServerBase {
             strictPreflight: false,
         });
 
-        this.fastifyInstance.get('/healthcheck', async (request, reply) => {
+        this.fastifyInstance.get('/healthcheck', {
+            schema: {
+                tags: ['internal'],
+                response: { 200: { type: 'string' } }
+            }
+        }, async (request, reply) => {
             return 'up';
         });
 

@@ -1,0 +1,143 @@
+{
+    "$id": "ApiSchemas",
+    "$ref": "ApiSchemas#/definitions/ApiSchemas",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "ApiSchemas": {
+            "properties": {
+                "embedCheckResponse": {
+                    "$ref": "ApiSchemas#/definitions/EmbedCheckResponse"
+                },
+                "foodStatBonus": {},
+                "itemsSlotsExport": {},
+                "materiaMemoryExport": {},
+                "normalOccGearSlotKey": {},
+                "putSetResponse": {
+                    "properties": {
+                        "embedUrl": {
+                            "description": "The embedded version of the direct URL to this set",
+                            "type": "string"
+                        },
+                        "url": {
+                            "description": "The direct URL to this set",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "embedUrl",
+                        "url"
+                    ],
+                    "type": "object"
+                },
+                "putSheetResponse": {
+                    "properties": {
+                        "sets": {
+                            "description": "URLs for each individual set. Does not include separators. Use the index property to correlate them back to\nsets in the original input.",
+                            "items": {
+                                "allOf": [
+                                    {
+                                        "properties": {
+                                            "index": {
+                                                "description": "The index of the set based on the original list.",
+                                                "type": "number"
+                                            },
+                                            "preSelectUrl": {
+                                                "description": "A URL which links to the sheet, but with this set pre-selected.",
+                                                "type": "string"
+                                            }
+                                        },
+                                        "required": [
+                                            "index",
+                                            "preSelectUrl"
+                                        ],
+                                        "type": "object"
+                                    },
+                                    {
+                                        "properties": {
+                                            "embedUrl": {
+                                                "description": "The embedded version of the direct URL to this set",
+                                                "type": "string"
+                                            },
+                                            "url": {
+                                                "description": "The direct URL to this set",
+                                                "type": "string"
+                                            }
+                                        },
+                                        "required": [
+                                            "embedUrl",
+                                            "url"
+                                        ],
+                                        "type": "object"
+                                    }
+                                ]
+                            },
+                            "type": "array"
+                        },
+                        "url": {
+                            "description": "The direct URL to the overall sheet.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "sets",
+                        "url"
+                    ],
+                    "type": "object"
+                },
+                "rawStats": {},
+                "relicStats": {},
+                "setExport": {},
+                "sheetExport": {},
+                "simExport": {}
+            },
+            "required": [
+                "embedCheckResponse",
+                "foodStatBonus",
+                "itemsSlotsExport",
+                "materiaMemoryExport",
+                "normalOccGearSlotKey",
+                "putSetResponse",
+                "putSheetResponse",
+                "rawStats",
+                "relicStats",
+                "setExport",
+                "sheetExport",
+                "simExport"
+            ],
+            "type": "object"
+        },
+        "EmbedCheckResponse": {
+            "anyOf": [
+                {
+                    "properties": {
+                        "isValid": {
+                            "const": true,
+                            "type": "boolean"
+                        }
+                    },
+                    "required": [
+                        "isValid"
+                    ],
+                    "type": "object"
+                },
+                {
+                    "properties": {
+                        "isValid": {
+                            "const": false,
+                            "type": "boolean"
+                        },
+                        "reason": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "isValid",
+                        "reason"
+                    ],
+                    "type": "object"
+                }
+            ]
+        }
+    }
+}
+
