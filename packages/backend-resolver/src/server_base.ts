@@ -58,8 +58,8 @@ export abstract class ServerBase {
         this.fastifyInstance.get('/healthcheck', {
             schema: {
                 tags: ['internal'],
-                response: { 200: { type: 'string' } }
-            }
+                response: { 200: { type: 'string' } },
+            },
         }, async (request, reply) => {
             return 'up';
         });

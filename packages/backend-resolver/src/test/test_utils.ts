@@ -26,7 +26,9 @@ export function makeMockBisService() {
     const bis = new MockBisService();
 
     function scanDir(currentDir: string, currentPath: string[]) {
-        if (!fs.existsSync(currentDir)) return;
+        if (!fs.existsSync(currentDir)) {
+            return;
+        }
         const entries = fs.readdirSync(currentDir, {withFileTypes: true});
         for (const entry of entries) {
             if (entry.isDirectory()) {

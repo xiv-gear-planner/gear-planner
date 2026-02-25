@@ -1,5 +1,19 @@
 # API Usage
 
+## Feb 2026 Changes
+
+The API was significantly reworked as of Feb 2026.
+
+The main changes are:
+- `/putset` and `/putsheet` were added as a way to upload sets/sheets and receive URL(s) back, rather than needing
+  to formulate resulting URLs yourself. This should be preferred over the old way of uploading sets.
+- `/basedata`, `/fulldata`, and `/validateEmbed` now have an optional `url` query parameter, which accepts a full
+  (appropriately encoded) URL. This means you no longer have to worry about URL parameters yourself. The old way of
+  specifying the various parameters still works, and explicit parameters will take precedence over those in the URL.
+  - For example, `/fulldata?page=foo&onlySetIndex=1` is equivalent to `/fulldata?url=${urlEncode(https://xivgear.app/?page=foo&onlySetIndex=1)}`
+- `/basedata` has an optional parameter to always retrieve as a set TODO finish writing this. 
+- There is a swagger UI and schema available at [https://api.xivgear.app/swagger-ui](https://api.xivgear.app/swagger-ui)
+
 The API is available to use for retrieving gear sheets and sets.
 
 ## Set/Sheet Retrieval

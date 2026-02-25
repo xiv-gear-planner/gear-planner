@@ -83,30 +83,50 @@ export class StatsServer extends ServerBase {
             anyOf: [
                 {
                     type: 'object',
-                    properties: { isValid: { type: 'boolean', const: true } },
+                    properties: {
+                        isValid: {
+                            type: 'boolean',
+                            const: true,
+                        },
+                    },
                     required: ['isValid'],
                 },
                 {
                     type: 'object',
-                    properties: { isValid: { type: 'boolean', const: false }, reason: { type: 'string' } },
+                    properties: {
+                        isValid: {
+                            type: 'boolean',
+                            const: false,
+                        },
+                        reason: {type: 'string'},
+                    },
                     required: ['isValid', 'reason'],
-                }
-            ]
+                },
+            ],
         });
         fastifyInstance.addSchema({
             $id: 'PutSetResponse',
             type: 'object',
             properties: {
-                url: { type: 'string', description: 'The direct URL to this set' },
-                embedUrl: { type: 'string', description: 'The embedded version of the direct URL to this set' },
+                url: {
+                    type: 'string',
+                    description: 'The direct URL to this set',
+                },
+                embedUrl: {
+                    type: 'string',
+                    description: 'The embedded version of the direct URL to this set',
+                },
             },
-            required: ['url', 'embedUrl']
+            required: ['url', 'embedUrl'],
         });
         fastifyInstance.addSchema({
             $id: 'PutSheetResponse',
             type: 'object',
             properties: {
-                url: { type: 'string', description: 'The direct URL to the overall sheet.' },
+                url: {
+                    type: 'string',
+                    description: 'The direct URL to the overall sheet.',
+                },
                 sets: {
                     type: 'array',
                     description: 'URLs for each individual set. Does not include separators. Use the index property to correlate them back to sets in the original input.',
@@ -116,182 +136,259 @@ export class StatsServer extends ServerBase {
                             {
                                 type: 'object',
                                 properties: {
-                                    index: { type: 'number', description: 'The index of the set based on the original list.' },
-                                    preSelectUrl: { type: 'string', description: 'A URL which links to the sheet, but with this set pre-selected.' }
+                                    index: {
+                                        type: 'number',
+                                        description: 'The index of the set based on the original list.',
+                                    },
+                                    preSelectUrl: {
+                                        type: 'string',
+                                        description: 'A URL which links to the sheet, but with this set pre-selected.',
+                                    },
                                 },
-                                required: ['index', 'preSelectUrl']
+                                required: ['index', 'preSelectUrl'],
                             },
                             {
                                 type: 'object',
                                 properties: {
-                                    url: { type: 'string', description: 'The direct URL to this set' },
-                                    embedUrl: { type: 'string', description: 'The embedded version of the direct URL to this set' }
+                                    url: {
+                                        type: 'string',
+                                        description: 'The direct URL to this set',
+                                    },
+                                    embedUrl: {
+                                        type: 'string',
+                                        description: 'The embedded version of the direct URL to this set',
+                                    },
                                 },
-                                required: ['url', 'embedUrl']
-                            }
-                        ]
-                    }
-                }
+                                required: ['url', 'embedUrl'],
+                            },
+                        ],
+                    },
+                },
             },
-            required: ['url', 'sets']
+            required: ['url', 'sets'],
         });
 
         // Minimal but concrete schemas for key types used by the API so Swagger can render them
         fastifyInstance.addSchema({
             $id: 'RelicStats',
             type: 'object',
-            additionalProperties: { type: 'number' }
+            additionalProperties: {type: 'number'},
         });
         fastifyInstance.addSchema({
             $id: 'MateriaMemoryExport',
             type: 'object',
-            additionalProperties: true
+            additionalProperties: true,
         });
         fastifyInstance.addSchema({
             $id: 'ItemSlotExport',
             type: 'object',
             properties: {
-                id: { type: 'number' },
+                id: {type: 'number'},
                 materia: {
                     type: 'array',
                     items: {
                         anyOf: [
-                            { type: 'null' },
+                            {type: 'null'},
                             {
                                 type: 'object',
                                 properties: {
-                                    id: { type: 'number' },
-                                    locked: { type: 'boolean' }
+                                    id: {type: 'number'},
+                                    locked: {type: 'boolean'},
                                 },
-                                required: ['id']
-                            }
-                        ]
-                    }
+                                required: ['id'],
+                            },
+                        ],
+                    },
                 },
-                relicStats: { $ref: 'RelicStats#' },
-                forceNq: { type: 'boolean' }
+                relicStats: {$ref: 'RelicStats#'},
+                forceNq: {type: 'boolean'},
             },
-            required: ['id', 'materia']
+            required: ['id', 'materia'],
         });
         fastifyInstance.addSchema({
             $id: 'ItemsSlotsExport',
             type: 'object',
             additionalProperties: {
                 anyOf: [
-                    { type: 'null' },
-                    { $ref: 'ItemSlotExport#' }
-                ]
-            }
+                    {type: 'null'},
+                    {$ref: 'ItemSlotExport#'},
+                ],
+            },
         });
         fastifyInstance.addSchema({
             $id: 'SimExport',
             type: 'object',
             properties: {
-                stub: { type: 'string' },
-                settings: { type: 'object', additionalProperties: true },
-                name: { type: 'string' }
+                stub: {type: 'string'},
+                settings: {
+                    type: 'object',
+                    additionalProperties: true,
+                },
+                name: {type: 'string'},
             },
-            required: ['stub', 'settings']
+            required: ['stub', 'settings'],
         });
         fastifyInstance.addSchema({
             $id: 'SetExport',
             type: 'object',
             properties: {
-                name: { type: 'string' },
-                description: { type: 'string' },
-                items: { $ref: 'ItemsSlotsExport#' },
-                food: { type: 'number' },
-                relicStatMemory: { type: 'object', additionalProperties: { $ref: 'RelicStats#' } },
-                materiaMemory: { $ref: 'MateriaMemoryExport#' },
-                isSeparator: { type: 'boolean' },
-                jobOverride: { anyOf: [{ type: 'string' }, { type: 'null' }] }
+                name: {type: 'string'},
+                description: {type: 'string'},
+                items: {$ref: 'ItemsSlotsExport#'},
+                food: {type: 'number'},
+                relicStatMemory: {
+                    type: 'object',
+                    additionalProperties: {$ref: 'RelicStats#'},
+                },
+                materiaMemory: {$ref: 'MateriaMemoryExport#'},
+                isSeparator: {type: 'boolean'},
+                jobOverride: {anyOf: [{type: 'string'}, {type: 'null'}]},
             },
-            required: ['name', 'items']
+            required: ['name', 'items'],
         });
         fastifyInstance.addSchema({
             $id: 'SetExportExternalSingle',
             type: 'object',
-            allOf: [ { $ref: 'SetExport#' } ],
+            allOf: [{$ref: 'SetExport#'}],
             properties: {
-                job: { type: 'string' },
-                level: { type: 'number' },
-                ilvlSync: { type: 'number' },
-                sims: { type: 'array', items: { $ref: 'SimExport#' } },
-                customItems: { type: 'array', items: { type: 'object', additionalProperties: true } },
-                customFoods: { type: 'array', items: { type: 'object', additionalProperties: true } },
-                partyBonus: { type: 'number', minimum: 0, maximum: 5 },
-                race: { type: 'string' },
-                timestamp: { type: 'number' },
-                specialStats: { anyOf: [{ type: 'string' }, { type: 'null' }] }
-            }
+                job: {type: 'string'},
+                level: {type: 'number'},
+                ilvlSync: {type: 'number'},
+                sims: {
+                    type: 'array',
+                    items: {$ref: 'SimExport#'},
+                },
+                customItems: {
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        additionalProperties: true,
+                    },
+                },
+                customFoods: {
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        additionalProperties: true,
+                    },
+                },
+                partyBonus: {
+                    type: 'number',
+                    minimum: 0,
+                    maximum: 5,
+                },
+                race: {type: 'string'},
+                timestamp: {type: 'number'},
+                specialStats: {anyOf: [{type: 'string'}, {type: 'null'}]},
+            },
         });
         fastifyInstance.addSchema({
             $id: 'SheetExport',
             type: 'object',
             properties: {
-                name: { type: 'string' },
-                description: { type: 'string' },
-                saveKey: { type: 'string' },
-                race: { anyOf: [{ type: 'string' }, { type: 'null' }] },
-                partyBonus: { type: 'number', minimum: 0, maximum: 5 },
-                job: { type: 'string' },
-                level: { type: 'number' },
-                sets: { type: 'array', items: { $ref: 'SetExport#' } },
-                sims: { type: 'array', items: { $ref: 'SimExport#' } },
-                itemDisplaySettings: { type: 'object', additionalProperties: true },
-                mfm: { type: 'string' },
-                mfp: { type: 'array', items: { type: 'string' } },
-                mfMinGcd: { type: 'number' },
-                ilvlSync: { type: 'number' },
-                customItems: { type: 'array', items: { type: 'object', additionalProperties: true } },
-                customFoods: { type: 'array', items: { type: 'object', additionalProperties: true } },
-                timestamp: { type: 'number' },
-                isMultiJob: { type: 'boolean' },
-                specialStats: { anyOf: [{ type: 'string' }, { type: 'null' }] }
+                name: {type: 'string'},
+                description: {type: 'string'},
+                saveKey: {type: 'string'},
+                race: {anyOf: [{type: 'string'}, {type: 'null'}]},
+                partyBonus: {
+                    type: 'number',
+                    minimum: 0,
+                    maximum: 5,
+                },
+                job: {type: 'string'},
+                level: {type: 'number'},
+                sets: {
+                    type: 'array',
+                    items: {$ref: 'SetExport#'},
+                },
+                sims: {
+                    type: 'array',
+                    items: {$ref: 'SimExport#'},
+                },
+                itemDisplaySettings: {
+                    type: 'object',
+                    additionalProperties: true,
+                },
+                mfm: {type: 'string'},
+                mfp: {
+                    type: 'array',
+                    items: {type: 'string'},
+                },
+                mfMinGcd: {type: 'number'},
+                ilvlSync: {type: 'number'},
+                customItems: {
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        additionalProperties: true,
+                    },
+                },
+                customFoods: {
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        additionalProperties: true,
+                    },
+                },
+                timestamp: {type: 'number'},
+                isMultiJob: {type: 'boolean'},
+                specialStats: {anyOf: [{type: 'string'}, {type: 'null'}]},
             },
-            required: ['name', 'job', 'level', 'sets']
+            required: ['name', 'job', 'level', 'sets'],
         });
         fastifyInstance.addSchema({
             $id: 'SheetStatsExport',
             type: 'object',
-            allOf: [ { $ref: 'SheetExport#' } ],
+            allOf: [{$ref: 'SheetExport#'}],
             properties: {
                 sets: {
                     type: 'array',
                     items: {
                         allOf: [
-                            { $ref: 'SetExport#' },
+                            {$ref: 'SetExport#'},
                             {
                                 type: 'object',
-                                properties: { computedStats: { type: 'object', additionalProperties: true } },
-                                required: ['computedStats']
-                            }
-                        ]
-                    }
-                }
-            }
+                                properties: {
+                                    computedStats: {
+                                        type: 'object',
+                                        additionalProperties: true,
+                                    },
+                                },
+                                required: ['computedStats'],
+                            },
+                        ],
+                    },
+                },
+            },
         });
 
         // Optionally load generated JSON Schemas if present, but skip any invalid refs
         try {
             const schemaPath = path.resolve(__dirname, '../schemas/api-schemas.json');
             if (fs.existsSync(schemaPath)) {
-                const raw = fs.readFileSync(schemaPath, { encoding: 'utf-8' });
-                const apiSchemas = JSON.parse(raw) as Record<string, unknown> & { definitions?: Record<string, unknown> };
+                const raw = fs.readFileSync(schemaPath, {encoding: 'utf-8'});
+                const apiSchemas = JSON.parse(raw) as Record<string, unknown> & {
+                    definitions?: Record<string, unknown>
+                };
                 if (apiSchemas.definitions && typeof apiSchemas.definitions === 'object') {
                     for (const [name, schema] of Object.entries(apiSchemas.definitions)) {
                         try {
                             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                             // @ts-ignore
-                            fastifyInstance.addSchema({ $id: name, ...schema });
-                        } catch (e) {
-                            fastifyInstance.log.debug({ err: e, name }, 'Skipping invalid generated schema');
+                            fastifyInstance.addSchema({$id: name, ...schema});
+                        }
+                        catch (e) {
+                            fastifyInstance.log.debug({
+                                err: e,
+                                name,
+                            }, 'Skipping invalid generated schema');
                         }
                     }
                 }
             }
-        } catch (e) {
-            fastifyInstance.log.info({ err: e }, 'No or invalid generated API schemas; continuing with built-in schemas');
+        }
+        catch (e) {
+            fastifyInstance.log.info({err: e}, 'No or invalid generated API schemas; continuing with built-in schemas');
         }
     }
 
@@ -299,7 +396,10 @@ export class StatsServer extends ServerBase {
         // Register Swagger only for the stats server
         fastifyInstance.register(fastifySwagger, {
             openapi: {
-                info: { title: 'Gearplan API', version: '1.0.0' },
+                info: {
+                    title: 'Gearplan API',
+                    version: '1.0.0',
+                },
             },
         });
         fastifyInstance.register(fastifySwaggerUi, {
@@ -318,25 +418,25 @@ export class StatsServer extends ServerBase {
                         properties: {
                             page: {
                                 type: 'string',
-                                description: 'The page parameter, which can be a shortlink (sl|<uuid>), a BiS sheet (bis|<job>|<sheet>), or a legacy UUID.'
+                                description: 'The page parameter, which can be a shortlink (sl|<uuid>), a BiS sheet (bis|<job>|<sheet>), or a legacy UUID.',
                             },
                             url: {
                                 type: 'string',
-                                description: 'A full URL to a sheet or set. If provided, it will be parsed for page, onlySetIndex, and selectedIndex. These can still be overridden by providing the specific parameters directly.'
+                                description: 'A full URL to a sheet or set. If provided, it will be parsed for page, onlySetIndex, and selectedIndex. These can still be overridden by providing the specific parameters directly.',
                             },
                             onlySetIndex: {
                                 type: 'integer',
-                                description: 'If provided, only the set at this index will be loaded. This is often used for embedding a single set.'
+                                description: 'If provided, only the set at this index will be loaded. This is often used for embedding a single set.',
                             },
                             selectedIndex: {
                                 type: 'integer',
-                                description: 'The index of the set that should be selected by default when the sheet is loaded.'
-                            }
+                                description: 'The index of the set that should be selected by default when the sheet is loaded.',
+                            },
                         },
-                        additionalProperties: false
+                        additionalProperties: false,
                     },
-                    response: { 200: { $ref: 'EmbedCheckResponse#' } }
-                }
+                    response: {200: {$ref: 'EmbedCheckResponse#'}},
+                },
             }, async (request: SheetRequest, reply) => {
                 const merged = getMergedQueryParams(request);
                 const path = merged[HASH_QUERY_PARAM] ?? '';
@@ -384,30 +484,35 @@ export class StatsServer extends ServerBase {
                         properties: {
                             page: {
                                 type: 'string',
-                                description: 'The page parameter, which can be a shortlink (sl|<uuid>), a BiS sheet (bis|<job>|<sheet>), or a legacy UUID.'
+                                description: 'The page parameter, which can be a shortlink (sl|<uuid>), a BiS sheet (bis|<job>|<sheet>), or a legacy UUID.',
                             },
                             url: {
                                 type: 'string',
-                                description: 'A full URL to a sheet or set. If provided, it will be parsed for page, onlySetIndex, and selectedIndex. These can still be overridden by providing the specific parameters directly.'
+                                description: 'A full URL to a sheet or set. If provided, it will be parsed for page, onlySetIndex, and selectedIndex. These can still be overridden by providing the specific parameters directly.',
                             },
                             onlySetIndex: {
                                 type: 'integer',
-                                description: 'If provided, only the set at this index will be loaded. This is often used for extracting a single set from a sheet.'
+                                description: 'If provided, only the set at this index will be loaded. This is often used for extracting a single set from a sheet.',
                             },
                             selectedIndex: {
                                 type: 'integer',
-                                description: 'The index of the set that should be selected by default.'
+                                description: 'The index of the set that should be selected by default.',
                             },
                             exportAsSheet: {
                                 type: 'string',
-                                enum: ['true','false'],
-                                description: 'If true, and the result would normally be a single set, it will be wrapped in a sheet export instead.'
-                            }
+                                enum: ['true', 'false'],
+                                description: 'If true, and the result would normally be a single set, it will be wrapped in a sheet export instead.',
+                            },
                         },
-                        additionalProperties: false
+                        additionalProperties: false,
                     },
-                    response: { 200: { type: 'object', additionalProperties: true } }
-                }
+                    response: {
+                        200: {
+                            type: 'object',
+                            additionalProperties: true,
+                        },
+                    },
+                },
             }, async (request: SheetRequest, reply) => {
                 const merged = getMergedQueryParams(request);
                 const path = merged[HASH_QUERY_PARAM] ?? '';
@@ -462,29 +567,29 @@ export class StatsServer extends ServerBase {
                         properties: {
                             page: {
                                 type: 'string',
-                                description: 'The page parameter, which can be a shortlink (sl|<uuid>), a BiS sheet (bis|<job>|<sheet>), or a legacy UUID.'
+                                description: 'The page parameter, which can be a shortlink (sl|<uuid>), a BiS sheet (bis|<job>|<sheet>), or a legacy UUID.',
                             },
                             url: {
                                 type: 'string',
-                                description: 'A full URL to a sheet or set. If provided, it will be parsed for page, onlySetIndex, and selectedIndex. These can still be overridden by providing the specific parameters directly.'
+                                description: 'A full URL to a sheet or set. If provided, it will be parsed for page, onlySetIndex, and selectedIndex. These can still be overridden by providing the specific parameters directly.',
                             },
                             onlySetIndex: {
                                 type: 'integer',
-                                description: 'If provided, only the set at this index will be loaded.'
+                                description: 'If provided, only the set at this index will be loaded.',
                             },
                             selectedIndex: {
                                 type: 'integer',
-                                description: 'The index of the set that should be selected by default.'
+                                description: 'The index of the set that should be selected by default.',
                             },
                             partyBonus: {
                                 type: 'string',
-                                description: 'Override the party bonus (0-5) for the calculation.'
-                            }
+                                description: 'Override the party bonus (0-5) for the calculation.',
+                            },
                         },
-                        additionalProperties: false
+                        additionalProperties: false,
                     },
-                    response: { 200: { $ref: 'SheetStatsExport#' } }
-                }
+                    response: {200: {$ref: 'SheetStatsExport#'}},
+                },
             }, async (request: SheetRequest, reply) => {
                 // TODO: deduplicate this code
                 const merged = getMergedQueryParams(request);
@@ -511,9 +616,18 @@ export class StatsServer extends ServerBase {
                 schema: {
                     deprecated: true,
                     tags: ['legacy'],
-                    params: { type: 'object', properties: { uuid: { type: 'string' } }, required: ['uuid'] },
-                    response: { 200: { type: 'object', additionalProperties: true } }
-                }
+                    params: {
+                        type: 'object',
+                        properties: {uuid: {type: 'string'}},
+                        required: ['uuid'],
+                    },
+                    response: {
+                        200: {
+                            type: 'object',
+                            additionalProperties: true,
+                        },
+                    },
+                },
             }, async (request: SheetRequest, reply) => {
                 const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
                 const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
@@ -538,9 +652,21 @@ export class StatsServer extends ServerBase {
                 schema: {
                     deprecated: true,
                     tags: ['legacy'],
-                    params: { type: 'object', properties: { job: { type: 'string' }, sheet: { type: 'string' } }, required: ['job', 'sheet'] },
-                    response: { 200: { type: 'object', additionalProperties: true } }
-                }
+                    params: {
+                        type: 'object',
+                        properties: {
+                            job: {type: 'string'},
+                            sheet: {type: 'string'},
+                        },
+                        required: ['job', 'sheet'],
+                    },
+                    response: {
+                        200: {
+                            type: 'object',
+                            additionalProperties: true,
+                        },
+                    },
+                },
             }, async (request: SheetRequest, reply) => {
                 const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
                 const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
@@ -567,9 +693,22 @@ export class StatsServer extends ServerBase {
                 schema: {
                     deprecated: true,
                     tags: ['legacy'],
-                    params: { type: 'object', properties: { job: { type: 'string' }, folder: { type: 'string' }, sheet: { type: 'string' } }, required: ['job', 'folder', 'sheet'] },
-                    response: { 200: { type: 'object', additionalProperties: true } }
-                }
+                    params: {
+                        type: 'object',
+                        properties: {
+                            job: {type: 'string'},
+                            folder: {type: 'string'},
+                            sheet: {type: 'string'},
+                        },
+                        required: ['job', 'folder', 'sheet'],
+                    },
+                    response: {
+                        200: {
+                            type: 'object',
+                            additionalProperties: true,
+                        },
+                    },
+                },
             }, async (request: SheetRequest, reply) => {
                 const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
                 const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
@@ -595,16 +734,16 @@ export class StatsServer extends ServerBase {
             instance.put('/putset', {
                 schema: {
                     tags: ['public'],
-                    body: { $ref: 'SetExportExternalSingle#' },
-                    response: { 200: { $ref: 'PutSetResponse#' } }
-                }
+                    body: {$ref: 'SetExportExternalSingle#'},
+                    response: {200: {$ref: 'PutSetResponse#'}},
+                },
             }, async (request: FastifyRequest<{
                 Body: SetExportExternalSingle,
             }>, reply) => {
                 try {
                     const b = request.body;
                     if (!isValidSet(b)) {
-                        reply.code(400).send({ error: 'Body must be a single set export' });
+                        reply.code(400).send({error: 'Body must be a single set export'});
                         return;
                     }
                     const contentStr = JSON.stringify(b);
@@ -618,7 +757,7 @@ export class StatsServer extends ServerBase {
                 }
                 catch (e) {
                     request.log.error(e, 'Error creating set shortlink');
-                    reply.code(500).send({ error: 'Failed to create set shortlink' });
+                    reply.code(500).send({error: 'Failed to create set shortlink'});
                 }
             });
             // Creates a shortlink for a full sheet, and per-set links.
@@ -626,16 +765,16 @@ export class StatsServer extends ServerBase {
             instance.put('/putsheet', {
                 schema: {
                     tags: ['public'],
-                    body: { $ref: 'SheetExport#' },
-                    response: { 200: { $ref: 'PutSheetResponse#' } }
-                }
+                    body: {$ref: 'SheetExport#'},
+                    response: {200: {$ref: 'PutSheetResponse#'}},
+                },
             }, async (request: FastifyRequest<{
                 Body: SheetExport,
             }>, reply) => {
                 try {
                     const b = request.body;
                     if (!isValidSheet(b)) {
-                        reply.code(400).send({ error: 'Body must be a sheet export' });
+                        reply.code(400).send({error: 'Body must be a sheet export'});
                         return;
                     }
                     const contentStr = JSON.stringify(b);
@@ -670,7 +809,7 @@ export class StatsServer extends ServerBase {
                 }
                 catch (e) {
                     request.log.error(e, 'Error creating sheet shortlinks');
-                    reply.code(500).send({ error: 'Failed to create sheet shortlinks' });
+                    reply.code(500).send({error: 'Failed to create sheet shortlinks'});
                 }
             });
         });
