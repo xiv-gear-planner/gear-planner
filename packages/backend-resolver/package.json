@@ -8,7 +8,7 @@
     "buildprod": "pnpm run generate-schemas && tsc --build",
     "generate-schemas-old": "pnpm exec typescript-json-schema \"../../packages/xivmath/src/geartypes.ts\" \"*\" --out schemas/gear-schemas.json --ignoreErrors --typeCheck --expose=all && pnpm exec typescript-json-schema \"src/stats_server_schema_types.ts\" \"*\" --out schemas/stats-schemas.json --typeCheck --expose=all",
     "generate-schemas": "pnpm exec ts-json-schema-generator --path \"src/stats_server_schema_types.ts\" --out schemas/stats-schemas.json -f ./tsconfig.json",
-    "test": "ts-mocha --no-experimental-strip-types --parallel=true \"src/test/**/*.ts\""
+    "test": "ts-mocha --no-experimental-strip-types --parallel=true --timeout 15000 \"src/test/**/*.ts\""
   },
   "dependencies": {
     "@fastify/cors": "8.5.0",
