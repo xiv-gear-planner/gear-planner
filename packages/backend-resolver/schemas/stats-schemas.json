@@ -431,7 +431,8 @@
           ],
           "type": "object"
         }
-      ]
+      ],
+      "description": "Response of an embed validation response. Returns isValid: true and no message, or isValid: false and a message."
     },
     "FoodStatBonus": {
       "additionalProperties": false,
@@ -1129,6 +1130,7 @@
     },
     "PutSetResponse": {
       "additionalProperties": false,
+      "description": "Response for putting an individual set.",
       "properties": {
         "embedUrl": {
           "description": "The embedded version of the direct URL to this set",
@@ -1147,6 +1149,7 @@
     },
     "PutSheetResponse": {
       "additionalProperties": false,
+      "description": "Response for putting a full sheet.",
       "properties": {
         "sets": {
           "description": "URLs for each individual set. Does not include separators. Use the index property to correlate them back to sets in the original input.",
