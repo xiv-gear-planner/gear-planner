@@ -4,8 +4,6 @@ import 'global-jsdom/register';
 import './polyfills';
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
-import fs from 'node:fs';
-import path from 'node:path';
 import {ShortlinkService} from "@xivgear/core/external/shortlink_server";
 import {
     PartyBonusAmount,
