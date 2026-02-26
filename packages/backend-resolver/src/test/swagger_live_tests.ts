@@ -1,6 +1,7 @@
 import '../polyfills';
 import {expect} from "chai";
 import {makeStatsServer} from "./test_utils";
+import {isRecord} from "../server_utils";
 
 describe("Swagger UI Live Schema Tests", () => {
 
@@ -43,20 +44,37 @@ describe("Swagger UI Live Schema Tests", () => {
         const json = response.json();
 
         const schemas = json.components.schemas;
-        const schemaValues = Object.values(schemas) as any[];
+        const schemaValues = Object.values(schemas);
 
         const hasSchemaWithDescription = (desc: string) =>
-            schemaValues.some(s => s.description === desc || (s.properties && Object.values(s.properties).some((p: any) => p.description === desc)));
+            schemaValues.some((s: unknown) => {
+                if (isRecord(s)) {
+                    if (s.description === desc) {
+                        return true;
+                    }
+                    if (isRecord(s.properties)) {
+                        return Object.values(s.properties).some((p: unknown) => isRecord(p) && p.description === desc);
+                    }
+                }
+                return false;
+            });
 
         // Core response schemas (checking by descriptions or unique properties)
         expect(hasSchemaWithDescription('The direct URL to this set')).to.be.true; // PutSetResponse
         expect(hasSchemaWithDescription('The direct URL to the overall sheet.')).to.be.true; // PutSheetResponse
 
         // Check for specific structures
-        const hasEmbedCheck = schemaValues.some(s =>
-            s.anyOf && s.anyOf.some((a: any) => a.properties && a.properties.isValid) ||
-            s.properties && s.properties.isValid
-        );
+        const hasEmbedCheck = schemaValues.some((s: unknown) => {
+            if (isRecord(s)) {
+                if (Array.isArray(s.anyOf) && s.anyOf.some((a: unknown) => isRecord(a) && isRecord(a.properties) && a.properties.isValid)) {
+                    return true;
+                }
+                if (isRecord(s.properties) && s.properties.isValid) {
+                    return true;
+                }
+            }
+            return false;
+        });
         expect(hasEmbedCheck).to.be.true;
     }).timeout(30_000);
 

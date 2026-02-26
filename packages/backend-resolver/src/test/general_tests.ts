@@ -1,3 +1,4 @@
+// Not needed for functionality, but caching is nice
 import '../polyfills';
 import {expect} from "chai";
 import {getJobIcons} from "../preload_helpers";
@@ -8,7 +9,7 @@ import {
     PATH_SEPARATOR,
     SELECTION_INDEX_QUERY_PARAM
 } from "@xivgear/core/nav/common_nav";
-import {getMergedQueryParams, SheetRequest} from "../server_utils";
+import {boolParam, getMergedQueryParams, intParam, stringParam} from "../server_utils";
 
 describe('misc helpers', () => {
     describe("getJobIcons", () => {
@@ -32,10 +33,18 @@ describe('misc helpers', () => {
             };
             const request = {
                 query: params,
-            } as unknown as SheetRequest;
+            };
 
-            const result = getMergedQueryParams(request);
-            expect(result).to.deep.equal(params);
+            const result = getMergedQueryParams(request, {
+                [HASH_QUERY_PARAM]: stringParam,
+                [ONLY_SET_QUERY_PARAM]: intParam,
+                [SELECTION_INDEX_QUERY_PARAM]: intParam,
+            });
+            expect(result).to.deep.equal({
+                [HASH_QUERY_PARAM]: 'some-path',
+                [ONLY_SET_QUERY_PARAM]: 1,
+                [SELECTION_INDEX_QUERY_PARAM]: 2,
+            });
         });
 
         it("should merge params from encoded url", () => {
@@ -45,12 +54,13 @@ describe('misc helpers', () => {
                     url: encodeURIComponent(nestedUrl),
                     direct: 'directVal',
                 },
-            } as unknown as SheetRequest;
+            };
 
-            const result = getMergedQueryParams(request);
-            expect(result).to.deep.equal({
-                url: encodeURIComponent(nestedUrl),
-                direct: 'directVal',
+            const result = getMergedQueryParams(request, {
+                [HASH_QUERY_PARAM]: stringParam,
+                otherParam: stringParam,
+            });
+            expect(result).to.deep.include({
                 [HASH_QUERY_PARAM]: 'hash-in-url',
                 otherParam: 'val2',
             });
@@ -62,11 +72,14 @@ describe('misc helpers', () => {
                 query: {
                     url: nestedUrl,
                 },
-            } as unknown as SheetRequest;
+            };
 
-            const result = getMergedQueryParams(request);
+            const result = getMergedQueryParams(request, {
+                [ONLY_SET_QUERY_PARAM]: boolParam,
+                otherParam: stringParam,
+            });
             expect(result).to.deep.include({
-                [ONLY_SET_QUERY_PARAM]: 'true',
+                [ONLY_SET_QUERY_PARAM]: true,
                 otherParam: 'val2',
             });
         });
@@ -78,11 +91,13 @@ describe('misc helpers', () => {
                     url: encodeURIComponent(nestedUrl),
                     [HASH_QUERY_PARAM]: 'directVal',
                 },
-            } as unknown as SheetRequest;
+            };
 
-            const result = getMergedQueryParams(request);
-            expect(result).to.deep.equal({
-                url: encodeURIComponent(nestedUrl),
+            const result = getMergedQueryParams(request, {
+                [HASH_QUERY_PARAM]: stringParam,
+                otherParam: stringParam,
+            });
+            expect(result).to.deep.include({
                 [HASH_QUERY_PARAM]: 'directVal',
                 otherParam: 'val2',
             });
@@ -94,11 +109,13 @@ describe('misc helpers', () => {
                 query: {
                     url: encodeURIComponent(nestedUrl),
                 },
-            } as unknown as SheetRequest;
+            };
 
-            const result = getMergedQueryParams(request);
+            const result = getMergedQueryParams(request, {
+                [ONLY_SET_QUERY_PARAM]: boolParam,
+            });
             expect(result).to.deep.include({
-                [ONLY_SET_QUERY_PARAM]: 'true',
+                [ONLY_SET_QUERY_PARAM]: true,
             });
         });
 
@@ -108,9 +125,11 @@ describe('misc helpers', () => {
                 query: {
                     url: encodeURIComponent(nestedUrl),
                 },
-            } as unknown as SheetRequest;
+            };
 
-            const result = getMergedQueryParams(request);
+            const result = getMergedQueryParams(request, {
+                [HASH_QUERY_PARAM]: stringParam,
+            });
             expect(result).to.deep.include({
                 [HASH_QUERY_PARAM]: 'bareVal',
             });
@@ -121,9 +140,11 @@ describe('misc helpers', () => {
                 query: {
                     url: 'not-a-url-at-all',
                 },
-            } as unknown as SheetRequest;
+            };
 
-            const result = getMergedQueryParams(request);
+            const result = getMergedQueryParams(request, {
+                url: stringParam,
+            });
             // It might still try to parse it as a relative URL if it doesn't throw,
             // but if it's completely invalid it should just return what it had.
             expect(result).to.deep.equal({
@@ -132,8 +153,8 @@ describe('misc helpers', () => {
         });
 
         it("should handle missing query object", () => {
-            const request = {} as unknown as SheetRequest;
-            const result = getMergedQueryParams(request);
+            const request = {};
+            const result = getMergedQueryParams(request, {});
             expect(result).to.deep.equal({});
         });
 
@@ -143,9 +164,11 @@ describe('misc helpers', () => {
                 query: {
                     url: encodeURIComponent(nestedUrl),
                 },
-            } as unknown as SheetRequest;
+            };
 
-            const result = getMergedQueryParams(request);
+            const result = getMergedQueryParams(request, {
+                [HASH_QUERY_PARAM]: stringParam,
+            });
             expect(result).to.deep.include({
                 [HASH_QUERY_PARAM]: `sl${PATH_SEPARATOR}1234`,
             });
@@ -157,9 +180,11 @@ describe('misc helpers', () => {
                 query: {
                     url: encodeURIComponent(nestedUrl),
                 },
-            } as unknown as SheetRequest;
+            };
 
-            const result = getMergedQueryParams(request);
+            const result = getMergedQueryParams(request, {
+                [HASH_QUERY_PARAM]: stringParam,
+            });
             expect(result).to.deep.include({
                 [HASH_QUERY_PARAM]: 'direct-page',
             });
@@ -171,12 +196,90 @@ describe('misc helpers', () => {
                 query: {
                     url: encodeURIComponent(nestedUrl),
                 },
-            } as unknown as SheetRequest;
+            };
 
-            const result = getMergedQueryParams(request);
+            const result = getMergedQueryParams(request, {
+                [HASH_QUERY_PARAM]: stringParam,
+            });
             expect(result).to.deep.include({
                 [HASH_QUERY_PARAM]: `part1${PATH_SEPARATOR}part2${PATH_SEPARATOR}part3`,
             });
+        });
+
+        it("should correctly handle boolean parameter for exportAsSheet", () => {
+            const request = {
+                query: {
+                    exportAsSheet: 'true',
+                },
+            };
+
+            const result = getMergedQueryParams(request, {
+                exportAsSheet: boolParam,
+            });
+            expect(result.exportAsSheet).to.be.true;
+
+            const requestFalse = {
+                query: {
+                    exportAsSheet: 'false',
+                },
+            };
+
+            const resultFalse = getMergedQueryParams(requestFalse, {
+                exportAsSheet: boolParam,
+            });
+            expect(resultFalse.exportAsSheet).to.be.false;
+        });
+
+        it("should correctly handle boolean parameter if Fastify already parsed it as boolean", () => {
+            const request = {
+                query: {
+                    exportAsSheet: true,
+                },
+            };
+
+            const result = getMergedQueryParams(request, {
+                exportAsSheet: boolParam,
+            });
+            expect(result.exportAsSheet).to.be.true;
+
+            const requestFalse = {
+                query: {
+                    exportAsSheet: false,
+                },
+            };
+
+            const resultFalse = getMergedQueryParams(requestFalse, {
+                exportAsSheet: boolParam,
+            });
+            expect(resultFalse.exportAsSheet).to.be.false;
+        });
+
+        it("should correctly handle boolean parameter in URL", () => {
+            const nestedUrl = "https://example.com/?exportAsSheet=true";
+            const request = {
+                query: {
+                    url: encodeURIComponent(nestedUrl),
+                },
+            };
+
+            const result = getMergedQueryParams(request, {
+                exportAsSheet: boolParam,
+            });
+            expect(result.exportAsSheet).to.be.true;
+        });
+
+        it("should correctly handle boolean parameter in URL as false", () => {
+            const nestedUrl = "https://example.com/?exportAsSheet=false";
+            const request = {
+                query: {
+                    url: encodeURIComponent(nestedUrl),
+                },
+            };
+
+            const result = getMergedQueryParams(request, {
+                exportAsSheet: boolParam,
+            });
+            expect(result.exportAsSheet).to.be.false;
         });
     });
 });

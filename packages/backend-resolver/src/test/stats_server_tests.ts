@@ -377,6 +377,7 @@ describe('stats server', () => {
         it("exports as sheet when exportAsSheet=true", async () => {
             const response = await fastify.inject({
                 method: 'GET',
+                // This is a full sheet
                 url: '/basedata?page=sl|f9b260a9-650c-445a-b3eb-c56d8d968501&exportAsSheet=true',
             });
             expect(response.statusCode).to.equal(200);
@@ -389,6 +390,7 @@ describe('stats server', () => {
         it("exports single set as sheet with one set when exportAsSheet=true", async () => {
             const response = await fastify.inject({
                 method: 'GET',
+                // This is an individual set
                 url: '/basedata?page=sl|0cd5874c-6322-4396-99be-2089d6222d9c&exportAsSheet=true',
             });
             expect(response.statusCode).to.equal(200);

@@ -2,6 +2,8 @@ import Fastify from "fastify";
 import FastifyIP from "fastify-ip";
 import cors from "@fastify/cors";
 import process from "process";
+import path from "node:path";
+import fs from "node:fs";
 
 let initDone = false;
 
@@ -104,4 +106,52 @@ export abstract class ServerBase {
             }
         });
     }
+
+    protected registerSchemas(schemaFiles: string[]) {
+        const fastifyInstance = this.fastifyInstance;
+        for (const relPath of schemaFiles) {
+            const schemaPath = path.resolve(__dirname, relPath);
+            if (fs.existsSync(schemaPath)) {
+                const raw = fs.readFileSync(schemaPath, {encoding: 'utf-8'});
+                const apiSchemas = JSON.parse(raw) as Record<string, unknown> & {
+                    definitions?: Record<string, unknown>
+                };
+                if (apiSchemas.definitions && typeof apiSchemas.definitions === 'object') {
+                    for (const [name, schema] of Object.entries(apiSchemas.definitions)) {
+                        // Filter out invalid names since they wouldn't be needed anyway.
+                        if (!/^[a-zA-Z0-9_-]+$/.test(name)) {
+                            continue;
+                        }
+                        // Deep-clean the schema to remove internal $ref that point to local definitions
+                        // since Fastify doesn't always handle them well when they are registered individually.
+                        const cleanSchema = JSON.parse(JSON.stringify(schema), (key, value) => {
+                            if (key === '$ref' && typeof value === 'string' && value.startsWith('#/definitions/')) {
+                                const refName = value.replace('#/definitions/', '');
+                                // If the referenced name is one we would skip, we must skip this ref or fix it.
+                                // For now, only convert refs to names that match our allowed pattern.
+                                if (/^[a-zA-Z0-9_-]+$/.test(refName)) {
+                                    return refName + '#';
+                                }
+                                // If it's a problematic name, we remove the ref to prevent Fastify from crashing.
+                                // It probably isn't needed anyway.
+                                return undefined;
+                            }
+                            return value;
+                        });
+                        try {
+                            fastifyInstance.addSchema({$id: name, ...cleanSchema});
+                        }
+                        catch (e) {
+                            fastifyInstance.log.debug({
+                                err: e,
+                                name,
+                            }, 'Skipping invalid generated schema');
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
 }

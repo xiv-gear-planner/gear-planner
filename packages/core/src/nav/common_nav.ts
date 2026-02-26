@@ -353,14 +353,13 @@ export function splitPath(input: string) {
         .map(pp => pp.replaceAll(VERTICAL_BAR_REPLACEMENT, PATH_SEPARATOR));
 }
 
-export function tryParseOptionalIntParam(input: string | undefined): number | undefined {
-    if (input) {
-        try {
-            return parseInt(input);
-        }
-        catch (e) {
-            console.error(`Error parsing '${input}'`, e);
-        }
+export function tryParseOptionalIntParam(input: string | number | undefined): number | undefined {
+    if (input === undefined || input === null || input === '') {
+        return undefined;
     }
-    return undefined;
+    if (typeof input === 'number') {
+        return isNaN(input) ? undefined : input;
+    }
+    const parsed = parseInt(input);
+    return isNaN(parsed) ? undefined : parsed;
 }

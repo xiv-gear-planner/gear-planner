@@ -29,11 +29,25 @@ import {
     tryParseOptionalIntParam
 } from "@xivgear/core/nav/common_nav";
 import {extractSingleSet, extractSingleSetAsSheet, inflateSetExport} from "@xivgear/core/util/sheet_utils";
-import {ExportedData, getMergedQueryParams, isRecord, NavDataService, SheetRequest, toEmbedUrl} from "./server_utils";
 import {
+    boolParam,
+    ExportedData,
+    getMergedQueryParams,
+    intParam,
+    isRecord,
+    NavDataService,
+    SheetRequest,
+    stringParam,
+    toEmbedUrl
+} from "./server_utils";
+import {
+    BaseDataQuery,
     BaseDataResponse,
+    EmbedCheckQuery,
     EmbedCheckResponse,
+    FullDataQuery,
     FullDataResponse,
+    ImportExportSheetQuery,
     PutSetResponse,
     PutSheetResponse
 } from "./stats_server_schema_types";
@@ -43,68 +57,6 @@ export class StatsServer extends ServerBase {
 
     constructor(private readonly shortlinkService: ShortlinkService, private readonly navDataService: NavDataService, private readonly bisService: BisService) {
         super();
-    }
-
-    private registerSchemas(fastifyInstance: FastifyInstance): void {
-        const schemaFiles = [
-            // '../schemas/api-schemas.json',
-            '../schemas/stats-schemas.json',
-        ];
-
-        for (const relPath of schemaFiles) {
-            try {
-                const schemaPath = path.resolve(__dirname, relPath);
-                if (fs.existsSync(schemaPath)) {
-                    const raw = fs.readFileSync(schemaPath, {encoding: 'utf-8'});
-                    const apiSchemas = JSON.parse(raw) as Record<string, unknown> & {
-                        definitions?: Record<string, unknown>
-                    };
-                    if (apiSchemas.definitions && typeof apiSchemas.definitions === 'object') {
-                        for (const [name, schema] of Object.entries(apiSchemas.definitions)) {
-                            // Filter out names that are not valid URI-references or contain problematic characters
-                            if (!/^[a-zA-Z0-9_-]+$/.test(name)) {
-                                continue;
-                            }
-                            // Deep-clean the schema to remove internal $ref that point to local definitions
-                            // since Fastify doesn't always handle them well when they are registered individually.
-                            const cleanSchema = JSON.parse(JSON.stringify(schema), (key, value) => {
-                                if (key === '$ref' && typeof value === 'string' && value.startsWith('#/definitions/')) {
-                                    const refName = value.replace('#/definitions/', '');
-                                    if (true) {
-                                        return refName;
-                                    }
-                                    // If the referenced name is one we would skip, we must skip this ref or fix it.
-                                    // For now, only convert refs to names that match our allowed pattern.
-                                    if (/^[a-zA-Z0-9_-]+$/.test(refName)) {
-                                        return refName + '#';
-                                    }
-                                    // If it's a problematic name, we remove the ref to prevent Fastify from crashing.
-                                    return undefined;
-                                }
-                                return value;
-                            });
-                            try {
-                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                                // @ts-ignore
-                                fastifyInstance.addSchema({$id: name, ...cleanSchema});
-                            }
-                            catch (e) {
-                                fastifyInstance.log.debug({
-                                    err: e,
-                                    name,
-                                }, 'Skipping invalid generated schema');
-                            }
-                        }
-                    }
-                }
-            }
-            catch (e) {
-                fastifyInstance.log.info({
-                    err: e,
-                    relPath,
-                }, 'No or invalid generated API schemas; continuing');
-            }
-        }
     }
 
     setup(fastifyInstance: FastifyInstance): void {
@@ -122,41 +74,26 @@ export class StatsServer extends ServerBase {
         });
 
         // Register component schemas for this server
-        this.registerSchemas(fastifyInstance);
+        this.registerSchemas([
+            '../schemas/stats-schemas.json',
+        ]);
 
         fastifyInstance.register(async (instance) => {
             instance.get('/validateEmbed', {
                 schema: {
                     tags: ['public'],
-                    querystring: {
-                        type: 'object',
-                        properties: {
-                            page: {
-                                type: 'string',
-                                description: 'The page parameter, which can be a shortlink (sl|<uuid>), a BiS sheet (bis|<job>|<sheet>), or a legacy UUID.',
-                            },
-                            url: {
-                                type: 'string',
-                                description: 'A full URL to a sheet or set. If provided, it will be parsed for page, onlySetIndex, and selectedIndex. These can still be overridden by providing the specific parameters directly.',
-                            },
-                            onlySetIndex: {
-                                type: 'integer',
-                                description: 'If provided, only the set at this index will be loaded. This is often used for embedding a single set.',
-                            },
-                            selectedIndex: {
-                                type: 'integer',
-                                description: 'The index of the set that should be selected by default when the sheet is loaded.',
-                            },
-                        },
-                        additionalProperties: false,
-                    },
+                    querystring: {$ref: 'EmbedCheckQuery#'},
                     response: {200: {$ref: 'EmbedCheckResponse#'}},
                 },
-            }, async (request: SheetRequest, reply) => {
-                const merged = getMergedQueryParams(request);
+            }, async (request: SheetRequest<EmbedCheckQuery>, reply) => {
+                const merged = getMergedQueryParams(request, {
+                    [HASH_QUERY_PARAM]: stringParam,
+                    [ONLY_SET_QUERY_PARAM]: intParam,
+                    [SELECTION_INDEX_QUERY_PARAM]: intParam,
+                });
                 const path = merged[HASH_QUERY_PARAM] ?? '';
-                const osIndex: number | undefined = tryParseOptionalIntParam(merged[ONLY_SET_QUERY_PARAM]);
-                const selIndex: number | undefined = tryParseOptionalIntParam(merged[SELECTION_INDEX_QUERY_PARAM]);
+                const osIndex = merged[ONLY_SET_QUERY_PARAM];
+                const selIndex = merged[SELECTION_INDEX_QUERY_PARAM];
                 const pathPaths = path.split(PATH_SEPARATOR);
                 const state = new NavState(pathPaths, osIndex, selIndex);
                 const nav = parsePath(state);
@@ -194,41 +131,24 @@ export class StatsServer extends ServerBase {
             instance.get('/basedata', {
                 schema: {
                     tags: ['public'],
-                    querystring: {
-                        type: 'object',
-                        properties: {
-                            page: {
-                                type: 'string',
-                                description: 'The page parameter, which can be a shortlink (sl|<uuid>), a BiS sheet (bis|<job>|<sheet>), or a legacy UUID.',
-                            },
-                            url: {
-                                type: 'string',
-                                description: 'A full URL to a sheet or set. If provided, it will be parsed for page, onlySetIndex, and selectedIndex. These can still be overridden by providing the specific parameters directly.',
-                            },
-                            onlySetIndex: {
-                                type: 'integer',
-                                description: 'If provided, only the set at this index will be loaded. This is often used for extracting a single set from a sheet.',
-                            },
-                            selectedIndex: {
-                                type: 'integer',
-                                description: 'The index of the set that should be selected by default.',
-                            },
-                            exportAsSheet: {
-                                type: 'boolean',
-                                description: 'If true, and the result would normally be a single set, it will be wrapped in a sheet export instead.',
-                            },
-                        },
-                        additionalProperties: false,
-                    },
+                    querystring: {$ref: 'BaseDataQuery#'},
                     response: {200: {$ref: 'BaseDataResponse#'}},
                 },
-            }, async (request: SheetRequest, reply) => {
-                const merged = getMergedQueryParams(request);
+                serializerCompiler: () => {
+                    return data => JSON.stringify(data);
+                },
+            }, async (request: SheetRequest<BaseDataQuery>, reply) => {
+                const merged = getMergedQueryParams(request, {
+                    [HASH_QUERY_PARAM]: stringParam,
+                    [ONLY_SET_QUERY_PARAM]: intParam,
+                    [SELECTION_INDEX_QUERY_PARAM]: intParam,
+                    [EXPORT_AS_SHEET_PARAM]: boolParam,
+                });
                 const path = merged[HASH_QUERY_PARAM] ?? '';
-                const osIndex: number | undefined = tryParseOptionalIntParam(merged[ONLY_SET_QUERY_PARAM]);
-                const selIndex: number | undefined = tryParseOptionalIntParam(merged[SELECTION_INDEX_QUERY_PARAM]);
+                const osIndex = merged[ONLY_SET_QUERY_PARAM];
+                const selIndex = merged[SELECTION_INDEX_QUERY_PARAM];
                 // This flag indicates that if the result would be a single set, that we instead want a full sheet.
-                const exportAsSheet = merged[EXPORT_AS_SHEET_PARAM] === 'true';
+                const exportAsSheet = merged[EXPORT_AS_SHEET_PARAM];
                 const pathPaths = path.split(PATH_SEPARATOR);
                 const state = new NavState(pathPaths, osIndex, selIndex);
                 const nav = parsePath(state);
@@ -272,41 +192,19 @@ export class StatsServer extends ServerBase {
                 {
                     schema: {
                         tags: ['public'],
-                        querystring: {
-                            type: 'object',
-                            properties: {
-                                page: {
-                                    type: 'string',
-                                    description: 'The page parameter, which can be a shortlink (sl|<uuid>), a BiS sheet (bis|<job>|<sheet>), or a legacy UUID.',
-                                },
-                                url: {
-                                    type: 'string',
-                                    description: 'A full URL to a sheet or set. If provided, it will be parsed for page, onlySetIndex, and selectedIndex. These can still be overridden by providing the specific parameters directly.',
-                                },
-                                onlySetIndex: {
-                                    type: 'integer',
-                                    description: 'If provided, only the set at this index will be loaded.',
-                                },
-                                selectedIndex: {
-                                    type: 'integer',
-                                    description: 'The index of the set that should be selected by default.',
-                                },
-                                partyBonus: {
-                                    type: 'integer',
-                                    description: 'Override the party bonus (0-5) for the calculation.',
-                                },
-                            },
-                            additionalProperties: false,
-                        },
+                        querystring: {$ref: 'FullDataQuery#'},
                         response: {200: {$ref: 'FullDataResponse#'}},
                     },
                 },
-                async (request: SheetRequest, reply) => {
-                    // TODO: deduplicate this code
-                    const merged = getMergedQueryParams(request);
+                async (request: SheetRequest<FullDataQuery>, reply) => {
+                    const merged = getMergedQueryParams(request, {
+                        [HASH_QUERY_PARAM]: stringParam,
+                        [ONLY_SET_QUERY_PARAM]: intParam,
+                        [SELECTION_INDEX_QUERY_PARAM]: intParam,
+                    });
                     const path = merged[HASH_QUERY_PARAM] ?? '';
-                    const osIndex: number | undefined = tryParseOptionalIntParam(merged[ONLY_SET_QUERY_PARAM]);
-                    const selIndex: number | undefined = tryParseOptionalIntParam(merged[SELECTION_INDEX_QUERY_PARAM]);
+                    const osIndex = merged[ONLY_SET_QUERY_PARAM];
+                    const selIndex = merged[SELECTION_INDEX_QUERY_PARAM];
                     const pathPaths = path.split(PATH_SEPARATOR);
                     const state = new NavState(pathPaths, osIndex, selIndex);
                     const nav = parsePath(state);
@@ -332,9 +230,19 @@ export class StatsServer extends ServerBase {
                         properties: {uuid: {type: 'string'}},
                         required: ['uuid'],
                     },
+                    querystring: {
+                        type: 'object',
+                        properties: {
+                            [ONLY_SET_QUERY_PARAM]: {type: 'integer'},
+                            [SELECTION_INDEX_QUERY_PARAM]: {type: 'integer'},
+                        },
+                    },
                     response: {200: {$ref: 'FullDataResponse#'}},
                 },
-            }, async (request: SheetRequest, reply) => {
+            }, async (request: SheetRequest<{
+                [ONLY_SET_QUERY_PARAM]?: number,
+                [SELECTION_INDEX_QUERY_PARAM]?: number
+            }>, reply) => {
                 const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
                 const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
                 const nav: NavPath = {
@@ -366,9 +274,19 @@ export class StatsServer extends ServerBase {
                         },
                         required: ['job', 'sheet'],
                     },
+                    querystring: {
+                        type: 'object',
+                        properties: {
+                            [ONLY_SET_QUERY_PARAM]: {type: 'integer'},
+                            [SELECTION_INDEX_QUERY_PARAM]: {type: 'integer'},
+                        },
+                    },
                     response: {200: {$ref: 'FullDataResponse#'}},
                 },
-            }, async (request: SheetRequest, reply) => {
+            }, async (request: SheetRequest<{
+                [ONLY_SET_QUERY_PARAM]?: number,
+                [SELECTION_INDEX_QUERY_PARAM]?: number
+            }>, reply) => {
                 const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
                 const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
                 const nav: NavPath = {
@@ -403,9 +321,19 @@ export class StatsServer extends ServerBase {
                         },
                         required: ['job', 'folder', 'sheet'],
                     },
+                    querystring: {
+                        type: 'object',
+                        properties: {
+                            [ONLY_SET_QUERY_PARAM]: {type: 'integer'},
+                            [SELECTION_INDEX_QUERY_PARAM]: {type: 'integer'},
+                        },
+                    },
                     response: {200: {$ref: 'FullDataResponse#'}},
                 },
-            }, async (request: SheetRequest, reply) => {
+            }, async (request: SheetRequest<{
+                [ONLY_SET_QUERY_PARAM]?: number,
+                [SELECTION_INDEX_QUERY_PARAM]?: number
+            }>, reply) => {
                 const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
                 const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
                 const nav: NavPath = {
@@ -526,7 +454,7 @@ function isValidSheet(b: unknown): b is SheetExport {
     }).sets);
 }
 
-async function importExportSheet(request: SheetRequest, exportedPre: SheetExport | SetExport, nav?: NavPath): Promise<SheetStatsExport> {
+async function importExportSheet(request: SheetRequest<ImportExportSheetQuery>, exportedPre: SheetExport | SetExport, nav?: NavPath): Promise<SheetStatsExport> {
     const exportedInitial: SheetExport | SetExport = exportedPre;
     const initiallyFullSheet = 'sets' in exportedPre;
     const onlySetIndex: number | undefined = (nav !== undefined && "onlySetIndex" in nav) ? nav.onlySetIndex : undefined;
@@ -548,7 +476,7 @@ async function importExportSheet(request: SheetRequest, exportedPre: SheetExport
     sheet.setViewOnly();
     const pb = request.query.partyBonus;
     if (pb) {
-        const parsed = parseFloat(pb);
+        const parsed = typeof pb === 'number' ? pb : parseFloat(pb);
         if (!isNaN(parsed) && Number.isInteger(parsed) && parsed >= 0 && parsed <= MAX_PARTY_BONUS) {
             sheet.partyBonus = parsed as PartyBonusAmount;
         }

@@ -12,6 +12,32 @@
       ],
       "type": "string"
     },
+    "BaseDataQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "exportAsSheet": {
+          "description": "If true, and the result would normally be a single set, it will be wrapped in a sheet export instead.",
+          "type": "boolean"
+        },
+        "onlySetIndex": {
+          "description": "If provided, only the set at this index will be loaded. This is often used for embedding or extracting a single set.",
+          "type": "number"
+        },
+        "page": {
+          "description": "The page parameter, which can be a shortlink (sl|<uuid>), a BiS sheet (bis|<job>|<sheet>), or a legacy UUID.",
+          "type": "string"
+        },
+        "selectedIndex": {
+          "description": "The index of the set that should be selected by default.",
+          "type": "number"
+        },
+        "url": {
+          "description": "A full URL to a sheet or set. If provided, it will be parsed for page, onlySetIndex, and selectedIndex. These can still be overridden by providing the specific parameters directly.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "BaseDataResponse": {
       "anyOf": [
         {
@@ -21,6 +47,25 @@
           "$ref": "#/definitions/SetExportExternalSingle"
         }
       ]
+    },
+    "BaseQueryParams": {
+      "additionalProperties": false,
+      "description": "Base parameters for locating a particular sheet or set.",
+      "properties": {
+        "onlySetIndex": {
+          "description": "If provided, only the set at this index will be loaded. This is often used for embedding or extracting a single set.",
+          "type": "number"
+        },
+        "page": {
+          "description": "The page parameter, which can be a shortlink (sl|<uuid>), a BiS sheet (bis|<job>|<sheet>), or a legacy UUID.",
+          "type": "string"
+        },
+        "selectedIndex": {
+          "description": "The index of the set that should be selected by default.",
+          "type": "number"
+        }
+      },
+      "type": "object"
     },
     "ComputedSetStats": {
       "additionalProperties": false,
@@ -351,6 +396,9 @@
       ],
       "type": "object"
     },
+    "EmbedCheckQuery": {
+      "$ref": "#/definitions/StatsQueryParams"
+    },
     "EmbedCheckResponse": {
       "anyOf": [
         {
@@ -401,6 +449,35 @@
       ],
       "type": "object"
     },
+    "FullDataQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "onlySetIndex": {
+          "description": "If provided, only the set at this index will be loaded. This is often used for embedding or extracting a single set.",
+          "type": "number"
+        },
+        "page": {
+          "description": "The page parameter, which can be a shortlink (sl|<uuid>), a BiS sheet (bis|<job>|<sheet>), or a legacy UUID.",
+          "type": "string"
+        },
+        "partyBonus": {
+          "description": "Override the party bonus (0-5) for the calculation.",
+          "type": [
+            "number",
+            "string"
+          ]
+        },
+        "selectedIndex": {
+          "description": "The index of the set that should be selected by default.",
+          "type": "number"
+        },
+        "url": {
+          "description": "A full URL to a sheet or set. If provided, it will be parsed for page, onlySetIndex, and selectedIndex. These can still be overridden by providing the specific parameters directly.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "FullDataResponse": {
       "$ref": "#/definitions/SheetStatsExport"
     },
@@ -419,6 +496,31 @@
             "attackType"
           ],
           "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "ImportExportSheetQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "onlySetIndex": {
+          "description": "If provided, only the set at this index will be loaded. This is often used for embedding or extracting a single set.",
+          "type": "number"
+        },
+        "page": {
+          "description": "The page parameter, which can be a shortlink (sl|<uuid>), a BiS sheet (bis|<job>|<sheet>), or a legacy UUID.",
+          "type": "string"
+        },
+        "partyBonus": {
+          "description": "Override the party bonus (0-5) for the calculation.",
+          "type": [
+            "number",
+            "string"
+          ]
+        },
+        "selectedIndex": {
+          "description": "The index of the set that should be selected by default.",
+          "type": "number"
         }
       },
       "type": "object"
@@ -1001,6 +1103,29 @@
         5
       ],
       "type": "number"
+    },
+    "PreviewQueryParams": {
+      "additionalProperties": false,
+      "description": "Parameters used by the preview server.",
+      "properties": {
+        "_cacheBust": {
+          "description": "Internal parameter used to force a refresh of the cached data.",
+          "type": "string"
+        },
+        "onlySetIndex": {
+          "description": "If provided, only the set at this index will be loaded. This is often used for embedding or extracting a single set.",
+          "type": "number"
+        },
+        "page": {
+          "description": "The page parameter, which can be a shortlink (sl|<uuid>), a BiS sheet (bis|<job>|<sheet>), or a legacy UUID.",
+          "type": "string"
+        },
+        "selectedIndex": {
+          "description": "The index of the set that should be selected by default.",
+          "type": "number"
+        }
+      },
+      "type": "object"
     },
     "PutSetResponse": {
       "additionalProperties": false,
@@ -1825,6 +1950,29 @@
       "maxItems": 3,
       "minItems": 3,
       "type": "array"
+    },
+    "StatsQueryParams": {
+      "additionalProperties": false,
+      "description": "Parameters used by the stats server.",
+      "properties": {
+        "onlySetIndex": {
+          "description": "If provided, only the set at this index will be loaded. This is often used for embedding or extracting a single set.",
+          "type": "number"
+        },
+        "page": {
+          "description": "The page parameter, which can be a shortlink (sl|<uuid>), a BiS sheet (bis|<job>|<sheet>), or a legacy UUID.",
+          "type": "string"
+        },
+        "selectedIndex": {
+          "description": "The index of the set that should be selected by default.",
+          "type": "number"
+        },
+        "url": {
+          "description": "A full URL to a sheet or set. If provided, it will be parsed for page, onlySetIndex, and selectedIndex. These can still be overridden by providing the specific parameters directly.",
+          "type": "string"
+        }
+      },
+      "type": "object"
     },
     "Substat": {
       "enum": [

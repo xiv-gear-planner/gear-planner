@@ -13,14 +13,14 @@ import {
     PATH_SEPARATOR,
     PREVIEW_MAX_DESC_LENGTH,
     PREVIEW_MAX_NAME_LENGTH,
-    SELECTION_INDEX_QUERY_PARAM,
-    tryParseOptionalIntParam
+    SELECTION_INDEX_QUERY_PARAM
 } from "@xivgear/core/nav/common_nav";
 import 'global-jsdom/register';
 import './polyfills';
 import {ALL_COMBAT_JOBS, JOB_DATA} from "@xivgear/xivmath/xivconstants";
 import process from "process";
-import {getMergedQueryParams, NavDataService, SheetRequest} from "./server_utils";
+import {getMergedQueryParams, intParam, NavDataService, SheetRequest, stringParam} from "./server_utils";
+import {PreviewQueryParams} from "./stats_server_schema_types";
 
 export class PreviewServer extends ServerBase {
     constructor(private readonly frontendPaths: FrontendFileServerProvider, private readonly navDataService: NavDataService) {
@@ -45,7 +45,7 @@ export class PreviewServer extends ServerBase {
         fastifyInstance.register(fastifyWebResponse);
         // This endpoint acts as a proxy. If it detects that you are trying to load something that looks like a sheet,
         // inject social media preview and preload urls.
-        fastifyInstance.get('/', async (request: SheetRequest, reply) => {
+        fastifyInstance.get('/', async (request: SheetRequest<PreviewQueryParams>, reply) => {
 
 
             const serverUrl = this.frontendPaths.staticFilePath;
@@ -53,10 +53,14 @@ export class PreviewServer extends ServerBase {
             // Fetch original index.html
             const responsePromise = nonCachedFetch(serverUrl + '/index.html', undefined);
             try {
-                const merged = getMergedQueryParams(request);
+                const merged = getMergedQueryParams(request, {
+                    [HASH_QUERY_PARAM]: stringParam,
+                    [ONLY_SET_QUERY_PARAM]: intParam,
+                    [SELECTION_INDEX_QUERY_PARAM]: intParam,
+                });
                 const path = merged[HASH_QUERY_PARAM] ?? '';
-                const osIndex: number | undefined = tryParseOptionalIntParam(merged[ONLY_SET_QUERY_PARAM]);
-                const selIndex: number | undefined = tryParseOptionalIntParam(merged[SELECTION_INDEX_QUERY_PARAM]);
+                const osIndex = merged[ONLY_SET_QUERY_PARAM];
+                const selIndex = merged[SELECTION_INDEX_QUERY_PARAM];
                 const pathPaths = path.split(PATH_SEPARATOR);
                 const state = new NavState(pathPaths, osIndex, selIndex);
                 const nav = parsePath(state);

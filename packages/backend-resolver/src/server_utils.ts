@@ -111,52 +111,88 @@ function fillBisBrowserData(path: string[], bisService: BisService): NavResult {
 
 export type ExportedData = SheetExport | SetExportExternalSingle;
 
-export type SheetRequest = FastifyRequest<{
-    Querystring: Record<string, string | undefined>;
+export type SheetRequest<Q = Record<string, string | undefined>> = FastifyRequest<{
+    Querystring: Q;
     Params: Record<string, string>;
 }>;
+
+export type GeneralParams = {
+    url?: string;
+    page?: string;
+    selectedIndex?: number;
+    onlySetIndex?: number;
+    exportAsSheet?: boolean;
+}
+
+export type ParamParser<P> = {
+    [K in keyof P]: (raw: string) => P[K];
+}
 
 /**
  * getMergedQueryParams combines the normal query parameters with whatever is present on the URL provided via the ?url=
  * query parameter specifically. The normal query parameters take precedence.
  * @param request
+ * @param paramParser
  */
-export function getMergedQueryParams(request: SheetRequest): Record<string, string | undefined> {
-    const result: Record<string, string | undefined> = {...(request.query ?? {})};
+export function getMergedQueryParams<P extends object>(request: { query?: Record<string, unknown> }, paramParser: ParamParser<P>): P {
+    const rawResult: Record<string, unknown> = {...(request.query ?? {})};
     // Try to pull from the full URL provided via ?url=
     const urlRaw = request.query?.['url'];
-    if (!urlRaw) {
-        return result;
-    }
-    let decoded = urlRaw;
-    try {
-        decoded = decodeURIComponent(urlRaw);
-    }
-    catch (e) {
-        // If decoding fails, assume it's already decoded
-    }
-    try {
-        // Use a dummy base to handle relative URLs or bare query strings
-        const u = new URL(decoded, 'https://dummy.invalid/');
-        // Merge all params from the parsed URL, but do not override direct params
-        u.searchParams.forEach((value, key) => {
-            if (result[key] === undefined) {
-                result[key] = value;
-            }
-        });
-        // Also parse paths for hash-based URLs
-        if (result[HASH_QUERY_PARAM] === undefined && u.hash) {
-            const hashParts = splitHashLegacy(u.hash);
-            if (hashParts.length > 0) {
-                result[HASH_QUERY_PARAM] = hashParts.join(PATH_SEPARATOR);
+    if (typeof urlRaw === 'string') {
+        let decoded = urlRaw;
+        try {
+            decoded = decodeURIComponent(urlRaw);
+        }
+        catch (e) {
+            // If decoding fails, assume it's already decoded
+        }
+        try {
+            // Use a dummy base to handle relative URLs or bare query strings
+            const u = new URL(decoded, 'https://dummy.invalid/');
+            // Merge all params from the parsed URL, but do not override direct params
+            u.searchParams.forEach((value, key) => {
+                if (rawResult[key] === undefined) {
+                    rawResult[key] = value;
+                }
+            });
+            // Also parse paths for hash-based URLs
+            if (rawResult[HASH_QUERY_PARAM] === undefined && u.hash) {
+                const hashParts = splitHashLegacy(u.hash);
+                if (hashParts.length > 0) {
+                    rawResult[HASH_QUERY_PARAM] = hashParts.join(PATH_SEPARATOR);
+                }
             }
         }
+        catch (e) {
+            // If URL parsing fails entirely, keep existing result
+        }
     }
-    catch (e) {
-        // If URL parsing fails entirely, keep existing result
+    const finalResult: Partial<P> = {};
+    for (const key in paramParser) {
+        const rawValue = rawResult[key];
+        if (rawValue !== undefined) {
+            // We know paramParser[key] expects a string because of how ParamParser is defined,
+            // but we use any here to bridge to the actual implementation.
+            // Since our parsers (stringParam, intParam, boolParam) handle their inputs robustly,
+            // this is safe.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            finalResult[key] = paramParser[key](rawValue as any);
+        }
     }
-    return result;
+    return finalResult as P;
 }
+
+export const stringParam = (raw: string) => raw;
+export const intParam = (raw: string) => {
+    const parsed = parseInt(raw);
+    return isNaN(parsed) ? undefined : parsed;
+};
+export const boolParam = (raw: string | boolean) => {
+    if (typeof raw === 'boolean') {
+        return raw;
+    }
+    return raw === 'true';
+};
 
 export function toEmbedUrl(normalUrl: URL): URL {
     const out = new URL(normalUrl.toString());
