@@ -12,7 +12,7 @@ RUN pnpm --filter @xivgear/backend-resolver build
 RUN pnpm test
 
 # To be run from project root
-FROM node:20
+FROM node:24-alpine
 RUN npm install -g pnpm
 WORKDIR /app
 COPY --from=build /build /app
