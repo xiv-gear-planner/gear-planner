@@ -24,7 +24,7 @@
           "type": "number"
         },
         "page": {
-          "description": "The page parameter, which can be a shortlink (sl|<uuid>), a BiS sheet (bis|<job>|<sheet>), or a legacy UUID.",
+          "description": "The page parameter, which can be a shortlink (sl|<uuid>) or a BiS sheet (bis|<job>|<sheet>).",
           "type": "string"
         },
         "selectedIndex": {
@@ -57,7 +57,7 @@
           "type": "number"
         },
         "page": {
-          "description": "The page parameter, which can be a shortlink (sl|<uuid>), a BiS sheet (bis|<job>|<sheet>), or a legacy UUID.",
+          "description": "The page parameter, which can be a shortlink (sl|<uuid>) or a BiS sheet (bis|<job>|<sheet>).",
           "type": "string"
         },
         "selectedIndex": {
@@ -458,7 +458,7 @@
           "type": "number"
         },
         "page": {
-          "description": "The page parameter, which can be a shortlink (sl|<uuid>), a BiS sheet (bis|<job>|<sheet>), or a legacy UUID.",
+          "description": "The page parameter, which can be a shortlink (sl|<uuid>) or a BiS sheet (bis|<job>|<sheet>).",
           "type": "string"
         },
         "partyBonus": {
@@ -509,7 +509,7 @@
           "type": "number"
         },
         "page": {
-          "description": "The page parameter, which can be a shortlink (sl|<uuid>), a BiS sheet (bis|<job>|<sheet>), or a legacy UUID.",
+          "description": "The page parameter, which can be a shortlink (sl|<uuid>) or a BiS sheet (bis|<job>|<sheet>).",
           "type": "string"
         },
         "partyBonus": {
@@ -1118,7 +1118,7 @@
           "type": "number"
         },
         "page": {
-          "description": "The page parameter, which can be a shortlink (sl|<uuid>), a BiS sheet (bis|<job>|<sheet>), or a legacy UUID.",
+          "description": "The page parameter, which can be a shortlink (sl|<uuid>) or a BiS sheet (bis|<job>|<sheet>).",
           "type": "string"
         },
         "selectedIndex": {
@@ -1963,7 +1963,7 @@
           "type": "number"
         },
         "page": {
-          "description": "The page parameter, which can be a shortlink (sl|<uuid>), a BiS sheet (bis|<job>|<sheet>), or a legacy UUID.",
+          "description": "The page parameter, which can be a shortlink (sl|<uuid>) or a BiS sheet (bis|<job>|<sheet>).",
           "type": "string"
         },
         "selectedIndex": {

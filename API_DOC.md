@@ -45,12 +45,13 @@ allows you to do things like overriding the party bonus, regardless of what was 
 
 Note that both basedata and fulldata endpoints return a [SheetStatsExport](https://xivgear.app/docs/interfaces/_xivgear_xivmath.geartypes.SheetStatsExport.html) object, even if the underlying data is a single-set export.
 
-### All Parameters
+### Parameters
 
 The fulldata endpoint accepts some URL query parameters:
 - `url` - a full URL.
 - `page` - a page path.
 - `partyBonus` - override the party bonus. Specify as a number, i.e. `?partyBonus=3`.
+- `onlySetIndex` - override the set index. Specify as a number, i.e. `?onlySetIndex=2`.
 
 ### Old Way
 

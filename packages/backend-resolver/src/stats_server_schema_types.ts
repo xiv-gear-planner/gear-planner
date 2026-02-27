@@ -62,7 +62,7 @@ export type FullDataResponse = SheetStatsExport;
  */
 export type BaseQueryParams = {
     /**
-     * The page parameter, which can be a shortlink (sl|<uuid>), a BiS sheet (bis|<job>|<sheet>), or a legacy UUID.
+     * The page parameter, which can be a shortlink (sl|<uuid>) or a BiS sheet (bis|<job>|<sheet>).
      */
     page?: string;
     /**
