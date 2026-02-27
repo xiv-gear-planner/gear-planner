@@ -11,7 +11,7 @@ The main changes are:
   (appropriately encoded) URL. This means you no longer have to worry about URL parameters yourself. The old way of
   specifying the various parameters still works, and explicit parameters will take precedence over those in the URL.
   - For example, `/fulldata?page=foo&onlySetIndex=1` is equivalent to `/fulldata?url=${urlEncode(https://xivgear.app/?page=foo&onlySetIndex=1)}`
-- `/basedata` has an optional parameter to always retrieve as a set TODO finish writing this. 
+- `/basedata` has an optional parameter to retrieve a single set as if it were a full sheet.
 - There is a swagger UI and schema available at [https://api.xivgear.app/swagger-ui](https://api.xivgear.app/swagger-ui)
 
 The API is available to use for retrieving gear sheets and sets.
