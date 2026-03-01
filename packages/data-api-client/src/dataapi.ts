@@ -30,6 +30,8 @@ export enum GearAcquisitionSource {
   Artifact = "Artifact",
   AllianceRaid = "AllianceRaid",
   Criterion = "Criterion",
+  DeepDungeon = "DeepDungeon",
+  FieldOperation = "FieldOperation",
   Other = "Other",
   Custom = "Custom",
   Unknown = "Unknown",
@@ -172,11 +174,6 @@ export interface GameVersion {
 
 export type Icon = XivApiStruct &
   XivApiBase & {
-    /**
-     * @deprecated
-     * @format uri
-     */
-    pngIconUrl: string;
     /** @format uri */
     url: string;
   };
