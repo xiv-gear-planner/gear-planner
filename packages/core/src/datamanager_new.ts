@@ -26,7 +26,8 @@ import {
     MateriaSlot,
     OccGearSlotKey,
     RawStatKey,
-    RawStats, RawStatsPart,
+    RawStats,
+    RawStatsPart,
     RelicStatModel
 } from "@xivgear/xivmath/geartypes";
 import {BaseParamToStatKey, RelevantBaseParam} from "./external/xivapitypes";
@@ -758,6 +759,12 @@ export class DataApiGearInfo implements GearItem {
                 break;
             case AcqSrc.Criterion:
                 this.acquisitionType = 'criterion';
+                break;
+            case AcqSrc.DeepDungeon:
+                this.acquisitionType = 'deepdungeon';
+                break;
+            case AcqSrc.FieldOperation:
+                this.acquisitionType = 'fieldoperation';
                 break;
             case AcqSrc.Other:
                 this.acquisitionType = 'other';

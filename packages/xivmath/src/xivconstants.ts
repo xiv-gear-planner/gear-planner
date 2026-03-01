@@ -877,6 +877,10 @@ export function formatAcquisitionSource(source: GearAcquisitionSource): string |
             return "Ex. Trial";
         case "alliance":
             return "Alliance Raid";
+        case "fieldoperation":
+            return "Field operation";
+        case "deepdungeon":
+            return "Deep Dungeon";
         case "other":
             return null;
     }

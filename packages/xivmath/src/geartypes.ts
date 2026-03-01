@@ -1215,6 +1215,8 @@ export type GearAcquisitionSource =
     | 'artifact'
     | 'alliance'
     | 'criterion'
+    | 'deepdungeon'
+    | 'fieldoperation'
     | 'other'
     | 'custom';
 
