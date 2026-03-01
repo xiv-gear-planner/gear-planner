@@ -87,7 +87,7 @@ class SettingsModal extends BaseModal {
 }
 
 export function showSettingsModal() {
-    const dialog = document.createElement('settings-modal') as SettingsModal;
+    const dialog = new SettingsModal();
     dialog.attachAndShowExclusively();
     recordEvent('openSettingsModal');
 }
