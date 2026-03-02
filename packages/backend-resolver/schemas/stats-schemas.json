@@ -1,0 +1,2020 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "AttackType": {
+      "enum": [
+        "Unknown",
+        "Auto-attack",
+        "Spell",
+        "Weaponskill",
+        "Ability",
+        "Item"
+      ],
+      "type": "string"
+    },
+    "BaseDataQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "exportAsSheet": {
+          "description": "If true, and the result would normally be a single set, it will be wrapped in a sheet export instead.",
+          "type": "boolean"
+        },
+        "onlySetIndex": {
+          "description": "If provided, only the set at this index will be loaded. This is often used for embedding or extracting a single set.",
+          "type": "number"
+        },
+        "page": {
+          "description": "The page parameter, which can be a shortlink (sl|<uuid>) or a BiS sheet (bis|<job>|<sheet>).",
+          "type": "string"
+        },
+        "selectedIndex": {
+          "description": "The index of the set that should be selected by default.",
+          "type": "number"
+        },
+        "url": {
+          "description": "A full URL to a sheet or set. If provided, it will be parsed for page, onlySetIndex, and selectedIndex. These can still be overridden by providing the specific parameters directly.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "BaseDataResponse": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/SheetExport"
+        },
+        {
+          "$ref": "#/definitions/SetExportExternalSingle"
+        }
+      ]
+    },
+    "BaseQueryParams": {
+      "additionalProperties": false,
+      "description": "Base parameters for locating a particular sheet or set.",
+      "properties": {
+        "onlySetIndex": {
+          "description": "If provided, only the set at this index will be loaded. This is often used for embedding or extracting a single set.",
+          "type": "number"
+        },
+        "page": {
+          "description": "The page parameter, which can be a shortlink (sl|<uuid>) or a BiS sheet (bis|<job>|<sheet>).",
+          "type": "string"
+        },
+        "selectedIndex": {
+          "description": "The index of the set that should be selected by default.",
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "ComputedSetStats": {
+      "additionalProperties": false,
+      "properties": {
+        "aaDelay": {
+          "description": "Auto-attack delay",
+          "type": "number"
+        },
+        "aaMulti": {
+          "description": "Like wdMulti, but for auto-attacks",
+          "type": "number"
+        },
+        "aaStatMulti": {
+          "description": "Like mainStatMulti, but for auto-attacks (since healers and casters use STR for autos but MND/INT for everything else).",
+          "type": "number"
+        },
+        "autoCritBuffMulti": {
+          "description": "Bonus added to crit multi by crit chance buffs when auto-critting.",
+          "type": "number"
+        },
+        "autoDhBonus": {
+          "description": "Bonus added to det multiplier for automatic direct hits",
+          "type": "number"
+        },
+        "autoDhitBuffMulti": {
+          "description": "Bonus added to DH multi by DH chance buffs when auto-DHing.",
+          "type": "number"
+        },
+        "baseMainStatPlusRace": {
+          "description": "Base main stat, multiplied by the job stat multiplier, plus racial bonus. For example, the main stat (e.g. 440 at level 100) multiplied by the jobStatMultiplier (e.g. 1.05 at level 100) plus the racial stat (e.g. +3 for The Lost's strength). This is useful for being able to unwind it later for abilities with different scaling, e.g. Living Shadow.",
+          "type": "number"
+        },
+        "crit": {
+          "type": "number"
+        },
+        "critChance": {
+          "description": "Crit chance. Ranges from 0 to 1.",
+          "type": "number"
+        },
+        "critMulti": {
+          "description": "Crit multiplier. 1.0 would be the base, e.g. +50% would be 1.5.",
+          "type": "number"
+        },
+        "defenseDamageTaken": {
+          "description": "The damage taken ratio based on the defense stat. e.g. 0.95 would mean 5% damage reduction.",
+          "type": "number"
+        },
+        "defenseMag": {
+          "type": "number"
+        },
+        "defensePhys": {
+          "type": "number"
+        },
+        "detMulti": {
+          "description": "Multiplier from determination stat.",
+          "type": "number"
+        },
+        "determination": {
+          "type": "number"
+        },
+        "dexterity": {
+          "type": "number"
+        },
+        "dhit": {
+          "type": "number"
+        },
+        "dhitChance": {
+          "description": "Direct hit chance. Ranges from 0 to 1.",
+          "type": "number"
+        },
+        "dhitMulti": {
+          "description": "Direct hit multiplier. Fixed at 1.25.",
+          "type": "number"
+        },
+        "effectiveFoodBonuses": {
+          "$ref": "#/definitions/RawStats"
+        },
+        "gearHaste": {
+          "type": "number"
+        },
+        "gearStats": {
+          "$ref": "#/definitions/RawStats",
+          "description": "Stats coming from the gear pre-party bonus. Important for some abilities' alternate scalings (e.g. Living Shadow)."
+        },
+        "hp": {
+          "type": "number"
+        },
+        "intelligence": {
+          "type": "number"
+        },
+        "job": {
+          "$ref": "#/definitions/JobName",
+          "description": "Current class/job"
+        },
+        "jobStats": {
+          "$ref": "#/definitions/JobData",
+          "description": "Job modifier data"
+        },
+        "level": {
+          "$ref": "#/definitions/SupportedLevel",
+          "description": "Current level"
+        },
+        "levelStats": {
+          "$ref": "#/definitions/LevelStats",
+          "description": "Current level stats modifier"
+        },
+        "magicDefenseDamageTaken": {
+          "description": "The damage taken ratio based on the magic defense stat. e.g. 0.95 would mean 5% damage reduction.",
+          "type": "number"
+        },
+        "mainStatMulti": {
+          "description": "Multiplier from main stat.",
+          "type": "number"
+        },
+        "mind": {
+          "type": "number"
+        },
+        "mpPerTick": {
+          "description": "MP Per Tick",
+          "type": "number"
+        },
+        "piety": {
+          "type": "number"
+        },
+        "skillspeed": {
+          "type": "number"
+        },
+        "sksDotMulti": {
+          "description": "Skill Speed DoT multiplier.",
+          "type": "number"
+        },
+        "spellspeed": {
+          "type": "number"
+        },
+        "spsDotMulti": {
+          "description": "Spell Speed DoT multiplier.",
+          "type": "number"
+        },
+        "strength": {
+          "type": "number"
+        },
+        "tenacity": {
+          "type": "number"
+        },
+        "tncIncomingMulti": {
+          "description": "Tenacity incoming multiplier. e.g. 0.95 => 5% damage reduction.",
+          "type": "number"
+        },
+        "tncMulti": {
+          "description": "Tenacity Multiplier",
+          "type": "number"
+        },
+        "vitality": {
+          "type": "number"
+        },
+        "wdMag": {
+          "type": "number"
+        },
+        "wdMulti": {
+          "description": "Multiplier from weapon damage.",
+          "type": "number"
+        },
+        "wdMultiPetAction": {
+          "description": "Pet action WD multiplier. Uses a slightly lower job modifier.",
+          "type": "number"
+        },
+        "wdPhys": {
+          "type": "number"
+        },
+        "weaponDelay": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "aaDelay",
+        "aaMulti",
+        "aaStatMulti",
+        "autoCritBuffMulti",
+        "autoDhBonus",
+        "autoDhitBuffMulti",
+        "baseMainStatPlusRace",
+        "crit",
+        "critChance",
+        "critMulti",
+        "defenseDamageTaken",
+        "defenseMag",
+        "defensePhys",
+        "detMulti",
+        "determination",
+        "dexterity",
+        "dhit",
+        "dhitChance",
+        "dhitMulti",
+        "effectiveFoodBonuses",
+        "gearHaste",
+        "gearStats",
+        "hp",
+        "intelligence",
+        "job",
+        "jobStats",
+        "level",
+        "levelStats",
+        "magicDefenseDamageTaken",
+        "mainStatMulti",
+        "mind",
+        "mpPerTick",
+        "piety",
+        "skillspeed",
+        "sksDotMulti",
+        "spellspeed",
+        "spsDotMulti",
+        "strength",
+        "tenacity",
+        "tncIncomingMulti",
+        "tncMulti",
+        "vitality",
+        "wdMag",
+        "wdMulti",
+        "wdMultiPetAction",
+        "wdPhys",
+        "weaponDelay"
+      ],
+      "type": "object"
+    },
+    "CustomFoodExport": {
+      "additionalProperties": false,
+      "properties": {
+        "fakeId": {
+          "type": "number"
+        },
+        "ilvl": {
+          "type": "number"
+        },
+        "name": {
+          "type": "string"
+        },
+        "primaryStat": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Substat"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "primaryStatBonus": {
+          "$ref": "#/definitions/FoodStatBonus"
+        },
+        "secondaryStat": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Substat"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "secondaryStatBonus": {
+          "$ref": "#/definitions/FoodStatBonus"
+        },
+        "vitalityBonus": {
+          "$ref": "#/definitions/FoodStatBonus"
+        }
+      },
+      "required": [
+        "ilvl",
+        "name",
+        "fakeId",
+        "vitalityBonus",
+        "primaryStat",
+        "primaryStatBonus",
+        "secondaryStat",
+        "secondaryStatBonus"
+      ],
+      "type": "object"
+    },
+    "CustomItemExport": {
+      "additionalProperties": false,
+      "properties": {
+        "equipLvl": {
+          "type": "number"
+        },
+        "fakeId": {
+          "type": "number"
+        },
+        "ilvl": {
+          "type": "number"
+        },
+        "isUnique": {
+          "type": "boolean"
+        },
+        "largeMateriaSlots": {
+          "type": "number"
+        },
+        "materiaGrade": {
+          "type": "number"
+        },
+        "name": {
+          "type": "string"
+        },
+        "respectCaps": {
+          "type": "boolean"
+        },
+        "slot": {
+          "$ref": "#/definitions/NormalOccGearSlotKey"
+        },
+        "smallMateriaSlots": {
+          "type": "number"
+        },
+        "stats": {
+          "$ref": "#/definitions/RawStats"
+        }
+      },
+      "required": [
+        "ilvl",
+        "equipLvl",
+        "largeMateriaSlots",
+        "smallMateriaSlots",
+        "materiaGrade",
+        "name",
+        "fakeId",
+        "slot",
+        "isUnique",
+        "stats",
+        "respectCaps"
+      ],
+      "type": "object"
+    },
+    "EmbedCheckQuery": {
+      "$ref": "#/definitions/StatsQueryParams"
+    },
+    "EmbedCheckResponse": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "isValid": {
+              "const": true,
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "isValid"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "isValid": {
+              "const": false,
+              "type": "boolean"
+            },
+            "reason": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "isValid",
+            "reason"
+          ],
+          "type": "object"
+        }
+      ],
+      "description": "Response of an embed validation response. Returns isValid: true and no message, or isValid: false and a message."
+    },
+    "FoodStatBonus": {
+      "additionalProperties": false,
+      "properties": {
+        "max": {
+          "type": "number"
+        },
+        "percentage": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "percentage",
+        "max"
+      ],
+      "type": "object"
+    },
+    "FullDataQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "onlySetIndex": {
+          "description": "If provided, only the set at this index will be loaded. This is often used for embedding or extracting a single set.",
+          "type": "number"
+        },
+        "page": {
+          "description": "The page parameter, which can be a shortlink (sl|<uuid>) or a BiS sheet (bis|<job>|<sheet>).",
+          "type": "string"
+        },
+        "partyBonus": {
+          "description": "Override the party bonus (0-5) for the calculation.",
+          "type": [
+            "number",
+            "string"
+          ]
+        },
+        "selectedIndex": {
+          "description": "The index of the set that should be selected by default.",
+          "type": "number"
+        },
+        "url": {
+          "description": "A full URL to a sheet or set. If provided, it will be parsed for page, onlySetIndex, and selectedIndex. These can still be overridden by providing the specific parameters directly.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "FullDataResponse": {
+      "$ref": "#/definitions/SheetStatsExport"
+    },
+    "HasteBonus": {
+      "$comment": "(attackType: AttackType) => number",
+      "description": "Function from an attack type to a haste amount. Haste amount is percentage, e.g. 20 haste = 20% faster.",
+      "properties": {
+        "namedArgs": {
+          "additionalProperties": false,
+          "properties": {
+            "attackType": {
+              "$ref": "#/definitions/AttackType"
+            }
+          },
+          "required": [
+            "attackType"
+          ],
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "ImportExportSheetQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "onlySetIndex": {
+          "description": "If provided, only the set at this index will be loaded. This is often used for embedding or extracting a single set.",
+          "type": "number"
+        },
+        "page": {
+          "description": "The page parameter, which can be a shortlink (sl|<uuid>) or a BiS sheet (bis|<job>|<sheet>).",
+          "type": "string"
+        },
+        "partyBonus": {
+          "description": "Override the party bonus (0-5) for the calculation.",
+          "type": [
+            "number",
+            "string"
+          ]
+        },
+        "selectedIndex": {
+          "description": "The index of the set that should be selected by default.",
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "ItemDisplaySettings": {
+      "additionalProperties": false,
+      "properties": {
+        "higherRelics": {
+          "description": "Show relics which exceed  {@link  #maxILvl }",
+          "type": "boolean"
+        },
+        "maxILvl": {
+          "description": "Max ilvl for gear items",
+          "type": "number"
+        },
+        "maxILvlFood": {
+          "description": "Max ilvl for food items",
+          "type": "number"
+        },
+        "minILvl": {
+          "description": "Min ilvl for gear items",
+          "type": "number"
+        },
+        "minILvlFood": {
+          "description": "Min ilvl for food items",
+          "type": "number"
+        },
+        "showNq": {
+          "description": "Show NQ items in addition to their HQ counterparts",
+          "type": "boolean"
+        },
+        "showOneStatFood": {
+          "description": "Show food with only one relevant stat",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "minILvl",
+        "maxILvl",
+        "minILvlFood",
+        "maxILvlFood",
+        "higherRelics",
+        "showNq",
+        "showOneStatFood"
+      ],
+      "type": "object"
+    },
+    "ItemSlotExport": {
+      "additionalProperties": false,
+      "description": "Represents an item.",
+      "properties": {
+        "forceNq": {
+          "description": "Force this to be an NQ item instead of HQ if available.",
+          "type": "boolean"
+        },
+        "id": {
+          "description": "Item ID",
+          "type": "number"
+        },
+        "materia": {
+          "description": "Materia equipped in the slot",
+          "items": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "description": "The item ID of this materia. -1 indicates no materia equipped in this slot.",
+                    "type": "number"
+                  },
+                  "locked": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "type": "object"
+              },
+              {
+                "not": {}
+              }
+            ]
+          },
+          "type": "array"
+        },
+        "relicStats": {
+          "$ref": "#/definitions/RelicStatsExport",
+          "description": "If this is a relic, represents the current stats of the relic."
+        }
+      },
+      "required": [
+        "id",
+        "materia"
+      ],
+      "type": "object"
+    },
+    "ItemsSlotsExport": {
+      "additionalProperties": false,
+      "properties": {
+        "Body": {
+          "$ref": "#/definitions/ItemSlotExport"
+        },
+        "Ears": {
+          "$ref": "#/definitions/ItemSlotExport"
+        },
+        "Feet": {
+          "$ref": "#/definitions/ItemSlotExport"
+        },
+        "Hand": {
+          "$ref": "#/definitions/ItemSlotExport"
+        },
+        "Head": {
+          "$ref": "#/definitions/ItemSlotExport"
+        },
+        "Legs": {
+          "$ref": "#/definitions/ItemSlotExport"
+        },
+        "Neck": {
+          "$ref": "#/definitions/ItemSlotExport"
+        },
+        "OffHand": {
+          "$ref": "#/definitions/ItemSlotExport"
+        },
+        "RingLeft": {
+          "$ref": "#/definitions/ItemSlotExport"
+        },
+        "RingRight": {
+          "$ref": "#/definitions/ItemSlotExport"
+        },
+        "Weapon": {
+          "$ref": "#/definitions/ItemSlotExport"
+        },
+        "Wrist": {
+          "$ref": "#/definitions/ItemSlotExport"
+        }
+      },
+      "type": "object"
+    },
+    "JobData": {
+      "additionalProperties": false,
+      "description": "JobData is the combination of  {@link  JobDataConst }  and other data pulled from Xivapi.",
+      "properties": {
+        "aaPotency": {
+          "description": "Auto-attack potency amount",
+          "type": "number"
+        },
+        "autoAttackStat": {
+          "$ref": "#/definitions/Mainstat",
+          "description": "The primary stat as used for auto-attack calculations specifically"
+        },
+        "excludedRelicSubstats": {
+          "description": "Substats which are NOT already in  {@link  irrelevantSubstats } , but which cannot be put onto custom relics.\n\ne.g. Healers and Tanks cannot put DHit on their custom relics.",
+          "items": {
+            "$ref": "#/definitions/Substat"
+          },
+          "type": "array"
+        },
+        "gcdDisplayOverrides": {
+          "$comment": "(level: SupportedLevel) => (GcdDisplayOverride[]) | null",
+          "description": "Override the GCD columns to display in the main gear table.\n\nYou can specify multiple columns.\n\nCan return null to keep the defaults.",
+          "properties": {
+            "namedArgs": {
+              "additionalProperties": false,
+              "properties": {
+                "level": {
+                  "$ref": "#/definitions/SupportedLevel"
+                }
+              },
+              "required": [
+                "level"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "irrelevantSubstats": {
+          "description": "Substats which are completely irrelevant to this class, e.g. TNC on non-tanks",
+          "items": {
+            "$ref": "#/definitions/Substat"
+          },
+          "type": "array"
+        },
+        "jobStatMultipliers": {
+          "$ref": "#/definitions/JobMultipliers"
+        },
+        "mainStat": {
+          "$ref": "#/definitions/Mainstat",
+          "description": "The primary stat"
+        },
+        "maxLevel": {
+          "$ref": "#/definitions/SupportedLevel",
+          "description": "The maximum level of the job."
+        },
+        "meldParamIndex": {
+          "description": "Which BaseParam.MeldParam index to use for calculating stat caps. Makes hardcoded itemStatCapMultipliers obsolete. Since these only have numeric indices with no indication of which is which, it is derived from looking at gear pieces of the same ilvl and comparing their stats across different jobs. However, there are many rows which are identical for",
+          "type": "number"
+        },
+        "offhand": {
+          "description": "True if this class uses 1H+Offhand rather than 2H weapons",
+          "type": "boolean"
+        },
+        "role": {
+          "$ref": "#/definitions/RoleKey",
+          "description": "The role of the job"
+        },
+        "traitMulti": {
+          "$comment": "(level: number, attackType: AttackType) => number",
+          "description": "Optional function to apply a damage multiplication trait.",
+          "properties": {
+            "namedArgs": {
+              "additionalProperties": false,
+              "properties": {
+                "attackType": {
+                  "$ref": "#/definitions/AttackType"
+                },
+                "level": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "level",
+                "attackType"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "traits": {
+          "description": "Optional list of stat-modifying traits",
+          "items": {
+            "$ref": "#/definitions/JobTrait"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "aaPotency",
+        "autoAttackStat",
+        "excludedRelicSubstats",
+        "jobStatMultipliers",
+        "mainStat",
+        "maxLevel",
+        "meldParamIndex",
+        "role"
+      ],
+      "type": "object"
+    },
+    "JobMultipliers": {
+      "additionalProperties": false,
+      "properties": {
+        "dexterity": {
+          "type": "number"
+        },
+        "hp": {
+          "type": "number"
+        },
+        "intelligence": {
+          "type": "number"
+        },
+        "mind": {
+          "type": "number"
+        },
+        "strength": {
+          "type": "number"
+        },
+        "vitality": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "dexterity",
+        "hp",
+        "intelligence",
+        "mind",
+        "strength",
+        "vitality"
+      ],
+      "type": "object"
+    },
+    "JobName": {
+      "description": "Supported Jobs.",
+      "enum": [
+        "PLD",
+        "WAR",
+        "DRK",
+        "GNB",
+        "WHM",
+        "SCH",
+        "AST",
+        "SGE",
+        "MNK",
+        "DRG",
+        "NIN",
+        "SAM",
+        "RPR",
+        "VPR",
+        "BRD",
+        "MCH",
+        "DNC",
+        "BLM",
+        "SMN",
+        "RDM",
+        "PCT",
+        "BLU"
+      ],
+      "type": "string"
+    },
+    "JobTrait": {
+      "additionalProperties": false,
+      "properties": {
+        "apply": {
+          "$ref": "#/definitions/TraitFunc"
+        },
+        "maxLevel": {
+          "type": "number"
+        },
+        "minLevel": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "apply"
+      ],
+      "type": "object"
+    },
+    "LevelStats": {
+      "additionalProperties": false,
+      "properties": {
+        "baseMainStat": {
+          "type": "number"
+        },
+        "baseSubStat": {
+          "type": "number"
+        },
+        "hp": {
+          "type": "number"
+        },
+        "hpScalar": {
+          "anyOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "Caster": {
+                  "type": "number"
+                },
+                "Healer": {
+                  "type": "number"
+                },
+                "Melee": {
+                  "type": "number"
+                },
+                "Ranged": {
+                  "type": "number"
+                },
+                "Tank": {
+                  "type": "number"
+                },
+                "other": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "other"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "Caster": {
+                  "type": "number"
+                },
+                "Healer": {
+                  "type": "number"
+                },
+                "Melee": {
+                  "type": "number"
+                },
+                "Ranged": {
+                  "type": "number"
+                },
+                "Tank": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "Healer",
+                "Melee",
+                "Ranged",
+                "Caster",
+                "Tank"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "level": {
+          "type": "number"
+        },
+        "levelDiv": {
+          "type": "number"
+        },
+        "mainStatPowerMod": {
+          "additionalProperties": false,
+          "properties": {
+            "Caster": {
+              "type": "number"
+            },
+            "Healer": {
+              "type": "number"
+            },
+            "Melee": {
+              "type": "number"
+            },
+            "Ranged": {
+              "type": "number"
+            },
+            "Tank": {
+              "type": "number"
+            },
+            "other": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "other"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "level",
+        "baseMainStat",
+        "baseSubStat",
+        "levelDiv",
+        "hp",
+        "hpScalar",
+        "mainStatPowerMod"
+      ],
+      "type": "object"
+    },
+    "Mainstat": {
+      "enum": [
+        "strength",
+        "dexterity",
+        "intelligence",
+        "mind",
+        "vitality"
+      ],
+      "type": "string"
+    },
+    "MateriaFillMode": {
+      "enum": [
+        "leave_empty",
+        "autofill",
+        "retain_slot_else_prio",
+        "retain_item_else_prio",
+        "retain_slot",
+        "retain_item"
+      ],
+      "type": "string"
+    },
+    "MateriaMemoryExport": {
+      "additionalProperties": false,
+      "properties": {
+        "Body": {
+          "items": {
+            "$ref": "#/definitions/SlotMateriaMemoryExport"
+          },
+          "type": "array"
+        },
+        "Ears": {
+          "items": {
+            "$ref": "#/definitions/SlotMateriaMemoryExport"
+          },
+          "type": "array"
+        },
+        "Feet": {
+          "items": {
+            "$ref": "#/definitions/SlotMateriaMemoryExport"
+          },
+          "type": "array"
+        },
+        "Hand": {
+          "items": {
+            "$ref": "#/definitions/SlotMateriaMemoryExport"
+          },
+          "type": "array"
+        },
+        "Head": {
+          "items": {
+            "$ref": "#/definitions/SlotMateriaMemoryExport"
+          },
+          "type": "array"
+        },
+        "Legs": {
+          "items": {
+            "$ref": "#/definitions/SlotMateriaMemoryExport"
+          },
+          "type": "array"
+        },
+        "Neck": {
+          "items": {
+            "$ref": "#/definitions/SlotMateriaMemoryExport"
+          },
+          "type": "array"
+        },
+        "OffHand": {
+          "items": {
+            "$ref": "#/definitions/SlotMateriaMemoryExport"
+          },
+          "type": "array"
+        },
+        "RingLeft": {
+          "items": {
+            "$ref": "#/definitions/SlotMateriaMemoryExport"
+          },
+          "type": "array"
+        },
+        "RingRight": {
+          "items": {
+            "$ref": "#/definitions/SlotMateriaMemoryExport"
+          },
+          "type": "array"
+        },
+        "Weapon": {
+          "items": {
+            "$ref": "#/definitions/SlotMateriaMemoryExport"
+          },
+          "type": "array"
+        },
+        "Wrist": {
+          "items": {
+            "$ref": "#/definitions/SlotMateriaMemoryExport"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "MateriaSubstat": {
+      "enum": [
+        "determination",
+        "piety",
+        "crit",
+        "dhit",
+        "spellspeed",
+        "skillspeed",
+        "tenacity"
+      ],
+      "type": "string"
+    },
+    "NormalOccGearSlotKey": {
+      "enum": [
+        "Weapon2H",
+        "Weapon1H",
+        "OffHand",
+        "Head",
+        "Body",
+        "Hand",
+        "Legs",
+        "Feet",
+        "Ears",
+        "Neck",
+        "Wrist",
+        "Ring"
+      ],
+      "type": "string"
+    },
+    "PartyBonusAmount": {
+      "enum": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "type": "number"
+    },
+    "PreviewQueryParams": {
+      "additionalProperties": false,
+      "description": "Parameters used by the preview server.",
+      "properties": {
+        "_cacheBust": {
+          "description": "Internal parameter used to force a refresh of the cached data.",
+          "type": "string"
+        },
+        "onlySetIndex": {
+          "description": "If provided, only the set at this index will be loaded. This is often used for embedding or extracting a single set.",
+          "type": "number"
+        },
+        "page": {
+          "description": "The page parameter, which can be a shortlink (sl|<uuid>) or a BiS sheet (bis|<job>|<sheet>).",
+          "type": "string"
+        },
+        "selectedIndex": {
+          "description": "The index of the set that should be selected by default.",
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "PutSetResponse": {
+      "additionalProperties": false,
+      "description": "Response for putting an individual set.",
+      "properties": {
+        "embedUrl": {
+          "description": "The embedded version of the direct URL to this set",
+          "type": "string"
+        },
+        "url": {
+          "description": "The direct URL to this set",
+          "type": "string"
+        }
+      },
+      "required": [
+        "url",
+        "embedUrl"
+      ],
+      "type": "object"
+    },
+    "PutSheetResponse": {
+      "additionalProperties": false,
+      "description": "Response for putting a full sheet.",
+      "properties": {
+        "sets": {
+          "description": "URLs for each individual set. Does not include separators. Use the index property to correlate them back to sets in the original input.",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "embedUrl": {
+                "description": "The embedded version of the direct URL to this set",
+                "type": "string"
+              },
+              "index": {
+                "description": "The index of the set based on the original list.",
+                "type": "number"
+              },
+              "preSelectUrl": {
+                "description": "A URL which links to the sheet, but with this set pre-selected.",
+                "type": "string"
+              },
+              "url": {
+                "description": "The direct URL to this set",
+                "type": "string"
+              }
+            },
+            "required": [
+              "embedUrl",
+              "index",
+              "preSelectUrl",
+              "url"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "url": {
+          "description": "The direct URL to the overall sheet.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "url",
+        "sets"
+      ],
+      "type": "object"
+    },
+    "RaceName": {
+      "description": "All clans/races.\n\nTODO: migrate these to be the same names on XIVAPI so that race states can be auto pulled",
+      "enum": [
+        "Duskwight",
+        "Wildwood",
+        "Raen",
+        "Xaela",
+        "Veena",
+        "Rava",
+        "Helion",
+        "The Lost",
+        "Hellsguard",
+        "Sea Wolf",
+        "Seekers of the Sun",
+        "Keepers of the Moon",
+        "Midlander",
+        "Highlander",
+        "Dunesfolk",
+        "Plainsfolk"
+      ],
+      "type": "string"
+    },
+    "RawBonusStats": {
+      "additionalProperties": false,
+      "description": "Represents post-computation stat modifications.",
+      "properties": {
+        "crit": {
+          "type": "number"
+        },
+        "critChance": {
+          "type": "number"
+        },
+        "critDmg": {
+          "type": "number"
+        },
+        "defenseMag": {
+          "type": "number"
+        },
+        "defensePhys": {
+          "type": "number"
+        },
+        "detMulti": {
+          "type": "number"
+        },
+        "determination": {
+          "type": "number"
+        },
+        "dexterity": {
+          "type": "number"
+        },
+        "dhit": {
+          "type": "number"
+        },
+        "dhitChance": {
+          "type": "number"
+        },
+        "dhitDmg": {
+          "type": "number"
+        },
+        "forceCrit": {
+          "type": "boolean"
+        },
+        "forceDh": {
+          "type": "boolean"
+        },
+        "gaugeHaste": {
+          "type": "number"
+        },
+        "gearHaste": {
+          "type": "number"
+        },
+        "hp": {
+          "type": "number"
+        },
+        "intelligence": {
+          "type": "number"
+        },
+        "mind": {
+          "type": "number"
+        },
+        "piety": {
+          "type": "number"
+        },
+        "skillspeed": {
+          "type": "number"
+        },
+        "spellspeed": {
+          "type": "number"
+        },
+        "strength": {
+          "type": "number"
+        },
+        "tenacity": {
+          "type": "number"
+        },
+        "traitHaste": {
+          "items": {
+            "$ref": "#/definitions/HasteBonus"
+          },
+          "type": "array"
+        },
+        "vitality": {
+          "type": "number"
+        },
+        "wdMag": {
+          "type": "number"
+        },
+        "wdPhys": {
+          "type": "number"
+        },
+        "weaponDelay": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "crit",
+        "critChance",
+        "critDmg",
+        "defenseMag",
+        "defensePhys",
+        "detMulti",
+        "determination",
+        "dexterity",
+        "dhit",
+        "dhitChance",
+        "dhitDmg",
+        "forceCrit",
+        "forceDh",
+        "gaugeHaste",
+        "gearHaste",
+        "hp",
+        "intelligence",
+        "mind",
+        "piety",
+        "skillspeed",
+        "spellspeed",
+        "strength",
+        "tenacity",
+        "traitHaste",
+        "vitality",
+        "wdMag",
+        "wdPhys",
+        "weaponDelay"
+      ],
+      "type": "object"
+    },
+    "RawStats": {
+      "additionalProperties": false,
+      "properties": {
+        "crit": {
+          "type": "number"
+        },
+        "defenseMag": {
+          "type": "number"
+        },
+        "defensePhys": {
+          "type": "number"
+        },
+        "determination": {
+          "type": "number"
+        },
+        "dexterity": {
+          "type": "number"
+        },
+        "dhit": {
+          "type": "number"
+        },
+        "gearHaste": {
+          "type": "number"
+        },
+        "hp": {
+          "type": "number"
+        },
+        "intelligence": {
+          "type": "number"
+        },
+        "mind": {
+          "type": "number"
+        },
+        "piety": {
+          "type": "number"
+        },
+        "skillspeed": {
+          "type": "number"
+        },
+        "spellspeed": {
+          "type": "number"
+        },
+        "strength": {
+          "type": "number"
+        },
+        "tenacity": {
+          "type": "number"
+        },
+        "vitality": {
+          "type": "number"
+        },
+        "wdMag": {
+          "type": "number"
+        },
+        "wdPhys": {
+          "type": "number"
+        },
+        "weaponDelay": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "hp",
+        "vitality",
+        "strength",
+        "dexterity",
+        "intelligence",
+        "mind",
+        "piety",
+        "crit",
+        "dhit",
+        "determination",
+        "tenacity",
+        "spellspeed",
+        "skillspeed",
+        "wdPhys",
+        "wdMag",
+        "weaponDelay",
+        "defenseMag",
+        "defensePhys",
+        "gearHaste"
+      ],
+      "type": "object"
+    },
+    "RelicStatMemoryExport": {
+      "additionalProperties": {
+        "$ref": "#/definitions/RelicStats"
+      },
+      "type": "object"
+    },
+    "RelicStats": {
+      "additionalProperties": false,
+      "properties": {
+        "crit": {
+          "type": "number"
+        },
+        "determination": {
+          "type": "number"
+        },
+        "dhit": {
+          "type": "number"
+        },
+        "piety": {
+          "type": "number"
+        },
+        "skillspeed": {
+          "type": "number"
+        },
+        "spellspeed": {
+          "type": "number"
+        },
+        "tenacity": {
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "RelicStatsExport": {
+      "additionalProperties": false,
+      "properties": {
+        "crit": {
+          "type": "number"
+        },
+        "determination": {
+          "type": "number"
+        },
+        "dhit": {
+          "type": "number"
+        },
+        "piety": {
+          "type": "number"
+        },
+        "skillspeed": {
+          "type": "number"
+        },
+        "spellspeed": {
+          "type": "number"
+        },
+        "tenacity": {
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "RoleKey": {
+      "enum": [
+        "Healer",
+        "Melee",
+        "Ranged",
+        "Caster",
+        "Tank"
+      ],
+      "type": "string"
+    },
+    "SetExport": {
+      "additionalProperties": false,
+      "description": "Represents an exported set. Note that in addition to some fields only being applicable to internal vs external usage, some fields may be present based on whether this set was exported as a standalone individual set, or as part of a full sheet.\n\nIf it is an individual sheet export, then several of the properties that would normally live at the sheet level will instead be here (such as job and level).",
+      "properties": {
+        "description": {
+          "description": "Description of the gear set. May be multi-line.",
+          "type": "string"
+        },
+        "food": {
+          "description": "Equipped food (by item ID)",
+          "type": "number"
+        },
+        "isSeparator": {
+          "description": "Indicates that this set is a separator rather than an actual set",
+          "type": "boolean"
+        },
+        "items": {
+          "$ref": "#/definitions/ItemsSlotsExport",
+          "description": "Equipped items (and their materia and/or relic stats)"
+        },
+        "jobOverride": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/JobName"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "For multi-class sheets, each set can have a different job."
+        },
+        "materiaMemory": {
+          "$ref": "#/definitions/MateriaMemoryExport",
+          "description": "When an item is de-selected, its former materia are remembered so that they can later be automatically re-equipped based on settings. They keys are slot names (so that left/right ring can be differentiated), and the values are lists of tuples of [item ID, [materia 0, materia 1, ... materia n]]"
+        },
+        "name": {
+          "description": "Name of the gear set.",
+          "type": "string"
+        },
+        "relicStatMemory": {
+          "$ref": "#/definitions/RelicStatMemoryExport",
+          "description": "When a relic is de-selected, its former stats are remembered here so that they can be recalled if the relic is selected again. They keys are item IDs, and the values are  {@link  RelicStats } ."
+        }
+      },
+      "required": [
+        "name",
+        "items"
+      ],
+      "type": "object"
+    },
+    "SetExportExternalSingle": {
+      "additionalProperties": false,
+      "description": "Type that represents a single set exported as a top-level sheet.",
+      "properties": {
+        "customFoods": {
+          "description": "Only for standalone use - Custom foods",
+          "items": {
+            "$ref": "#/definitions/CustomFoodExport"
+          },
+          "type": "array"
+        },
+        "customItems": {
+          "description": "Only for standalone use - Custom items",
+          "items": {
+            "$ref": "#/definitions/CustomItemExport"
+          },
+          "type": "array"
+        },
+        "description": {
+          "description": "Description of the gear set. May be multi-line.",
+          "type": "string"
+        },
+        "food": {
+          "description": "Equipped food (by item ID)",
+          "type": "number"
+        },
+        "ilvlSync": {
+          "description": "Only for standalone use - the ilvl sync of the set (if enabled). Same as  {@link  SheetExport#level  } .",
+          "type": "number"
+        },
+        "isSeparator": {
+          "description": "Indicates that this set is a separator rather than an actual set",
+          "type": "boolean"
+        },
+        "items": {
+          "$ref": "#/definitions/ItemsSlotsExport",
+          "description": "Equipped items (and their materia and/or relic stats)"
+        },
+        "job": {
+          "$ref": "#/definitions/JobName",
+          "description": "Only for standalone use - the job of this set. Same as  {@link  SheetExport#job  } ."
+        },
+        "jobOverride": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/JobName"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "For multi-class sheets, each set can have a different job."
+        },
+        "level": {
+          "$ref": "#/definitions/SupportedLevel",
+          "description": "Only for standalone use - the character level of the set. Same as  {@link  SheetExport#level  } ."
+        },
+        "materiaMemory": {
+          "$ref": "#/definitions/MateriaMemoryExport",
+          "description": "When an item is de-selected, its former materia are remembered so that they can later be automatically re-equipped based on settings. They keys are slot names (so that left/right ring can be differentiated), and the values are lists of tuples of [item ID, [materia 0, materia 1, ... materia n]]"
+        },
+        "name": {
+          "description": "Name of the gear set.",
+          "type": "string"
+        },
+        "partyBonus": {
+          "$ref": "#/definitions/PartyBonusAmount",
+          "description": "Party bonus percentage (0-5)"
+        },
+        "race": {
+          "$ref": "#/definitions/RaceName",
+          "description": "The character clan (e.g. Wildwood or Duskwight) of the sheet."
+        },
+        "relicStatMemory": {
+          "$ref": "#/definitions/RelicStatMemoryExport",
+          "description": "When a relic is de-selected, its former stats are remembered here so that they can be recalled if the relic is selected again. They keys are item IDs, and the values are  {@link  RelicStats } ."
+        },
+        "sims": {
+          "description": "Only for standalone use - the simulations to include with the set. Same as  {@link  SheetExport#sims  } .",
+          "items": {
+            "$ref": "#/definitions/SimExport"
+          },
+          "type": "array"
+        },
+        "specialStats": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "timestamp": {
+          "description": "Unix timestamp",
+          "type": "number"
+        }
+      },
+      "required": [
+        "items",
+        "name"
+      ],
+      "type": "object"
+    },
+    "SetStatsExport": {
+      "additionalProperties": false,
+      "description": "Special version of  {@link  SetExport }  that comes from the /fulldata/ endpoint.",
+      "properties": {
+        "computedStats": {
+          "$ref": "#/definitions/ComputedSetStats"
+        },
+        "description": {
+          "description": "Description of the gear set. May be multi-line.",
+          "type": "string"
+        },
+        "food": {
+          "description": "Equipped food (by item ID)",
+          "type": "number"
+        },
+        "isSeparator": {
+          "description": "Indicates that this set is a separator rather than an actual set",
+          "type": "boolean"
+        },
+        "items": {
+          "$ref": "#/definitions/ItemsSlotsExport",
+          "description": "Equipped items (and their materia and/or relic stats)"
+        },
+        "jobOverride": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/JobName"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "For multi-class sheets, each set can have a different job."
+        },
+        "materiaMemory": {
+          "$ref": "#/definitions/MateriaMemoryExport",
+          "description": "When an item is de-selected, its former materia are remembered so that they can later be automatically re-equipped based on settings. They keys are slot names (so that left/right ring can be differentiated), and the values are lists of tuples of [item ID, [materia 0, materia 1, ... materia n]]"
+        },
+        "name": {
+          "description": "Name of the gear set.",
+          "type": "string"
+        },
+        "relicStatMemory": {
+          "$ref": "#/definitions/RelicStatMemoryExport",
+          "description": "When a relic is de-selected, its former stats are remembered here so that they can be recalled if the relic is selected again. They keys are item IDs, and the values are  {@link  RelicStats } ."
+        }
+      },
+      "required": [
+        "computedStats",
+        "items",
+        "name"
+      ],
+      "type": "object"
+    },
+    "SheetExport": {
+      "additionalProperties": false,
+      "description": "Represents an exported set. Many of the fields fill the same role as the fields on GearPlanSheet.\n\nSome of the fields are only relevant for local saves, while others are only relevant for external (API) saves.",
+      "properties": {
+        "customFoods": {
+          "description": "Custom foods",
+          "items": {
+            "$ref": "#/definitions/CustomFoodExport"
+          },
+          "type": "array"
+        },
+        "customItems": {
+          "description": "Custom items",
+          "items": {
+            "$ref": "#/definitions/CustomItemExport"
+          },
+          "type": "array"
+        },
+        "description": {
+          "description": "Description of the gear set. May be multi-line.",
+          "type": "string"
+        },
+        "ilvlSync": {
+          "description": "If ilvl sync is enabled, this represents what level the sheet should be synced to",
+          "type": "number"
+        },
+        "isMultiJob": {
+          "description": "True if this is a multi-job sheet (within a single role)",
+          "type": "boolean"
+        },
+        "itemDisplaySettings": {
+          "$ref": "#/definitions/ItemDisplaySettings",
+          "description": "Settings regarding which items to display"
+        },
+        "job": {
+          "$ref": "#/definitions/JobName",
+          "description": "The job abbreviation for the sheet."
+        },
+        "level": {
+          "$ref": "#/definitions/SupportedLevel",
+          "description": "The level of the sheet (90, 80, etc)"
+        },
+        "mfMinGcd": {
+          "description": "The target GCD for materia auto-fill",
+          "type": "number"
+        },
+        "mfm": {
+          "$ref": "#/definitions/MateriaFillMode",
+          "description": "What to do with materia slots on newly-selected items"
+        },
+        "mfp": {
+          "description": "The materia auto-fill priority",
+          "items": {
+            "$ref": "#/definitions/MateriaSubstat"
+          },
+          "type": "array"
+        },
+        "name": {
+          "description": "Name of the sheet.",
+          "type": "string"
+        },
+        "partyBonus": {
+          "$ref": "#/definitions/PartyBonusAmount",
+          "description": "Party bonus percentage (0-5)"
+        },
+        "race": {
+          "$ref": "#/definitions/RaceName",
+          "description": "The character clan (e.g. Wildwood or Duskwight) of the sheet."
+        },
+        "saveKey": {
+          "description": "Local only: the key used to save the sheet in localStorage",
+          "type": "string"
+        },
+        "sets": {
+          "description": "The gear sets on the sheet.",
+          "items": {
+            "$ref": "#/definitions/SetExport"
+          },
+          "type": "array"
+        },
+        "sims": {
+          "description": "The simulations on this sheet.",
+          "items": {
+            "$ref": "#/definitions/SimExport"
+          },
+          "type": "array"
+        },
+        "specialStats": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "timestamp": {
+          "description": "Unix timestamp",
+          "type": "number"
+        }
+      },
+      "required": [
+        "name",
+        "job",
+        "level",
+        "sets"
+      ],
+      "type": "object"
+    },
+    "SheetStatsExport": {
+      "additionalProperties": false,
+      "properties": {
+        "customFoods": {
+          "description": "Custom foods",
+          "items": {
+            "$ref": "#/definitions/CustomFoodExport"
+          },
+          "type": "array"
+        },
+        "customItems": {
+          "description": "Custom items",
+          "items": {
+            "$ref": "#/definitions/CustomItemExport"
+          },
+          "type": "array"
+        },
+        "description": {
+          "description": "Description of the gear set. May be multi-line.",
+          "type": "string"
+        },
+        "ilvlSync": {
+          "description": "If ilvl sync is enabled, this represents what level the sheet should be synced to",
+          "type": "number"
+        },
+        "isMultiJob": {
+          "description": "True if this is a multi-job sheet (within a single role)",
+          "type": "boolean"
+        },
+        "itemDisplaySettings": {
+          "$ref": "#/definitions/ItemDisplaySettings",
+          "description": "Settings regarding which items to display"
+        },
+        "job": {
+          "$ref": "#/definitions/JobName",
+          "description": "The job abbreviation for the sheet."
+        },
+        "level": {
+          "$ref": "#/definitions/SupportedLevel",
+          "description": "The level of the sheet (90, 80, etc)"
+        },
+        "mfMinGcd": {
+          "description": "The target GCD for materia auto-fill",
+          "type": "number"
+        },
+        "mfm": {
+          "$ref": "#/definitions/MateriaFillMode",
+          "description": "What to do with materia slots on newly-selected items"
+        },
+        "mfp": {
+          "description": "The materia auto-fill priority",
+          "items": {
+            "$ref": "#/definitions/MateriaSubstat"
+          },
+          "type": "array"
+        },
+        "name": {
+          "description": "Name of the sheet.",
+          "type": "string"
+        },
+        "partyBonus": {
+          "$ref": "#/definitions/PartyBonusAmount",
+          "description": "Party bonus percentage (0-5)"
+        },
+        "race": {
+          "$ref": "#/definitions/RaceName",
+          "description": "The character clan (e.g. Wildwood or Duskwight) of the sheet."
+        },
+        "saveKey": {
+          "description": "Local only: the key used to save the sheet in localStorage",
+          "type": "string"
+        },
+        "sets": {
+          "description": "The gear sets on the sheet.",
+          "items": {
+            "$ref": "#/definitions/SetStatsExport"
+          },
+          "type": "array"
+        },
+        "sims": {
+          "description": "The simulations on this sheet.",
+          "items": {
+            "$ref": "#/definitions/SimExport"
+          },
+          "type": "array"
+        },
+        "specialStats": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "timestamp": {
+          "description": "Unix timestamp",
+          "type": "number"
+        }
+      },
+      "required": [
+        "job",
+        "level",
+        "name",
+        "sets"
+      ],
+      "type": "object"
+    },
+    "SimExport": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "settings": {
+          "type": "object"
+        },
+        "stub": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stub",
+        "settings"
+      ],
+      "type": "object"
+    },
+    "SlotMateriaMemoryExport": {
+      "items": [
+        {
+          "title": "item",
+          "type": "number"
+        },
+        {
+          "items": {
+            "type": "number"
+          },
+          "title": "materiaIds",
+          "type": "array"
+        },
+        {
+          "items": {
+            "type": "boolean"
+          },
+          "title": "locked",
+          "type": "array"
+        }
+      ],
+      "maxItems": 3,
+      "minItems": 3,
+      "type": "array"
+    },
+    "StatsQueryParams": {
+      "additionalProperties": false,
+      "description": "Parameters used by the stats server.",
+      "properties": {
+        "onlySetIndex": {
+          "description": "If provided, only the set at this index will be loaded. This is often used for embedding or extracting a single set.",
+          "type": "number"
+        },
+        "page": {
+          "description": "The page parameter, which can be a shortlink (sl|<uuid>) or a BiS sheet (bis|<job>|<sheet>).",
+          "type": "string"
+        },
+        "selectedIndex": {
+          "description": "The index of the set that should be selected by default.",
+          "type": "number"
+        },
+        "url": {
+          "description": "A full URL to a sheet or set. If provided, it will be parsed for page, onlySetIndex, and selectedIndex. These can still be overridden by providing the specific parameters directly.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Substat": {
+      "enum": [
+        "determination",
+        "piety",
+        "crit",
+        "dhit",
+        "spellspeed",
+        "skillspeed",
+        "tenacity"
+      ],
+      "type": "string"
+    },
+    "SupportedLevel": {
+      "enum": [
+        70,
+        80,
+        90,
+        100
+      ],
+      "type": "number"
+    },
+    "TraitFunc": {
+      "$comment": "(stats: RawBonusStats) => void",
+      "properties": {
+        "namedArgs": {
+          "additionalProperties": false,
+          "properties": {
+            "stats": {
+              "$ref": "#/definitions/RawBonusStats"
+            }
+          },
+          "required": [
+            "stats"
+          ],
+          "type": "object"
+        }
+      },
+      "type": "object"
+    }
+  }
+}

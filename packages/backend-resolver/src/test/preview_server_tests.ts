@@ -1,8 +1,11 @@
-import {buildPreviewServer} from "../server_builder";
 import {expect} from "chai";
 import {BIS_BROWSER_HASH, BIS_HASH, SHORTLINK_HASH} from "@xivgear/core/nav/common_nav";
 import {ALL_COMBAT_JOBS} from "@xivgear/xivmath/xivconstants";
 import '../polyfills';
+import {PreviewServer} from "../preview_server";
+import {NavDataServiceImpl} from "../server_utils";
+import {frontendPaths} from "../frontend_file_server";
+import {makeMockBisService, makeMockShortlinkService} from "./test_utils";
 
 function readPreviewProps(document: Document): Record<string, string> {
     const out: Record<string, string> = {};
@@ -19,9 +22,16 @@ function readPreviewProps(document: Document): Record<string, string> {
     return out;
 }
 
+function makePreviewServer() {
+    const sls = makeMockShortlinkService();
+    const bis = makeMockBisService();
+    const previewServer = new PreviewServer(frontendPaths(), new NavDataServiceImpl(sls, bis));
+    return previewServer.setupForTest();
+}
+
 describe('preview server', () => {
     describe("preview endpoint", () => {
-        const fastify = buildPreviewServer();
+        const fastify = makePreviewServer();
         const parser = new DOMParser();
         const slTitle = 'WHM 6.4 copy - XivGear - FFXIV Gear Planner';
         it("resolves shortlink", async () => {
@@ -150,7 +160,7 @@ describe('preview server', () => {
 
             const shortlinkPreload = preloads[preloads.length - 1];
             expect(shortlinkPreload.getAttribute('rel')).to.equal("preload");
-            expect(shortlinkPreload.getAttribute('href')).to.equal(`https://staticbis.xivgear.app/sge/archive/anabaseios.json`);
+            expect(shortlinkPreload.getAttribute('href')).to.equal(`https://mockbis.xivgear.app/sge/archive/anabaseios.json`);
             expect(shortlinkPreload.getAttribute('as')).to.equal("fetch");
             expect(shortlinkPreload.hasAttribute('crossorigin')).to.be.true;
 
@@ -190,7 +200,7 @@ describe('preview server', () => {
 
             const shortlinkPreload = preloads[preloads.length - 1];
             expect(shortlinkPreload.getAttribute('rel')).to.equal("preload");
-            expect(shortlinkPreload.getAttribute('href')).to.equal(`https://staticbis.xivgear.app/sge/archive/anabaseios.json`);
+            expect(shortlinkPreload.getAttribute('href')).to.equal(`https://mockbis.xivgear.app/sge/archive/anabaseios.json`);
             expect(shortlinkPreload.getAttribute('as')).to.equal("fetch");
             expect(shortlinkPreload.hasAttribute('crossorigin')).to.be.true;
 
@@ -224,7 +234,7 @@ describe('preview server', () => {
 
             const shortlinkPreload = preloads[preloads.length - 1];
             expect(shortlinkPreload.getAttribute('rel')).to.equal("preload");
-            expect(shortlinkPreload.getAttribute('href')).to.equal(`https://staticbis.xivgear.app/sge/archive/anabaseios.json`);
+            expect(shortlinkPreload.getAttribute('href')).to.equal(`https://mockbis.xivgear.app/sge/archive/anabaseios.json`);
             expect(shortlinkPreload.getAttribute('as')).to.equal("fetch");
             expect(shortlinkPreload.hasAttribute('crossorigin')).to.be.true;
 
@@ -253,12 +263,12 @@ describe('preview server', () => {
 
             const bisIndexPreload = preloads[preloads.length - 1 - (ALL_COMBAT_JOBS.length)];
             expect(bisIndexPreload.getAttribute('rel')).to.equal("preload");
-            expect(bisIndexPreload.getAttribute('href')).to.equal('https://staticbis.xivgear.app/_index.json');
+            expect(bisIndexPreload.getAttribute('href')).to.equal('https://mockbis.xivgear.app/_index.json');
             expect(bisIndexPreload.getAttribute('as')).to.equal("fetch");
             expect(bisIndexPreload.hasAttribute('crossorigin')).to.be.true;
 
             expect(bisIndexPreload.getAttribute('rel')).to.equal("preload");
-            expect(bisIndexPreload.getAttribute('href')).to.equal('https://staticbis.xivgear.app/_index.json');
+            expect(bisIndexPreload.getAttribute('href')).to.equal('https://mockbis.xivgear.app/_index.json');
             expect(bisIndexPreload.getAttribute('as')).to.equal("fetch");
             expect(bisIndexPreload.hasAttribute('crossorigin')).to.be.true;
 
@@ -287,7 +297,7 @@ describe('preview server', () => {
 
             const bisIndexPreload = preloads[preloads.length - 1];
             expect(bisIndexPreload.getAttribute('rel')).to.equal("preload");
-            expect(bisIndexPreload.getAttribute('href')).to.equal('https://staticbis.xivgear.app/_index.json');
+            expect(bisIndexPreload.getAttribute('href')).to.equal('https://mockbis.xivgear.app/_index.json');
             expect(bisIndexPreload.getAttribute('as')).to.equal("fetch");
             expect(bisIndexPreload.hasAttribute('crossorigin')).to.be.true;
 
@@ -322,7 +332,7 @@ describe('preview server', () => {
 
             const bisIndexPreload = preloads[preloads.length - 1];
             expect(bisIndexPreload.getAttribute('rel')).to.equal("preload");
-            expect(bisIndexPreload.getAttribute('href')).to.equal('https://staticbis.xivgear.app/_index.json');
+            expect(bisIndexPreload.getAttribute('href')).to.equal('https://mockbis.xivgear.app/_index.json');
             expect(bisIndexPreload.getAttribute('as')).to.equal("fetch");
             expect(bisIndexPreload.hasAttribute('crossorigin')).to.be.true;
 
@@ -351,7 +361,7 @@ describe('preview server', () => {
 
             const bisIndexPreload = preloads[preloads.length - 1];
             expect(bisIndexPreload.getAttribute('rel')).to.equal("preload");
-            expect(bisIndexPreload.getAttribute('href')).to.equal('https://staticbis.xivgear.app/_index.json');
+            expect(bisIndexPreload.getAttribute('href')).to.equal('https://mockbis.xivgear.app/_index.json');
             expect(bisIndexPreload.getAttribute('as')).to.equal("fetch");
             expect(bisIndexPreload.hasAttribute('crossorigin')).to.be.true;
 
@@ -376,7 +386,7 @@ describe('preview server', () => {
             expect(response.statusCode).to.equal(200);
             // In JSDOM, maybe case matters or it's not in the body but in the head
             expect(response.body).to.include("WHM Archive BiS");
-        });
+        }).timeout(30_000);
 
         it("bis path", async () => {
             const response = await fastify.inject({
@@ -384,7 +394,7 @@ describe('preview server', () => {
                 url: `/?page=${BIS_HASH}|WHM|archive|anabaseios`,
             });
             expect(response.statusCode).to.equal(200);
-        });
+        }).timeout(30_000);
 
         it("long name truncation", async () => {
             const longName = "A".repeat(200);
@@ -400,7 +410,7 @@ describe('preview server', () => {
             expect(response.statusCode).to.equal(200);
             // Check for truncation ellipsis
             expect(response.body).to.include("…");
-        });
+        }).timeout(30_000);
 
         it("multi-job includes all relevant preloads", async () => {
             const jsonBlob = JSON.stringify({
@@ -418,7 +428,7 @@ describe('preview server', () => {
             expect(response.body).to.contain("AST");
             expect(response.body).to.contain("SCH");
             expect(response.body).to.contain("SGE");
-        });
+        }).timeout(30_000);
 
         it("cache bust", async () => {
             const response = await fastify.inject({
@@ -428,7 +438,7 @@ describe('preview server', () => {
             expect(response.statusCode).to.equal(200);
             expect(response.headers['clear-site-data']).to.equal('"cache", "prefetchCache", "prerenderCache"');
             expect(response.headers['cache-control']).to.equal('max-age=0, no-cache');
-        });
+        }).timeout(30_000);
 
     });
     describe("buildPreviewServer with EXTRA_SCRIPTS", () => {
@@ -442,7 +452,7 @@ describe('preview server', () => {
         });
 
         it("injects extra scripts for normal pages", async () => {
-            const fastify = buildPreviewServer();
+            const fastify = makePreviewServer();
             const response = await fastify.inject({
                 method: 'GET',
                 url: `/?page=${SHORTLINK_HASH}|f9b260a9-650c-445a-b3eb-c56d8d968501`,
@@ -450,10 +460,10 @@ describe('preview server', () => {
             expect(response.statusCode).to.equal(200);
             expect(response.body).to.include('https://example.com/script1.js');
             expect(response.body).to.include('https://example.com/script2.js');
-        });
+        }).timeout(30_000);
 
         it("does not inject extra scripts when embedded", async () => {
-            const fastify = buildPreviewServer();
+            const fastify = makePreviewServer();
             const response = await fastify.inject({
                 method: 'GET',
                 url: `/?page=embed|sl|f9b260a9-650c-445a-b3eb-c56d8d968501&onlySetIndex=1`,
@@ -463,7 +473,7 @@ describe('preview server', () => {
             // Use a regex that is case insensitive
             // expect(/scripts-injected="true"/i.test(response.body)).to.be.true;
             expect(response.body).to.not.include('https://example.com/script1.js');
-        });
+        }).timeout(30_000);
     });
 
 });

@@ -1,23 +1,20 @@
-let _path = 'https://xivgear.app/';
-let _server = 'https://xivgear.app/';
+const defaultClientPath = new URL('https://xivgear.app/');
+const defaultStaticFilePath = new URL('https://xivgear.app/');
 
-/**
- * Get the upstream URL which hosts the static files.
- */
-export function getFrontendServer() {
-    return _server;
+export type FrontendFileServerProvider = {
+    /**
+     * Get the upstream URL which hosts the static files.
+     */
+    get staticFilePath(): URL;
+    /**
+     * Get the URL at which this instance is exposed.
+     */
+    get frontendClientPath(): URL;
 }
 
-export function setFrontendServer(server: string) {
-    _server = server;
-}
-
-/**
- * Get the URL at which this instance is exposed.
- */
-export function getFrontendClientPath() {
-    return _path;
-}
-export function setFrontendClientPath(path: string) {
-    _path = path;
+export function frontendPaths(overrides: Partial<FrontendFileServerProvider> = {}): FrontendFileServerProvider {
+    return {
+        staticFilePath: overrides.staticFilePath || defaultStaticFilePath,
+        frontendClientPath: overrides.frontendClientPath || defaultClientPath,
+    };
 }
