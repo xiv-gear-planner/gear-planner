@@ -45,6 +45,7 @@ import {toTranslatable, TranslatableString} from "@xivgear/i18n/translation";
 import {ApiFoodData, ApiItemData, ApiMateriaData, checkResponse, DATA_API_CLIENT} from "./data_api_client";
 import {addStats} from "@xivgear/xivmath/xivstats";
 import {arrayEqTyped} from "@xivgear/util/array_utils";
+import {xivApiIconUrl} from "./external/xivapi";
 
 export class NewApiDataManager implements DataManager {
 
@@ -615,7 +616,14 @@ export class DataApiGearInfo implements GearItem {
         }
         this.equipLvl = data.equipLevel;
         this.ilvl = data.ilvl;
-        this.iconUrl = new URL(data.icon.url);
+        let iconUrl;
+        try {
+            iconUrl = new URL(data.icon.url);
+        }
+        catch (e) {
+            iconUrl = new URL(xivApiIconUrl(26270));
+        }
+        this.iconUrl = iconUrl;
         const slotMap = new DataApiEquipSlotMap(data.equipSlotCategory);
         this.displayGearSlotName = slotMap.displayGearSlotName;
         this.occGearSlotName = slotMap.occGearSlotName;
