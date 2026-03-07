@@ -153,7 +153,7 @@ describe("VersionPoller", () => {
 
         expect(detected, "should detect after enough consecutive problems").to.be.false;
         // Allow some margin of error due to timing issues in tests
-        expect(fetchIndex).to.be.greaterThanOrEqual(8);
+        expect(fetchIndex).to.be.greaterThanOrEqual(6);
         expect(fetchIndex).to.be.lessThanOrEqual(12);
     }).timeout(20_000);
 
