@@ -9,6 +9,7 @@ import {setupUserDataSync} from "./account/user_data";
 import {startSizeAnalytics} from "./analytics/analytics_helpers";
 import {ASYNC_SIM_LOADER} from "./sims/asyncloader/async_loader";
 import {installImageFallbackHelper} from "./util/image_fallback_helper";
+import {setupVersionChecker} from "./version_checker/version_checker";
 
 declare global {
     interface Window {
@@ -49,4 +50,6 @@ document.addEventListener("DOMContentLoaded", () => {
     setupUserDataSync();
     setupAccountUi();
     startSizeAnalytics();
+    setupVersionChecker();
+
 });
