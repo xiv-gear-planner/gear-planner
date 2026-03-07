@@ -259,6 +259,9 @@ importers:
         specifier: workspace:*
         version: link:../xivmath
     devDependencies:
+      '@types/chai':
+        specifier: ^4.3.20
+        version: 4.3.20
       '@types/jsdom':
         specifier: ^21.1.7
         version: 21.1.7
@@ -271,6 +274,9 @@ importers:
       beasties-webpack-plugin:
         specifier: ^0.1.0
         version: 0.1.0(html-webpack-plugin@5.6.6(webpack@5.105.2))
+      chai:
+        specifier: ^4.5.0
+        version: 4.5.0
       global-jsdom:
         specifier: ^25.0.0
         version: 25.0.0(jsdom@25.0.1)

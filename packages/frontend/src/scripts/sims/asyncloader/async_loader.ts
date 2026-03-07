@@ -1,3 +1,5 @@
+import {wrapChunkLoad} from "../../util/chunk_import";
+
 /**
  * How the Async sim loading works:
  *
@@ -11,7 +13,13 @@ export class AsyncSimLoader {
     async load(): Promise<void> {
         if (this.aload === null) {
             this.aload = Promise.all([
-                import(/* webpackChunkName: "sims", webpackPreload: true */ '@xivgear/gearplan-frontend/sims/registration/default_sim_guis').then(mod => {
+                wrapChunkLoad(import(/* webpackChunkName: "sims", webpackPreload: true */ '@xivgear/gearplan-frontend/sims/registration/default_sim_guis').then((chunk) => {
+                    const makeFail = new URLSearchParams(window.location.search).get('_debugMakeSimChunkFail') === 'true';
+                    if (makeFail) {
+                        throw new Error("Sim chunk load failure (debug)");
+                    }
+                    return chunk;
+                })).then(mod => {
                     mod.registerSims();
                     mod.registerDefaultSimGuis();
                 }),
