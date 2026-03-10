@@ -102,11 +102,9 @@ export class MchSimGui extends BaseMultiCycleSimGui<MchSimResult, MchSimSettings
         const configDiv = document.createElement("div");
 
         const potCb = new FieldBoundCheckBox(settings, "usePots");
-        const oddPotCb = new FieldBoundCheckBox(settings, "usePotsOnOddMinute");
         const skipOpenerPot = new FieldBoundCheckBox(settings, "skipOpenerPot");
 
         configDiv.appendChild(labeledCheckbox("Use potions", potCb));
-        configDiv.appendChild(labeledCheckbox("Use potions on odd minutes", oddPotCb));
         configDiv.appendChild(labeledCheckbox("Skip opener pot and start potting on the first burst", skipOpenerPot));
         return configDiv;
     }

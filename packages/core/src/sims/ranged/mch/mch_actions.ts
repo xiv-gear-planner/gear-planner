@@ -178,6 +178,22 @@ export const Wildfire: MchOgcdAbility = {
     },
 } as const;
 
+// Not directly used but action queued when Wildfire explodes
+export const Detonator: MchOgcdAbility = {
+    type: 'ogcd',
+    name: 'Detonator',
+    id: 16766,
+    potency: 0,
+    attackType: 'Ability',
+    animationLock: 0,
+    appDelay: 0,
+    dot: {
+        duration: 5,
+        id: 16766,
+        tickPotency: 240, // to be multiplied by how many actions were used
+    },
+};
+
 export const Reassemble: MchOgcdAbility = {
     type: 'ogcd',
     name: 'Reassemble',
@@ -207,8 +223,9 @@ export const AutomatonQueenArmPunch: MchOgcdAbility = {
     name: '(Automaton Queen) Arm Punch',
     alternativeScalings: ['Pet Action Weapon Damage'], // apparently wrong, look at living shadow
     animationLock: 0,
+    appDelay: 0,
     id: 16504,
-    potency: 0, // potency is calculated during sim
+    potency: 2.4, // multiply by battery used
     attackType: 'Ability',
 } as const;
 
@@ -217,8 +234,9 @@ export const AutomatonQueenPileBunker: MchOgcdAbility = {
     name: '(Automaton Queen) Pile Bunker',
     alternativeScalings: ['Pet Action Weapon Damage'],
     animationLock: 0,
+    appDelay: 0,
     id: 16503,
-    potency: 0, // potency is calculated during sim
+    potency: 6.8, // multiply by battery used
     attackType: 'Ability',
 } as const;
 
@@ -227,7 +245,8 @@ export const AutomatonQueenCrownedCollider: MchOgcdAbility = {
     name: '(Automaton Queen) Crowned Collider',
     alternativeScalings: ['Pet Action Weapon Damage'],
     animationLock: 0,
+    appDelay: 0,
     id: 25787,
-    potency: 0, // potency is calculated during sim
+    potency: 7.8, // multiply by battery used
     attackType: 'Ability',
 } as const;

@@ -61,7 +61,6 @@ export const ExcavatorReadyBuff: Buff = {
     beforeSnapshot: (buff) => buff.removeSelf(),
 };
 
-
 // TODO: final damage (should apply a 1-tick instant "DoT" of potency 240 * stacks)
 export const WildfireBuff: Buff = {
     name: 'Wildfire',
@@ -70,6 +69,4 @@ export const WildfireBuff: Buff = {
     effects: {},
     selfOnly: true,
     appliesTo: (ability) => ability.type === 'gcd',
-    // Technically not how it works but we do that to count the number of GCDs used before explosion.
-    beforeSnapshot: (buff) => buff.addStacksSelf(1),
 };
