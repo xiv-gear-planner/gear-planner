@@ -39,6 +39,8 @@ export const HASH_QUERY_PARAM = 'page';
 export const ONLY_SET_QUERY_PARAM = 'onlySetIndex';
 
 export const SELECTION_INDEX_QUERY_PARAM = 'selectedIndex';
+
+export const EXPORT_AS_SHEET_PARAM = 'exportAsSheet';
 /**
  * Special hash value used to indicate that the page should stay with the old-style hash, rather than redirecting
  * to the new style query parameter.
@@ -351,14 +353,13 @@ export function splitPath(input: string) {
         .map(pp => pp.replaceAll(VERTICAL_BAR_REPLACEMENT, PATH_SEPARATOR));
 }
 
-export function tryParseOptionalIntParam(input: string | undefined): number | undefined {
-    if (input) {
-        try {
-            return parseInt(input);
-        }
-        catch (e) {
-            console.error(`Error parsing '${input}'`, e);
-        }
+export function tryParseOptionalIntParam(input: string | number | undefined): number | undefined {
+    if (input === undefined || input === null || input === '') {
+        return undefined;
     }
-    return undefined;
+    if (typeof input === 'number') {
+        return isNaN(input) ? undefined : input;
+    }
+    const parsed = parseInt(input);
+    return isNaN(parsed) ? undefined : parsed;
 }

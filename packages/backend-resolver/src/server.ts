@@ -1,10 +1,16 @@
 import * as process from "process";
-import {setServerOverride} from "@xivgear/core/external/shortlink_server";
-import {setFrontendClient, setFrontendServer} from "./frontend_file_server";
-import {buildPreviewServer, buildStatsServer} from "./server_builder";
-import {FastifyInstance} from "fastify";
 import {setDataApi} from "@xivgear/core/data_api_client";
+import {ServerBase} from "./server_base";
+import {StatsServer} from "./stats_server";
+import {PreviewServer} from "./preview_server";
+import {frontendPaths} from "./frontend_file_server";
+import {BisServiceImpl} from "@xivgear/core/external/static_bis";
+import {ShortlinkServiceImpl} from "@xivgear/core/external/shortlink_server";
+import {NavDataServiceImpl} from "./server_utils";
 
+/*
+This file is the entry point
+ */
 
 function validateUrl(url: string, description: string) {
     try {
@@ -16,27 +22,33 @@ function validateUrl(url: string, description: string) {
     }
 }
 
-const backendOverride = process.env.SHORTLINK_SERVER;
-if (backendOverride) {
-    console.log(`Shortlink server override: '${backendOverride}'`);
-    validateUrl(backendOverride, 'shortlink');
-    setServerOverride(backendOverride);
+// Using undefined instead of null so that it can be directly used in place of an optional field
+function optionalUrl(url: string | null | undefined, description: string): URL | undefined {
+    if (!url) {
+        console.log(`URL '${description}' is not specified/empty, leaving as default`);
+        return undefined;
+    }
+    try {
+        console.log(`URL '${description}' is overridden to '${url}'`);
+        return new URL(url);
+    }
+    catch (e) {
+        console.error(`Not a valid ${description} URL: '${url}'`, url, e);
+        throw e;
+    }
 }
 
-const frontendServerOverride = process.env.FRONTEND_SERVER;
-if (frontendServerOverride) {
-    console.log(`Frontend server override: '${frontendServerOverride}';`);
-    validateUrl(frontendServerOverride, 'frontend server');
-    setFrontendServer(frontendServerOverride);
-}
+const shortlinkService = new ShortlinkServiceImpl(optionalUrl(process.env.SHORTLINK_SERVER, 'shortlink'));
+const bisService = new BisServiceImpl(optionalUrl(process.env.BIS_SERVER, 'BiS server'));
 
-const frontendClientOverride = process.env.FRONTEND_CLIENT;
-if (frontendClientOverride) {
-    console.log(`Frontend client override: '${frontendClientOverride}';`);
-    validateUrl(frontendClientOverride, 'frontend client');
-    setFrontendClient(frontendClientOverride);
-}
+const fePaths = frontendPaths({
+    frontendClientPath: optionalUrl(process.env.FRONTEND_CLIENT, 'frontend client path'),
+    staticFilePath: optionalUrl(process.env.FRONTEND_SERVER, 'frontend static file path'),
+});
 
+const navDataService = new NavDataServiceImpl(shortlinkService, bisService);
+
+// TODO: no particularly good way to override this yet
 const dataApiOverride = process.env.DATA_API;
 if (dataApiOverride) {
     console.log(`Data api override: '${dataApiOverride}';`);
@@ -44,22 +56,13 @@ if (dataApiOverride) {
     setDataApi(dataApiOverride);
 }
 
-let fastify: FastifyInstance;
+let server: ServerBase;
 if (process.env.IS_PREVIEW_SERVER === 'true') {
     console.log('Building preview server');
-    fastify = buildPreviewServer();
+    server = new PreviewServer(fePaths, navDataService);
 }
 else {
     console.log('Building stats server');
-    fastify = buildStatsServer();
+    server = new StatsServer(shortlinkService, navDataService, bisService);
 }
-
-fastify.listen({
-    port: 30000,
-    host: '0.0.0.0',
-}, (err, addr) => {
-    if (err) {
-        fastify.log.error(err);
-        process.exit(1);
-    }
-});
+server.setupAndStart();

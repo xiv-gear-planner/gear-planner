@@ -185,6 +185,8 @@ export async function openSheetByKey(sheetKey: string) {
         let sheet = SHEET_MANAGER.getByKey(sheetKey);
         if (!sheet || sheet.syncStatus === 'never-downloaded') {
             console.log(`Sheet status: ${sheet?.syncStatus ?? 'null'}, going to wait for login.`);
+            // TODO: this has a minor bug wherein if the connection itself fails, this will never
+            // resolve nor reject. This mostly affects local testing.
             const token = await ACCOUNT_STATE_TRACKER.verifiedTokenPromise;
             if (token) {
                 console.log('Got token, refreshing sheets');

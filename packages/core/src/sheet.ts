@@ -53,7 +53,6 @@ import {CharacterGearSet, SyncInfo} from "./gear";
 import {DataManager, DmJobs, makeDataManager} from "./datamanager";
 import {Inactivitytimer} from "@xivgear/util/inactivitytimer";
 import {writeProxy} from "@xivgear/util/proxies";
-import {SHARED_SET_NAME} from "@xivgear/core/imports/imports";
 import {SimCurrentResult, SimResult, Simulation} from "./sims/sim_types";
 import {getDefaultSims, getRegisteredSimSpecs, getSimSpecByStub} from "./sims/sim_registry";
 import {DUMMY_SHEET_MGR, SheetManager} from "./persistence/saved_sheets";
@@ -61,6 +60,7 @@ import {CustomItem} from "./customgear/custom_item";
 import {CustomFood} from "./customgear/custom_food";
 import {statsSerializationProxy} from "@xivgear/xivmath/xivstats";
 import {isMateriaAllowed, materiaShortLabel} from "./materia/materia_utils";
+import {inflateSetExport} from "./util/sheet_utils";
 import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 
 export type SheetCtorArgs = ConstructorParameters<typeof GearPlanSheet>
@@ -103,27 +103,7 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
      * @param importedData
      */
     fromSetExport(...importedData: SetExportExternalSingle[]): SheetType {
-        if (importedData.length === 0) {
-            throw Error("Imported sets cannot be be empty");
-        }
-        const gearPlanSheet = this.fromExport({
-            race: importedData[0].race ?? undefined,
-            sets: [...importedData],
-            sims: importedData[0].sims ?? [],
-            name: importedData[0].name ?? SHARED_SET_NAME,
-            saveKey: undefined,
-            job: importedData[0].job!,
-            level: importedData[0].level!,
-            ilvlSync: importedData[0].ilvlSync,
-            partyBonus: importedData[0].partyBonus ?? 0,
-            itemDisplaySettings: defaultItemDisplaySettings,
-            // TODO: make these smarter - make them deduplicate identical items
-            customItems: importedData.flatMap(imp => imp.customItems ?? []),
-            customFoods: importedData.flatMap(imp => imp.customFoods ?? []),
-            timestamp: importedData[0].timestamp,
-            isMultiJob: false,
-            specialStats: importedData[0].specialStats ?? null,
-        });
+        const gearPlanSheet = this.fromExport(inflateSetExport(...importedData));
         if (importedData[0].sims === undefined) {
             gearPlanSheet.shouldAddDefaultSimsToNewSheet = true;
         }
@@ -223,7 +203,7 @@ export class GearPlanSheet {
 
     // Display settings
     private _showAdvancedStats: boolean = false;
-    private readonly _itemDisplaySettings: ItemDisplaySettings = {...defaultItemDisplaySettings};
+    private readonly _itemDisplaySettings: ItemDisplaySettings = getDefaultDisplaySettings(CURRENT_MAX_LEVEL, 'WHM', undefined);
 
     // Init related
     private _setupDone: boolean = false;
@@ -270,14 +250,6 @@ export class GearPlanSheet {
         else {
             const defaults = getDefaultDisplaySettings(this.level, this.classJobName, this.ilvlSync);
             Object.assign(this._itemDisplaySettings, defaults);
-            // TODO: investigate if this logic is worth doing
-            // if (this.ilvlSync) {
-            //     const modifiedDefaults = {...defaults};
-            //     modifiedDefaults.minILvl = Math.max(modifiedDefaults.minILvl, this.ilvlSync - 10);
-            //     modifiedDefaults.maxILvl = Math.max(modifiedDefaults.maxILvl, this.ilvlSync + 40);
-            // }
-            // else {
-            // }
         }
         this.materiaAutoFillPrio = {
             statPrio: importedData.mfp ?? [...DefaultMateriaFillPrio.filter(stat => this.isStatRelevant(stat))],

@@ -27,6 +27,7 @@ import {
     OccGearSlotKey,
     RawStatKey,
     RawStats,
+    RawStatsPart,
     RelicStatModel
 } from "@xivgear/xivmath/geartypes";
 import {BaseParamToStatKey, RelevantBaseParam} from "./external/xivapitypes";
@@ -41,10 +42,10 @@ import {
 import {BaseParamMap, DataManager, DmJobs} from "./datamanager";
 import {applyStatCaps} from "./gear";
 import {toTranslatable, TranslatableString} from "@xivgear/i18n/translation";
-import {RawStatsPart} from "@xivgear/util/util_types";
 import {ApiFoodData, ApiItemData, ApiMateriaData, checkResponse, DATA_API_CLIENT} from "./data_api_client";
 import {addStats} from "@xivgear/xivmath/xivstats";
 import {arrayEqTyped} from "@xivgear/util/array_utils";
+import {xivApiIconUrl} from "./external/xivapi";
 
 export class NewApiDataManager implements DataManager {
 
@@ -615,7 +616,14 @@ export class DataApiGearInfo implements GearItem {
         }
         this.equipLvl = data.equipLevel;
         this.ilvl = data.ilvl;
-        this.iconUrl = new URL(data.icon.pngIconUrl);
+        let iconUrl;
+        try {
+            iconUrl = new URL(data.icon.url);
+        }
+        catch (e) {
+            iconUrl = new URL(xivApiIconUrl(26270));
+        }
+        this.iconUrl = iconUrl;
         const slotMap = new DataApiEquipSlotMap(data.equipSlotCategory);
         this.displayGearSlotName = slotMap.displayGearSlotName;
         this.occGearSlotName = slotMap.occGearSlotName;
@@ -760,6 +768,12 @@ export class DataApiGearInfo implements GearItem {
             case AcqSrc.Criterion:
                 this.acquisitionType = 'criterion';
                 break;
+            case AcqSrc.DeepDungeon:
+                this.acquisitionType = 'deepdungeon';
+                break;
+            case AcqSrc.FieldOperation:
+                this.acquisitionType = 'fieldoperation';
+                break;
             case AcqSrc.Other:
                 this.acquisitionType = 'other';
                 break;
@@ -884,7 +898,7 @@ export class DataApiFoodInfo implements FoodItem {
     constructor(data: ApiFoodData) {
         this.id = requireNumber(data.rowId);
         this.name = requireString(data.name);
-        this.iconUrl = new URL(data.icon.pngIconUrl);
+        this.iconUrl = new URL(data.icon.url);
         this.ilvl = requireNumber(data.levelItem);
         this.nameTranslation = toTranslatable(this.name, data.nameTranslations);
         for (const rawKey in data.bonusesHQ) {
@@ -922,7 +936,7 @@ export function processRawMateriaInfo(data: ApiMateriaData): Materia[] {
             name: itemName,
             nameTranslation: toTranslatable(itemName, itemData.nameTranslations),
             id: itemId,
-            iconUrl: new URL(itemData.icon.pngIconUrl),
+            iconUrl: new URL(itemData.icon.url),
             stats: stats,
             primaryStat: stat,
             primaryStatValue: stats[stat],

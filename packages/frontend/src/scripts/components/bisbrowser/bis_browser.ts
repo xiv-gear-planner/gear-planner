@@ -1,4 +1,4 @@
-import {AnyNode, DirNode} from "@xivgear/core/external/static_bis";
+import {AnyNode, DirNode, JobNode} from "@xivgear/core/external/static_bis";
 import {
     col,
     CustomCell,
@@ -10,7 +10,7 @@ import {
 } from "@xivgear/common-ui/table/tables";
 import {NamedSection} from "../general/section";
 import {BIS_BROWSER_HASH, BIS_HASH, makeUrlSimple} from "@xivgear/core/nav/common_nav";
-import {JOB_DATA, JOB_IDS, JobName} from "@xivgear/xivmath/xivconstants";
+import {ALL_COMBAT_JOBS, JOB_DATA, JOB_IDS, JobName} from "@xivgear/xivmath/xivconstants";
 import {makeActionButton, quickElement} from "@xivgear/common-ui/components/util";
 import {capitalizeFirstLetter} from "@xivgear/util/strutils";
 import {JobIcon} from "../job/job_icon";
@@ -141,17 +141,7 @@ export class BisBrowser {
     setData(node: DirNode) {
         this.currentNode = node;
         this.table.data = [
-            ...([...node.children].sort((a, b) => {
-                if (a.type === "dir" && b.type === "file") {
-                    return -1;
-                }
-                else if (a.type === "file" && b.type === "dir") {
-                    return 1;
-                }
-                else {
-                    return formatInfo(a).name.localeCompare(formatInfo(b).name);
-                }
-            })),
+            ...([...node.children].sort(compareNodes)),
         ];
         this.namedSection.titleText = formattedPath(node).join(" - ");
         if (node.parent) {
@@ -167,6 +157,54 @@ export class BisBrowser {
 
     get element(): HTMLElement {
         return this.namedSection;
+    }
+}
+
+function compareNodes(a: AnyNode, b: AnyNode): number {
+    if (a.type === "dir" && b.type === "file") {
+        return -1;
+    }
+    else if (a.type === "file" && b.type === "dir") {
+        return 1;
+    }
+    else if (a.type === 'dir' && b.type === "dir") {
+        return compareDirs(a, b);
+    }
+    else {
+        return formatInfo(a).name.localeCompare(formatInfo(b).name);
+    }
+}
+
+function looksLikeJob(a: DirNode): a is JobNode {
+    const nameUpper = a.fileName.toUpperCase();
+    if (nameUpper in JOB_DATA) {
+        const jobNode = a as JobNode;
+        jobNode.job = nameUpper as JobName;
+        return true;
+    }
+    return false;
+}
+
+function compareJobs(a: JobNode, b: JobNode): number {
+    return ALL_COMBAT_JOBS.indexOf(a.job) - ALL_COMBAT_JOBS.indexOf(b.job);
+}
+
+function compareDirs(a: DirNode, b: DirNode): number {
+    if (looksLikeJob(a)) {
+        if (looksLikeJob(b)) {
+            return compareJobs(a, b);
+        }
+        else {
+            return -1;
+        }
+    }
+    else {
+        if (looksLikeJob(b)) {
+            return 1;
+        }
+        else {
+            return formatInfo(a).name.localeCompare(formatInfo(b).name);
+        }
     }
 }
 

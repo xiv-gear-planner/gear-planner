@@ -72,11 +72,11 @@ export const STANDARD_APPLICATION_DELAY = 0.6;
 export const AUTOATTACK_APPLICATION_DELAY = 0.6;
 
 export const ALL_COMBAT_JOBS = [
-    'WHM', 'SGE', 'SCH', 'AST',
     'PLD', 'WAR', 'DRK', 'GNB',
-    'DRG', 'MNK', 'NIN', 'SAM', 'RPR', 'VPR',
+    'WHM', 'SCH', 'AST', 'SGE',
+    'MNK', 'DRG', 'NIN', 'SAM', 'RPR', 'VPR',
     'BRD', 'MCH', 'DNC',
-    'BLM', 'SMN', 'RDM', 'BLU', 'PCT',
+    'BLM', 'SMN', 'RDM', 'PCT', 'BLU',
 ] as const;
 /**
  * Supported Jobs.
@@ -658,14 +658,14 @@ export function getDefaultDisplaySettings(level: SupportedLevel, job: JobName, i
     if (job === 'BLU' && level === JOB_DATA.BLU.maxLevel) {
         return BLU_ITEM_DISPLAY;
     }
-    const out = LEVEL_ITEMS[level].defaultDisplaySettings;
+    // Make a defensive copy - there was a bug where this could get modified and would affect subsequent defaults
+    const out = {
+        ...LEVEL_ITEMS[level].defaultDisplaySettings,
+    };
     // Special logic for current-content sync
     if (isync !== undefined && level === CURRENT_MAX_LEVEL) {
-        return {
-            ...out,
-            minILvl: isync - 5,
-            maxILvl: isync,
-        };
+        out.minILvl = isync - 5;
+        out.maxILvl = isync;
     }
     return out;
 }
@@ -684,10 +684,9 @@ export const FAKE_MAIN_STATS = ['determination', 'piety'] as const;
  */
 export const SPECIAL_SUB_STATS = ['crit', 'dhit', 'spellspeed', 'skillspeed', 'tenacity'] as const;
 /**
- * All sub-stats
+ * All sub-stats. The type is specified explicitly because ts-json-schema-generator can't infer list concat types.
  */
-export const ALL_SUB_STATS = [...FAKE_MAIN_STATS, ...SPECIAL_SUB_STATS] as const;
-// export const ALL_SUB_STATS: ((typeof FAKE_MAIN_STATS[number]) | (typeof SPECIAL_SUB_STATS[number]))[] = [...FAKE_MAIN_STATS, ...SPECIAL_SUB_STATS] as const;
+export const ALL_SUB_STATS: readonly [...typeof FAKE_MAIN_STATS, ...typeof SPECIAL_SUB_STATS] = [...FAKE_MAIN_STATS, ...SPECIAL_SUB_STATS] as const;
 /**
  * All stats
  */
@@ -877,6 +876,10 @@ export function formatAcquisitionSource(source: GearAcquisitionSource): string |
             return "Ex. Trial";
         case "alliance":
             return "Alliance Raid";
+        case "fieldoperation":
+            return "Field operation";
+        case "deepdungeon":
+            return "Deep Dungeon";
         case "other":
             return null;
     }
@@ -921,7 +924,7 @@ export function bluWdfromInt(gearIntStat: number): number {
     return BLU_INT_WD[BLU_INT_WD.length - 1][1];
 }
 
-export const defaultItemDisplaySettings: ItemDisplaySettings = {
+export const defaultItemDisplaySettings: Readonly<ItemDisplaySettings> = {
     minILvl: 680,
     maxILvl: 999,
     minILvlFood: 770,

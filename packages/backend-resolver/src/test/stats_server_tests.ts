@@ -1,0 +1,539 @@
+import '../polyfills';
+import {expect} from "chai";
+import {SheetExport, SheetStatsExport} from "@xivgear/xivmath/geartypes";
+import {BIS_HASH} from "@xivgear/core/nav/common_nav";
+import {makeStatsServer} from "./test_utils";
+import {EmbedCheckResponse} from "../stats_server_schema_types";
+
+// TODO: add tests for validateEmbed with direct URL (on a different branch)
+
+describe('stats server', () => {
+    describe("fulldata endpoint", () => {
+        describe("legacy direct UUID endpoint", () => {
+            const fastify = makeStatsServer().setupForTest();
+            it("responds to health check", async () => {
+                const response = await fastify.inject({
+                    method: 'GET',
+                    url: '/healthcheck',
+                });
+                expect(response.statusCode).to.equal(200);
+            }).timeout(30_000);
+            it("can serve correct data", async () => {
+                const response = await fastify.inject({
+                    method: 'GET',
+                    url: '/fulldata/f9b260a9-650c-445a-b3eb-c56d8d968501',
+                });
+                expect(response.statusCode).to.equal(200);
+                const json = response.json() as SheetStatsExport;
+                expect(json.name).to.equal("WHM 6.4 copy");
+                expect(json.level).to.equal(90);
+                expect(json.job).to.equal("WHM");
+                expect(json.race).to.equal("Xaela");
+                expect(json.partyBonus).to.equal(0);
+                expect(json.sets.length).to.equal(13);
+                const firstSet = json.sets[0];
+                expect(firstSet.name).to.equal("6.4 Never gonna");
+                expect(firstSet.items.Weapon?.id).to.equal(40173);
+                const stats = firstSet.computedStats;
+                expect(stats.hp).to.equal(74421);
+                expect(stats.mind).to.equal(3374);
+            }).timeout(30_000);
+            it("can serve correct data with party size 0", async () => {
+                const response = await fastify.inject({
+                    method: 'GET',
+                    url: '/fulldata/f9b260a9-650c-445a-b3eb-c56d8d968501?partyBonus=0',
+                });
+                expect(response.statusCode).to.equal(200);
+                const json = response.json() as SheetStatsExport;
+                expect(json.name).to.equal("WHM 6.4 copy");
+                expect(json.level).to.equal(90);
+                expect(json.job).to.equal("WHM");
+                expect(json.race).to.equal("Xaela");
+                expect(json.partyBonus).to.equal(0);
+                expect(json.sets.length).to.equal(13);
+                const firstSet = json.sets[0];
+                expect(firstSet.name).to.equal("6.4 Never gonna");
+                expect(firstSet.items.Weapon?.id).to.equal(40173);
+                const stats = firstSet.computedStats;
+                expect(stats.hp).to.equal(74421);
+                expect(stats.mind).to.equal(3374);
+            }).timeout(30_000);
+            it("can serve correct data with party size 5", async () => {
+                const response = await fastify.inject({
+                    method: 'GET',
+                    url: '/fulldata/f9b260a9-650c-445a-b3eb-c56d8d968501?partyBonus=5',
+                });
+                expect(response.statusCode).to.equal(200);
+                const json = response.json() as SheetStatsExport;
+                expect(json.name).to.equal("WHM 6.4 copy");
+                expect(json.level).to.equal(90);
+                expect(json.job).to.equal("WHM");
+                expect(json.race).to.equal("Xaela");
+                expect(json.partyBonus).to.equal(5);
+                expect(json.sets.length).to.equal(13);
+                const firstSet = json.sets[0];
+                expect(firstSet.name).to.equal("6.4 Never gonna");
+                expect(firstSet.items.Weapon?.id).to.equal(40173);
+                const stats = firstSet.computedStats;
+                expect(stats.mind).to.equal(3542);
+                expect(stats.hp).to.equal(78455);
+            }).timeout(30_000);
+            it("fulldata - 404 on missing data", async () => {
+                const response = await fastify.inject({
+                    method: 'GET',
+                    url: '/fulldata',
+                });
+                expect(response.statusCode).to.equal(404);
+            }).timeout(30_000);
+
+            it("importExportSheet - invalid party bonus (too large)", async () => {
+                // We need a valid sheet to reach the party bonus check
+                const uuid = 'f9b260a9-650c-445a-b3eb-c56d8d968501';
+                const response = await fastify.inject({
+                    method: 'GET',
+                    url: `/fulldata/${uuid}?partyBonus=10`, // valid values are [0,5]
+                });
+                expect(response.statusCode).to.equal(500);
+            }).timeout(30_000);
+
+            it("importExportSheet - invalid party bonus 2 (too small)", async () => {
+                // We need a valid sheet to reach the party bonus check
+                const uuid = 'f9b260a9-650c-445a-b3eb-c56d8d968501';
+                const response = await fastify.inject({
+                    method: 'GET',
+                    url: `/fulldata/${uuid}?partyBonus=-10`, // valid values are [0,5]
+                });
+                expect(response.statusCode).to.equal(500);
+            }).timeout(30_000);
+
+            it("importExportSheet - invalid party bonus 3 (not an integer)", async () => {
+                // We need a valid sheet to reach the party bonus check
+                const uuid = 'f9b260a9-650c-445a-b3eb-c56d8d968501';
+                const response = await fastify.inject({
+                    method: 'GET',
+                    url: `/fulldata/${uuid}?partyBonus=3.5`, // must be an integer
+                });
+                expect(response.statusCode).to.equal(500);
+            }).timeout(30_000);
+
+            it("importExportSheet - invalid party bonus 4 (not a number)", async () => {
+                // We need a valid sheet to reach the party bonus check
+                const uuid = 'f9b260a9-650c-445a-b3eb-c56d8d968501';
+                const response = await fastify.inject({
+                    method: 'GET',
+                    url: `/fulldata/${uuid}?partyBonus=asdf`, // must be an integer
+                });
+                expect(response.statusCode).to.equal(500);
+            }).timeout(30_000);
+
+            it("importExportSheet - invalid set index (too large)", async () => {
+                const uuid = 'f9b260a9-650c-445a-b3eb-c56d8d968501';
+                const response = await fastify.inject({
+                    method: 'GET',
+                    url: `/fulldata/${uuid}?onlySetIndex=999`,
+                });
+                expect(response.statusCode).to.equal(500);
+            }).timeout(30_000);
+
+            it("importExportSheet - invalid set index (not a number)", async () => {
+                const uuid = 'f9b260a9-650c-445a-b3eb-c56d8d968501';
+                const response = await fastify.inject({
+                    method: 'GET',
+                    url: `/fulldata/${uuid}?onlySetIndex=asdf`,
+                });
+                expect(response.statusCode).to.equal(500);
+            }).timeout(30_000);
+        });
+        describe("legacy bis endpoints", () => {
+            it("deprecated /fulldata/bis/:job/:sheet", async () => {
+                const fastify = makeStatsServer().setupForTest();
+                const response = await fastify.inject({
+                    method: 'GET',
+                    url: '/fulldata/bis/war/prog',
+                });
+                expect(response.statusCode).to.equal(200);
+                // Since this might change, not worth verifying that much
+                const json = response.json();
+                expect(json.name).to.contain("Prog BiS");
+                expect(json.sets[0].computedStats.hp).to.be.greaterThan(0);
+            }).timeout(30_000);
+
+            it("deprecated fulldata/bis/:job/:folder/:sheet", async () => {
+                const fastify = makeStatsServer().setupForTest();
+                const response = await fastify.inject({
+                    method: 'GET',
+                    url: '/fulldata/bis/war/archive/7.2-prog',
+                });
+                expect(response.statusCode).to.equal(200);
+                const json = response.json();
+                expect(json.name).to.equal("7.2 WAR Prog BiS");
+                expect(json.sets[0].computedStats.hp).to.be.greaterThan(0);
+            }).timeout(30_000);
+
+        });
+        describe("modern unified endpoint", () => {
+            const fastify = makeStatsServer().setupForTest();
+
+            it("can serve correct data", async () => {
+                const response = await fastify.inject({
+                    method: 'GET',
+                    url: '/fulldata?page=sl|f9b260a9-650c-445a-b3eb-c56d8d968501',
+                });
+                expect(response.statusCode).to.equal(200);
+                const json = response.json() as SheetStatsExport;
+                expect(json.name).to.equal("WHM 6.4 copy");
+                expect(json.level).to.equal(90);
+                expect(json.job).to.equal("WHM");
+                expect(json.race).to.equal("Xaela");
+                expect(json.partyBonus).to.equal(0);
+                expect(json.sets.length).to.equal(13);
+                const firstSet = json.sets[0];
+                expect(firstSet.name).to.equal("6.4 Never gonna");
+                expect(firstSet.items.Weapon?.id).to.equal(40173);
+                const stats = firstSet.computedStats;
+                expect(stats.hp).to.equal(74421);
+                expect(stats.mind).to.equal(3374);
+            }).timeout(30_000);
+            it("can serve correct data with party size 0", async () => {
+                const response = await fastify.inject({
+                    method: 'GET',
+                    url: '/fulldata?page=sl|f9b260a9-650c-445a-b3eb-c56d8d968501&partyBonus=0',
+                });
+                expect(response.statusCode).to.equal(200);
+                const json = response.json() as SheetStatsExport;
+                expect(json.name).to.equal("WHM 6.4 copy");
+                expect(json.level).to.equal(90);
+                expect(json.job).to.equal("WHM");
+                expect(json.race).to.equal("Xaela");
+                expect(json.partyBonus).to.equal(0);
+                expect(json.sets.length).to.equal(13);
+                const firstSet = json.sets[0];
+                expect(firstSet.name).to.equal("6.4 Never gonna");
+                expect(firstSet.items.Weapon?.id).to.equal(40173);
+                const stats = firstSet.computedStats;
+                expect(stats.hp).to.equal(74421);
+                expect(stats.mind).to.equal(3374);
+            }).timeout(30_000);
+            it("can serve correct data with party size 5", async () => {
+                const response = await fastify.inject({
+                    method: 'GET',
+                    url: '/fulldata?page=sl|f9b260a9-650c-445a-b3eb-c56d8d968501&partyBonus=5',
+                });
+                expect(response.statusCode).to.equal(200);
+                const json = response.json() as SheetStatsExport;
+                expect(json.name).to.equal("WHM 6.4 copy");
+                expect(json.level).to.equal(90);
+                expect(json.job).to.equal("WHM");
+                expect(json.race).to.equal("Xaela");
+                expect(json.partyBonus).to.equal(5);
+                expect(json.sets.length).to.equal(13);
+                const firstSet = json.sets[0];
+                expect(firstSet.name).to.equal("6.4 Never gonna");
+                expect(firstSet.items.Weapon?.id).to.equal(40173);
+                const stats = firstSet.computedStats;
+                expect(stats.mind).to.equal(3542);
+                expect(stats.hp).to.equal(78455);
+            }).timeout(30_000);
+
+            it("can serve correct data with onlySetIndex", async () => {
+                const response = await fastify.inject({
+                    method: 'GET',
+                    url: '/fulldata?page=sl|f9b260a9-650c-445a-b3eb-c56d8d968501&onlySetIndex=1',
+                });
+                expect(response.statusCode).to.equal(200);
+                const json = response.json() as SheetStatsExport;
+                // When onlySetIndex is used, it returns a SetExport style object but wrapped in SheetStatsExport if /fulldata
+                // Actually, importExportSheet handles the extraction.
+                // If osIndex is provided, it calls extractSingleSet.
+                // extractSingleSet returns a SetExportExternalSingle.
+                // Then it's passed to HEADLESS_SHEET_PROVIDER.fromSetExport.
+                // Then exported via FullStatsExport.
+                expect(json.sets.length).to.equal(1);
+                expect(json.sets[0].name).to.equal("6.4 Week 1 2.43 a");
+                expect(json.sets[0].computedStats.hp).to.be.greaterThan(0);
+            }).timeout(30_000);
+            it("uses params from encoded url when not provided directly", async () => {
+                const encoded = encodeURIComponent('https://foo.bar/?page=sl|f9b260a9-650c-445a-b3eb-c56d8d968501&onlySetIndex=1');
+                const response = await fastify.inject({
+                    method: 'GET',
+                    url: `/fulldata?url=${encoded}`,
+                });
+                expect(response.statusCode).to.equal(200);
+                const json = response.json() as SheetStatsExport;
+                // When onlySetIndex is provided, it extracts that set and returns it as a SetExport (which is then wrapped by importExportSheet)
+                // The name of the resulting SheetStatsExport will be the name of the set if it was extracted.
+                expect(json.name).to.equal('6.4 Week 1 2.43 a');
+                expect(json.sets.length).to.equal(1);
+                expect(json.sets[0].name).to.equal('6.4 Week 1 2.43 a');
+            }).timeout(30_000);
+
+            it("should resolve data from a legacy hash in the url parameter", async () => {
+                // f9b260a9-650c-445a-b3eb-c56d8d968501 is a known valid shortlink in tests
+                const urlWithHash = "https://xivgear.app/#/sl/f9b260a9-650c-445a-b3eb-c56d8d968501";
+                const encodedUrl = encodeURIComponent(urlWithHash);
+
+                const response = await fastify.inject({
+                    method: 'GET',
+                    url: `/fulldata?url=${encodedUrl}`,
+                });
+
+                expect(response.statusCode).to.equal(200);
+                const json = response.json() as SheetStatsExport;
+                expect(json.name).to.equal("WHM 6.4 copy");
+                expect(json.job).to.equal("WHM");
+            }).timeout(30_000);
+
+            it("should prefer direct page parameter over hash in the url parameter", async () => {
+                const urlWithHash = "https://xivgear.app/#/sl/invalid-uuid";
+                const encodedUrl = encodeURIComponent(urlWithHash);
+
+                // Direct 'page' param should win
+                const response = await fastify.inject({
+                    method: 'GET',
+                    url: `/fulldata?url=${encodedUrl}&page=sl|f9b260a9-650c-445a-b3eb-c56d8d968501`,
+                });
+
+                expect(response.statusCode).to.equal(200);
+                const json = response.json() as SheetStatsExport;
+                expect(json.name).to.equal("WHM 6.4 copy");
+            }).timeout(30_000);
+
+        });
+    });
+
+    describe('/basedata endpoint', () => {
+        const fastify = makeStatsServer().setupForTest();
+        it("404 on missing data", async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: '/basedata',
+            });
+            expect(response.statusCode).to.equal(404);
+        }).timeout(30_000);
+
+        it("can serve correct data", async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: '/basedata?page=sl|f9b260a9-650c-445a-b3eb-c56d8d968501',
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as SheetExport;
+            expect(json.name).to.equal("WHM 6.4 copy");
+            expect(json.level).to.equal(90);
+            expect(json.job).to.equal("WHM");
+            expect(json.race).to.equal("Xaela");
+            expect(json.sets.length).to.equal(13);
+            const firstSet = json.sets[0];
+            expect(firstSet.name).to.equal("6.4 Never gonna");
+            expect(firstSet.items.Weapon?.id).to.equal(40173);
+            expect(firstSet).to.not.have.property('computedStats');
+        }).timeout(30_000);
+
+        it("can serve correct data with onlySetIndex", async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: '/basedata?page=sl|f9b260a9-650c-445a-b3eb-c56d8d968501&onlySetIndex=1',
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as SheetExport;
+            expect(json.name).to.equal("WHM 6.4 copy");
+            expect(json.sets[0].name).to.equal("6.4 Week 1 2.43 a");
+            expect(json.job).to.equal("WHM");
+            expect(json.level).to.equal(90);
+            expect(json.sets.length).to.equal(1);
+            expect(json).to.not.have.property('computedStats');
+        }).timeout(30_000);
+
+        it("uses params from encoded url when not provided directly", async () => {
+            const encoded = encodeURIComponent('https://foo.bar/?page=sl|f9b260a9-650c-445a-b3eb-c56d8d968501&onlySetIndex=1');
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/basedata?url=${encoded}&onlySetIndex=2`,
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as SheetExport;
+            // Should resolve the same sheet as in fulldata test, but with onlySetIndex
+            // It should take onlySetIndex=2 since direct URL params take priority over anything packed into the encoded url
+            expect(json.name).to.equal("WHM 6.4 copy");
+            expect(json.sets[0].name).to.equal('6.4 Week 1 2.38');
+        }).timeout(30_000);
+
+        it("should resolve data from a legacy hash in the url parameter", async () => {
+            const urlWithHash = "https://xivgear.app/#/sl/f9b260a9-650c-445a-b3eb-c56d8d968501";
+            const encodedUrl = encodeURIComponent(urlWithHash);
+
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/basedata?url=${encodedUrl}`,
+            });
+
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as SheetExport;
+            expect(json.name).to.equal("WHM 6.4 copy");
+            expect(json.job).to.equal("WHM");
+        }).timeout(30_000);
+
+        // Additional tests for new exportAsSheet flag
+        it("exports as sheet when exportAsSheet=true", async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                // This is a full sheet
+                url: '/basedata?page=sl|f9b260a9-650c-445a-b3eb-c56d8d968501&exportAsSheet=true',
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as SheetExport;
+            expect(json).to.have.property('sets');
+            expect(json.sets.length).to.equal(13);
+            expect(json.name).to.equal("WHM 6.4 copy");
+        }).timeout(30_000);
+
+        it("exports single set as sheet with one set when exportAsSheet=true", async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                // This is an individual set
+                url: '/basedata?page=sl|0cd5874c-6322-4396-99be-2089d6222d9c&exportAsSheet=true',
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as SheetExport;
+            expect(json).to.have.property('sets');
+            expect(json.sets.length).to.equal(1);
+            // This shortlink (0cd5874c-6322-4396-99be-2089d6222d9c) is a single set.
+            // When exported as a sheet, the sheet name should be the set name.
+            expect(json.name).to.be.ok;
+            expect(json.sets[0].name).to.be.ok;
+        }).timeout(30_000);
+
+        it("exports single set from full sheet as sheet with one set when exportAsSheet=true and onlySetIndex is provided", async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: '/basedata?page=sl|f9b260a9-650c-445a-b3eb-c56d8d968501&onlySetIndex=1&exportAsSheet=true',
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as SheetExport;
+            expect(json).to.have.property('sets');
+            expect(json.sets.length).to.equal(1);
+            expect(json.sets[0].name).to.equal("6.4 Week 1 2.43 a");
+            expect(json.name).to.equal("WHM 6.4 copy");
+        }).timeout(30_000);
+    });
+
+    describe("validateEmbed endpoint", () => {
+        const fastify = makeStatsServer().setupForTest();
+        it('passes BiS with onlySetIndex', async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/validateEmbed?page=embed|${BIS_HASH}|sge|archive|anabaseios&onlySetIndex=2`,
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as EmbedCheckResponse;
+            expect(json).to.deep.equal({
+                isValid: true,
+            } satisfies EmbedCheckResponse);
+        });
+        it('rejects BiS without onlySetIndex', async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/validateEmbed?page=embed|${BIS_HASH}|sge|archive|anabaseios`,
+            });
+            const json = response.json() as EmbedCheckResponse;
+            expect(json).to.deep.equal({
+                isValid: false,
+                reason: 'full sheets cannot be embedded',
+            } satisfies EmbedCheckResponse);
+        }).timeout(30_000);
+        it('rejects BiS without embed', async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/validateEmbed?page=${BIS_HASH}|sge|archive|anabaseios&onlySetIndex=2`,
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as EmbedCheckResponse;
+            expect(json).to.deep.equal({
+                isValid: false,
+                reason: 'not an embed',
+            } satisfies EmbedCheckResponse);
+        }).timeout(30_000);
+        it('passes full-sheet shortlink with onlySetIndex', async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/validateEmbed?page=embed|sl|14433fae-67c1-4727-b772-54a07914fc03&onlySetIndex=2`,
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as EmbedCheckResponse;
+            expect(json).to.deep.equal({
+                isValid: true,
+            } satisfies EmbedCheckResponse);
+        }).timeout(30_000);
+        it('rejects full-sheet shortlink without onlySetIndex', async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/validateEmbed?page=embed|sl|14433fae-67c1-4727-b772-54a07914fc03`,
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as EmbedCheckResponse;
+            expect(json).to.deep.equal({
+                isValid: false,
+                reason: 'full sheets cannot be embedded',
+            } satisfies EmbedCheckResponse);
+        }).timeout(30_000);
+        it('passes single-set shortlink with onlySetIndex', async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/validateEmbed?page=embed|sl|0cd5874c-6322-4396-99be-2089d6222d9c`,
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as EmbedCheckResponse;
+            expect(json).to.deep.equal({
+                isValid: true,
+            } satisfies EmbedCheckResponse);
+        }).timeout(30_000);
+        it("missing path", async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: '/validateEmbed',
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json();
+            expect(json.isValid).to.be.false;
+            expect(json.reason).to.include("not found");
+        }).timeout(30_000);
+
+        it("invalid path", async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: '/validateEmbed?page=nonsense|path',
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json();
+            expect(json.isValid).to.be.false;
+        }).timeout(30_000);
+
+        it("uses params from encoded url", async () => {
+            const encoded = encodeURIComponent('https://foo.bar/?page=embed|sl|f9b260a9-650c-445a-b3eb-c56d8d968501&onlySetIndex=1');
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/validateEmbed?url=${encoded}`,
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as EmbedCheckResponse;
+            expect(json.isValid).to.be.true;
+        }).timeout(30_000);
+
+        it("should validate an embed from a legacy hash in the url parameter", async () => {
+            // Need a valid single set shortlink for embedding
+            // From stats_server_tests.ts: 0cd5874c-6322-4396-99be-2089d6222d9c is a single-set shortlink
+            const urlWithHash = "https://xivgear.app/#/embed/sl/0cd5874c-6322-4396-99be-2089d6222d9c";
+            const encodedUrl = encodeURIComponent(urlWithHash);
+
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/validateEmbed?url=${encodedUrl}`,
+            });
+
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as EmbedCheckResponse;
+            expect(json.isValid).to.be.true;
+        }).timeout(30_000);
+    });
+
+});

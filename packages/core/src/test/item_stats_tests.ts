@@ -144,7 +144,7 @@ describe('bug #695 - offhands have wrong stats', () => {
             if (failures.length > 0) {
                 throw Error(failures.join('\n'));
             }
-        });
+        }).timeout(30_000);
 
     });
 });

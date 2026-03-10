@@ -468,6 +468,8 @@ export interface RawStats {
 
 export type RawStatKey = keyof RawStats;
 
+export type RawStatsPart = Partial<RawStats>;
+
 /**
  * Stats that should not have ilvl caps applied
  */
@@ -745,11 +747,11 @@ export interface SheetExport {
     /**
      * The character clan (e.g. Wildwood or Duskwight) of the sheet.
      */
-    race: RaceName | undefined,
+    race?: RaceName | undefined,
     /**
      * Party bonus percentage (0-5)
      */
-    partyBonus: PartyBonusAmount,
+    partyBonus?: PartyBonusAmount,
     /**
      * The job abbreviation for the sheet.
      */
@@ -765,7 +767,7 @@ export interface SheetExport {
     /**
      * The simulations on this sheet.
      */
-    sims: SimExport[],
+    sims?: SimExport[],
     /**
      * Settings regarding which items to display
      */
@@ -916,6 +918,8 @@ export interface SheetStatsExport extends SheetExport {
     sets: SetStatsExport[],
 }
 
+// TODO: split into separator and non-separator
+
 /**
  * Represents an exported set. Note that in addition to some fields only being applicable to internal vs external
  * usage, some fields may be present based on whether this set was exported as a standalone individual set, or as
@@ -934,10 +938,6 @@ export interface SetExport {
      */
     description?: string,
     /**
-     * Equipped items (and their materia and/or relic stats)
-     */
-    items: ItemsSlotsExport,
-    /**
      * Equipped food (by item ID)
      */
     food?: number,
@@ -953,13 +953,17 @@ export interface SetExport {
      */
     materiaMemory?: MateriaMemoryExport;
     /**
-     * Indicates that this set is a separator rather than an actual set
-     */
-    isSeparator?: boolean,
-    /**
      * For multi-class sheets, each set can have a different job.
      */
     jobOverride?: JobName | null,
+    /**
+     * Equipped items (and their materia and/or relic stats)
+     */
+    items: ItemsSlotsExport,
+    /**
+     * Indicates that this set is a separator rather than an actual set
+     */
+    isSeparator?: boolean,
 }
 
 export type ItemsSlotsExport = {
@@ -969,7 +973,7 @@ export type ItemsSlotsExport = {
 /**
  * Type that represents a single set exported as a top-level sheet.
  */
-export interface SetExportExternalSingle extends SetExport {
+export type SetExportExternalSingle = SetExport & {
     // We don't care about job/level for internal usage, since
     // those are properties of the sheet. It's strictly to
     // prevent/warn on importing the wrong job, as well as for
@@ -1017,7 +1021,7 @@ export interface SetExportExternalSingle extends SetExport {
 /**
  * Special version of {@link SetExport} that comes from the /fulldata/ endpoint.
  */
-export interface SetStatsExport extends SetExport {
+export type SetStatsExport = SetExport & {
     computedStats: ComputedSetStats
 }
 
@@ -1213,6 +1217,8 @@ export type GearAcquisitionSource =
     | 'artifact'
     | 'alliance'
     | 'criterion'
+    | 'deepdungeon'
+    | 'fieldoperation'
     | 'other'
     | 'custom';
 
@@ -1389,7 +1395,7 @@ export type MicroSetExport = MicroSlotExport[];
 export type FoodMicroSlotExport = [slot: "food", foodId: number];
 // The itemId in this case has 0.5 added to it to indicate an NQ item
 export type NormalItemMicroSlotExport = [slot: EquipSlotKey, itemId: number, ...materiaIds: (number | null)[]];
-export type RelicItemMicroSlotExport = [slot: EquipSlotKey, itemId: number, "relic", relicStats: RelicStatsExport];
+export type RelicItemMicroSlotExport = [slot: EquipSlotKey, itemId: number, _: "relic", relicStats: RelicStatsExport];
 export type MicroSlotExport = FoodMicroSlotExport | NormalItemMicroSlotExport | RelicItemMicroSlotExport;
 
 export type IlvlSyncInfo = {

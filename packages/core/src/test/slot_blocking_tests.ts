@@ -4,6 +4,7 @@ import {EquipSlots} from "@xivgear/xivmath/geartypes";
 import {FakeLocalStorage} from "./test_utils";
 import {HEADLESS_SHEET_PROVIDER} from "../sheet";
 import {CharacterGearSet} from "../gear";
+import {EquipSlotCategory} from "@xivgear/data-api-client/dataapi";
 
 describe('DataApiEquipSlotMap', () => {
     it('should map slots correctly for single-slot item', () => {
@@ -20,7 +21,7 @@ describe('DataApiEquipSlotMap', () => {
             neck: 0,
             offHand: 0,
             wrists: 0,
-        });
+        } as EquipSlotCategory);
         expect(daesm.displayGearSlotName).to.eq('Body');
         expect(daesm.getBlockedSlots()).to.be.empty;
         EquipSlots.forEach(slot => {
@@ -46,7 +47,7 @@ describe('DataApiEquipSlotMap', () => {
             neck: 0,
             offHand: 0,
             wrists: 0,
-        });
+        } as EquipSlotCategory);
         expect(daesm.occGearSlotName).to.eq('ChestLegsFeet');
         expect(daesm.displayGearSlotName).to.eq('Body');
         expect(daesm.getBlockedSlots()).to.deep.eq(['Legs', 'Feet']);
@@ -73,7 +74,7 @@ describe('DataApiEquipSlotMap', () => {
             neck: 0,
             offHand: -1,
             wrists: 0,
-        });
+        } as EquipSlotCategory);
         expect(daesm.occGearSlotName).to.eq('Weapon2H');
         expect(daesm.displayGearSlotName).to.eq('Weapon');
         expect(daesm.getBlockedSlots()).to.deep.eq(['OffHand']);
@@ -94,7 +95,7 @@ describe('DataApiEquipSlotMap', () => {
             neck: 0,
             offHand: 0,
             wrists: 0,
-        });
+        } as EquipSlotCategory);
         expect(daesm.occGearSlotName).to.eq('Weapon1H');
         expect(daesm.displayGearSlotName).to.eq('Weapon');
         expect(daesm.getBlockedSlots()).to.be.empty;
@@ -115,7 +116,7 @@ describe('DataApiEquipSlotMap', () => {
             neck: 0,
             offHand: 0,
             wrists: 0,
-        });
+        } as EquipSlotCategory);
         expect(daesm.occGearSlotName).to.eq('Ring');
         expect(daesm.displayGearSlotName).to.eq('Ring');
         expect(daesm.getBlockedSlots()).to.be.empty;
@@ -136,7 +137,7 @@ describe('DataApiEquipSlotMap', () => {
             neck: 0,
             offHand: 0,
             wrists: 0,
-        });
+        } as EquipSlotCategory);
         expect(daesm.occGearSlotName).to.eq('ChestHeadLegsFeet');
         expect(daesm.displayGearSlotName).to.eq('Body');
         expect(daesm.getBlockedSlots()).to.deep.eq(['Head', 'Legs', 'Feet']);
@@ -159,7 +160,7 @@ describe('DataApiEquipSlotMap', () => {
             neck: 0,
             offHand: 0,
             wrists: 0,
-        });
+        } as EquipSlotCategory);
         expect(daesm.occGearSlotName).to.eq('ChestHead');
         expect(daesm.displayGearSlotName).to.eq('Body');
         expect(daesm.getBlockedSlots()).to.deep.eq(['Head']);
@@ -180,7 +181,7 @@ describe('DataApiEquipSlotMap', () => {
             neck: 0,
             offHand: 0,
             wrists: 0,
-        });
+        } as EquipSlotCategory);
         expect(daesm.occGearSlotName).to.eq('ChestLegsGloves');
         expect(daesm.displayGearSlotName).to.eq('Body');
         expect(daesm.getBlockedSlots()).to.deep.eq(['Hand', 'Legs']);
@@ -202,7 +203,7 @@ describe('DataApiEquipSlotMap', () => {
             neck: 0,
             offHand: 0,
             wrists: 0,
-        });
+        } as EquipSlotCategory);
         expect(daesm.occGearSlotName).to.eq('HeadChestHandsLegsFeet');
         expect(daesm.displayGearSlotName).to.eq('Body');
         expect(daesm.getBlockedSlots()).to.deep.eq(['Head', 'Hand', 'Legs', 'Feet']);
@@ -226,7 +227,7 @@ describe('DataApiEquipSlotMap', () => {
             neck: 0,
             offHand: 1,
             wrists: 0,
-        });
+        } as EquipSlotCategory);
         expect(daesm.occGearSlotName).to.eq('OffHand');
         expect(daesm.displayGearSlotName).to.eq('OffHand');
         expect(daesm.getBlockedSlots()).to.be.empty;
@@ -246,7 +247,7 @@ describe('DataApiEquipSlotMap', () => {
             neck: 0,
             offHand: 0,
             wrists: 0,
-        });
+        } as EquipSlotCategory);
         expect(daesm.occGearSlotName).to.eq('Head');
         expect(daesm.displayGearSlotName).to.eq('Head');
         expect(daesm.getBlockedSlots()).to.be.empty;
@@ -266,7 +267,7 @@ describe('DataApiEquipSlotMap', () => {
             neck: 0,
             offHand: 0,
             wrists: 0,
-        });
+        } as EquipSlotCategory);
         expect(daesm.occGearSlotName).to.eq('Hand');
         expect(daesm.displayGearSlotName).to.eq('Hand');
         expect(daesm.getBlockedSlots()).to.be.empty;
@@ -286,7 +287,7 @@ describe('DataApiEquipSlotMap', () => {
             neck: 0,
             offHand: 0,
             wrists: 0,
-        });
+        } as EquipSlotCategory);
         expect(daesm.occGearSlotName).to.eq('Legs');
         expect(daesm.displayGearSlotName).to.eq('Legs');
         expect(daesm.getBlockedSlots()).to.be.empty;
@@ -306,7 +307,7 @@ describe('DataApiEquipSlotMap', () => {
             neck: 0,
             offHand: 0,
             wrists: 0,
-        });
+        } as EquipSlotCategory);
         expect(daesm.occGearSlotName).to.eq('Feet');
         expect(daesm.displayGearSlotName).to.eq('Feet');
         expect(daesm.getBlockedSlots()).to.be.empty;
@@ -326,7 +327,7 @@ describe('DataApiEquipSlotMap', () => {
             neck: 0,
             offHand: 0,
             wrists: 0,
-        });
+        } as EquipSlotCategory);
         expect(daesm.occGearSlotName).to.eq('Ears');
         expect(daesm.displayGearSlotName).to.eq('Ears');
         expect(daesm.getBlockedSlots()).to.be.empty;
@@ -346,7 +347,7 @@ describe('DataApiEquipSlotMap', () => {
             neck: 1,
             offHand: 0,
             wrists: 0,
-        });
+        } as EquipSlotCategory);
         expect(daesm.occGearSlotName).to.eq('Neck');
         expect(daesm.displayGearSlotName).to.eq('Neck');
         expect(daesm.getBlockedSlots()).to.be.empty;
@@ -366,7 +367,7 @@ describe('DataApiEquipSlotMap', () => {
             neck: 0,
             offHand: 0,
             wrists: 1,
-        });
+        } as EquipSlotCategory);
         expect(daesm.occGearSlotName).to.eq('Wrist');
         expect(daesm.displayGearSlotName).to.eq('Wrist');
         expect(daesm.getBlockedSlots()).to.be.empty;
@@ -386,7 +387,7 @@ describe('DataApiEquipSlotMap', () => {
             neck: 0,
             offHand: 0,
             wrists: 0,
-        });
+        } as EquipSlotCategory);
         expect(daesm.occGearSlotName).to.eq('LegsFeet');
         expect(daesm.displayGearSlotName).to.eq('Legs');
         expect(daesm.getBlockedSlots()).to.deep.eq(['Feet']);

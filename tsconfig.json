@@ -19,39 +19,4 @@
     "./dist",
     "*.d.ts"
   ],
-  "references": [
-    {
-      "path": "./packages/backend-resolver"
-    },
-    {
-      "path": "./packages/common-ui"
-    },
-    {
-      "path": "./packages/core"
-    },
-    {
-      "path": "./packages/data-api-client"
-    },
-    {
-      "path": "./packages/user-data-client"
-    },
-    {
-      "path": "./packages/account-service-client"
-    },
-    {
-      "path": "./packages/frontend"
-    },
-    {
-      "path": "./packages/i18n"
-    },
-    {
-      "path": "./packages/math-frontend"
-    },
-    {
-      "path": "./packages/util"
-    },
-    {
-      "path": "./packages/xivmath"
-    }
-  ]
 }
