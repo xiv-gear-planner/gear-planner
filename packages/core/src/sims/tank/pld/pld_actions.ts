@@ -330,7 +330,6 @@ export const Intervene: PldOgcdAbility = {
     type: 'ogcd',
     name: "Intervene",
     id: 16461,
-    animationLock: 0.8,
     attackType: "Ability",
     potency: 150,
     cooldown: {
