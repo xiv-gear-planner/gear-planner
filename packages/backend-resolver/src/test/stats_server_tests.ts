@@ -597,7 +597,7 @@ describe('stats server', () => {
                 method: 'GET',
                 url: '/toEmbed',
             });
-            expect(response.statusCode).to.equal(200);
+            expect(response.statusCode).to.equal(404);
             const json = response.json() as ToEmbedResponse;
             isErrorResponse(json);
             expect(json.reason).to.include("not found");

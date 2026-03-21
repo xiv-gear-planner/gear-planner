@@ -169,6 +169,6 @@ export type ToEmbedErrorResponse = {
 /**
  * Response for the /toEmbed endpoint.
  */
-export type ToEmbedResponse = ToEmbedSetResponse | ToEmbedSheetResponse | ToEmbedErrorResponse;
+export type ToEmbedResponse = ToEmbedSetResponse | ToEmbedSheetResponse;
 
 export type ToEmbedQuery = StatsQueryParams;

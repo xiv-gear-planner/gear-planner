@@ -50,9 +50,9 @@ import {
     PutSheetResponse,
     ToEmbedErrorResponse,
     ToEmbedQuery,
-    ToEmbedResponse,
     ToEmbedSetResponse,
-    ToEmbedSheetResponse, ToEmbedSheetSet
+    ToEmbedSheetResponse,
+    ToEmbedSheetSet
 } from "./stats_server_schema_types";
 
 
@@ -67,8 +67,15 @@ export class StatsServer extends ServerBase {
         fastifyInstance.register(fastifySwagger, {
             openapi: {
                 info: {
-                    title: 'Gearplan API',
+                    title: 'Xivgear Stats and Exported Data API',
                     version: '1.0.0',
+                    description: 'This is the exported data and stats API for Xivgear. ' +
+                        'Most of these endpoints expect you to provide a reference to a particular sheet/set in one form or another.\n\n' +
+                        'Except for deprecated legacy endpoints, you can supply them in various forms (see StatsQueryParams schema).\n\n' +
+                        'Generally, you can either:\n' +
+                        '- Provide a complete URL (encoded) in the `url` parameter, e.g. `/basedata?url=encode(https://xivgear.app/?page=sl|0d84fb82-f4b0-4352-bfc7-ff2eb1dfabf8)`.\n' +
+                        '- Provide a partial URL (encoded) in the `url` parameter, e.g. `/basedata?url=encode(?page=sl|0d84fb82-f4b0-4352-bfc7-ff2eb1dfabf8)` but properly encoded.\n' +
+                        '- Transplant individual URL parameters from the desired URL onto this endpoint, e.g. `https://xivgear.app/?page=sl|0d84fb82-f4b0-4352-bfc7-ff2eb1dfabf8` becomes `/basedata?page=sl|0d84fb82-f4b0-4352-bfc7-ff2eb1dfabf8`.\n',
                 },
             },
         });
@@ -84,6 +91,8 @@ export class StatsServer extends ServerBase {
         fastifyInstance.register(async (instance) => {
             instance.get('/validateEmbed', {
                 schema: {
+                    summary: 'Validate an embed URL',
+                    description: 'Checks if a given page/URL represents a valid embed. If you want to transform a URL into an embed, see /toEmbed.',
                     tags: ['public'],
                     querystring: {$ref: 'EmbedCheckQuery#'},
                     response: {200: {$ref: 'EmbedCheckResponse#'}},
@@ -133,9 +142,16 @@ export class StatsServer extends ServerBase {
 
             instance.get('/toEmbed', {
                 schema: {
+                    summary: 'Convert a page to an embed URL',
+                    description: 'Takes a page (in any supported format) and returns the corresponding embed URL(s). ' +
+                        'If the input is a set, it will return the embed URL for that set as a ToEmbedSetResponse. ' +
+                        'If the input is a sheet, it will return an embed URL for each (non-separator) set in the sheet (see ToEmbedSheetResponse).',
                     tags: ['public'],
                     querystring: {$ref: 'ToEmbedQuery#'},
-                    response: {200: {$ref: 'ToEmbedResponse#'}},
+                    response: {
+                        200: {$ref: 'ToEmbedResponse#'},
+                        404: {$ref: 'ToEmbedErrorResponse#'},
+                    },
                 },
             }, async (request: SheetRequest<ToEmbedQuery>, reply) => {
                 const merged = getMergedQueryParams(request, {
@@ -173,7 +189,7 @@ export class StatsServer extends ServerBase {
                         reply.send({
                             type: 'sheet',
                             sets: sets,
-                        } satisfies ToEmbedResponse);
+                        } satisfies ToEmbedSheetResponse);
                     }
                     else {
                         // It's a single set (either directly or via osIndex)
@@ -185,19 +201,22 @@ export class StatsServer extends ServerBase {
                         reply.send({
                             type: 'set',
                             embedUrl: toEmbedUrl(baseUrl).toString(),
-                        } satisfies ToEmbedResponse);
+                        } satisfies ToEmbedSetResponse);
                     }
                 }
                 else {
+                    reply.status(404);
                     reply.send({
                         type: 'error',
                         reason: `path ${pathPaths} not found`,
-                    } satisfies ToEmbedResponse);
+                    } satisfies ToEmbedErrorResponse);
                 }
             });
 
             instance.get('/basedata', {
                 schema: {
+                    summary: 'Get exported sheet or set data',
+                    description: 'Returns the raw exported data for a sheet or set, with minimal transformation. Does not include full stats calculation. Supports any supported input format.',
                     tags: ['public'],
                     querystring: {$ref: 'BaseDataQuery#'},
                     response: {200: {$ref: 'BaseDataResponse#'}},
@@ -259,6 +278,8 @@ export class StatsServer extends ServerBase {
             instance.get('/fulldata',
                 {
                     schema: {
+                        summary: 'Get full sheet or set data with stats',
+                        description: 'Returns the exported data for a sheet or set, including full calculated stats. Always exports as if it were a sheet, even if the input is an individual set.',
                         tags: ['public'],
                         querystring: {$ref: 'FullDataQuery#'},
                         response: {200: {$ref: 'FullDataResponse#'}},
@@ -291,6 +312,8 @@ export class StatsServer extends ServerBase {
             // DEPRECATED - use /fulldata?page=sl|<uuid> instead
             instance.get('/fulldata/:uuid', {
                 schema: {
+                    summary: 'Get full data by UUID (Deprecated)',
+                    description: 'Legacy endpoint to get full data by UUID. Use /fulldata?page=sl|<uuid> instead.',
                     deprecated: true,
                     tags: ['legacy'],
                     params: {
@@ -332,6 +355,8 @@ export class StatsServer extends ServerBase {
             // DEPRECATED - use /fulldata?page=bis|<job>|<sheet> instead
             instance.get('/fulldata/bis/:job/:sheet', {
                 schema: {
+                    summary: 'Get full BiS data by job and sheet (Deprecated)',
+                    description: 'Legacy endpoint to get full BiS data. Use /fulldata?page=bis|<job>|<sheet> instead.',
                     deprecated: true,
                     tags: ['legacy'],
                     params: {
@@ -378,6 +403,8 @@ export class StatsServer extends ServerBase {
             // DEPRECATED - use /fulldata?page=bis|<job>|<folder>|<sheet> instead
             instance.get('/fulldata/bis/:job/:folder/:sheet', {
                 schema: {
+                    summary: 'Get full BiS data by job, folder, and sheet (Deprecated)',
+                    description: 'Legacy endpoint to get full BiS data with folder. Use /fulldata?page=bis|<job>|<folder>|<sheet> instead.',
                     deprecated: true,
                     tags: ['legacy'],
                     params: {
@@ -425,6 +452,8 @@ export class StatsServer extends ServerBase {
             // Creates a shortlink, and returns the canonical URL for it, both in normal and embedded form.
             instance.put('/putset', {
                 schema: {
+                    summary: 'Create a shortlink for a single set',
+                    description: 'Takes a single set export and creates a shortlink for it, returning both normal and embed URLs.',
                     tags: ['public'],
                     body: {$ref: 'SetExportExternalSingle#'},
                     response: {200: {$ref: 'PutSetResponse#'}},
@@ -456,6 +485,8 @@ export class StatsServer extends ServerBase {
             // The per-set links include an onlySetIndex link, an onlySetIndex+embed link, and a selectedIndex link.
             instance.put('/putsheet', {
                 schema: {
+                    summary: 'Create a shortlink for a full sheet',
+                    description: 'Takes a full sheet export and creates shortlinks for it and each individual set within it.',
                     tags: ['public'],
                     body: {$ref: 'SheetExport#'},
                     response: {200: {$ref: 'PutSheetResponse#'}},

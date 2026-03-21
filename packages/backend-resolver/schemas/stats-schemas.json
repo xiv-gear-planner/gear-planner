@@ -2028,9 +2028,6 @@
         },
         {
           "$ref": "#/definitions/ToEmbedSheetResponse"
-        },
-        {
-          "$ref": "#/definitions/ToEmbedErrorResponse"
         }
       ],
       "description": "Response for the /toEmbed endpoint."
