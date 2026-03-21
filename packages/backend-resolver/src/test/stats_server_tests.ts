@@ -19,10 +19,6 @@ function isSheetResponse(response: ToEmbedResponse): asserts response is ToEmbed
     expect(response.type).to.equal('sheet');
 }
 
-function isErrorResponse(response: ToEmbedResponse): asserts response is ToEmbedErrorResponse {
-    expect(response.type).to.equal('error');
-}
-
 // TODO: add tests for validateEmbed with direct URL (on a different branch)
 
 describe('stats server', () => {
@@ -598,8 +594,7 @@ describe('stats server', () => {
                 url: '/toEmbed',
             });
             expect(response.statusCode).to.equal(404);
-            const json = response.json() as ToEmbedResponse;
-            isErrorResponse(json);
+            const json = response.json() as ToEmbedErrorResponse;
             expect(json.reason).to.include("not found");
         }).timeout(30_000);
     });
