@@ -47,7 +47,12 @@ import {
     FullDataResponse,
     ImportExportSheetQuery,
     PutSetResponse,
-    PutSheetResponse
+    PutSheetResponse,
+    ToEmbedErrorResponse,
+    ToEmbedQuery,
+    ToEmbedResponse,
+    ToEmbedSetResponse,
+    ToEmbedSheetResponse, ToEmbedSheetSet
 } from "./stats_server_schema_types";
 
 
@@ -123,6 +128,71 @@ export class StatsServer extends ServerBase {
                         isValid: false,
                         reason: `path ${pathPaths} not found`,
                     } satisfies EmbedCheckResponse);
+                }
+            });
+
+            instance.get('/toEmbed', {
+                schema: {
+                    tags: ['public'],
+                    querystring: {$ref: 'ToEmbedQuery#'},
+                    response: {200: {$ref: 'ToEmbedResponse#'}},
+                },
+            }, async (request: SheetRequest<ToEmbedQuery>, reply) => {
+                const merged = getMergedQueryParams(request, {
+                    [HASH_QUERY_PARAM]: stringParam,
+                    [ONLY_SET_QUERY_PARAM]: intParam,
+                    [SELECTION_INDEX_QUERY_PARAM]: intParam,
+                });
+                const path = merged[HASH_QUERY_PARAM] ?? '';
+                const osIndex = merged[ONLY_SET_QUERY_PARAM];
+                const selIndex = merged[SELECTION_INDEX_QUERY_PARAM];
+                const pathPaths = path.split(PATH_SEPARATOR);
+                const state = new NavState(pathPaths, osIndex, selIndex);
+                const nav = parsePath(state);
+                request.log.info(pathPaths, 'Path');
+                const navResult = this.navDataService.resolveNavData(nav);
+                if (nav !== null && navResult !== null && navResult.sheetData !== null) {
+                    const exported: ExportedData = await navResult.sheetData;
+                    reply.header("cache-control", "max-age=7200, public");
+                    if ('sets' in exported && osIndex === undefined) {
+                        // It's a full sheet
+                        const baseUrl = new URL('https://xivgear.app/');
+                        baseUrl.searchParams.set(HASH_QUERY_PARAM, path);
+                        const sets: ToEmbedSheetSet[] = [];
+                        for (let i = 0; i < exported.sets.length; i++) {
+                            const set = exported.sets[i];
+                            if (set && !set.isSeparator) {
+                                const setUrl = new URL(baseUrl.toString());
+                                setUrl.searchParams.set(ONLY_SET_QUERY_PARAM, i.toString());
+                                sets.push({
+                                    index: i,
+                                    embedUrl: toEmbedUrl(setUrl).toString(),
+                                });
+                            }
+                        }
+                        reply.send({
+                            type: 'sheet',
+                            sets: sets,
+                        } satisfies ToEmbedResponse);
+                    }
+                    else {
+                        // It's a single set (either directly or via osIndex)
+                        const baseUrl = new URL('https://xivgear.app/');
+                        baseUrl.searchParams.set(HASH_QUERY_PARAM, path);
+                        if (osIndex !== undefined) {
+                            baseUrl.searchParams.set(ONLY_SET_QUERY_PARAM, osIndex.toString());
+                        }
+                        reply.send({
+                            type: 'set',
+                            embedUrl: toEmbedUrl(baseUrl).toString(),
+                        } satisfies ToEmbedResponse);
+                    }
+                }
+                else {
+                    reply.send({
+                        type: 'error',
+                        reason: `path ${pathPaths} not found`,
+                    } satisfies ToEmbedResponse);
                 }
             });
 

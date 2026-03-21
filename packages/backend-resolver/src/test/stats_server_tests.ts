@@ -3,7 +3,25 @@ import {expect} from "chai";
 import {SheetExport, SheetStatsExport} from "@xivgear/xivmath/geartypes";
 import {BIS_HASH} from "@xivgear/core/nav/common_nav";
 import {makeStatsServer} from "./test_utils";
-import {EmbedCheckResponse} from "../stats_server_schema_types";
+import {
+    EmbedCheckResponse,
+    ToEmbedErrorResponse,
+    ToEmbedResponse,
+    ToEmbedSetResponse,
+    ToEmbedSheetResponse
+} from "../stats_server_schema_types";
+
+function isSetResponse(response: ToEmbedResponse): asserts response is ToEmbedSetResponse {
+    expect(response.type).to.equal('set');
+}
+
+function isSheetResponse(response: ToEmbedResponse): asserts response is ToEmbedSheetResponse {
+    expect(response.type).to.equal('sheet');
+}
+
+function isErrorResponse(response: ToEmbedResponse): asserts response is ToEmbedErrorResponse {
+    expect(response.type).to.equal('error');
+}
 
 // TODO: add tests for validateEmbed with direct URL (on a different branch)
 
@@ -533,6 +551,56 @@ describe('stats server', () => {
             expect(response.statusCode).to.equal(200);
             const json = response.json() as EmbedCheckResponse;
             expect(json.isValid).to.be.true;
+        }).timeout(30_000);
+    });
+
+    describe("toEmbed endpoint", () => {
+        const fastify = makeStatsServer().setupForTest();
+        it('transforms BiS with onlySetIndex', async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/toEmbed?page=${BIS_HASH}|sge|archive|anabaseios&onlySetIndex=2`,
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as ToEmbedResponse;
+            isSetResponse(json);
+            expect(json.embedUrl).to.contain('page=embed%7Cbis%7Csge%7Carchive%7Canabaseios');
+            expect(json.embedUrl).to.contain('onlySetIndex=2');
+        }).timeout(30_000);
+
+        it('transforms full BiS sheet', async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/toEmbed?page=${BIS_HASH}|sge|archive|anabaseios`,
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as ToEmbedResponse;
+            isSheetResponse(json);
+            expect(json.sets).to.have.length.greaterThan(0);
+            expect(json.sets[0].embedUrl).to.contain('page=embed%7Cbis%7Csge%7Carchive%7Canabaseios');
+            expect(json.sets[0].embedUrl).to.contain('onlySetIndex=');
+        }).timeout(30_000);
+
+        it('transforms single-set shortlink', async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/toEmbed?page=sl|0cd5874c-6322-4396-99be-2089d6222d9c`,
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as ToEmbedResponse;
+            isSetResponse(json);
+            expect(json.embedUrl).to.contain('page=embed%7Csl%7C0cd5874c-6322-4396-99be-2089d6222d9c');
+        }).timeout(30_000);
+
+        it("returns error for missing path", async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: '/toEmbed',
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as ToEmbedResponse;
+            isErrorResponse(json);
+            expect(json.reason).to.include("not found");
         }).timeout(30_000);
     });
 
