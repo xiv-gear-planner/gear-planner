@@ -17,11 +17,12 @@ describe("Swagger UI Live Schema Tests", () => {
 
         // Basic OpenAPI structure
         expect(json.openapi).to.match(/^3\./);
-        expect(json.info.title).to.equal('Gearplan API');
+        expect(json.info.title).to.equal('Xivgear Stats and Exported Data API');
 
         // Check for expected paths
         const paths = json.paths;
         expect(paths).to.have.property('/validateEmbed');
+        expect(paths).to.have.property('/toEmbed');
         expect(paths).to.have.property('/basedata');
         expect(paths).to.have.property('/fulldata');
         expect(paths).to.have.property('/putset');
@@ -29,6 +30,7 @@ describe("Swagger UI Live Schema Tests", () => {
 
         // Check for specific methods
         expect(paths['/validateEmbed']).to.have.property('get');
+        expect(paths['/toEmbed']).to.have.property('get');
         expect(paths['/basedata']).to.have.property('get');
         expect(paths['/fulldata']).to.have.property('get');
         expect(paths['/putset']).to.have.property('put');

@@ -112,3 +112,63 @@ export type ImportExportSheetQuery = {
 } & BaseQueryParams;
 
 export type FullDataQuery = StatsQueryParams & ImportExportSheetQuery;
+
+/**
+ * Response for the /toEmbed endpoint when the input was a single set.
+ */
+export type ToEmbedSetResponse = {
+    /**
+     * The input was a single set.
+     */
+    type: 'set',
+    /**
+     * The embed URL for this set.
+     */
+    embedUrl: string,
+}
+
+export type ToEmbedSheetSet = {
+    /**
+     * The index of the set based on the original list.
+     */
+    index: number,
+    /**
+     * The embed URL for this set.
+     */
+    embedUrl: string,
+}
+
+/**
+ * Response for the /toEmbed endpoint when the input was a full sheet.
+ */
+export type ToEmbedSheetResponse = {
+    /**
+     * The input was a full sheet.
+     */
+    type: 'sheet',
+    /**
+     * The canonical embed URL for each set in the sheet.
+     */
+    sets: ToEmbedSheetSet[],
+}
+
+/**
+ * Response for the /toEmbed endpoint when the input was invalid.
+ */
+export type ToEmbedErrorResponse = {
+    /**
+     * The input was invalid.
+     */
+    type: 'error',
+    /**
+     * The reason why it's invalid.
+     */
+    reason: string,
+}
+
+/**
+ * Response for the /toEmbed endpoint.
+ */
+export type ToEmbedResponse = ToEmbedSetResponse | ToEmbedSheetResponse;
+
+export type ToEmbedQuery = StatsQueryParams;
