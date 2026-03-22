@@ -32,7 +32,7 @@ function dotPotencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility
     return multiplyFixed(afterCritDh, combinedBuffEffects.dmgMod);
 }
 
-function potencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility: DamagingAbility, combinedBuffEffects: CombinedBuffEffect, scalingOverrides = getDefaultScalings(stats)): ComputedDamage {
+export function potencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility: DamagingAbility, combinedBuffEffects: CombinedBuffEffect, scalingOverrides = getDefaultScalings(stats)): ComputedDamage {
     const forceDhit = dmgAbility.autoDh || combinedBuffEffects.forceDhit;
     const forceCrit = dmgAbility.autoCrit || combinedBuffEffects.forceCrit;
     const modifiedStats = stats.withModifications((stats, bonuses) => {
