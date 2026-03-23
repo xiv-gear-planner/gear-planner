@@ -2,6 +2,10 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "strict": false,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+    "strictPropertyInitialization": false,
+    "strictNullChecks": true,
   },
   "include": [
     "src"
@@ -9,7 +13,8 @@
   "exclude": [
     "./node_modules",
     "./dist",
-    "*.d.ts"
+    "*.d.ts",
+    "src/test"
   ],
   "references": [
     {
