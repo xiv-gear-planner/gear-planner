@@ -1,5 +1,5 @@
 import {finalizeStats} from "@xivgear/xivmath/xivstats";
-import {ComputedSetStats, RawStats} from "@xivgear/xivmath/geartypes";
+import {RawStats} from "@xivgear/xivmath/geartypes";
 import {getLevelStats, getRaceStats} from "@xivgear/xivmath/xivconstants";
 import {expect} from "chai";
 import {applyDhCritFull, baseDamageFull, fl, getDefaultScalings} from "@xivgear/xivmath/xivmath";
