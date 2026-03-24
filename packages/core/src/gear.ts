@@ -18,7 +18,7 @@ import {
     CollapsibleSlot,
     ComputedSetStats,
     EquipmentSet,
-    EquippedItem, EquipSlot,
+    EquippedItem,
     EquipSlotInfo,
     EquipSlotKey,
     EquipSlots,
