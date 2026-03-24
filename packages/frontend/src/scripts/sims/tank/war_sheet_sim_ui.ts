@@ -1,10 +1,10 @@
 import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
-import {WarSettings, WarSimResult} from "@xivgear/core/sims/tank/war/war_sheet_sim";
+import {WarSettings, WarSimResult} from "@xivgear/sims/tank/war/war_sheet_sim";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
-import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/sims/cycle_sim";
 import {CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
-import {WarExtraData} from "@xivgear/core/sims/tank/war/war_types";
+import {WarExtraData} from "@xivgear/sims/tank/war/war_types";
 import {GaugeWithText} from "@xivgear/common-ui/components/gauges";
 
 export class WarSimGui extends BaseMultiCycleSimGui<WarSimResult, WarSettings> {

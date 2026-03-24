@@ -1,6 +1,6 @@
 import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
-import {CycleSimResult} from "@xivgear/core/sims/cycle_sim";
-import {BluSimSettings} from "@xivgear/core/sims/blu/blu_common";
+import {CycleSimResult} from "@xivgear/sims/cycle_sim";
+import {BluSimSettings} from "@xivgear/sims/blu/blu_common";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
 
 export class BluSimGui extends BaseMultiCycleSimGui<CycleSimResult, BluSimSettings> {

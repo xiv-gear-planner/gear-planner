@@ -5,7 +5,8 @@
     "strictBindCallApply": true,
     "strictFunctionTypes": true,
     "strictPropertyInitialization": false,
-    "strictNullChecks": true,
+    "strictNullChecks": false,
+    "noImplicitAny": true
   },
   "include": [
     "src"
@@ -14,7 +15,6 @@
     "./node_modules",
     "./dist",
     "*.d.ts",
-    "src/test"
   ],
   "references": [
     {

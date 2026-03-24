@@ -1,5 +1,5 @@
 import {NamedSection} from "../components/general/section";
-import {BuffSettingsManager} from "@xivgear/core/sims/common/party_comp_settings";
+import {BuffSettingsManager} from "@xivgear/sims/common/party_comp_settings";
 import {el, FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
 import {jobAbbrevTranslated} from "../components/job/job_name_translator";
 import {statusNameTranslated} from "../components/sim/status_effects";

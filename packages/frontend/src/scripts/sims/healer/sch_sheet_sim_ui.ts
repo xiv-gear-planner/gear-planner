@@ -1,8 +1,8 @@
 import {el, FieldBoundIntField, labelFor, nonNegative, quickElement} from "@xivgear/common-ui/components/util";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
-import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/sims/cycle_sim";
 import {CustomColumnSpec} from "@xivgear/common-ui/table/tables";
-import {SchExtraData, SchSettings, SchSimResult} from "@xivgear/core/sims/healer/sch_sheet_sim";
+import {SchExtraData, SchSettings, SchSimResult} from "@xivgear/sims/healer/sch_sheet_sim";
 import {extraDataDiscreteGaugeRenderer} from "../common/sim_ui_utils";
 
 export class SchSimGui extends BaseMultiCycleSimGui<SchSimResult, SchSettings> {

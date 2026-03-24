@@ -1,0 +1,32 @@
+{
+  "name": "@xivgear/sims",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "build": "tsc --build",
+    "buildprod": "tsc --build",
+    "test": "ts-mocha --no-experimental-strip-types --exit \"src/test/**/*test.ts\" \"src/test/**/*tests.ts\""
+  },
+  "dependencies": {
+    "@xivgear/core": "workspace:*",
+    "@xivgear/xivmath": "workspace:*",
+    "@xivgear/util": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.20",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.15.18",
+    "chai": "^4.5.0",
+    "ts-loader": "^9.5.2",
+    "ts-mocha": "^10.1.0",
+    "ts-node": "^10.9.2"
+  },
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "files": [
+    "package.json",
+    "tsconfig.json",
+    "src/*.ts"
+  ]
+}
