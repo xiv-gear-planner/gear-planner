@@ -2,7 +2,7 @@ import {SimulationGui} from "../simulation_gui";
 import {EmptyObject} from "@xivgear/util/util_types";
 import {NamedSection} from "../../components/general/section";
 import {simpleMappedResultTable} from "../components/simple_tables";
-import {MPResult, MPSettings} from "@xivgear/core/sims/healer/healer_mp";
+import {MPResult, MPSettings} from "@xivgear/sims/healer/healer_mp";
 
 export class MPSimGui extends SimulationGui<MPResult, MPSettings, EmptyObject> {
     makeConfigInterface = this.makeDescriptionPanel;

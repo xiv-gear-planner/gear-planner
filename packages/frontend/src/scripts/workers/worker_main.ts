@@ -11,7 +11,7 @@ import {
     WorkerToMainMessage,
     WorkResponseDone
 } from "@xivgear/core/workers/worker_types";
-import {registerDefaultSims} from "@xivgear/core/sims/default_sims";
+import {registerDefaultSims} from "@xivgear/sims/default_sims";
 
 const originalConsoleValues: Partial<typeof console> = {
     log: console.log,

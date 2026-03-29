@@ -4,7 +4,8 @@ import {JobName, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {AttackType, ComputedSetStats} from "@xivgear/xivmath/geartypes";
 import {ValueWithDev} from "@xivgear/xivmath/deviation";
 import {StatModification} from "@xivgear/xivmath/xivstats";
-import {EmptyGauge} from "./cycle_sim";
+
+export type EmptyGauge = {}
 
 /**
  * Represents the final result of a simulation run. Sim implementors should extend this type with

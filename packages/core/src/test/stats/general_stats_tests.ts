@@ -1,13 +1,12 @@
 import {finalizeStats} from "@xivgear/xivmath/xivstats";
-import {ComputedSetStats, RawStats} from "@xivgear/xivmath/geartypes";
+import {RawStats} from "@xivgear/xivmath/geartypes";
 import {getLevelStats, getRaceStats} from "@xivgear/xivmath/xivconstants";
 import {expect} from "chai";
 import {applyDhCritFull, baseDamageFull, fl, getDefaultScalings} from "@xivgear/xivmath/xivmath";
 import {multiplyFixed} from "@xivgear/xivmath/deviation";
 import {HEADLESS_SHEET_PROVIDER} from "../../sheet";
 import {AlternativeScaling} from "../../sims/sim_types";
-import {getScalingOverrides, potencyToDamage} from "../../sims/sim_utils";
-import {LivingShadowAbyssalDrain, LivingShadowDisesteem, LivingShadowShadowbringer, ScarletDelirium} from "../../sims/tank/drk/drk_actions";
+import {getScalingOverrides} from "../../sims/sim_utils";
 
 
 const level = 100;
@@ -21,24 +20,25 @@ describe("ComputedSetStats", () => {
     // from https://xivgear.app/?page=sl%7C159ef597-02ed-4fc9-9290-5de6c16c3af9
     it('computes correctly with no food and no party bonus', async () => {
         await loadPromise;
-        const stats = finalizeStats(new RawStats({
-            hp: 0,
-            vitality: 4119,
-            strength: fl(440 * 0.9),
-            dexterity: 440,
-            intelligence: 462,
-            mind: 4448,
-            piety: 564,
-            crit: 2988,
-            dhit: 690,
-            determination: 2706,
-            tenacity: 420,
-            skillspeed: 420,
-            spellspeed: 1134,
-            wdPhys: 141,
-            wdMag: 141,
-            weaponDelay: 3.12,
-        }), {}, level, getLevelStats(level), job, fakeSheet.classJobStats, 0, getRaceStats("The Lost"));
+        const stats = finalizeStats(
+            new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: fl(440 * 0.9),
+                dexterity: 440,
+                intelligence: 462,
+                mind: 4448,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 2706,
+                tenacity: 420,
+                skillspeed: 420,
+                spellspeed: 1134,
+                wdPhys: 141,
+                wdMag: 141,
+                weaponDelay: 3.12,
+            }), {}, level, getLevelStats(level), job, fakeSheet.classJobStats, 0, getRaceStats("The Lost"));
         expect(stats.aaDelay).to.eq(3.12);
         expect(stats.aaMulti).to.eq(1.87);
         expect(stats.aaStatMulti).to.eq(0.77);
@@ -80,39 +80,40 @@ describe("ComputedSetStats", () => {
     }).timeout(30_000);
     it('computes correctly with food and no party bonus', async () => {
         await loadPromise;
-        const stats = finalizeStats(new RawStats({
-            hp: 0,
-            vitality: 4119,
-            strength: fl(440 * 0.9),
-            dexterity: 440,
-            intelligence: 462,
-            mind: 4448,
-            piety: 564,
-            crit: 2988,
-            dhit: 690,
-            determination: 2706,
-            tenacity: 420,
-            skillspeed: 420,
-            spellspeed: 1134,
-            wdPhys: 141,
-            wdMag: 141,
-            weaponDelay: 3.12,
-        }),
-        // Pineapple Orange Jelly
-        {
-            vitality: {
-                max: 203,
-                percentage: 10,
-            },
-            crit: {
-                max: 132,
-                percentage: 10,
-            },
-            spellspeed: {
-                max: 79,
-                percentage: 10,
-            },
-        }, level, getLevelStats(level), job, fakeSheet.classJobStats, 0, getRaceStats("The Lost"));
+        const stats = finalizeStats(
+            new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: fl(440 * 0.9),
+                dexterity: 440,
+                intelligence: 462,
+                mind: 4448,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 2706,
+                tenacity: 420,
+                skillspeed: 420,
+                spellspeed: 1134,
+                wdPhys: 141,
+                wdMag: 141,
+                weaponDelay: 3.12,
+            }),
+            // Pineapple Orange Jelly
+            {
+                vitality: {
+                    max: 203,
+                    percentage: 10,
+                },
+                crit: {
+                    max: 132,
+                    percentage: 10,
+                },
+                spellspeed: {
+                    max: 79,
+                    percentage: 10,
+                },
+            }, level, getLevelStats(level), job, fakeSheet.classJobStats, 0, getRaceStats("The Lost"));
         expect(stats.aaDelay).to.eq(3.12);
         expect(stats.aaMulti).to.eq(1.87);
         expect(stats.aaStatMulti).to.eq(0.77);
@@ -154,39 +155,40 @@ describe("ComputedSetStats", () => {
     }).timeout(30_000);
     it('computes correctly with food and with party bonus', async () => {
         await loadPromise;
-        const stats = finalizeStats(new RawStats({
-            hp: 0,
-            vitality: 4119,
-            strength: fl(440 * 0.9),
-            dexterity: 440,
-            intelligence: 462,
-            mind: 4448,
-            piety: 564,
-            crit: 2988,
-            dhit: 690,
-            determination: 2706,
-            tenacity: 420,
-            skillspeed: 420,
-            spellspeed: 1134,
-            wdPhys: 141,
-            wdMag: 141,
-            weaponDelay: 3.12,
-        }),
-        // Pineapple Orange Jelly
-        {
-            vitality: {
-                max: 203,
-                percentage: 10,
-            },
-            crit: {
-                max: 132,
-                percentage: 10,
-            },
-            spellspeed: {
-                max: 79,
-                percentage: 10,
-            },
-        }, level, getLevelStats(level), job, fakeSheet.classJobStats, 5, getRaceStats("The Lost"));
+        const stats = finalizeStats(
+            new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: fl(440 * 0.9),
+                dexterity: 440,
+                intelligence: 462,
+                mind: 4448,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 2706,
+                tenacity: 420,
+                skillspeed: 420,
+                spellspeed: 1134,
+                wdPhys: 141,
+                wdMag: 141,
+                weaponDelay: 3.12,
+            }),
+            // Pineapple Orange Jelly
+            {
+                vitality: {
+                    max: 203,
+                    percentage: 10,
+                },
+                crit: {
+                    max: 132,
+                    percentage: 10,
+                },
+                spellspeed: {
+                    max: 79,
+                    percentage: 10,
+                },
+            }, level, getLevelStats(level), job, fakeSheet.classJobStats, 5, getRaceStats("The Lost"));
         expect(stats.aaDelay).to.eq(3.12);
         expect(stats.aaMulti).to.eq(1.87);
         expect(stats.aaStatMulti).to.eq(0.87);
@@ -240,26 +242,27 @@ describe("Dmg/100p for known values", () => {
     const loadPromiseGNB = fakeSheetGNB.load();
     it('SMN test 1', async () => {
         await loadPromiseSMN;
-        const stats = finalizeStats(new RawStats({
-            hp: 0,
-            vitality: 4119,
-            strength: fl(440 * 0.9),
-            dexterity: 440,
-            intelligence: 1038,
-            mind: 4448,
-            piety: 564,
-            crit: 2988,
-            dhit: 690,
-            determination: 812,
-            tenacity: 420,
-            skillspeed: 420,
-            spellspeed: 1134,
-            wdPhys: 114,
-            wdMag: 114,
-            weaponDelay: 3.12,
-        }),
-        // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'SMN', fakeSheetSMN.classJobStats, 0, getRaceStats("The Lost"));
+        const stats = finalizeStats(
+            new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: fl(440 * 0.9),
+                dexterity: 440,
+                intelligence: 1038,
+                mind: 4448,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 812,
+                tenacity: 420,
+                skillspeed: 420,
+                spellspeed: 1134,
+                wdPhys: 114,
+                wdMag: 114,
+                weaponDelay: 3.12,
+            }),
+            // Pineapple Orange Jelly
+            {}, level, getLevelStats(level), 'SMN', fakeSheetSMN.classJobStats, 0, getRaceStats("The Lost"));
         const dmg100p = baseDamageFull(stats, 100, 'Spell', false, false);
         expect(dmg100p.expected).to.eq(913);
         expect(stats.detMulti).to.eq(1.018);
@@ -272,26 +275,27 @@ describe("Dmg/100p for known values", () => {
 
     it('SMN test 2', async () => {
         await loadPromiseSMN;
-        const stats = finalizeStats(new RawStats({
-            hp: 0,
-            vitality: 4119,
-            strength: fl(440 * 0.9),
-            dexterity: 440,
-            intelligence: 1167,
-            mind: 4448,
-            piety: 564,
-            crit: 2988,
-            dhit: 690,
-            determination: 900,
-            tenacity: 420,
-            skillspeed: 420,
-            spellspeed: 1134,
-            wdPhys: 114,
-            wdMag: 114,
-            weaponDelay: 3.12,
-        }),
-        // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'SMN', fakeSheetSMN.classJobStats, 0, getRaceStats("The Lost"));
+        const stats = finalizeStats(
+            new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: fl(440 * 0.9),
+                dexterity: 440,
+                intelligence: 1167,
+                mind: 4448,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 900,
+                tenacity: 420,
+                skillspeed: 420,
+                spellspeed: 1134,
+                wdPhys: 114,
+                wdMag: 114,
+                weaponDelay: 3.12,
+            }),
+            // Pineapple Orange Jelly
+            {}, level, getLevelStats(level), 'SMN', fakeSheetSMN.classJobStats, 0, getRaceStats("The Lost"));
         const dmg100p = baseDamageFull(stats, 100, 'Spell', false, false);
         expect(dmg100p.expected).to.eq(1069);
         expect(stats.detMulti).to.eq(1.023);
@@ -304,26 +308,27 @@ describe("Dmg/100p for known values", () => {
 
     it('WAR test 1', async () => {
         await loadPromiseWAR;
-        const stats = finalizeStats(new RawStats({
-            hp: 0,
-            vitality: 4119,
-            strength: 1012,
-            dexterity: 440,
-            intelligence: 1167,
-            mind: 4448,
-            piety: 564,
-            crit: 2988,
-            dhit: 690,
-            determination: 699,
-            tenacity: 420,
-            skillspeed: 420,
-            spellspeed: 1134,
-            wdPhys: 141,
-            wdMag: 141,
-            weaponDelay: 3.12,
-        }),
-        // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'WAR', fakeSheetWAR.classJobStats, 0, getRaceStats("The Lost"));
+        const stats = finalizeStats(
+            new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: 1012,
+                dexterity: 440,
+                intelligence: 1167,
+                mind: 4448,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 699,
+                tenacity: 420,
+                skillspeed: 420,
+                spellspeed: 1134,
+                wdPhys: 141,
+                wdMag: 141,
+                weaponDelay: 3.12,
+            }),
+            // Pineapple Orange Jelly
+            {}, level, getLevelStats(level), 'WAR', fakeSheetWAR.classJobStats, 0, getRaceStats("The Lost"));
         const dmg100p = baseDamageFull(stats, 100, 'Weaponskill', false, false);
         expect(dmg100p.expected).to.eq(656);
         expect(stats.mainStatValue).to.eq(1012);
@@ -336,26 +341,27 @@ describe("Dmg/100p for known values", () => {
     });
     it('WAR test 2', async () => {
         await loadPromiseWAR;
-        const stats = finalizeStats(new RawStats({
-            hp: 0,
-            vitality: 4119,
-            strength: 1069,
-            dexterity: 440,
-            intelligence: 1167,
-            mind: 4448,
-            piety: 564,
-            crit: 2988,
-            dhit: 690,
-            determination: 739,
-            tenacity: 420,
-            skillspeed: 420,
-            spellspeed: 1134,
-            wdPhys: 141,
-            wdMag: 141,
-            weaponDelay: 3.12,
-        }),
-        // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'WAR', fakeSheetWAR.classJobStats, 0, getRaceStats("The Lost"));
+        const stats = finalizeStats(
+            new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: 1069,
+                dexterity: 440,
+                intelligence: 1167,
+                mind: 4448,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 739,
+                tenacity: 420,
+                skillspeed: 420,
+                spellspeed: 1134,
+                wdPhys: 141,
+                wdMag: 141,
+                weaponDelay: 3.12,
+            }),
+            // Pineapple Orange Jelly
+            {}, level, getLevelStats(level), 'WAR', fakeSheetWAR.classJobStats, 0, getRaceStats("The Lost"));
         const dmg100p = baseDamageFull(stats, 100, 'Weaponskill', false, false);
         expect(dmg100p.expected).to.eq(703);
         expect(stats.mainStatValue).to.eq(1069);
@@ -369,26 +375,27 @@ describe("Dmg/100p for known values", () => {
 
     it('SCH test 0', async () => {
         await loadPromiseSCH;
-        const stats = finalizeStats(new RawStats({
-            hp: 0,
-            vitality: 4119,
-            strength: fl(440 * 0.9),
-            dexterity: 440,
-            intelligence: 1038,
-            mind: 2060,
-            piety: 564,
-            crit: 2988,
-            dhit: 690,
-            determination: 440,
-            tenacity: 420,
-            skillspeed: 420,
-            spellspeed: 420,
-            wdPhys: 0,
-            wdMag: 0,
-            weaponDelay: 3.12,
-        }),
-        // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0, getRaceStats("The Lost"));
+        const stats = finalizeStats(
+            new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: fl(440 * 0.9),
+                dexterity: 440,
+                intelligence: 1038,
+                mind: 2060,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 440,
+                tenacity: 420,
+                skillspeed: 420,
+                spellspeed: 420,
+                wdPhys: 0,
+                wdMag: 0,
+                weaponDelay: 3.12,
+            }),
+            // Pineapple Orange Jelly
+            {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0, getRaceStats("The Lost"));
         const dmg100p = baseDamageFull(stats, 75, 'Spell', false, true);
         expect(dmg100p.expected).to.eq(467);
         expect(stats.determination).to.eq(440);
@@ -403,26 +410,27 @@ describe("Dmg/100p for known values", () => {
 
     it('SCH test 1', async () => {
         await loadPromiseSCH;
-        const stats = finalizeStats(new RawStats({
-            hp: 0,
-            vitality: 4119,
-            strength: fl(440 * 0.9),
-            dexterity: 440,
-            intelligence: 1038,
-            mind: 2060,
-            piety: 564,
-            crit: 2988,
-            dhit: 690,
-            determination: 440,
-            tenacity: 420,
-            skillspeed: 420,
-            spellspeed: 780,
-            wdPhys: 0,
-            wdMag: 0,
-            weaponDelay: 3.12,
-        }),
-        // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0, getRaceStats("The Lost"));
+        const stats = finalizeStats(
+            new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: fl(440 * 0.9),
+                dexterity: 440,
+                intelligence: 1038,
+                mind: 2060,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 440,
+                tenacity: 420,
+                skillspeed: 420,
+                spellspeed: 780,
+                wdPhys: 0,
+                wdMag: 0,
+                weaponDelay: 3.12,
+            }),
+            // Pineapple Orange Jelly
+            {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0, getRaceStats("The Lost"));
         const dmg100p = baseDamageFull(stats, 75, 'Spell', false, true);
         expect(dmg100p.expected).to.eq(474);
         expect(stats.determination).to.eq(440);
@@ -437,26 +445,27 @@ describe("Dmg/100p for known values", () => {
 
     it('SCH test 2', async () => {
         await loadPromiseSCH;
-        const stats = finalizeStats(new RawStats({
-            hp: 0,
-            vitality: 4119,
-            strength: fl(440 * 0.9),
-            dexterity: 440,
-            intelligence: 1038,
-            mind: 2060,
-            piety: 564,
-            crit: 2988,
-            dhit: 690,
-            determination: 440,
-            tenacity: 420,
-            skillspeed: 420,
-            spellspeed: 816,
-            wdPhys: 0,
-            wdMag: 0,
-            weaponDelay: 3.12,
-        }),
-        // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0, getRaceStats("The Lost"));
+        const stats = finalizeStats(
+            new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: fl(440 * 0.9),
+                dexterity: 440,
+                intelligence: 1038,
+                mind: 2060,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 440,
+                tenacity: 420,
+                skillspeed: 420,
+                spellspeed: 816,
+                wdPhys: 0,
+                wdMag: 0,
+                weaponDelay: 3.12,
+            }),
+            // Pineapple Orange Jelly
+            {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0, getRaceStats("The Lost"));
         const dmg100p = baseDamageFull(stats, 75, 'Spell', false, true);
         expect(dmg100p.expected).to.eq(475);
         expect(stats.determination).to.eq(440);
@@ -471,26 +480,27 @@ describe("Dmg/100p for known values", () => {
 
     it('SCH test 3', async () => {
         await loadPromiseSCH;
-        const stats = finalizeStats(new RawStats({
-            hp: 0,
-            vitality: 4119,
-            strength: fl(440 * 0.9),
-            dexterity: 440,
-            intelligence: 1038,
-            mind: 2060,
-            piety: 564,
-            crit: 2988,
-            dhit: 690,
-            determination: 440,
-            tenacity: 420,
-            skillspeed: 420,
-            spellspeed: 852,
-            wdPhys: 0,
-            wdMag: 0,
-            weaponDelay: 3.12,
-        }),
-        // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0, getRaceStats("The Lost"));
+        const stats = finalizeStats(
+            new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: fl(440 * 0.9),
+                dexterity: 440,
+                intelligence: 1038,
+                mind: 2060,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 440,
+                tenacity: 420,
+                skillspeed: 420,
+                spellspeed: 852,
+                wdPhys: 0,
+                wdMag: 0,
+                weaponDelay: 3.12,
+            }),
+            // Pineapple Orange Jelly
+            {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0, getRaceStats("The Lost"));
         const dmg100p = baseDamageFull(stats, 75, 'Spell', false, true);
         expect(dmg100p.expected).to.eq(476);
         expect(stats.determination).to.eq(440);
@@ -505,26 +515,27 @@ describe("Dmg/100p for known values", () => {
 
     it('GNB Test 1', async () => {
         await loadPromiseGNB;
-        const stats = finalizeStats(new RawStats({
-            hp: 0,
-            vitality: 4119,
-            strength: 1371,
-            dexterity: 440,
-            intelligence: 1038,
-            mind: 2060,
-            piety: 564,
-            crit: 2988,
-            dhit: 690,
-            determination: 987,
-            tenacity: 420,
-            skillspeed: 420,
-            spellspeed: 852,
-            wdPhys: 79,
-            wdMag: 79,
-            weaponDelay: 3.12,
-        }),
-        // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0, getRaceStats("The Lost"));
+        const stats = finalizeStats(
+            new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: 1371,
+                dexterity: 440,
+                intelligence: 1038,
+                mind: 2060,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 987,
+                tenacity: 420,
+                skillspeed: 420,
+                spellspeed: 852,
+                wdPhys: 79,
+                wdMag: 79,
+                weaponDelay: 3.12,
+            }),
+            // Pineapple Orange Jelly
+            {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0, getRaceStats("The Lost"));
         expect(stats.determination).to.eq(987);
         expect(stats.detMulti).to.eq(1.027);
         expect(stats.skillspeed).to.eq(420);
@@ -539,26 +550,27 @@ describe("Dmg/100p for known values", () => {
 
     it('GNB Test 2', async () => {
         await loadPromiseGNB;
-        const stats = finalizeStats(new RawStats({
-            hp: 0,
-            vitality: 4119,
-            strength: 1371,
-            dexterity: 440,
-            intelligence: 1038,
-            mind: 2060,
-            piety: 564,
-            crit: 2988,
-            dhit: 690,
-            determination: 987,
-            tenacity: 420,
-            skillspeed: 456,
-            spellspeed: 852,
-            wdPhys: 79,
-            wdMag: 79,
-            weaponDelay: 3.12,
-        }),
-        // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0, getRaceStats("The Lost"));
+        const stats = finalizeStats(
+            new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: 1371,
+                dexterity: 440,
+                intelligence: 1038,
+                mind: 2060,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 987,
+                tenacity: 420,
+                skillspeed: 456,
+                spellspeed: 852,
+                wdPhys: 79,
+                wdMag: 79,
+                weaponDelay: 3.12,
+            }),
+            // Pineapple Orange Jelly
+            {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0, getRaceStats("The Lost"));
         expect(stats.determination).to.eq(987);
         expect(stats.detMulti).to.eq(1.027);
         expect(stats.skillspeed).to.eq(456);
@@ -573,26 +585,27 @@ describe("Dmg/100p for known values", () => {
 
     it('GNB Test 3', async () => {
         await loadPromiseGNB;
-        const stats = finalizeStats(new RawStats({
-            hp: 0,
-            vitality: 4119,
-            strength: 1371,
-            dexterity: 440,
-            intelligence: 1038,
-            mind: 2060,
-            piety: 564,
-            crit: 2988,
-            dhit: 690,
-            determination: 987,
-            tenacity: 420,
-            skillspeed: 492,
-            spellspeed: 852,
-            wdPhys: 79,
-            wdMag: 79,
-            weaponDelay: 3.12,
-        }),
-        // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0, getRaceStats("The Lost"));
+        const stats = finalizeStats(
+            new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: 1371,
+                dexterity: 440,
+                intelligence: 1038,
+                mind: 2060,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 987,
+                tenacity: 420,
+                skillspeed: 492,
+                spellspeed: 852,
+                wdPhys: 79,
+                wdMag: 79,
+                weaponDelay: 3.12,
+            }),
+            // Pineapple Orange Jelly
+            {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0, getRaceStats("The Lost"));
         expect(stats.determination).to.eq(987);
         expect(stats.detMulti).to.eq(1.027);
         expect(stats.skillspeed).to.eq(492);
@@ -607,26 +620,27 @@ describe("Dmg/100p for known values", () => {
 
     it('GNB Test 4', async () => {
         await loadPromiseGNB;
-        const stats = finalizeStats(new RawStats({
-            hp: 0,
-            vitality: 4119,
-            strength: 1371,
-            dexterity: 440,
-            intelligence: 1038,
-            mind: 2060,
-            piety: 564,
-            crit: 2988,
-            dhit: 690,
-            determination: 987,
-            tenacity: 420,
-            skillspeed: 564,
-            spellspeed: 852,
-            wdPhys: 79,
-            wdMag: 79,
-            weaponDelay: 3.12,
-        }),
-        // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0, getRaceStats("The Lost"));
+        const stats = finalizeStats(
+            new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: 1371,
+                dexterity: 440,
+                intelligence: 1038,
+                mind: 2060,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 987,
+                tenacity: 420,
+                skillspeed: 564,
+                spellspeed: 852,
+                wdPhys: 79,
+                wdMag: 79,
+                weaponDelay: 3.12,
+            }),
+            // Pineapple Orange Jelly
+            {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0, getRaceStats("The Lost"));
         expect(stats.determination).to.eq(987);
         expect(stats.detMulti).to.eq(1.027);
         expect(stats.skillspeed).to.eq(564);
@@ -641,26 +655,27 @@ describe("Dmg/100p for known values", () => {
 
     it('GNB Test 5', async () => {
         await loadPromiseGNB;
-        const stats = finalizeStats(new RawStats({
-            hp: 0,
-            vitality: 4119,
-            strength: 1606,
-            dexterity: 440,
-            intelligence: 1038,
-            mind: 2060,
-            piety: 564,
-            crit: 2988,
-            dhit: 690,
-            determination: 1113,
-            tenacity: 420,
-            skillspeed: 456,
-            spellspeed: 852,
-            wdPhys: 79,
-            wdMag: 79,
-            weaponDelay: 3.12,
-        }),
-        // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0, getRaceStats("The Lost"));
+        const stats = finalizeStats(
+            new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: 1606,
+                dexterity: 440,
+                intelligence: 1038,
+                mind: 2060,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 1113,
+                tenacity: 420,
+                skillspeed: 456,
+                spellspeed: 852,
+                wdPhys: 79,
+                wdMag: 79,
+                weaponDelay: 3.12,
+            }),
+            // Pineapple Orange Jelly
+            {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0, getRaceStats("The Lost"));
         expect(stats.determination).to.eq(1113);
         expect(stats.detMulti).to.eq(1.033);
         expect(stats.skillspeed).to.eq(456);
@@ -675,26 +690,27 @@ describe("Dmg/100p for known values", () => {
 
     it('GNB Test 6', async () => {
         await loadPromiseGNB;
-        const stats = finalizeStats(new RawStats({
-            hp: 0,
-            vitality: 4119,
-            strength: 1606,
-            dexterity: 440,
-            intelligence: 1038,
-            mind: 2060,
-            piety: 564,
-            crit: 2988,
-            dhit: 690,
-            determination: 1113,
-            tenacity: 420,
-            skillspeed: 600,
-            spellspeed: 852,
-            wdPhys: 79,
-            wdMag: 79,
-            weaponDelay: 3.12,
-        }),
-        // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0, getRaceStats("The Lost"));
+        const stats = finalizeStats(
+            new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: 1606,
+                dexterity: 440,
+                intelligence: 1038,
+                mind: 2060,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 1113,
+                tenacity: 420,
+                skillspeed: 600,
+                spellspeed: 852,
+                wdPhys: 79,
+                wdMag: 79,
+                weaponDelay: 3.12,
+            }),
+            // Pineapple Orange Jelly
+            {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0, getRaceStats("The Lost"));
         expect(stats.determination).to.eq(1113);
         expect(stats.detMulti).to.eq(1.033);
         expect(stats.skillspeed).to.eq(600);
@@ -708,26 +724,27 @@ describe("Dmg/100p for known values", () => {
     });
     it('GNB Test 7', async () => {
         await loadPromiseGNB;
-        const stats = finalizeStats(new RawStats({
-            hp: 0,
-            vitality: 4119,
-            strength: 2620,
-            dexterity: 440,
-            intelligence: 1038,
-            mind: 2060,
-            piety: 564,
-            crit: 2988,
-            dhit: 690,
-            determination: 1667,
-            tenacity: 420,
-            skillspeed: 492,
-            spellspeed: 852,
-            wdPhys: 132,
-            wdMag: 132,
-            weaponDelay: 3.12,
-        }),
-        // Pineapple Orange Jelly
-        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0, getRaceStats("The Lost"));
+        const stats = finalizeStats(
+            new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: 2620,
+                dexterity: 440,
+                intelligence: 1038,
+                mind: 2060,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 1667,
+                tenacity: 420,
+                skillspeed: 492,
+                spellspeed: 852,
+                wdPhys: 132,
+                wdMag: 132,
+                weaponDelay: 3.12,
+            }),
+            // Pineapple Orange Jelly
+            {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0, getRaceStats("The Lost"));
         expect(stats.determination).to.eq(1667);
         expect(stats.detMulti).to.eq(1.061);
         expect(stats.skillspeed).to.eq(492);
@@ -750,25 +767,26 @@ describe("Final damage values for known values", () => {
         await loadPromiseWAR;
         // Values taken from https://xivgear.app/?page=sl%7C730195d3-a9ee-4d29-a868-67cf5d613b0a
         // i.e. 7.1 BiS for Warrior.
-        const stats = finalizeStats(new RawStats({
-            hp: 0,
-            vitality: 4119,
-            strength: 4839,
-            dexterity: 440,
-            intelligence: 1167,
-            mind: 4448,
-            piety: 564,
-            crit: 3253,
-            dhit: 1176,
-            determination: 2525,
-            tenacity: 868,
-            skillspeed: 420,
-            spellspeed: 1134,
-            wdPhys: 146,
-            wdMag: 146,
-            weaponDelay: 3.12,
-        }),
-        {}, level, getLevelStats(level), 'WAR', fakeSheetWAR.classJobStats, 0, getRaceStats("The Lost"));
+        const stats = finalizeStats(
+            new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: 4839,
+                dexterity: 440,
+                intelligence: 1167,
+                mind: 4448,
+                piety: 564,
+                crit: 3253,
+                dhit: 1176,
+                determination: 2525,
+                tenacity: 868,
+                skillspeed: 420,
+                spellspeed: 1134,
+                wdPhys: 146,
+                wdMag: 146,
+                weaponDelay: 3.12,
+            }),
+            {}, level, getLevelStats(level), 'WAR', fakeSheetWAR.classJobStats, 0, getRaceStats("The Lost"));
         const fellCleavePotency = 580;
         const dmg100p = baseDamageFull(stats, fellCleavePotency, 'Weaponskill', true, false);
         expect(dmg100p.expected).to.eq(25898);
@@ -796,25 +814,26 @@ describe("Final damage values for known values", () => {
     });
     it('Dark Knight known value scaling', async () => {
         await loadPromiseDRK;
-        const stats = finalizeStats(new RawStats({
-            hp: 9822,
-            vitality: 494,
-            strength: 471,
-            dexterity: 415,
-            intelligence: 261,
-            mind: 179,
-            piety: 440,
-            crit: 420,
-            dhit: 420,
-            determination: 440,
-            tenacity: 420,
-            skillspeed: 430,
-            spellspeed: 420,
-            wdPhys: 36,
-            wdMag: 36,
-            weaponDelay: 2.96,
-        }),
-        {}, level, getLevelStats(level), 'DRK', fakeSheetDRK.classJobStats, 0, getRaceStats("The Lost"));
+        const stats = finalizeStats(
+            new RawStats({
+                hp: 9822,
+                vitality: 494,
+                strength: 471,
+                dexterity: 415,
+                intelligence: 261,
+                mind: 179,
+                piety: 440,
+                crit: 420,
+                dhit: 420,
+                determination: 440,
+                tenacity: 420,
+                skillspeed: 430,
+                spellspeed: 420,
+                wdPhys: 36,
+                wdMag: 36,
+                weaponDelay: 2.96,
+            }),
+            {}, level, getLevelStats(level), 'DRK', fakeSheetDRK.classJobStats, 0, getRaceStats("The Lost"));
 
 
         // These match up with observed values.
@@ -835,26 +854,27 @@ describe("Final damage values for known values", () => {
         // Based on known values from the following spreadsheet (and some testing I did myself):
         // https://docs.google.com/spreadsheets/d/1NlVtvjxYCh-_HGFb3R0VEvbjJcBTcnNDoloo_H-WzQ8/edit?gid=566755418#gid=566755418
         await loadPromiseDRK;
-        const stats = finalizeStats(new RawStats({
-            hp: 7707,
-            vitality: 489,
-            strength: 469,
-            dexterity: 421,
-            intelligence: 261,
-            mind: 179,
-            piety: 440,
-            crit: 420,
-            dhit: 420,
-            determination: 440,
-            tenacity: 420,
-            skillspeed: 430,
-            spellspeed: 420,
-            wdPhys: 35,
-            wdMag: 35,
-            weaponDelay: 2.96,
-        }),
-        // Using Rava for consistency with spreadsheet
-        {}, level, getLevelStats(level), 'DRK', fakeSheetDRK.classJobStats, 0, getRaceStats("Rava"));
+        const stats = finalizeStats(
+            new RawStats({
+                hp: 7707,
+                vitality: 489,
+                strength: 469,
+                dexterity: 421,
+                intelligence: 261,
+                mind: 179,
+                piety: 440,
+                crit: 420,
+                dhit: 420,
+                determination: 440,
+                tenacity: 420,
+                skillspeed: 430,
+                spellspeed: 420,
+                wdPhys: 35,
+                wdMag: 35,
+                weaponDelay: 2.96,
+            }),
+            // Using Rava for consistency with spreadsheet
+            {}, level, getLevelStats(level), 'DRK', fakeSheetDRK.classJobStats, 0, getRaceStats("Rava"));
         expect(stats.mainStatValue).to.eq(469);
         expect(stats.determination).to.eq(440);
         expect(stats.wdMag).to.eq(35);
@@ -879,25 +899,26 @@ describe("Final damage values for known values", () => {
     it('Dark Knight Living Shadow known value scaling with higher strength', async () => {
         await loadPromiseDRK;
         // Based off 7.05 BiS.
-        const stats = finalizeStats(new RawStats({
-            hp: 226061,
-            vitality: 5109,
-            strength: 4842,
-            dexterity: 415,
-            intelligence: 261,
-            mind: 179,
-            piety: 440,
-            crit: 3174,
-            dhit: 1338,
-            determination: 2231,
-            tenacity: 868,
-            skillspeed: 430,
-            spellspeed: 420,
-            wdPhys: 146,
-            wdMag: 146,
-            weaponDelay: 2.96,
-        }),
-        {}, level, getLevelStats(level), 'DRK', fakeSheetDRK.classJobStats, 0, getRaceStats("The Lost"));
+        const stats = finalizeStats(
+            new RawStats({
+                hp: 226061,
+                vitality: 5109,
+                strength: 4842,
+                dexterity: 415,
+                intelligence: 261,
+                mind: 179,
+                piety: 440,
+                crit: 3174,
+                dhit: 1338,
+                determination: 2231,
+                tenacity: 868,
+                skillspeed: 430,
+                spellspeed: 420,
+                wdPhys: 146,
+                wdMag: 146,
+                weaponDelay: 2.96,
+            }),
+            {}, level, getLevelStats(level), 'DRK', fakeSheetDRK.classJobStats, 0, getRaceStats("The Lost"));
         expect(stats.mainStatValue).to.eq(4842);
 
         // These match up with observed values.
@@ -919,130 +940,5 @@ describe("Final damage values for known values", () => {
         // 620 potency Living Shadow Attack
         const damageBeforeCrit620 = baseDamageFull(stats, 620, 'Ability', false, false, livingShadowScalingOverrides);
         expect(damageBeforeCrit620.expected).to.eq(32125);
-    });
-    it('Dark Knight known value scaling with higher strength, no crit', async () => {
-        await loadPromiseDRK;
-        // Based off https://xivgear.app/?page=sl|29bdd465-fbca-4995-97da-7125fb2423bf
-        // This test uses no crit to make the damage values a little easier to compare like-
-        // for-like, as it's no longer 'before crit'.
-        const stats = finalizeStats(new RawStats({
-            hp: 222621,
-            vitality: 5109,
-            strength: 4761,
-            dexterity: 415,
-            intelligence: 261,
-            mind: 179,
-            piety: 440,
-            crit: 420,
-            dhit: 420,
-            determination: 2557,
-            tenacity: 2467,
-            skillspeed: 729,
-            spellspeed: 420,
-            wdPhys: 132,
-            wdMag: 132,
-            weaponDelay: 2.96,
-        }),
-        {}, level, getLevelStats(level), 'DRK', fakeSheetDRK.classJobStats, 5, getRaceStats("The Lost"));
-        expect(stats.mainStatValue).to.eq(4999);
-        expect(stats.gearStats.strength).to.eq(4761);
-
-        // 620 potency attack (i.e. Scarlet Delirium)
-        const damageBeforeDarkside620 = baseDamageFull(stats, 620, 'Weaponskill', false, false, getDefaultScalings(stats));
-        expect(damageBeforeDarkside620.expected).to.eq(27308);
-
-        const fullDamage620 = potencyToDamage(stats, 620, ScarletDelirium, {
-            dmgMod: 1.1,
-            critChanceIncrease: 0,
-            dhitChanceIncrease: 0,
-            forceCrit: false,
-            forceDhit: false,
-            haste: 0,
-            modifyStats: function (stats: ComputedSetStats): ComputedSetStats {
-                return stats;
-            },
-        }, getDefaultScalings(stats));
-        expect(fullDamage620.expected).to.eq(30639.576);
-    });
-    it('Dark Knight Living Shadow known value scaling with higher strength, no crit', async () => {
-        await loadPromiseDRK;
-        // Based off https://xivgear.app/?page=sl|29bdd465-fbca-4995-97da-7125fb2423bf
-        // This test uses no crit to make the damage values a little easier to compare like-
-        // for-like, as it's no longer 'before crit'.
-        const stats = finalizeStats(new RawStats({
-            hp: 222621,
-            vitality: 5109,
-            strength: 4761,
-            dexterity: 415,
-            intelligence: 261,
-            mind: 179,
-            piety: 440,
-            crit: 420,
-            dhit: 420,
-            determination: 2557,
-            tenacity: 2467,
-            skillspeed: 729,
-            spellspeed: 420,
-            wdPhys: 132,
-            wdMag: 132,
-            weaponDelay: 2.96,
-        }),
-        {}, level, getLevelStats(level), 'DRK', fakeSheetDRK.classJobStats, 5, getRaceStats("The Lost"));
-        expect(stats.mainStatValue).to.eq(4999);
-        expect(stats.gearStats.strength).to.eq(4761);
-
-        const livingShadowScalings: AlternativeScaling[] = ["Living Shadow Strength Scaling", "Pet Action Weapon Damage"];
-        const livingShadowScalingOverrides = getScalingOverrides(livingShadowScalings, stats);
-
-        // 420 potency Living Shadow Attack
-        const damageBeforeCrit420 = baseDamageFull(stats, 420, 'Ability', false, false, livingShadowScalingOverrides);
-        expect(damageBeforeCrit420.expected).to.eq(21361);
-
-        const fullDamageAbyssalDrain = potencyToDamage(stats, 420, LivingShadowAbyssalDrain, {
-            dmgMod: 1,
-            critChanceIncrease: 0,
-            dhitChanceIncrease: 0,
-            forceCrit: false,
-            forceDhit: false,
-            haste: 0,
-            modifyStats: function (stats: ComputedSetStats): ComputedSetStats {
-                return stats;
-            },
-        }, livingShadowScalingOverrides);
-        expect(fullDamageAbyssalDrain.expected).to.eq(21788.22);
-
-        // 570 potency Living Shadow Attack
-        const damageBeforeCrit570 = baseDamageFull(stats, 570, 'Ability', false, false, livingShadowScalingOverrides);
-        expect(damageBeforeCrit570.expected).to.eq(28990);
-
-        const fullDamageShadowbringer = potencyToDamage(stats, 570, LivingShadowShadowbringer, {
-            dmgMod: 1,
-            critChanceIncrease: 0,
-            dhitChanceIncrease: 0,
-            forceCrit: false,
-            forceDhit: false,
-            haste: 0,
-            modifyStats: function (stats: ComputedSetStats): ComputedSetStats {
-                return stats;
-            },
-        }, livingShadowScalingOverrides);
-        expect(fullDamageShadowbringer.expected).to.eq(29569.8);
-
-        // 620 potency Living Shadow Attack
-        const damageBeforeCrit620 = baseDamageFull(stats, 620, 'Ability', false, false, livingShadowScalingOverrides);
-        expect(damageBeforeCrit620.expected).to.eq(31533);
-
-        const fullDamageDisesteem = potencyToDamage(stats, 620, LivingShadowDisesteem, {
-            dmgMod: 1,
-            critChanceIncrease: 0,
-            dhitChanceIncrease: 0,
-            forceCrit: false,
-            forceDhit: false,
-            haste: 0,
-            modifyStats: function (stats: ComputedSetStats): ComputedSetStats {
-                return stats;
-            },
-        }, livingShadowScalingOverrides);
-        expect(fullDamageDisesteem.expected).to.eq(32163.66);
     });
 });

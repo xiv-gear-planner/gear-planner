@@ -1,8 +1,8 @@
-import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/sims/cycle_sim";
 import {CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {BaseMultiCycleSimGui} from "../../multicyclesim_ui";
-import {MnkSettings, MnkSimResult} from "@xivgear/core/sims/melee/mnk/mnk_sim";
-import {MNKExtraData} from "@xivgear/core/sims/melee/mnk/mnk_types";
+import {MnkSettings, MnkSimResult} from "@xivgear/sims/melee/mnk/mnk_sim";
+import {MNKExtraData} from "@xivgear/sims/melee/mnk/mnk_types";
 import {quickElement} from "@xivgear/common-ui/components/util";
 import {extraDataDiscreteGaugeRenderer} from "../../common/sim_ui_utils";
 

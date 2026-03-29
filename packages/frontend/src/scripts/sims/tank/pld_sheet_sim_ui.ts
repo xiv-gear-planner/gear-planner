@@ -1,10 +1,10 @@
 import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
-import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/sims/cycle_sim";
 import {CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
-import {PldExtraData} from "@xivgear/core/sims/tank/pld/pld_types";
-import {PldSettings, PldSimResult} from "@xivgear/core/sims/tank/pld/pld_sheet_sim";
+import {PldExtraData} from "@xivgear/sims/tank/pld/pld_types";
+import {PldSettings, PldSimResult} from "@xivgear/sims/tank/pld/pld_sheet_sim";
 import {GaugeWithText} from "@xivgear/common-ui/components/gauges";
 
 export class PldSimGui extends BaseMultiCycleSimGui<PldSimResult, PldSettings> {

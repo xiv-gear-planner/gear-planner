@@ -1,7 +1,7 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "strict": false,
+    "strict": false
   },
   "include": [
     "src/scripts"
@@ -13,19 +13,13 @@
   ],
   "references": [
     {
-      "path": "../xivmath"
-    },
-    {
-      "path": "../core"
+      "path": "../account-service-client"
     },
     {
       "path": "../common-ui"
     },
     {
-      "path": "../account-service-client"
-    },
-    {
-      "path": "../user-data-client"
+      "path": "../core"
     },
     {
       "path": "../data-api-client"
@@ -34,7 +28,16 @@
       "path": "../i18n"
     },
     {
+      "path": "../sims"
+    },
+    {
+      "path": "../user-data-client"
+    },
+    {
       "path": "../util"
+    },
+    {
+      "path": "../xivmath"
     }
   ]
 }

@@ -1,8 +1,8 @@
-import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/sims/cycle_sim";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {col, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
-import {WhmGaugeState, WhmSettings, WhmSimResult} from "@xivgear/core/sims/healer/whm_new_sheet_sim";
+import {WhmGaugeState, WhmSettings, WhmSimResult} from "@xivgear/sims/healer/whm_new_sheet_sim";
 import {quickElement} from "@xivgear/common-ui/components/util";
 
 export class WhmSimGui extends BaseMultiCycleSimGui<WhmSimResult, WhmSettings> {

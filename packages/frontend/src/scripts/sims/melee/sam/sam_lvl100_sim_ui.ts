@@ -1,4 +1,4 @@
-import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/sims/cycle_sim";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {BaseMultiCycleSimGui} from "../../multicyclesim_ui";
@@ -9,8 +9,8 @@ import {
     labelFor,
     quickElement
 } from "@xivgear/common-ui/components/util";
-import {SamSettings, SamSimResult} from "@xivgear/core/sims/melee/sam/sam_lv100_sim";
-import {SAMExtraData} from "@xivgear/core/sims/melee/sam/sam_types";
+import {SamSettings, SamSimResult} from "@xivgear/sims/melee/sam/sam_lv100_sim";
+import {SAMExtraData} from "@xivgear/sims/melee/sam/sam_types";
 import {StyleSwitcher, WritableCssProp} from "@xivgear/common-ui/util/types";
 import {GaugeWithText} from "@xivgear/common-ui/components/gauges";
 import {extraDataDiscreteGaugeRenderer} from "../../common/sim_ui_utils";
