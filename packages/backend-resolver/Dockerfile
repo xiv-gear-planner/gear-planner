@@ -1,7 +1,7 @@
 FROM node:24-alpine as build
 
 # Don't install node via pnpm
-ENV PNPM_USE_NODE_VERSION=""
+ENV PNPM_USE_NODE_VERSION="false"
 ENV npm_config_use_node_version="false"
 
 RUN npm install -g pnpm
@@ -23,7 +23,7 @@ COPY --from=build /build /app
 EXPOSE 30000
 
 # Don't install node via pnpm
-ENV PNPM_USE_NODE_VERSION=""
+ENV PNPM_USE_NODE_VERSION="false"
 ENV npm_config_use_node_version="false"
 
 # -T == transpile only. Reduces memory usage.
