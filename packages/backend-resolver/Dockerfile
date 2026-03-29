@@ -4,6 +4,10 @@ RUN npm install -g pnpm@9
 
 WORKDIR /build
 COPY . .
+# Override use-node-version from root .npmrc — pnpm must not try to download
+# a glibc Node.js binary inside an Alpine (musl) container. This was causing
+# pipeline failures.
+RUN echo "use-node-version=" >> .npmrc
 RUN pnpm install
 
 # Only build modules which are actually needed for this part of the project.
