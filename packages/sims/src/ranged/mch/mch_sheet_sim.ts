@@ -5,7 +5,7 @@ import {potionMaxDex} from "@xivgear/sims/common/potion";
 import {BaseMultiCycleSim} from "../../processors/sim_processors";
 import type {Ability, DamagingAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
 import {AirAnchor, AutomatonQueen, AutomatonQueenArmPunch, AutomatonQueenCrownedCollider, AutomatonQueenPileBunker, BarrelStabilizer, BlazingShot, Chainsaw, Checkmate, Detonator, DoubleCheck, Drill, Excavator, FullMetalField, HeatedCleanShot, HeatedSlugShot, HeatedSplitShot, Hypercharge, Reassemble, Wildfire} from "./mch_actions";
-import {ExcavatorReadyBuff, FullMetalMachinistBuff, HyperchargedBuff, OverheatedBuff, ReassembledBuff, WildfireBuff} from "./mch_buffs";
+import {ExcavatorReadyBuff, FullMetalMachinistBuff, HyperchargedBuff, OverheatedBuff, ReassembledBuff} from "./mch_buffs";
 import {MchGauge} from "./mch_gauge";
 import type {MchAbility, MchGcdAbility, MchOgcdAbility} from "./mch_types";
 import {combineBuffEffects} from "@xivgear/core/sims/sim_utils";
