@@ -6,11 +6,11 @@ import {
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
-import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/sims/cycle_sim";
 import {CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
-import {GnbExtraData} from "@xivgear/core/sims/tank/gnb/gnb_types";
-import {GnbSettings, GnbSimResult} from "@xivgear/core/sims/tank/gnb/gnb_sheet_sim";
+import {GnbExtraData} from "@xivgear/sims/tank/gnb/gnb_types";
+import {GnbSettings, GnbSimResult} from "@xivgear/sims/tank/gnb/gnb_sheet_sim";
 import {GaugeWithText} from "@xivgear/common-ui/components/gauges";
 import {extraDataDiscreteGaugeRenderer} from "../common/sim_ui_utils";
 

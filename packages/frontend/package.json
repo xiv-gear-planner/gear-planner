@@ -8,6 +8,7 @@
     "@xivgear/core": "workspace:*",
     "@xivgear/data-api-client": "workspace:*",
     "@xivgear/i18n": "workspace:*",
+    "@xivgear/sims": "workspace:*",
     "@xivgear/user-data-client": "workspace:*",
     "@xivgear/util": "workspace:*",
     "@xivgear/xivmath": "workspace:*"

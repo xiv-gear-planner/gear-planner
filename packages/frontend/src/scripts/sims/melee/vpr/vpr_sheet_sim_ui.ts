@@ -1,9 +1,9 @@
-import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/sims/cycle_sim";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {BaseMultiCycleSimGui} from "../../multicyclesim_ui";
-import {VprSimResult, VprSimSettings} from "@xivgear/core/sims/melee/vpr/vpr_sheet_sim";
-import {VprExtraData} from "@xivgear/core/sims/melee/vpr/vpr_types";
+import {VprSimResult, VprSimSettings} from "@xivgear/sims/melee/vpr/vpr_sheet_sim";
+import {VprExtraData} from "@xivgear/sims/melee/vpr/vpr_types";
 import {GaugeWithText} from "@xivgear/common-ui/components/gauges";
 import {extraDataDiscreteGaugeRenderer} from "../../common/sim_ui_utils";
 

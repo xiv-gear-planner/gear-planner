@@ -1998,6 +1998,101 @@
       ],
       "type": "number"
     },
+    "ToEmbedErrorResponse": {
+      "additionalProperties": false,
+      "description": "Response for the /toEmbed endpoint when the input was invalid.",
+      "properties": {
+        "reason": {
+          "description": "The reason why it's invalid.",
+          "type": "string"
+        },
+        "type": {
+          "const": "error",
+          "description": "The input was invalid.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "ToEmbedQuery": {
+      "$ref": "#/definitions/StatsQueryParams"
+    },
+    "ToEmbedResponse": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/ToEmbedSetResponse"
+        },
+        {
+          "$ref": "#/definitions/ToEmbedSheetResponse"
+        }
+      ],
+      "description": "Response for the /toEmbed endpoint."
+    },
+    "ToEmbedSetResponse": {
+      "additionalProperties": false,
+      "description": "Response for the /toEmbed endpoint when the input was a single set.",
+      "properties": {
+        "embedUrl": {
+          "description": "The embed URL for this set.",
+          "type": "string"
+        },
+        "type": {
+          "const": "set",
+          "description": "The input was a single set.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "embedUrl"
+      ],
+      "type": "object"
+    },
+    "ToEmbedSheetResponse": {
+      "additionalProperties": false,
+      "description": "Response for the /toEmbed endpoint when the input was a full sheet.",
+      "properties": {
+        "sets": {
+          "description": "The canonical embed URL for each set in the sheet.",
+          "items": {
+            "$ref": "#/definitions/ToEmbedSheetSet"
+          },
+          "type": "array"
+        },
+        "type": {
+          "const": "sheet",
+          "description": "The input was a full sheet.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "sets"
+      ],
+      "type": "object"
+    },
+    "ToEmbedSheetSet": {
+      "additionalProperties": false,
+      "properties": {
+        "embedUrl": {
+          "description": "The embed URL for this set.",
+          "type": "string"
+        },
+        "index": {
+          "description": "The index of the set based on the original list.",
+          "type": "number"
+        }
+      },
+      "required": [
+        "index",
+        "embedUrl"
+      ],
+      "type": "object"
+    },
     "TraitFunc": {
       "$comment": "(stats: RawBonusStats) => void",
       "properties": {

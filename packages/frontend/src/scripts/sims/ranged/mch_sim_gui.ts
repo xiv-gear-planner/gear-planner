@@ -1,10 +1,10 @@
-import {FieldBoundCheckBox, FieldBoundDataSelect, labeledCheckbox} from "@xivgear/common-ui/components/util";
+import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
 import {AbilitiesUsedTable} from "../components/ability_used_table";
-import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/sims/cycle_sim";
 import {ColDefs, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
-import {MchSimSettings, MchSimResult} from "@xivgear/core/sims/ranged/mch/mch_sheet_sim";
-import type {MchPreDmgUsedAbility} from "@xivgear/core/sims/ranged/mch/mch_types";
+import {MchSimSettings, MchSimResult} from "@xivgear/sims/ranged/mch/mch_sheet_sim";
+import type {MchPreDmgUsedAbility} from "@xivgear/sims/ranged/mch/mch_types";
 
 // Fully copied from https://github.com/xiv-gear-planner/gear-planner/pull/556
 // will figure out later possible updates

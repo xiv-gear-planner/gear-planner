@@ -3,7 +3,11 @@ import {GearPlanSheet} from "@xivgear/core/sheet";
 import {GearsetGenerator} from "@xivgear/core/solving/gearset_generation";
 import {DEBUG_FINAL_REGISTRY, JobInfo, WorkerBehavior} from "./worker_common";
 import {GearsetGenerationRequest} from "@xivgear/core/workers/worker_types";
-import {GearsetGenerationJobContext, GearsetGenerationStatusUpdate} from "@xivgear/core/solving/types";
+import {
+    GearsetGenerationJobContext,
+    GearsetGenerationSetsUpdate,
+    GearsetGenerationStatusUpdate
+} from "@xivgear/core/solving/types";
 
 
 export class GearsetGenerationWorker extends WorkerBehavior<GearsetGenerationJobContext> {
@@ -34,14 +38,14 @@ export class GearsetGenerationWorker extends WorkerBehavior<GearsetGenerationJob
             this.postUpdate({
                 type: "sets",
                 sets: exports,
-            });
+            } satisfies GearsetGenerationSetsUpdate);
         };
 
         const statusCallback = (update: Omit<GearsetGenerationStatusUpdate, "type">) => {
             this.postUpdate({
                 ...update,
                 type: "status",
-            });
+            } satisfies GearsetGenerationStatusUpdate);
         };
 
         await setGenerator.getMeldPossibilitiesForGearset(gearsetGenSettings, genCallback, statusCallback);

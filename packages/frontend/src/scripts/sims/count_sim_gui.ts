@@ -5,11 +5,11 @@ import {NamedSection} from "../components/general/section";
 import {ResultSettingsArea} from "./components/result_settings";
 import {BuffSettingsArea} from "./party_comp_settings";
 import {quickElement} from "@xivgear/common-ui/components/util";
-import {abilityEquals} from "@xivgear/core/sims/ability_helpers";
+import {abilityEquals} from "@xivgear/sims/ability_helpers";
 import {applyStdDev} from "@xivgear/xivmath/deviation";
 import {col, CustomColumn, CustomTable, HeaderRow} from "@xivgear/common-ui/table/tables";
 import {simpleKvTable} from "./components/simple_tables";
-import {BaseUsageCountSim, CountSimResult, ExternalCountSettings} from "@xivgear/core/sims/processors/count_sim";
+import {BaseUsageCountSim, CountSimResult, ExternalCountSettings} from "@xivgear/sims/processors/count_sim";
 
 function setTitle(title: string) {
     return (_: never, cell: HTMLElement) => {

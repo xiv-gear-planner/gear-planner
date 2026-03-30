@@ -239,7 +239,7 @@ type GearSetCheckpoint = {
     food: FoodItem | undefined;
     jobOverride: JobName | null;
     name: string;
-    description: string;
+    description: string | undefined;
 }
 // GearSetCheckpointNode establishes a doubly-linked list of checkpoints.
 // This allows us to easily remove the 'redo' tree if you undo and then make a change.
@@ -302,11 +302,11 @@ export class CharacterGearSet {
     /**
      * Optional description for the set. May be undefined if not specified.
      */
-    get description() {
+    get description(): string | undefined {
         return this._description;
     }
 
-    set description(desc) {
+    set description(desc: string | undefined) {
         this._description = desc;
         this.notifyListeners();
     }
@@ -343,7 +343,7 @@ export class CharacterGearSet {
         this._jobOverride = job;
         const newEffectiveJob = this.job;
         // Unequip items which are no longer usable under the new job
-        Object.keys(this.equipment).forEach((slot: EquipSlotKey) => {
+        EquipSlots.forEach((slot: EquipSlotKey) => {
             const equipped = this.equipment[slot];
             if (equipped && !equipped.gearItem.usableByJob(newEffectiveJob)) {
                 this.setEquip(slot, null);
@@ -744,8 +744,8 @@ export class CharacterGearSet {
      * @param stat
      * @param materiaOverride
      */
-    getEquipStatDetail(equip: EquippedItem, stat: RawStatKey, materiaOverride?: Materia[]): ItemSingleStatDetail {
-        const gearItem = equip.gearItem;
+    getEquipStatDetail(equip: EquippedItem | null, stat: RawStatKey, materiaOverride?: Materia[]): ItemSingleStatDetail {
+        const gearItem = equip?.gearItem;
         if (!gearItem) {
             return {
                 mode: 'unequipped',
