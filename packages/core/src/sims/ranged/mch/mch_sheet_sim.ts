@@ -4,12 +4,13 @@ import {potionMaxDex} from "../../common/potion";
 import type {CycleSettings} from "../../cycle_settings";
 import {CycleProcessor, type AbilityUseResult, type CycleSimResult, type ExternalCycleSettings, type MultiCycleSettings, type PreDmgAbilityUseRecordUnf, type Rotation} from "../../cycle_sim";
 import {BaseMultiCycleSim} from "../../processors/sim_processors";
-import type {Ability, SimSettings, SimSpec} from "../../sim_types";
+import type {Ability, DamagingAbility, SimSettings, SimSpec} from "../../sim_types";
 import {AirAnchor, AutomatonQueen, AutomatonQueenArmPunch, AutomatonQueenCrownedCollider, AutomatonQueenPileBunker, BarrelStabilizer, BlazingShot, Chainsaw, Checkmate, Detonator, DoubleCheck, Drill, Excavator, FullMetalField, HeatedCleanShot, HeatedSlugShot, HeatedSplitShot, Hypercharge, Reassemble, Wildfire} from "./mch_actions";
 import {ExcavatorReadyBuff, FullMetalMachinistBuff, HyperchargedBuff, OverheatedBuff, ReassembledBuff, WildfireBuff} from "./mch_buffs";
 import {MchGauge} from "./mch_gauge";
 import type {MchAbility, MchGcdAbility, MchOgcdAbility} from "./mch_types";
 import {combineBuffEffects} from "../../sim_utils";
+import {formatDuration} from "@xivgear/util/strutils";
 
 /**
  * Actions TODO:
@@ -25,7 +26,7 @@ interface RotationConstants {
 }
 
 interface ActionQueueItem {
-    ability: MchAbility,
+    ability: MchOgcdAbility & DamagingAbility,
     usedAt: number,
 }
 
@@ -124,7 +125,7 @@ export class MchCycleProcessor extends CycleProcessor {
      *
      * @returns The amount of gauge generated over the course of the next 2 minutes, including current gauge values.
      */
-    private calculateGaugeUsageForNextCycle() {
+    private calculateGaugeUsageForNextCycle(opener = false) {
         const status = { heat: this.gauge.heat, battery: this.gauge.battery };
         const comboGcds = Math.ceil(this.timeBeforeNextBurstWindow() / this.gcdTimer) - this.constants.toolGcds;
 
@@ -138,6 +139,10 @@ export class MchCycleProcessor extends CycleProcessor {
             status.heat -= 65;
             status.battery -= 10;
             this.hyperchargeUses += 1;
+        }
+        // we have ""one more"" air anchor use on opener (as in, we use it 4 times instead of 3 in the first 2 minutes)
+        if (opener) {
+            status.battery += 20;
         }
         this.hyperchargeUses += 1; // Hypercharged buff
         this.batteryOnNextBurst = status.battery;
@@ -176,6 +181,9 @@ export class MchCycleProcessor extends CycleProcessor {
     // Always use as soon as available
     private canUseAirAnchor(): boolean {
         // TODO: Possibly let it drift by one GCD to realign with 2m burst for GCDs <2.5
+        if (!this.cdTracker.canUse(AirAnchor, this.nextGcdTime)) {
+            console.log(`[${formatDuration(this.nextGcdTime)}] can't use air anchor yet, cd is ${this.cdTracker.statusOfAt(AirAnchor, this.nextGcdTime).readyAt.relative}`);
+        }
         return this.cdTracker.canUse(AirAnchor, this.nextGcdTime);
     }
 
@@ -187,9 +195,9 @@ export class MchCycleProcessor extends CycleProcessor {
 
     // Use if Excavator Ready buff is available
     private canUseExcavator(): boolean {
-        // TODO: hold for gathering 10 battery and align 100 battery on 2m burst
-        if (this.getActiveBuffs(this.currentTime).includes(ExcavatorReadyBuff)) {
-            console.log(this.getActiveBuffs(this.currentTime));
+        if (this.gauge.battery >= 30 && this.batteryOnNextBurst - this.gauge.battery === 110) { // hold so that we align 100 battery on 2 min
+            // console.log(`[${formatDuration(this.currentTime)}] holding excavator for battery`);
+            return false;
         }
         return this.getActiveBuffs(this.currentTime).includes(ExcavatorReadyBuff);
     }
@@ -267,7 +275,6 @@ export class MchCycleProcessor extends CycleProcessor {
             return false;
         }
         if (this.hyperchargeUses === 0) {
-            console.log(this.currentTime, 'holding on heat for next burst');
             return false;
         }
         return true;
@@ -290,6 +297,27 @@ export class MchCycleProcessor extends CycleProcessor {
             return false;
         }
         return this.cdTracker.canUse(this.potAbility);
+    }
+
+    private canUseAutomatonQueen(): boolean {
+        if (!this.cdTracker.canUse(AutomatonQueen) || this.gauge.battery < 50) {
+            return false;
+        }
+        if (this.batteryOnNextBurst - this.gauge.battery >= 160) { // use at 170 or above so that we can reach 50+ when it's time to align to 80 remaining before burst
+            return true;
+        }
+        if (this.batteryOnNextBurst > 100) {
+            // console.log(`[${formatDuration(this.currentTime)}] battery on next burst is ${this.batteryOnNextBurst} and current gauge ${this.gauge.battery}`);
+            return this.batteryOnNextBurst - this.gauge.battery <= 100;
+        }
+        return false;
+    }
+
+    private canUseWildfire(): boolean {
+        if (!this.cdTracker.canUse(Wildfire)) {
+            return false;
+        }
+        return true;
     }
 
     private getNextGcdAbility(): MchGcdAbility {
@@ -319,9 +347,16 @@ export class MchCycleProcessor extends CycleProcessor {
         if (this.canUseBarrelStabilizer()) {
             return BarrelStabilizer;
         }
+        if (this.canUseWildfire()) {
+            return Wildfire;
+        }
         if (this.canUseHypercharge()) {
             this.hyperchargeUses -= 1;
             return Hypercharge;
+        }
+        if (this.canUseAutomatonQueen()) {
+            // console.log(`[${formatDuration(this.currentTime)}] Using queen for ${this.gauge.battery} battery with ${this.batteryOnNextBurst} on next burst`);
+            return AutomatonQueen;
         }
         if (this.canUseReassemble()) {
             return Reassemble;
@@ -343,6 +378,9 @@ export class MchCycleProcessor extends CycleProcessor {
     private updateGauge(ability: MchAbility) {
         if (ability === Hypercharge && this.getActiveBuffs(this.currentTime).includes(HyperchargedBuff)) {
             return;
+        }
+        if (ability === AutomatonQueen) {
+            this.batteryOnNextBurst -= this.gauge.battery;
         }
         ability.updateGauge?.(this.gauge);
     }
@@ -374,7 +412,7 @@ export class MchCycleProcessor extends CycleProcessor {
         else {
             this.advanceTo(5 - STANDARD_ANIMATION_LOCK * 1, true);
         }
-        this.calculateGaugeUsageForNextCycle();
+        this.calculateGaugeUsageForNextCycle(true);
         this.use(AirAnchor);
         this.use(DoubleCheck);
         this.use(Checkmate);
@@ -391,23 +429,31 @@ export class MchCycleProcessor extends CycleProcessor {
     }
 
     private useQueuedActions(ability: PreDmgAbilityUseRecordUnf) {
-        const unusedActions = this.additionalActionsQueue.filter((action) => {
-            if (this.currentTime + ability.usedAt > action.usedAt) {
-                const buffs = this.getActiveBuffs(action.usedAt).filter(
+        const unusedActions = this.additionalActionsQueue.filter((queuedAction) => {
+            if (ability.usedAt > queuedAction.usedAt) {
+                const buffs = this.getActiveBuffs(queuedAction.usedAt).filter(
                     (it) => it.name !== ReassembledBuff.name && it.name !== OverheatedBuff.name
                 );
 
                 super.addAbilityUse({
-                    usedAt: action.usedAt,
-                    ability: action.ability,
+                    usedAt: queuedAction.usedAt,
+                    ability: queuedAction.ability,
                     buffs: buffs,
                     combinedEffects: combineBuffEffects(buffs),
                     totalTimeTaken: 0,
-                    appDelay: action.ability.appDelay,
-                    appDelayFromStart: action.ability.appDelay,
+                    appDelay: queuedAction.ability.appDelay,
+                    appDelayFromStart: queuedAction.ability.appDelay,
                     castTimeFromStart: 0,
                     snapshotTimeFromStart: 0,
                     lockTime: 0,
+                    dot: queuedAction.ability.dot ? {
+                        damagePerTick: {
+                            expected: queuedAction.ability.dot.tickPotency,
+                            stdDev: 1,
+                        },
+                        fullDurationTicks: 1,
+                        actualTickCount: 1,
+                    } : undefined,
                     gaugeAfter: ability.gaugeAfter, // ?
                 });
                 return false;
@@ -420,10 +466,10 @@ export class MchCycleProcessor extends CycleProcessor {
     private queueActions(use: PreDmgAbilityUseRecordUnf) {
         switch (use.ability.name) {
             case Wildfire.name:
-                // this.additionalActionsQueue.push({
-                //     ability: Detonator,
-                //     usedAt: use.usedAt,
-                // });
+                this.additionalActionsQueue.push({
+                    ability: Detonator,
+                    usedAt: use.usedAt + 10,
+                });
                 break;
             case AutomatonQueen.name:
                 this.additionalActionsQueue.push({
@@ -432,43 +478,37 @@ export class MchCycleProcessor extends CycleProcessor {
                         potency: AutomatonQueenArmPunch.potency * this.gauge.battery,
                     },
                     usedAt: use.usedAt + this.constants.petActionsDelay[0],
-                });
-                this.additionalActionsQueue.push({
+                }, {
                     ability: {
                         ...AutomatonQueenArmPunch,
                         potency: AutomatonQueenArmPunch.potency * this.gauge.battery,
                     },
                     usedAt: use.usedAt + this.constants.petActionsDelay[1],
-                });
-                this.additionalActionsQueue.push({
+                }, {
                     ability: {
                         ...AutomatonQueenArmPunch,
                         potency: AutomatonQueenArmPunch.potency * this.gauge.battery,
                     },
                     usedAt: use.usedAt + this.constants.petActionsDelay[2],
-                });
-                this.additionalActionsQueue.push({
+                }, {
                     ability: {
                         ...AutomatonQueenArmPunch,
                         potency: AutomatonQueenArmPunch.potency * this.gauge.battery,
                     },
                     usedAt: use.usedAt + this.constants.petActionsDelay[3],
-                });
-                this.additionalActionsQueue.push({
+                }, {
                     ability: {
                         ...AutomatonQueenArmPunch,
                         potency: AutomatonQueenArmPunch.potency * this.gauge.battery,
                     },
                     usedAt: use.usedAt + this.constants.petActionsDelay[4],
-                });
-                this.additionalActionsQueue.push({
+                }, {
                     ability: {
                         ...AutomatonQueenPileBunker,
                         potency: AutomatonQueenPileBunker.potency * this.gauge.battery,
                     },
                     usedAt: use.usedAt + this.constants.petActionsDelay[5],
-                });
-                this.additionalActionsQueue.push({
+                }, {
                     ability: {
                         ...AutomatonQueenCrownedCollider,
                         potency: AutomatonQueenCrownedCollider.potency * this.gauge.battery,
@@ -495,7 +535,6 @@ export class MchCycleProcessor extends CycleProcessor {
                 },
             },
         });
-        console.log(this.getActiveBuffs(this.currentTime).find((it) => it.name === WildfireBuff.name));
     }
 
     override use(ability: Ability): AbilityUseResult {

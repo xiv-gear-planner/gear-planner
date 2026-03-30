@@ -188,9 +188,9 @@ export const Detonator: MchOgcdAbility = {
     animationLock: 0,
     appDelay: 0,
     dot: {
-        duration: 5,
+        duration: 1,
         id: 16766,
-        tickPotency: 240, // to be multiplied by how many actions were used
+        tickPotency: 240 * 6, // could technically be less than 5, but we will always use it during 2 min anyway
     },
 };
 
@@ -214,7 +214,7 @@ export const AutomatonQueen: MchOgcdAbility = {
     potency: null,
     attackType: 'Ability',
     cooldown: {
-        time: 20.5,
+        time: 20.5, // technically 5 but we can't use again before 20.5 seconds
     },
 } as const;
 
