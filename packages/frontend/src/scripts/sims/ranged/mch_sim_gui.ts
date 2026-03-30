@@ -103,9 +103,11 @@ export class MchSimGui extends BaseMultiCycleSimGui<MchSimResult, MchSimSettings
 
         const potCb = new FieldBoundCheckBox(settings, "usePots");
         const skipOpenerPot = new FieldBoundCheckBox(settings, "skipOpenerPot");
+        const dontAlignCds = new FieldBoundCheckBox(settings, "dontAlignCds");
 
         configDiv.appendChild(labeledCheckbox("Use potions", potCb));
         configDiv.appendChild(labeledCheckbox("Skip opener pot and start potting on the first burst", skipOpenerPot));
+        configDiv.appendChild(labeledCheckbox("Don't align cooldowns (Air Anchor, ...) on 2-min burst", dontAlignCds));
         return configDiv;
     }
 

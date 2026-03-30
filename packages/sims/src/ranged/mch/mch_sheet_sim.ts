@@ -12,12 +12,6 @@ import {combineBuffEffects} from "@xivgear/core/sims/sim_utils";
 import {formatDuration} from "@xivgear/util/strutils";
 import type {CycleSettings} from "../../cycle_settings";
 
-/**
- * Actions TODO:
- *  - Automaton Queen
- *  - Wildfire
- */
-
 interface RotationConstants {
     toolGcds: number,
     toolBattery: number,
@@ -48,6 +42,8 @@ export interface MchSimSettings extends SimSettings {
     // if set to true, the opener pot is skipped and the first pot will happen at 2
     skipOpenerPot: boolean;
     killTime: number;
+    // if set to true, cooldowns like air anchor won't be held to align on 2-min bursts
+    dontAlignCds: boolean;
 }
 
 export interface MchSimSettingsExternal extends ExternalCycleSettings<MchSimSettings> {}
@@ -72,7 +68,7 @@ export const mchSheetSpec: SimSpec<MchSheetSim, MchSimSettingsExternal> = {
 };
 
 export class MchCycleProcessor extends CycleProcessor {
-    public readonly gcdTimer: number;
+    public readonly gcdCalculated: number;
 
     gauge = new MchGauge();
     comboState = 0;
@@ -88,7 +84,7 @@ export class MchCycleProcessor extends CycleProcessor {
 
     constructor(settings: MultiCycleSettings, private simSettings: MchSimSettings) {
         super(settings);
-        this.gcdTimer = this.gcdTime(HeatedCleanShot);
+        this.gcdCalculated = this.gcdTime(HeatedCleanShot);
         this.potAbility = {
             ...potionMaxDex,
             cooldown: {
@@ -115,7 +111,10 @@ export class MchCycleProcessor extends CycleProcessor {
      *
      * @param [delay=0] Additional delay, useful for calculating the time before some point inside the burst window.
      */
-    private timeBeforeNextBurstWindow(delay: number = 0) {
+    private timeBeforeNextBurstWindow(delay: number = 0, absolute = false) {
+        if (absolute) {
+            return 120 + delay - this.nextGcdTime % 120;
+        }
         return (120 + delay - this.nextGcdTime % 120) % 120;
     }
 
@@ -127,7 +126,7 @@ export class MchCycleProcessor extends CycleProcessor {
      */
     private calculateGaugeUsageForNextCycle(opener = false) {
         const status = { heat: this.gauge.heat, battery: this.gauge.battery };
-        const comboGcds = Math.ceil(this.timeBeforeNextBurstWindow() / this.gcdTimer) - this.constants.toolGcds;
+        const comboGcds = Math.ceil(this.timeBeforeNextBurstWindow() / this.gcdCalculated) - this.constants.toolGcds;
 
         // add battery from tool usage
         status.battery += this.constants.toolBattery;
@@ -135,7 +134,7 @@ export class MchCycleProcessor extends CycleProcessor {
         status.heat += comboGcds * 5;
         // add battery from heated clean shot usage
         status.battery += Math.floor((comboGcds + this.comboState) / 3) * 10;
-        while (status.heat >= 100) { // includes 100 because we might have one more combo use during burst. TODO greedy overcap
+        while (status.heat >= 100) { // includes 100 because we might have one more combo use during burst.
             status.heat -= 65;
             status.battery -= 10;
             this.hyperchargeUses += 1;
@@ -154,7 +153,7 @@ export class MchCycleProcessor extends CycleProcessor {
     private wouldHyperchargeGcdDrift(): boolean {
         // Yes, Blazing Shot is on a fixed 1.5s GCD timer. But with a GCD <2.5s, having a fixed 7.5s instead of 3*GCD would screw up
         // the rest of this algorithm because Air Anchor and Excavator will *always* drift by a few milliseconds, which is intended.
-        const timeToHyperchargeEnd = (this.nextGcdTime - this.currentTime) + this.gcdTimer * 3;
+        const timeToHyperchargeEnd = (this.nextGcdTime - this.currentTime) + this.gcdCalculated * 3;
         let recastTimers = [
             this.cdTracker.statusOfAt(Drill, this.nextGcdTime).cappedAt.relative - timeToHyperchargeEnd,
             this.cdTracker.statusOfAt(AirAnchor, this.nextGcdTime).readyAt.relative - timeToHyperchargeEnd,
@@ -167,36 +166,41 @@ export class MchCycleProcessor extends CycleProcessor {
                 return true;
             }
             recastTimers.pop();
-            recastTimers = recastTimers.map((it) => it - this.gcdTimer);
+            recastTimers = recastTimers.map((it) => it - this.gcdCalculated);
         }
         return false;
     }
 
     // Always use
     private canUseDrill(): boolean {
-        // TODO: Hold one charge for 2min burst
+        if (this.cdTracker.statusOf(Drill).currentCharges === 2) {
+            console.warn(`[${formatDuration(this.currentTime)}] Drill overcapped`);
+        }
+        if (!this.simSettings.dontAlignCds && this.cdTracker.statusOf(Drill).cappedAt.relative > this.timeBeforeNextBurstWindow(this.gcdCalculated, true)) { // keep a charge for burst
+            return false;
+        }
         return this.cdTracker.canUse(Drill, this.nextGcdTime);
     }
 
     // Always use as soon as available
     private canUseAirAnchor(): boolean {
-        // TODO: Possibly let it drift by one GCD to realign with 2m burst for GCDs <2.5
-        if (!this.cdTracker.canUse(AirAnchor, this.nextGcdTime)) {
-            console.log(`[${formatDuration(this.nextGcdTime)}] can't use air anchor yet, cd is ${this.cdTracker.statusOfAt(AirAnchor, this.nextGcdTime).readyAt.relative}`);
+        if (!this.simSettings.dontAlignCds && this.timeBeforeNextBurstWindow(0, true) < (this.gcdBase - this.gcdCalculated) * (120 / this.gcdBase)) { // hold for repositioning inside burst window
+            return false;
         }
         return this.cdTracker.canUse(AirAnchor, this.nextGcdTime);
     }
 
     // Always use as soon as available
     private canUseChainsaw(): boolean {
-        // TODO: Possibly let it drift by one GCD to realign with 2m burst for GCDs <2.5
+        if (!this.simSettings.dontAlignCds && this.timeBeforeNextBurstWindow(this.gcdCalculated * 2, true) < (this.gcdBase - this.gcdCalculated) * (120 / this.gcdBase)) { // hold for repositioning inside burst window
+            return false;
+        }
         return this.cdTracker.canUse(Chainsaw, this.nextGcdTime);
     }
 
     // Use if Excavator Ready buff is available
     private canUseExcavator(): boolean {
         if (this.gauge.battery >= 30 && this.batteryOnNextBurst - this.gauge.battery === 110) { // hold so that we align 100 battery on 2 min
-            // console.log(`[${formatDuration(this.currentTime)}] holding excavator for battery`);
             return false;
         }
         return this.getActiveBuffs(this.currentTime).includes(ExcavatorReadyBuff);
@@ -227,7 +231,7 @@ export class MchCycleProcessor extends CycleProcessor {
         if (cmStatus.currentCharges === 0) {
             return false;
         }
-        if ((cmStatus.cappedAt.relative - Checkmate.cooldown.time) > this.timeBeforeNextBurstWindow(5)) {
+        if ((cmStatus.cappedAt.relative - Checkmate.cooldown.time) > this.timeBeforeNextBurstWindow(this.gcdCalculated * 2)) {
             // hold one charge for the burst window
             return false;
         }
@@ -245,7 +249,7 @@ export class MchCycleProcessor extends CycleProcessor {
         if (dcStatus.currentCharges === 0) {
             return false;
         }
-        if ((dcStatus.cappedAt.relative - DoubleCheck.cooldown.time) > this.timeBeforeNextBurstWindow(5)) {
+        if ((dcStatus.cappedAt.relative - DoubleCheck.cooldown.time) > this.timeBeforeNextBurstWindow(this.gcdCalculated * 2)) {
             // hold one charge for the burst window
             return false;
         }
@@ -258,7 +262,7 @@ export class MchCycleProcessor extends CycleProcessor {
     private canUseHypercharge(): boolean {
         const buffs = this.getActiveBuffs(this.currentTime);
 
-        if (!this.cdTracker.canUse(Hypercharge)) {
+        if (!this.cdTracker.canUse(Hypercharge, this.nextGcdTime - STANDARD_ANIMATION_LOCK)) {
             return false;
         }
         // used during burst window after Full Metal Field and Excavator are spent
@@ -281,7 +285,7 @@ export class MchCycleProcessor extends CycleProcessor {
     }
 
     private canUseReassemble(): boolean {
-        if (this.cdTracker.statusOf(Reassemble).cappedAt.relative > this.timeBeforeNextBurstWindow(5)) { // hold one charge for burst
+        if (this.cdTracker.statusOf(Reassemble).cappedAt.relative > this.timeBeforeNextBurstWindow(this.gcdCalculated * 2)) { // hold one charge for burst
             return false;
         }
         if (this.cdTracker.canUse(Reassemble, this.nextGcdTime)) {
@@ -307,7 +311,6 @@ export class MchCycleProcessor extends CycleProcessor {
             return true;
         }
         if (this.batteryOnNextBurst > 100) {
-            // console.log(`[${formatDuration(this.currentTime)}] battery on next burst is ${this.batteryOnNextBurst} and current gauge ${this.gauge.battery}`);
             return this.batteryOnNextBurst - this.gauge.battery <= 100;
         }
         return false;
@@ -355,7 +358,6 @@ export class MchCycleProcessor extends CycleProcessor {
             return Hypercharge;
         }
         if (this.canUseAutomatonQueen()) {
-            // console.log(`[${formatDuration(this.currentTime)}] Using queen for ${this.gauge.battery} battery with ${this.batteryOnNextBurst} on next burst`);
             return AutomatonQueen;
         }
         if (this.canUseReassemble()) {
@@ -406,7 +408,7 @@ export class MchCycleProcessor extends CycleProcessor {
             }
             else {
                 this.advanceTo(5 - STANDARD_ANIMATION_LOCK * 1, true);
-                this.cdTracker.modifyCooldown(this.potAbility, 120 - this.gcdTimer);
+                this.cdTracker.modifyCooldown(this.potAbility, 120 - this.gcdCalculated);
             }
         }
         else {
@@ -559,7 +561,7 @@ export class MchCycleProcessor extends CycleProcessor {
     executeNextGcd() {
         const gcdAbility = this.getNextGcdAbility();
 
-        if (this.timeBeforeNextBurstWindow(this.gcdTimer) < this.gcdTimer) { // next action will be start of 2m burst
+        if (this.timeBeforeNextBurstWindow(this.gcdCalculated) < this.gcdCalculated) { // next action will be start of 2m burst
             this.calculateGaugeUsageForNextCycle();
         }
         this.use(gcdAbility);
@@ -600,6 +602,7 @@ export class MchSheetSim extends BaseMultiCycleSim<MchSimResult, MchSimSettings,
             killTime: 510, // 8m30s
             usePots: true,
             skipOpenerPot: false,
+            dontAlignCds: false,
         };
     }
 
