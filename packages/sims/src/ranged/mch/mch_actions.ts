@@ -222,7 +222,7 @@ export const AutomatonQueen: MchOgcdAbility = {
 export const AutomatonQueenArmPunch: MchOgcdAbility = {
     type: 'ogcd',
     name: '(Automaton Queen) Arm Punch',
-    alternativeScalings: ['Pet Action Weapon Damage'], // apparently wrong, look at living shadow
+    alternativeScalings: ['Pet Action Weapon Damage', 'Automaton Queen Dexterity Scaling'],
     animationLock: 0,
     appDelay: 0,
     id: 16504,
