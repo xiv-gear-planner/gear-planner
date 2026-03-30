@@ -112,6 +112,7 @@ export const BlazingShot: MchGcdAbility = {
     potency: 240,
     attackType: 'Weaponskill',
     gcd: 1.5,
+    fixedGcd: true,
 } as const;
 
 export const DoubleCheck: MchOgcdAbility = {
