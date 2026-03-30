@@ -34,7 +34,7 @@ export const OverheatedBuff: Buff = {
 export const FullMetalMachinistBuff: Buff = {
     name: 'Full Metal Machinist',
     duration: 30,
-    statusId: 3864,
+    statusId: 3866,
     effects: {},
     selfOnly: true,
     appliesTo: (ability) => ability.name === 'Full Metal Field',
@@ -44,7 +44,7 @@ export const FullMetalMachinistBuff: Buff = {
 export const HyperchargedBuff: Buff = {
     name: 'Hypercharged',
     duration: 30,
-    statusId: 3804,
+    statusId: 3864,
     selfOnly: true,
     effects: {},
     appliesTo: (ability) => ability.name === 'Hypercharge',
@@ -61,11 +61,10 @@ export const ExcavatorReadyBuff: Buff = {
     beforeSnapshot: (buff) => buff.removeSelf(),
 };
 
-// TODO: final damage (should apply a 1-tick instant "DoT" of potency 240 * stacks)
 export const WildfireBuff: Buff = {
     name: 'Wildfire',
     duration: 10,
-    statusId: 3865, // TODO
+    statusId: 1946,
     effects: {},
     selfOnly: true,
     appliesTo: (ability) => ability.type === 'gcd',
