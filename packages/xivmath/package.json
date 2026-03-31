@@ -21,7 +21,12 @@
     "@xivgear/util": "workspace:*"
   },
   "exports": {
-    "./*": "./src/*.ts"
+    "./deviation": "./src/deviation.ts",
+    "./general_types": "./src/general_types.ts",
+    "./geartypes": "./src/geartypes.ts",
+    "./xivconstants": "./src/xivconstants.ts",
+    "./xivmath": "./src/xivmath.ts",
+    "./xivstats": "./src/xivstats.ts"
   },
   "files": [
     "package.json",

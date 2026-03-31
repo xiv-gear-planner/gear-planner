@@ -31,7 +31,7 @@ function makeSummaryFromData(data: SheetExport): SheetSummary {
 
 export type ConflictResolutionStrategy = 'keep-local' | 'keep-remote';
 
-class SheetHandleImpl {
+export class SheetHandleImpl {
     private metaDirty: boolean = false;
     private dataDirty: boolean = false;
 

@@ -12,7 +12,9 @@
     "allowSyntheticDefaultImports": true,
     "rootDir": ".",
     "composite": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "declaration": true,
+    "declarationMap": true
   },
   "exclude": [
     "./node_modules",

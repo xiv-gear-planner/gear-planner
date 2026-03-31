@@ -81,7 +81,7 @@ export class CustomItem implements GearItem {
     iconUrl: URL = new URL(xivApiIconUrl(26270));
     syncedDownTo: number | null;
     private _data: CustomItemExport;
-    readonly slotMapping: CustomItemSlotMapping;
+    readonly slotMapping: EquipSlotMap;
 
     private constructor(exportedData: CustomItemExport, private readonly sheet: GearPlanSheet, private readonly isUnsyncCopy: boolean = false) {
         this._data = exportedData;
