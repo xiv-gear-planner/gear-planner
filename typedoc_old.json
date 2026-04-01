@@ -16,15 +16,12 @@
   "exclude": [
     "**/scripts/test/**/*.ts"
   ],
-  "excludePrivate": false,
   "readme": "API_DOC.md",
   "out": "packages/frontend/dist/docs",
   "name": "Xivgear API Documentation",
-  "includeVersion": true,
   "validation": {
     "invalidLink": true,
     "notExported": true
   },
-  "useTsLinkResolution": true,
   "skipErrorChecking": true
 }

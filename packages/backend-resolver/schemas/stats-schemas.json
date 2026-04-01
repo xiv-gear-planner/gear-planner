@@ -530,7 +530,7 @@
       "additionalProperties": false,
       "properties": {
         "higherRelics": {
-          "description": "Show relics which exceed  {@link  #maxILvl }",
+          "description": "Show relics which exceed  {@link  maxILvl }",
           "type": "boolean"
         },
         "maxILvl": {
