@@ -521,7 +521,7 @@ export function baseHealing(stats: ComputedSetStats, potency: number, attackType
  *
  * @param baseDamage The base damage amount.
  * @param stats The stats.
- * @deprecated Use {@link #applyDhCritFull}
+ * @deprecated Use {@link applyDhCritFull}
  */
 export function applyDhCrit(baseDamage: number, stats: ComputedSetStats) {
     return baseDamage * (1 + stats.dhitChance * (stats.dhitMulti - 1)) * (1 + stats.critChance * (stats.critMulti - 1));

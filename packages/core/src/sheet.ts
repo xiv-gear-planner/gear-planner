@@ -653,7 +653,7 @@ export class GearPlanSheet {
     }
 
     /**
-     * Determine the placement index for a cloned set. Helper method of {@link #cloneAndAddGearSet}.
+     * Determine the placement index for a cloned set. Helper method of {@link cloneAndAddGearSet}.
      *
      * @param originalSet The set being cloned.
      * @protected
@@ -927,7 +927,7 @@ export class GearPlanSheet {
 
     /**
      * Import a sim from a sim export. Does not add it to the simulations - you still need to do that if you would like
-     * the sim to appear on the sheet (see {@link #addSim}).
+     * the sim to appear on the sheet (see {@link addSim}).
      *
      * @param simExport The data to import.
      */
@@ -1107,7 +1107,7 @@ export class GearPlanSheet {
     }
 
     /**
-     * Determine whether a stat can naturally appear on gear. Like {@link #isStatRelevant}, but returns false if the
+     * Determine whether a stat can naturally appear on gear. Like {@link isStatRelevant}, but returns false if the
      * stat does not appear on gear for this class. e.g. returns false for DH on tanks and healers.
      *
      * @param stat
@@ -1124,7 +1124,7 @@ export class GearPlanSheet {
     }
 
     /**
-     * Determine whether a stat should be shown by default on the custom item UI. Same as {@link #isStatPossibleOnGear}.
+     * Determine whether a stat should be shown by default on the custom item UI. Same as {@link isStatPossibleOnGear}.
      *
      * @param stat The stat
      */
@@ -1278,7 +1278,7 @@ export class GearPlanSheet {
     }
 
     /**
-     * The item display settings. Uses a proxy which automatically calls {@link #gearDisplaySettingsUpdateLater} after
+     * The item display settings. Uses a proxy which automatically calls {@link gearDisplaySettingsUpdateLater} after
      * any fields are modified.
      */
     get itemDisplaySettings(): ItemDisplaySettings {

@@ -1139,7 +1139,7 @@ export interface ItemDisplaySettings {
      */
     maxILvlFood: number,
     /**
-     * Show relics which exceed {@link #maxILvl}
+     * Show relics which exceed {@link maxILvl}
      */
     higherRelics: boolean,
     /**

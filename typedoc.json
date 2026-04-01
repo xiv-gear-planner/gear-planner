@@ -2,8 +2,18 @@
   "$schema": "https://typedoc.org/schema.json",
   "entryPointStrategy": "packages",
   "entryPoints": [
-    "packages/xivmath",
+    "packages/account-service-client",
+    "packages/backend-resolver",
+    "packages/common-ui",
     "packages/core",
+    "packages/data-api-client",
+    "packages/frontend",
+    "packages/i18n",
+    "packages/math-frontend",
+    "packages/sims",
+    "packages/user-data-client",
+    "packages/util",
+    "packages/xivmath"
   ],
   "exclude": [
     "**/scripts/test/**/*.ts"
@@ -11,12 +21,27 @@
   "excludePrivate": false,
   "readme": "API_DOC.md",
   "out": "packages/frontend/dist/docs",
-  "name": "Xivgear API Documentation",
+  "name": "Xivgear Types Documentation",
   "includeVersion": true,
   "validation": {
     "invalidLink": true,
     "notExported": true
   },
   "useTsLinkResolution": true,
-  "skipErrorChecking": false
+  "skipErrorChecking": false,
+//  "plugin": ["typedoc-plugin-missing-exports"],
+  "packageOptions": {
+    "skipErrorChecking": true,
+    "blockTags": [
+      "@defaultValue", "@deprecated", "@example", "@jsx", "@param", "@privateRemarks",
+      "@remarks", "@returns", "@see", "@throws", "@typeParam",
+      "@author", "@callback", "@category", "@categoryDescription", "@default", "@document",
+      "@extends", "@augments", "@yields", "@group", "@groupDescription", "@import",
+      "@inheritDoc", "@license", "@module", "@mergeModuleWith", "@prop", "@property",
+      "@return", "@satisfies", "@since", "@sortStrategy", "@template", "@this", "@type",
+      "@typedef", "@summary", "@preventInline", "@inlineType", "@preventExpand", "@expandType",
+      "@contact", "@format", "@maxLength", "@min", "@minLength", "@name",
+      "@request", "@response", "@secure", "@title", "@version"
+    ]
+  }
 }

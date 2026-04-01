@@ -1358,7 +1358,7 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
     }
 
     /**
-     * See {@link #use}
+     * See {@link use}
      * @param ability The ability to use
      */
     useGcd(ability: GcdAbility): AbilityUseResult {
@@ -1366,7 +1366,7 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
     }
 
     /**
-     * See {@link #use}
+     * See {@link use}
      * @param ability The ability to use
      */
     useOgcd(ability: OgcdAbility): AbilityUseResult {
