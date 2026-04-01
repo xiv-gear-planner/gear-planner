@@ -2,21 +2,7 @@
   "$schema": "https://typedoc.org/schema.json",
   "entryPointStrategy": "packages",
   "entryPoints": [
-    "packages/account-service-client",
-    "packages/backend-resolver",
-    "packages/common-ui",
-    "packages/core",
-    "packages/data-api-client",
-    "packages/frontend",
-    "packages/i18n",
-    "packages/math-frontend",
-    "packages/sims",
-    "packages/user-data-client",
-    "packages/util",
-    "packages/xivmath"
-  ],
-  "exclude": [
-    "**/scripts/test/**/*.ts"
+    "packages/*"
   ],
   "excludePrivate": false,
   "readme": "API_DOC.md",
@@ -29,7 +15,6 @@
   },
   "useTsLinkResolution": true,
   "skipErrorChecking": false,
-//  "plugin": ["typedoc-plugin-missing-exports"],
   "packageOptions": {
     "skipErrorChecking": true,
     "blockTags": [
