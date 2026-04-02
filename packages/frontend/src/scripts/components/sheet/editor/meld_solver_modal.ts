@@ -1,4 +1,5 @@
 import {
+    el,
     FieldBoundCheckBox,
     FieldBoundDataSelect,
     FieldBoundFloatField,
@@ -43,9 +44,11 @@ export class MeldSolverDialog extends BaseModal {
         this.descriptionText.textContent = "Solve for the highest-dps set of melds/food for this gearset.\r\n"
             + "Computation will be much slower without a target GCD.";
 
-        this.setNameText = document.createElement('div');
-        this.setNameText.textContent = `"${set.name}"`;
-        this.setNameText.classList.add('meld-solver-set');
+        this.setNameText = el('div', {class: 'meld-solver-set'}, [
+            "Solving for ", el('span', {class: 'meld-solver-set-name'}, [set.name]),
+        ]);
+        // this.setNameText.textContent = `"${set.name}"`;
+        // this.setNameText.classList.add('meld-solver-set');
 
         this.settingsDiv = new MeldSolverSettingsMenu(sheet, set);
 
