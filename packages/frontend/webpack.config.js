@@ -50,13 +50,6 @@ module.exports = (env, argv) => {
                 scriptLoading: 'module'
             }),
             new NodePolyfillPlugin(),
-            // new BeastiesWebpackPlugin({
-            //     preload: false,
-            //     path: './dist/',
-            //     publicPath: '',
-            //     logLevel: 'debug',
-            //     includeSelectors: ['body.light-mode']
-            // })
         ],
         resolve: {
             extensions: ['.ts', '.js'],
