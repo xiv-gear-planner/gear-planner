@@ -249,7 +249,7 @@ async function doNav(navState: NavState) {
 
 
 /**
- * Like {@link #setNav}, but takes only the ?page path parts.
+ * Like {@link setNav}, but takes only the ?page path parts.
  *
  * @param pathParts The parts of the ?path parameter.
  */
@@ -295,7 +295,7 @@ export function getHash(): string[] {
 }
 
 /**
- * Navigate to a new URL. This is like {@link #goNav}, but takes just the "page" parameter as a list instead of a
+ * Navigate to a new URL. This is like {@link goNav}, but takes just the "page" parameter as a list instead of a
  * delimited string. This does perform navigation - you should not attempt to perform navigation yourself if you are
  * using this method.
  *

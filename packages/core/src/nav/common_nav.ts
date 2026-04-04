@@ -122,7 +122,7 @@ export type SheetType = NavPath['type'];
  * NavState represents a very raw location of a page within the SPA. It encompasses the `path` query parameter, as well
  * as a couple other optional parameters.
  *
- * {@link #parsePath} can turn a NavState into a NavPath.
+ * {@link parsePath} can turn a NavState into a NavPath.
  */
 export class NavState {
     constructor(private readonly _path: string[], readonly onlySetIndex: number | undefined = undefined, readonly selectIndex: number | undefined = undefined) {

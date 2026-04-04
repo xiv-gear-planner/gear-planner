@@ -4,6 +4,9 @@ import {JobName, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {AttackType, ComputedSetStats} from "@xivgear/xivmath/geartypes";
 import {ValueWithDev} from "@xivgear/xivmath/deviation";
 import {StatModification} from "@xivgear/xivmath/xivstats";
+// used in doc
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import {noStatusId} from "./buff_helpers";
 
 export type EmptyGauge = {}
 
@@ -274,8 +277,8 @@ export type LevelModifier<X> = ({
 
 export type LevelModifiable<X> = X & {
     /**
-     * A list of level modifiers, that can override properties of the ability
-     * at the specified level. An action will have its properties overriden for
+     * A list of level modifiers that can override properties of the ability
+     * at the specified level. An action will have its properties overridden for
      * the highest `minLevel` specified.
      */
     levelModifiers?: LevelModifier<X>[],
@@ -669,7 +672,7 @@ export type BaseBuff = Readonly<{
      */
     modifyDamage?(controller: BuffController, damageResult: DamageResult, ability: Ability): DamageResult | void,
     /**
-     * Status effect ID. Used to provide an icon, and for equality checks. If not known/needed, use {@link }
+     * Status effect ID. Used to provide an icon, and for equality checks. If not known/needed, use {@link noStatusId}
      */
     statusId: number
     /**

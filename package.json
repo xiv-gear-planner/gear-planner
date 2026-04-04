@@ -25,7 +25,7 @@
     "ts-mocha": "^10.1.0",
     "ts-node": "^10.9.2",
     "tsconfig-paths-webpack-plugin": "^4.2.0",
-    "typedoc": "^0.28.4",
+    "typedoc": "^0.28.18",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.32.1",
     "webpack-bundle-analyzer": "^5.0.1",
@@ -34,7 +34,7 @@
   "scripts": {
     "build": "pnpm -r build",
     "buildprod": "pnpm -r buildprod",
-    "docs": "pnpm -r exec typedoc --json build/docs.json --exclude '**/scripts/test/**/*.ts' --excludePrivate --entryPointStrategy expand src/ && pnpm exec typedoc --entryPointStrategy merge packages/*/build/docs.json --readme API_DOC.md --out packages/frontend/dist/docs",
+    "docs": "pnpm exec typedoc",
     "test": "pnpm -r --if-present test",
     "serve": "pnpm --filter @xivgear/gearplan-frontend exec webpack serve",
     "lint": "pnpm -r exec eslint ./src/**/*.ts --exit-on-fatal-error --max-warnings 0 && pnpm exec set-project-references -e",

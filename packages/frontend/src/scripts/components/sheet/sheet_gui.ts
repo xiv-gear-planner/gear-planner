@@ -190,7 +190,7 @@ class SimResultData<ResultType extends SimResult> {
 /**
  * A table of gear sets
  */
-class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOrHeaderSelectionModel<CharacterGearSet, SimCurrentResult, SimulationGui<any, any, any>>> {
+export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOrHeaderSelectionModel<CharacterGearSet, SimCurrentResult, SimulationGui<any, any, any>>> {
 
     private readonly sheet: GearPlanSheetGui;
 

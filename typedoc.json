@@ -1,0 +1,83 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPointStrategy": "packages",
+  "entryPoints": [
+    "packages/*"
+  ],
+  "readme": "API_DOC.md",
+  "out": "packages/frontend/dist/docs",
+  "name": "Xivgear Types Documentation",
+  "validation": {
+    "invalidLink": true,
+    "notExported": true
+  },
+  "useTsLinkResolution": true,
+  "skipErrorChecking": false,
+  "packageOptions": {
+    "compilerOptions": {
+      "composite": false,
+      "declaration": false,
+      "declarationMap": false
+    },
+    "skipErrorChecking": true,
+    "readme": "none",
+    "entryPoints": [
+      "src/**/*.ts"
+    ],
+    "blockTags": [
+      "@defaultValue",
+      "@deprecated",
+      "@example",
+      "@jsx",
+      "@param",
+      "@privateRemarks",
+      "@remarks",
+      "@returns",
+      "@see",
+      "@throws",
+      "@typeParam",
+      "@author",
+      "@callback",
+      "@category",
+      "@categoryDescription",
+      "@default",
+      "@document",
+      "@extends",
+      "@augments",
+      "@yields",
+      "@group",
+      "@groupDescription",
+      "@import",
+      "@inheritDoc",
+      "@license",
+      "@module",
+      "@mergeModuleWith",
+      "@prop",
+      "@property",
+      "@return",
+      "@satisfies",
+      "@since",
+      "@sortStrategy",
+      "@template",
+      "@this",
+      "@type",
+      "@typedef",
+      "@summary",
+      "@preventInline",
+      "@inlineType",
+      "@preventExpand",
+      "@expandType",
+      "@contact",
+      "@format",
+      "@maxLength",
+      "@min",
+      "@minLength",
+      "@name",
+      "@request",
+      "@response",
+      "@secure",
+      "@title",
+      "@version"
+    ]
+  }
+}

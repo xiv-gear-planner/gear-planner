@@ -1,0 +1,17 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "tsconfig": "tsconfig.typedoc.json",
+  "entryPoints": [
+    "src/scripts/**/*.ts"
+  ],
+  "exclude": [
+    "**/scripts/test/**/*",
+    "**/test/**/*",
+    "**/*.test.ts",
+    "**/*tests.ts"
+  ],
+  "validation": {
+    "invalidLink": true,
+    "notExported": true
+  }
+}

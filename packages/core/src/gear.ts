@@ -365,7 +365,7 @@ export class CharacterGearSet {
     }
 
     /**
-     * Set a new equipment piece into the given slot. Unlike directly setting fields on {@link #equipment}, this will
+     * Set a new equipment piece into the given slot. Unlike directly setting fields on {@link equipment}, this will
      * also handle things like materia autofill, invalidation, saving, etc.
      *
      * @param slot
