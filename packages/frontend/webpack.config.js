@@ -1,7 +1,6 @@
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 const path = require("path");
-const BeastiesWebpackPlugin = require("beasties-webpack-plugin");
 const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin");
 module.exports = (env, argv) => {
     const prod = argv.mode === 'production';
@@ -50,13 +49,6 @@ module.exports = (env, argv) => {
                 scriptLoading: 'module'
             }),
             new NodePolyfillPlugin(),
-            new BeastiesWebpackPlugin({
-                preload: false,
-                path: './dist/',
-                publicPath: '',
-                logLevel: 'debug',
-                includeSelectors: ['body.light-mode']
-            })
         ],
         resolve: {
             extensions: ['.ts', '.js'],
@@ -74,12 +66,6 @@ module.exports = (env, argv) => {
             plugins: [
                 new TsconfigPathsPlugin({
                     logLevel: "INFO",
-                    references: [
-                        "../common-ui",
-                        "../core",
-                        "../util",
-                        "../xivmath",
-                    ]
                 }),
             ],
         },
