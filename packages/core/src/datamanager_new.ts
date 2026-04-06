@@ -30,7 +30,6 @@ import {
     RawStatsPart,
     RelicStatModel
 } from "@xivgear/xivmath/geartypes";
-import {BaseParamToStatKey, RelevantBaseParam} from "./external/xivapitypes";
 import {getRelicStatModelFor} from "./relicstats/relicstats";
 import {requireArrayTyped, requireNumber, requireString} from "./external/data_validators";
 import {
@@ -827,8 +826,14 @@ export class DataApiGearInfo implements GearItem {
             .filter(item => item[1])
             .reverse();
         if (sortedStats.length < 2) {
-            this.primarySubstat = null;
-            this.secondarySubstat = null;
+            if (sortedStats.length === 1) {
+                this.primarySubstat = sortedStats[0][0] as keyof RawStats;
+                this.secondarySubstat = null;
+            }
+            else {
+                this.primarySubstat = null;
+                this.secondarySubstat = null;
+            }
         }
         else {
             this.primarySubstat = sortedStats[0][0] as keyof RawStats;

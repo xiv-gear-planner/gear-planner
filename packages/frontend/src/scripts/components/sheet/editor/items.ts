@@ -443,13 +443,25 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                 return new RelicCellInfo(set, currentEquipment.gearItem, slotItem.slotId, stat as Substat, set.getStatDetail(slotItem.slotId, stat), !item.relicStatModel.excludedStats.includes(stat as Substat));
             }
             else {
+                // Future TODO: this makes the assumption that an item will never have extra main stat *and* provide a
+                // specific main stat directly.
+                let effectiveStat: RawStatKey;
+                if (item.stats.extraMainStat && stat === set.classJobStats.mainStat) {
+                    effectiveStat = 'extraMainStat';
+                }
+                else if (item.stats.extraSecondaryStat && stat === set.classJobStats.secondaryStat) {
+                    effectiveStat = 'extraSecondaryStat';
+                }
+                else {
+                    effectiveStat = stat;
+                }
                 // Not a relic, or not an editable stat. Display normally
                 const selected = set.getItemInSlot(slotItem.slotId) === item;
                 if (selected) {
-                    return set.getStatDetail(slotItem.slotId, stat);
+                    return set.getStatDetail(slotItem.slotId, effectiveStat);
                 }
                 else {
-                    return previewItemStatDetail(item, stat);
+                    return previewItemStatDetail(item, effectiveStat);
                 }
             }
         },
@@ -507,6 +519,24 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                 }
                 else if (value !== 'relic-zero') {
                     applyStatCellStyles(cell, value, stat);
+                    const item = cell.dataItem.item;
+                    // These items are a bit weird in that they don't really have a "big" or "small" stat
+                    if (item.stats.extraMainStat && stat === set.classJobStats.mainStat) {
+                        if (item.unsyncedVersion.stats.extraMainStat === item.unsyncedVersion.statCaps.extraMainStat) {
+                            cell.classList.add('primary');
+                        }
+                        else {
+                            cell.classList.add('secondary');
+                        }
+                    }
+                    else if (item.stats.extraSecondaryStat && stat === set.classJobStats.secondaryStat) {
+                        if (item.unsyncedVersion.stats.extraSecondaryStat === item.unsyncedVersion.statCaps.extraSecondaryStat) {
+                            cell.classList.add('primary');
+                        }
+                        else {
+                            cell.classList.add('secondary');
+                        }
+                    }
                 }
             }
             else {
