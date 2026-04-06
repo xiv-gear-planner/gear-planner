@@ -168,7 +168,7 @@ describe('Feature 24 - support items that give primary/secondary stat directly s
     before(async () => {
         await sheet.load();
         sheet.partyBonus = 0;
-    }).timeout(30_000);
+    });
     it('Supports primary and secondary stats', () => {
         // Menphina's earring (i430 - no sync)
         const menphina = sheet.itemById(33648);
@@ -190,7 +190,7 @@ describe('Feature 24 - support items that give primary/secondary stat directly s
         const dhitAfter = statsAfter.dhit;
         expect(dexterityAfter).to.eq(374 + 78);
         expect(dhitAfter).to.eq(380 + 79);
-    });
+    }).timeout(30_000);
     it('Respects ilvl downsync', () => {
         // Azeyma's earring (i560 - should be synced)
         const azeyma = sheet.itemById(41081);
@@ -216,10 +216,10 @@ describe('Feature 24 - support items that give primary/secondary stat directly s
         const dhitAfter = statsAfter.dhit;
         expect(dexterityAfter).to.eq(374 + 78);
         expect(dhitAfter).to.eq(380 + 79);
+    }).timeout(30_000);
 
-    });
     it('Does not treat said items as custom relics', () => {
         const menphina = sheet.itemById(33648);
         expect(menphina.isCustomRelic).to.equal(false);
-    });
+    }).timeout(30_000);
 });
