@@ -164,6 +164,8 @@ describe('Feature 24 - support items that give primary/secondary stat directly s
         expect(menphina.stats.extraSecondaryStat).to.equal(79);
         expect(menphina.stats.vitality).to.equal(80);
         expect(menphina.stats.determination).to.equal(79);
+        expect(menphina.primarySubstat).to.eq('determination');
+        expect(menphina.secondarySubstat).to.be.null;
         const set = new CharacterGearSet(sheet);
         const statsBefore = set.computedStats;
         const dexterityBefore = statsBefore.dexterity;
@@ -188,6 +190,8 @@ describe('Feature 24 - support items that give primary/secondary stat directly s
         expect(azeyma.unsyncedVersion.stats.extraSecondaryStat).to.equal(111);
         expect(azeyma.unsyncedVersion.stats.vitality).to.equal(115);
         expect(azeyma.unsyncedVersion.stats.determination).to.equal(111);
+        expect(azeyma.primarySubstat).to.eq('determination');
+        expect(azeyma.secondarySubstat).to.be.null;
         const set = new CharacterGearSet(sheet);
         const statsBefore = set.computedStats;
         const dexterityBefore = statsBefore.dexterity;
