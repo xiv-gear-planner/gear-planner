@@ -152,11 +152,13 @@ describe('bug #695 - offhands have wrong stats', () => {
 
 
 describe('Feature 24 - support items that give primary/secondary stat directly such as pre-order earrings', () => {
-    it('Supports primary and secondary stats', async () => {
-        const sheet = HEADLESS_SHEET_PROVIDER.fromScratch(undefined, 'main stat test sheet', 'NIN', 80, 430, true);
+    const sheet = HEADLESS_SHEET_PROVIDER.fromScratch(undefined, 'main stat test sheet', 'NIN', 80, 430, true);
+    before(async () => {
         await sheet.load();
         sheet.partyBonus = 0;
-        // Menphina's earring
+    });
+    it('Supports primary and secondary stats', () => {
+        // Menphina's earring (i430 - no sync)
         const menphina = sheet.itemById(33648);
         expect(menphina.stats.extraMainStat).to.equal(78);
         expect(menphina.stats.extraSecondaryStat).to.equal(79);
@@ -174,5 +176,34 @@ describe('Feature 24 - support items that give primary/secondary stat directly s
         const dhitAfter = statsAfter.dhit;
         expect(dexterityAfter).to.eq(374 + 78);
         expect(dhitAfter).to.eq(380 + 79);
+    });
+    it('Respects ilvl downsync', () => {
+        // Azeyma's earring (i560 - should be synced)
+        const azeyma = sheet.itemById(41081);
+        expect(azeyma.stats.extraMainStat).to.equal(78);
+        expect(azeyma.stats.extraSecondaryStat).to.equal(79);
+        expect(azeyma.stats.vitality).to.equal(80);
+        expect(azeyma.stats.determination).to.equal(79);
+        expect(azeyma.unsyncedVersion.stats.extraMainStat).to.equal(115);
+        expect(azeyma.unsyncedVersion.stats.extraSecondaryStat).to.equal(111);
+        expect(azeyma.unsyncedVersion.stats.vitality).to.equal(115);
+        expect(azeyma.unsyncedVersion.stats.determination).to.equal(111);
+        const set = new CharacterGearSet(sheet);
+        const statsBefore = set.computedStats;
+        const dexterityBefore = statsBefore.dexterity;
+        const dhitBefore = statsBefore.dhit;
+        expect(dexterityBefore).to.equal(374);
+        expect(dhitBefore).to.equal(380);
+        set.setEquip("Ears", azeyma);
+        const statsAfter = set.computedStats;
+        const dexterityAfter = statsAfter.dexterity;
+        const dhitAfter = statsAfter.dhit;
+        expect(dexterityAfter).to.eq(374 + 78);
+        expect(dhitAfter).to.eq(380 + 79);
+
+    });
+    it('Does not treat said items as custom relics', () => {
+        const menphina = sheet.itemById(33648);
+        expect(menphina.isCustomRelic).to.equal(false);
     });
 });

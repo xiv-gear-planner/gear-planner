@@ -691,8 +691,12 @@ export class DataApiGearInfo implements GearItem {
         const baseMatCount: number = data.materiaSlotCount;
         if (baseMatCount === 0) {
             // If there are no materia slots, then it might be a custom relic
-            // TODO: is this branch still needed?
-            if (this.displayGearSlot !== DisplayGearSlotMapping.OffHand) {
+
+            // Pre-order earrings and other items that directly provide main stat
+            if (this.baseStats.extraMainStat) {
+                this.isCustomRelic = false;
+            }
+            else if (this.displayGearSlot !== DisplayGearSlotMapping.OffHand) {
                 // Offhands never have materia slots
                 this.isCustomRelic = true;
             }
