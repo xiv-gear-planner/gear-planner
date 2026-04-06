@@ -72,6 +72,9 @@ describe('New Datamanager', () => {
             defenseMag: 0,
             defensePhys: 0,
             gearHaste: 999_999,
+
+            extraMainStat: 416,
+            extraSecondaryStat: 306,
         });
         eq(codexOfAscension.materiaSlots.length, 2);
         eq(codexOfAscension.isCustomRelic, false);
@@ -136,6 +139,8 @@ describe('New Datamanager', () => {
             spellspeed: 179,
             tenacity: 179,
             determination: 179,
+            extraMainStat: 177,
+            extraSecondaryStat: 179,
         }));
     });
     describe('syncs levels correctly', () => {
