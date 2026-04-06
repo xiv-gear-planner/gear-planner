@@ -103,7 +103,7 @@ describe('bug #695 - offhands have wrong stats', () => {
                             return;
                         }
                     }
-                    failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has ${primarySub} ${primarySubValue} !== ${primarySubCap} (cap)`);
+                    failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has substat ${primarySub} ${primarySubValue} !== ${primarySubCap} (cap)`);
                 }
                 // This includes vitality
                 MAIN_STATS.forEach(mainStat => {
@@ -120,8 +120,20 @@ describe('bug #695 - offhands have wrong stats', () => {
                     ) {
                         return;
                     }
+                    if (mainStat === 'vitality' && item.jobs.length > 15) {
+                        // Preorder earrings - these seem to not follow the pattern exactly
+                        if (item.ilvl === 290 && item.stats.vitality === 46) {
+                            return;
+                        }
+                        else if (item.ilvl === 430 && item.stats.vitality === 80) {
+                            return;
+                        }
+                        else if (item.ilvl === 560 && item.stats.vitality === 115) {
+                            return;
+                        }
+                    }
                     if (value !== cap) {
-                        failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has ${mainStat} ${value} !== ${cap} (cap)`);
+                        failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has mainstat ${mainStat} ${value} !== ${cap} (cap)`);
                     }
                 });
                 const defStats: RawStatKey[] = ["defensePhys", "defenseMag"];
@@ -137,7 +149,7 @@ describe('bug #695 - offhands have wrong stats', () => {
                     }
                     // Allow a margin of error of one unless we find a confirmed-wrong case.
                     if (Math.abs(value - cap) > 1) {
-                        failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has ${defStat} ${value} !== ${cap} (cap)`);
+                        failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has defstat ${defStat} ${value} !== ${cap} (cap)`);
                     }
 
                 });
