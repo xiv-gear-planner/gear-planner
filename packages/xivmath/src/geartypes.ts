@@ -445,6 +445,9 @@ export interface MeldableMateriaSlot {
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export interface RawStats {
+    /**
+     * Raw HP provided by the item - does NOT include HP provided via vitality.
+     */
     hp: number,
     vitality: number,
     strength: number,
@@ -460,10 +463,23 @@ export interface RawStats {
     skillspeed: number,
     wdPhys: number,
     wdMag: number,
+    /**
+     * weaponDelay expressed as seconds (i.e. 3.54 = 3.54 seconds)
+     */
     weaponDelay: number,
-    defenseMag: number;
-    defensePhys: number;
-    gearHaste: number;
+    defenseMag: number,
+    defensePhys: number,
+    gearHaste: number,
+    /**
+     * Represents direct main stat bonuses. Only applicable to item stats - not used in computed stats, as it should be
+     * converted to the actual concrete stat at that point.
+     */
+    extraMainStat: number,
+    /**
+     * Represents direct secondary stat bonuses. Only applicable to item stats - not used in computed stats, as it should be
+     * converted to the actual concrete stat at that point.
+     */
+    extraSecondaryStat: number,
 }
 
 export type RawStatKey = keyof RawStats;
@@ -496,6 +512,8 @@ export class RawStats implements RawStats {
     defenseMag: number = 0;
     defensePhys: number = 0;
     gearHaste: number = 0;
+    extraMainStat: number = 0;
+    extraSecondaryStat: number = 0;
 
     constructor(values: ({ [K in RawStatKey]?: number } | undefined) = undefined) {
         if (values) {
@@ -554,6 +572,11 @@ export interface JobDataConst {
      * The primary stat
      */
     readonly mainStat: Mainstat;
+
+    /**
+     * The secondary substat for the purposes of items such as pre-order earrings.
+     */
+    readonly secondaryStat: Substat;
     /**
      * The primary stat as used for auto-attack calculations specifically
      */

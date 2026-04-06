@@ -1,8 +1,9 @@
-import {previewItemStatDetail} from "../gear";
+import {CharacterGearSet, previewItemStatDetail} from "../gear";
 import {GearItem, RawStatKey, RawStats} from "@xivgear/xivmath/geartypes";
 import {expect} from 'chai';
 import {NewApiDataManager} from "../datamanager_new";
 import {ALL_COMBAT_JOBS, MAIN_STATS} from "@xivgear/xivmath/xivconstants";
+import {HEADLESS_SHEET_PROVIDER} from "../sheet";
 
 
 describe('Individual item math', () => {
@@ -92,8 +93,8 @@ describe('bug #695 - offhands have wrong stats', () => {
                 const primarySubValue = item.stats[primarySub];
                 const primarySubCap = item.statCaps[primarySub];
                 if (primarySubValue !== primarySubCap) {
-                    // A few ilvls have different caps for piety and tenacity
-                    if (primarySub === 'piety' || primarySub === 'tenacity') {
+                    // A few ilvls have different caps for dhit and tenacity
+                    if (primarySub === 'dhit' || primarySub === 'tenacity') {
                         const ilvlSyncInfo = dm.getIlvlSyncInfo(item.ilvl);
                         const thisCap = ilvlSyncInfo.substatCap(item.occGearSlotName, primarySub);
                         // The cap for the "normal" substats
@@ -150,3 +151,28 @@ describe('bug #695 - offhands have wrong stats', () => {
 });
 
 
+describe('Feature 24 - support items that give primary/secondary stat directly such as pre-order earrings', () => {
+    it('Supports primary and secondary stats', async () => {
+        const sheet = HEADLESS_SHEET_PROVIDER.fromScratch(undefined, 'main stat test sheet', 'NIN', 80, 430, true);
+        await sheet.load();
+        sheet.partyBonus = 0;
+        // Menphina's earring
+        const menphina = sheet.itemById(33648);
+        expect(menphina.stats.extraMainStat).to.equal(78);
+        expect(menphina.stats.extraSecondaryStat).to.equal(79);
+        expect(menphina.stats.vitality).to.equal(80);
+        expect(menphina.stats.determination).to.equal(79);
+        const set = new CharacterGearSet(sheet);
+        const statsBefore = set.computedStats;
+        const dexterityBefore = statsBefore.dexterity;
+        const dhitBefore = statsBefore.dhit;
+        expect(dexterityBefore).to.equal(374);
+        expect(dhitBefore).to.equal(380);
+        set.setEquip("Ears", menphina);
+        const statsAfter = set.computedStats;
+        const dexterityAfter = statsAfter.dexterity;
+        const dhitAfter = statsAfter.dhit;
+        expect(dexterityAfter).to.eq(374 + 78);
+        expect(dhitAfter).to.eq(380 + 79);
+    });
+});

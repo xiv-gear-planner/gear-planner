@@ -122,6 +122,7 @@ export const RANGE_AUTO_POTENCY = 80;
 const STANDARD_HEALER: JobDataConst = {
     role: 'Healer',
     mainStat: 'mind',
+    secondaryStat: 'piety',
     autoAttackStat: 'strength',
     irrelevantSubstats: ['skillspeed', 'tenacity'],
     traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.3, // Maim and Mend II
@@ -134,6 +135,7 @@ const STANDARD_HEALER: JobDataConst = {
 const STANDARD_TANK: JobDataConst = {
     role: 'Tank',
     mainStat: 'strength',
+    secondaryStat: 'tenacity',
     autoAttackStat: 'strength',
     irrelevantSubstats: ['spellspeed', 'piety'],
     meldParamIndex: 1,
@@ -145,6 +147,7 @@ const STANDARD_TANK: JobDataConst = {
 const STANDARD_MELEE: Omit<JobDataConst, 'meldParamIndex'> = {
     role: 'Melee',
     mainStat: 'strength',
+    secondaryStat: 'dhit',
     autoAttackStat: 'strength',
     irrelevantSubstats: ['spellspeed', 'tenacity', 'piety'],
     aaPotency: MELEE_AUTO_POTENCY,
@@ -172,6 +175,7 @@ const MELEE_MAIMING: JobDataConst = {
 const STANDARD_RANGED: JobDataConst = {
     role: 'Ranged',
     mainStat: 'dexterity',
+    secondaryStat: 'dhit',
     autoAttackStat: 'dexterity',
     irrelevantSubstats: ['spellspeed', 'tenacity', 'piety'],
     traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.2, // Increased Action Damage II
@@ -184,6 +188,7 @@ const STANDARD_RANGED: JobDataConst = {
 const STANDARD_CASTER: JobDataConst = {
     role: 'Caster',
     mainStat: 'intelligence',
+    secondaryStat: 'dhit',
     autoAttackStat: 'strength',
     irrelevantSubstats: ['skillspeed', 'tenacity', 'piety'],
     traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.3, // Maim and Mend II
@@ -739,6 +744,8 @@ export const STAT_FULL_NAMES: Record<RawStatKey, string> = {
     wdPhys: "Weapon Damage (Physical)",
     weaponDelay: "Auto-Attack Delay",
     gearHaste: "Gear Haste",
+    extraMainStat: "Extra Main Stat",
+    extraSecondaryStat: "Extra Secondary Stat",
 };
 
 /**
@@ -764,6 +771,9 @@ export const STAT_ABBREVIATIONS: Record<RawStatKey, string> = {
     wdPhys: "WDp",
     weaponDelay: "Dly",
     gearHaste: "Hst",
+    // Game calls these "Main Attribute" and "Secondary Attribute"
+    extraMainStat: "MA",
+    extraSecondaryStat: "SA",
 };
 
 /**
@@ -792,6 +802,8 @@ export function statById(id: number): keyof RawStats | undefined {
             return "wdPhys";
         case 13:
             return "wdMag";
+        case 14:
+            return "weaponDelay";
         case 19:
             return "tenacity";
         case 21:
@@ -813,6 +825,10 @@ export function statById(id: number): keyof RawStats | undefined {
             return "spellspeed";
         case 47:
             return "gearHaste";
+        case 55:
+            return 'extraMainStat';
+        case 56:
+            return 'extraSecondaryStat';
         default:
             return undefined;
     }

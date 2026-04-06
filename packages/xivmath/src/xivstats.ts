@@ -22,7 +22,8 @@ import {
     detDmg,
     dhitChance,
     dhitDmg,
-    fl, flp,
+    fl,
+    flp,
     mainStatMulti,
     mpTick,
     sksTickMulti,
@@ -473,6 +474,16 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
     get effectiveFoodBonuses(): RawStats {
         return this._effectiveFoodBonuses;
     }
+
+    get extraMainStat(): 0 {
+        // Always 0 at this point because the extra main stat is already factored into the actual main stat.
+        return 0;
+    }
+
+    get extraSecondaryStat(): 0 {
+        // Always 0 at this point because the extra secondary stat is already factored into the actual secondary stat.
+        return 0;
+    }
 }
 
 export function finalizeStats(
@@ -506,7 +517,10 @@ export function finalizeStatsInt(
 } {
     const combinedStats: RawStats = {...gearStats};
     const mainStatKey = classJobStats.mainStat;
+    const secondaryStatKey = classJobStats.secondaryStat;
     const aaStatKey = classJobStats.autoAttackStat;
+    combinedStats[mainStatKey] += gearStats.extraMainStat;
+    combinedStats[secondaryStatKey] += gearStats.extraSecondaryStat;
     combinedStats[mainStatKey] = fl(combinedStats[mainStatKey] * (1 + 0.01 * partyBonus));
     if (mainStatKey !== aaStatKey) {
         combinedStats[aaStatKey] = fl(combinedStats[aaStatKey] * (1 + 0.01 * partyBonus));
