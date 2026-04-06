@@ -85,6 +85,8 @@ export class JobIcon extends HTMLImageElement {
 
         this.addEventListener('load', loadListener);
         this.addEventListener('error', e => {
+            // TODO: this seems to have an issue with the alt URL loading - we remove the 'load' listener here, but
+            // that means that when it finally loads successfully, we don't remove the placeholder styling.
             e.preventDefault();
             this.classList.remove('loaded');
             this.classList.add('image-error-loading');
