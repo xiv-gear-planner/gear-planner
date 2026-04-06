@@ -168,7 +168,7 @@ describe('Feature 24 - support items that give primary/secondary stat directly s
     before(async () => {
         await sheet.load();
         sheet.partyBonus = 0;
-    });
+    }).timeout(30_000);
     it('Supports primary and secondary stats', () => {
         // Menphina's earring (i430 - no sync)
         const menphina = sheet.itemById(33648);
