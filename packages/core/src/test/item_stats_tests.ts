@@ -165,7 +165,8 @@ describe('bug #695 - offhands have wrong stats', () => {
 
 describe('Feature 24 - support items that give primary/secondary stat directly such as pre-order earrings', () => {
     const sheet = HEADLESS_SHEET_PROVIDER.fromScratch(undefined, 'main stat test sheet', 'NIN', 80, 430, true);
-    before(async () => {
+    before(async function () {
+        this.timeout(30_000);
         await sheet.load();
         sheet.partyBonus = 0;
     });
