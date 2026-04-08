@@ -45,7 +45,7 @@ export class GearsetGenerationSettings {
     }
 }
 
-export class GearsetGenerationSettingsExport {
+export type GearsetGenerationSettingsExport = {
     gearset: SetExport;
     overwriteExistingMateria: boolean;
     useTargetGcd: boolean;
@@ -287,7 +287,7 @@ export class GearsetGenerator {
         const gcdMapSize = gcdMap.size;
         statusCallback({
             phase: 4,
-            count: total,
+            count: count,
             subPhase: {
                 phase: 0,
                 phaseMax: gcdMapSize,
@@ -304,7 +304,7 @@ export class GearsetGenerator {
             gcdMapDone++;
             statusCallback({
                 phase: 4,
-                count: total,
+                count: count,
                 subPhase: {
                     phase: gcdMapDone,
                     phaseMax: gcdMapSize,
