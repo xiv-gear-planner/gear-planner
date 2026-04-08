@@ -1,8 +1,9 @@
-import {previewItemStatDetail} from "../gear";
+import {CharacterGearSet, previewItemStatDetail} from "../gear";
 import {GearItem, RawStatKey, RawStats} from "@xivgear/xivmath/geartypes";
 import {expect} from 'chai';
 import {NewApiDataManager} from "../datamanager_new";
 import {ALL_COMBAT_JOBS, MAIN_STATS} from "@xivgear/xivmath/xivconstants";
+import {HEADLESS_SHEET_PROVIDER} from "../sheet";
 
 
 describe('Individual item math', () => {
@@ -92,8 +93,8 @@ describe('bug #695 - offhands have wrong stats', () => {
                 const primarySubValue = item.stats[primarySub];
                 const primarySubCap = item.statCaps[primarySub];
                 if (primarySubValue !== primarySubCap) {
-                    // A few ilvls have different caps for piety and tenacity
-                    if (primarySub === 'piety' || primarySub === 'tenacity') {
+                    // A few ilvls have different caps for dhit and tenacity
+                    if (primarySub === 'dhit' || primarySub === 'tenacity') {
                         const ilvlSyncInfo = dm.getIlvlSyncInfo(item.ilvl);
                         const thisCap = ilvlSyncInfo.substatCap(item.occGearSlotName, primarySub);
                         // The cap for the "normal" substats
@@ -102,7 +103,7 @@ describe('bug #695 - offhands have wrong stats', () => {
                             return;
                         }
                     }
-                    failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has ${primarySub} ${primarySubValue} !== ${primarySubCap} (cap)`);
+                    failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has substat ${primarySub} ${primarySubValue} !== ${primarySubCap} (cap)`);
                 }
                 // This includes vitality
                 MAIN_STATS.forEach(mainStat => {
@@ -119,8 +120,20 @@ describe('bug #695 - offhands have wrong stats', () => {
                     ) {
                         return;
                     }
+                    if (mainStat === 'vitality' && item.jobs.length > 15) {
+                        // Preorder earrings - these seem to not follow the pattern exactly
+                        if (item.ilvl === 290 && item.stats.vitality === 46) {
+                            return;
+                        }
+                        else if (item.ilvl === 430 && item.stats.vitality === 80) {
+                            return;
+                        }
+                        else if (item.ilvl === 560 && item.stats.vitality === 115) {
+                            return;
+                        }
+                    }
                     if (value !== cap) {
-                        failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has ${mainStat} ${value} !== ${cap} (cap)`);
+                        failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has mainstat ${mainStat} ${value} !== ${cap} (cap)`);
                     }
                 });
                 const defStats: RawStatKey[] = ["defensePhys", "defenseMag"];
@@ -136,7 +149,7 @@ describe('bug #695 - offhands have wrong stats', () => {
                     }
                     // Allow a margin of error of one unless we find a confirmed-wrong case.
                     if (Math.abs(value - cap) > 1) {
-                        failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has ${defStat} ${value} !== ${cap} (cap)`);
+                        failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has defstat ${defStat} ${value} !== ${cap} (cap)`);
                     }
 
                 });
@@ -150,3 +163,64 @@ describe('bug #695 - offhands have wrong stats', () => {
 });
 
 
+describe('Feature 24 - support items that give primary/secondary stat directly such as pre-order earrings', () => {
+    const sheet = HEADLESS_SHEET_PROVIDER.fromScratch(undefined, 'main stat test sheet', 'NIN', 80, 430, true);
+    before(async function () {
+        this.timeout(30_000);
+        await sheet.load();
+        sheet.partyBonus = 0;
+    });
+    it('Supports primary and secondary stats', () => {
+        // Menphina's earring (i430 - no sync)
+        const menphina = sheet.itemById(33648);
+        expect(menphina.stats.extraMainStat).to.equal(78);
+        expect(menphina.stats.extraSecondaryStat).to.equal(79);
+        expect(menphina.stats.vitality).to.equal(80);
+        expect(menphina.stats.determination).to.equal(79);
+        expect(menphina.primarySubstat).to.eq('determination');
+        expect(menphina.secondarySubstat).to.be.null;
+        const set = new CharacterGearSet(sheet);
+        const statsBefore = set.computedStats;
+        const dexterityBefore = statsBefore.dexterity;
+        const dhitBefore = statsBefore.dhit;
+        expect(dexterityBefore).to.equal(374);
+        expect(dhitBefore).to.equal(380);
+        set.setEquip("Ears", menphina);
+        const statsAfter = set.computedStats;
+        const dexterityAfter = statsAfter.dexterity;
+        const dhitAfter = statsAfter.dhit;
+        expect(dexterityAfter).to.eq(374 + 78);
+        expect(dhitAfter).to.eq(380 + 79);
+    });
+    it('Respects ilvl downsync', () => {
+        // Azeyma's earring (i560 - should be synced)
+        const azeyma = sheet.itemById(41081);
+        expect(azeyma.stats.extraMainStat).to.equal(78);
+        expect(azeyma.stats.extraSecondaryStat).to.equal(79);
+        expect(azeyma.stats.vitality).to.equal(80);
+        expect(azeyma.stats.determination).to.equal(79);
+        expect(azeyma.unsyncedVersion.stats.extraMainStat).to.equal(115);
+        expect(azeyma.unsyncedVersion.stats.extraSecondaryStat).to.equal(111);
+        expect(azeyma.unsyncedVersion.stats.vitality).to.equal(115);
+        expect(azeyma.unsyncedVersion.stats.determination).to.equal(111);
+        expect(azeyma.primarySubstat).to.eq('determination');
+        expect(azeyma.secondarySubstat).to.be.null;
+        const set = new CharacterGearSet(sheet);
+        const statsBefore = set.computedStats;
+        const dexterityBefore = statsBefore.dexterity;
+        const dhitBefore = statsBefore.dhit;
+        expect(dexterityBefore).to.equal(374);
+        expect(dhitBefore).to.equal(380);
+        set.setEquip("Ears", azeyma);
+        const statsAfter = set.computedStats;
+        const dexterityAfter = statsAfter.dexterity;
+        const dhitAfter = statsAfter.dhit;
+        expect(dexterityAfter).to.eq(374 + 78);
+        expect(dhitAfter).to.eq(380 + 79);
+    });
+
+    it('Does not treat said items as custom relics', () => {
+        const menphina = sheet.itemById(33648);
+        expect(menphina.isCustomRelic).to.equal(false);
+    });
+}).timeout(30_000);

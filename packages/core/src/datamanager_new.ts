@@ -30,7 +30,6 @@ import {
     RawStatsPart,
     RelicStatModel
 } from "@xivgear/xivmath/geartypes";
-import {BaseParamToStatKey, RelevantBaseParam} from "./external/xivapitypes";
 import {getRelicStatModelFor} from "./relicstats/relicstats";
 import {requireArrayTyped, requireNumber, requireString} from "./external/data_validators";
 import {
@@ -166,8 +165,16 @@ export class NewApiDataManager implements DataManager {
                                 case "gearHaste":
                                     // Don't bother capping haste since it doesn't work like a normal stat.
                                     return 999_999;
+                                case "extraMainStat":
+                                    // Main stats **should** all be the same
+                                    ilvlModifier = row.mind;
+                                    break;
+                                case "extraSecondaryStat":
+                                    // Secondary stats also should all be the same
+                                    ilvlModifier = row.directHitRate;
+                                    break;
                                 default:
-                                    console.warn(`Bad ilvl modifer! ${statsKey}:${slot}`);
+                                    console.warn(`Bad ilvl modifier! ${statsKey}:${slot}`);
                                     ilvlModifier = undefined;
                                     break;
                             }
@@ -234,7 +241,7 @@ export class NewApiDataManager implements DataManager {
             checkResponse(response);
             this._baseParams = response.data.items!.reduce<BaseParamMap>((baseParams, value) => {
                 // Each individual item also gets converted
-                baseParams[BaseParamToStatKey[value.name as RelevantBaseParam]] = {
+                baseParams[statById(value.rowId)] = {
                     meldParam: requireArrayTyped(value.meldParam, 'number'),
                     // This maps our internal stat keys to the xivapi percentages.
                     slots: {
@@ -308,6 +315,7 @@ export class NewApiDataManager implements DataManager {
         const statsPromise = Promise.all([itemsPromise, baseParamPromise]).then(() => {
             console.log(`Finishing item calculations for ${this._allItems.length} items`);
             this._allItems.forEach(item => {
+                // console.log(`Item ${item.id} ${item.name}`);
                 const itemIlvlPromise = this.getIlvlSyncData(baseParamPromise, item.ilvl);
                 let isyncLvl: number | null;
                 // Downsync by ilvl directly
@@ -682,8 +690,12 @@ export class DataApiGearInfo implements GearItem {
         const baseMatCount: number = data.materiaSlotCount;
         if (baseMatCount === 0) {
             // If there are no materia slots, then it might be a custom relic
-            // TODO: is this branch still needed?
-            if (this.displayGearSlot !== DisplayGearSlotMapping.OffHand) {
+
+            // Pre-order earrings and other items that directly provide main stat
+            if (this.baseStats.extraMainStat) {
+                this.isCustomRelic = false;
+            }
+            else if (this.displayGearSlot !== DisplayGearSlotMapping.OffHand) {
                 // Offhands never have materia slots
                 this.isCustomRelic = true;
             }
@@ -814,8 +826,14 @@ export class DataApiGearInfo implements GearItem {
             .filter(item => item[1])
             .reverse();
         if (sortedStats.length < 2) {
-            this.primarySubstat = null;
-            this.secondarySubstat = null;
+            if (sortedStats.length === 1) {
+                this.primarySubstat = sortedStats[0][0] as keyof RawStats;
+                this.secondarySubstat = null;
+            }
+            else {
+                this.primarySubstat = null;
+                this.secondarySubstat = null;
+            }
         }
         else {
             this.primarySubstat = sortedStats[0][0] as keyof RawStats;
