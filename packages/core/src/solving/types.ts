@@ -8,7 +8,7 @@ export type GearsetGenerationSetsUpdate = {
 }
 export type GearsetGenerationStatusUpdate = {
     type: 'status',
-    phase: number,
+    phase: 0 | 1 | 2 | 3 | 4,
     subPhase?: {
         phase: number,
         phaseMax: number,
