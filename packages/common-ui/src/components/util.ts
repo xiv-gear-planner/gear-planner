@@ -1,3 +1,5 @@
+import {WritableCssProp} from "../util/types";
+
 export function makeActionButton(label: string | (Node | string)[], action: (ev: MouseEvent) => void, tooltip?: string) {
     const button = el("button");
     if (label instanceof Object) {
@@ -642,6 +644,13 @@ export type ElOpts<X extends keyof HTMLElementTagNameMap> = {
     attributes?: {
         [K: string]: string;
     };
+
+    /**
+     * If specified, CSS styles to apply.
+     */
+    style?: {
+        [K in WritableCssProp]?: string;
+    }
 };
 
 /**
@@ -669,6 +678,9 @@ export function el<X extends keyof HTMLElementTagNameMap>(tag: X, opts: ElOpts<X
         for (const [key, value] of Object.entries(opts.attributes)) {
             out.setAttribute(key, value);
         }
+    }
+    if (opts.style) {
+        Object.assign(out.style, opts.style);
     }
     return out;
 }

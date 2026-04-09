@@ -60,8 +60,9 @@ export class MeldSolver {
     public async solveMelds(
         gearsetGenSettings: GearsetGenerationSettings,
         simSettings: SolverSimulationSettings,
-        update: (update: GearsetGenerationStatusUpdate | MeldSolvingStatusUpdate) => void
-    ): Promise<[CharacterGearSet, number]> {
+        update: (update: GearsetGenerationStatusUpdate | MeldSolvingStatusUpdate) => void,
+        confirmLargeSim: (count: number) => Promise<boolean>
+    ): Promise<[CharacterGearSet, number] | 'cancelled'> {
 
         if (!simSettings) {
             return null;
@@ -100,6 +101,12 @@ export class MeldSolver {
 
         const maxWorkers = WORKER_POOL.maxWorkers;
         const numSets = sets.length;
+
+        const shouldContinue = await confirmLargeSim(numSets);
+
+        if (!shouldContinue) {
+            return 'cancelled';
+        }
         // Split up very large chunks of work, so that we don't get a "long tail" issue where one worker
         // has lagged behind but the other workers have no way of picking up the slack.
         // Cap at 5000 sets per sub-job

@@ -45,7 +45,7 @@ export class GearsetGenerationSettings {
     }
 }
 
-export class GearsetGenerationSettingsExport {
+export type GearsetGenerationSettingsExport = {
     gearset: SetExport;
     overwriteExistingMateria: boolean;
     useTargetGcd: boolean;
@@ -135,7 +135,7 @@ export class GearsetGenerator {
         let possibleMeldCombinations = new Map<AllStatDedupKey, EquipmentSetWithStats>();
         const baseEquipSet = new EquipmentSetWithStats(new EquipmentSet, new RawStats);
 
-        console.log("Meld generator: Phase 1");
+        console.log("Meld generator: Phase 1 (Individual slot combinations)");
         statusCallback({
             phase: 1,
             count: 0,
@@ -156,7 +156,7 @@ export class GearsetGenerator {
 
         possibleMeldCombinations.set(this.statsToKey(baseEquipSet.stats), baseEquipSet);
 
-        console.log("Meld generation: Phase 2");
+        console.log("Meld generation: Phase 2 (full set meld combinations + dedupe)");
         statusCallback({
             phase: 2,
             count: 0,
@@ -220,7 +220,7 @@ export class GearsetGenerator {
             phase: 3,
             count: possibleMeldCombinations.size,
         });
-        console.log("Meld generation: Phase 3");
+        console.log("Meld generation: Phase 3 (food and GCD sorting)");
         const gcdMap = new Map<RotationCacheKey, MicroSetExport[]>();
         let count = 0;
         let lastReported = 0;
@@ -287,14 +287,14 @@ export class GearsetGenerator {
         const gcdMapSize = gcdMap.size;
         statusCallback({
             phase: 4,
-            count: total,
+            count: count,
             subPhase: {
                 phase: 0,
                 phaseMax: gcdMapSize,
             },
         });
 
-        console.log("Meld generation: Phase 4");
+        console.log("Meld generation: Phase 4 (send combinations back)");
         let gcdMapDone = 0;
         // Push them in rough order of GCD so that rotation caching works well
         for (const [key, sets] of gcdMap) {
@@ -304,7 +304,7 @@ export class GearsetGenerator {
             gcdMapDone++;
             statusCallback({
                 phase: 4,
-                count: total,
+                count: count,
                 subPhase: {
                     phase: gcdMapDone,
                     phaseMax: gcdMapSize,

@@ -14,7 +14,11 @@ export type PersistentSettings = {
     set reverseItemSort(value: boolean);
     workersOverride: number | undefined;
     hideWelcomeMessage: boolean;
+    generatorWarnIfAbove: boolean;
+    generatorWarnThreshold: number;
 }
+
+// TODO: this whole thing should just be a single JSON object stored under a single key, not this mess.
 
 const LIGHT_MODE_KEY = 'light-mode';
 const MODERN_THEME_KEY = 'modern-theme';
@@ -23,6 +27,8 @@ const HIDE_WELCOME_KEY = 'hide-welcome-area';
 const LANGUAGE_OVERRIDE_KEY = 'language-override';
 const WORKERS_OVERRIDE_KEY = 'workers-override';
 const REVERSE_ITEM_SORT_KEY = 'reverse-item-sort';
+const GENERATOR_WARN_KEY = 'generator-warn';
+const GENERATOR_WARN_THRESHOLD_KEY = 'generator-warn-threshold';
 export const SETTINGS: PersistentSettings = {
     get lightMode(): boolean | undefined {
         return getBool(LIGHT_MODE_KEY);
@@ -79,6 +85,18 @@ export const SETTINGS: PersistentSettings = {
     },
     set reverseItemSort(value: boolean) {
         setBool(REVERSE_ITEM_SORT_KEY, value);
+    },
+    get generatorWarnIfAbove(): boolean {
+        return getBool(GENERATOR_WARN_KEY) ?? true;
+    },
+    set generatorWarnIfAbove(value: boolean) {
+        setBool(GENERATOR_WARN_KEY, value);
+    },
+    get generatorWarnThreshold(): number {
+        return getInt(GENERATOR_WARN_THRESHOLD_KEY) ?? 1_000_000;
+    },
+    set generatorWarnThreshold(value: number) {
+        setInt(GENERATOR_WARN_THRESHOLD_KEY, value);
     },
 };
 
