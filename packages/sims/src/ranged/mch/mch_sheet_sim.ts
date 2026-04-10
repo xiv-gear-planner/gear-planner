@@ -51,7 +51,7 @@ export interface MchSimResult extends CycleSimResult {}
 
 export const mchSheetSpec: SimSpec<MchSheetSim, MchSimSettingsExternal> = {
     stub: 'mch-sheet-sim',
-    displayName: 'MCH simulator',
+    displayName: 'MCH Sim',
     supportedJobs: ['MCH'],
     supportedLevels: [100], // TODO: support for 70, 80, 90
     isDefaultSim: true,
@@ -171,36 +171,43 @@ export class MchCycleProcessor extends CycleProcessor {
         return false;
     }
 
-    // Always use
+    private keepDrillChargeForBurst(): boolean {
+        return !this.simSettings.dontAlignCds
+            && this.cdTracker.statusOf(Drill).cappedAt.relative > this.timeBeforeNextBurstWindow(this.gcdCalculated, true);
+    }
+
+    private holdForRepositioningOnBurst(gcds: number): boolean {
+        return !this.simSettings.dontAlignCds
+            && this.timeBeforeNextBurstWindow(this.gcdCalculated * gcds, true) < (this.gcdBase - this.gcdCalculated) * (120 / this.gcdBase);
+    }
+
     private canUseDrill(): boolean {
         if (this.cdTracker.statusOf(Drill).currentCharges === 2) {
             console.warn(`[${formatDuration(this.currentTime)}] Drill overcapped`);
         }
-        if (!this.simSettings.dontAlignCds && this.cdTracker.statusOf(Drill).cappedAt.relative > this.timeBeforeNextBurstWindow(this.gcdCalculated, true)) { // keep a charge for burst
+        if (this.keepDrillChargeForBurst()) {
             return false;
         }
         return this.cdTracker.canUse(Drill, this.nextGcdTime);
     }
 
-    // Always use as soon as available
     private canUseAirAnchor(): boolean {
-        if (!this.simSettings.dontAlignCds && this.timeBeforeNextBurstWindow(0, true) < (this.gcdBase - this.gcdCalculated) * (120 / this.gcdBase)) { // hold for repositioning inside burst window
+        if (this.holdForRepositioningOnBurst(0)) {
             return false;
         }
         return this.cdTracker.canUse(AirAnchor, this.nextGcdTime);
     }
 
-    // Always use as soon as available
     private canUseChainsaw(): boolean {
-        if (!this.simSettings.dontAlignCds && this.timeBeforeNextBurstWindow(this.gcdCalculated * 2, true) < (this.gcdBase - this.gcdCalculated) * (120 / this.gcdBase)) { // hold for repositioning inside burst window
+        if (this.holdForRepositioningOnBurst(2)) {
             return false;
         }
         return this.cdTracker.canUse(Chainsaw, this.nextGcdTime);
     }
 
-    // Use if Excavator Ready buff is available
     private canUseExcavator(): boolean {
-        if (this.gauge.battery >= 30 && this.batteryOnNextBurst - this.gauge.battery === 110) { // hold so that we align 100 battery on 2 min
+        // hold so that we align 100 battery on 2 min
+        if (this.gauge.battery >= 30 && this.batteryOnNextBurst - this.gauge.battery === 110) {
             return false;
         }
         return this.getActiveBuffs(this.currentTime).includes(ExcavatorReadyBuff);
@@ -231,11 +238,12 @@ export class MchCycleProcessor extends CycleProcessor {
         if (cmStatus.currentCharges === 0) {
             return false;
         }
+        // hold one charge for the burst window
         if ((cmStatus.cappedAt.relative - Checkmate.cooldown.time) > this.timeBeforeNextBurstWindow(this.gcdCalculated * 2)) {
-            // hold one charge for the burst window
             return false;
         }
-        if (cmStatus.cappedAt.relative < dcStatus.cappedAt.relative) { // prioritize the one that will cap earlier
+        // prioritize the one that will cap earlier
+        if (cmStatus.cappedAt.relative < dcStatus.cappedAt.relative) {
             return true;
         }
         return false;
@@ -249,11 +257,12 @@ export class MchCycleProcessor extends CycleProcessor {
         if (dcStatus.currentCharges === 0) {
             return false;
         }
+        // hold one charge for the burst window
         if ((dcStatus.cappedAt.relative - DoubleCheck.cooldown.time) > this.timeBeforeNextBurstWindow(this.gcdCalculated * 2)) {
-            // hold one charge for the burst window
             return false;
         }
-        if (dcStatus.cappedAt.relative < cmStatus.cappedAt.relative) { // prioritize the one that will cap earlier
+        // prioritize the one that will cap earlier
+        if (dcStatus.cappedAt.relative < cmStatus.cappedAt.relative) {
             return true;
         }
         return false;
@@ -275,17 +284,15 @@ export class MchCycleProcessor extends CycleProcessor {
         if (this.gauge.heat < 50) {
             return false;
         }
-        if (this.wouldHyperchargeGcdDrift()) {
-            return false;
-        }
         if (this.hyperchargeUses === 0) {
             return false;
         }
-        return true;
+        return !this.wouldHyperchargeGcdDrift();
     }
 
     private canUseReassemble(): boolean {
-        if (this.cdTracker.statusOf(Reassemble).cappedAt.relative > this.timeBeforeNextBurstWindow(this.gcdCalculated * 2)) { // hold one charge for burst
+        // hold one charge for burst
+        if (this.cdTracker.statusOf(Reassemble).cappedAt.relative > this.timeBeforeNextBurstWindow(this.gcdCalculated * 2)) {
             return false;
         }
         if (this.cdTracker.canUse(Reassemble, this.nextGcdTime)) {
@@ -297,7 +304,8 @@ export class MchCycleProcessor extends CycleProcessor {
     }
 
     private canPot(): boolean {
-        if (this.ogcdsRemaining !== 1) { // only use as "last" ogcd because we're gonna advance to the latest possible usage time
+        // only use as "last" ogcd because we're gonna advance to the latest possible usage time
+        if (this.ogcdsRemaining !== 1) {
             return false;
         }
         return this.cdTracker.canUse(this.potAbility);
@@ -307,7 +315,8 @@ export class MchCycleProcessor extends CycleProcessor {
         if (!this.cdTracker.canUse(AutomatonQueen) || this.gauge.battery < 50) {
             return false;
         }
-        if (this.batteryOnNextBurst - this.gauge.battery >= 160) { // use at 170 or above so that we can reach 50+ when it's time to align to 80 remaining before burst
+        // use at 160 or above so that we can reach 50+ when it's time to align to 80 remaining before burst
+        if (this.batteryOnNextBurst - this.gauge.battery >= 160) {
             return true;
         }
         if (this.batteryOnNextBurst > 100) {
@@ -391,7 +400,8 @@ export class MchCycleProcessor extends CycleProcessor {
         if (!(COMBO_ACTIONS as MchAbility[]).includes(ability)) {
             return;
         }
-        if (this.comboState === 2) { // loop back to first action
+        // loop back to first action
+        if (this.comboState === 2) {
             this.comboState = 0;
         }
         else {
@@ -517,7 +527,8 @@ export class MchCycleProcessor extends CycleProcessor {
                     },
                     usedAt: use.usedAt + this.constants.petActionsDelay[6],
                 });
-                this.gauge.battery = 0; // we also reset battery here and not in updateGauge, otherwise battery would be 0 above.
+                // we also reset battery here and not in updateGauge, otherwise battery would be 0 above.
+                this.gauge.battery = 0;
                 break;
             default:
                 // no action to queue
@@ -542,12 +553,14 @@ export class MchCycleProcessor extends CycleProcessor {
     override use(ability: Ability): AbilityUseResult {
         this.updateGauge(ability);
         this.updateComboStatus(ability);
-        if (ability === BlazingShot) { // only one ogcd on 1.5 gcd, and reduce cd for cm/dc
+        // only one ogcd on 1.5 gcd, and reduce cd for cm/dc
+        if (ability === BlazingShot) {
             this.ogcdsRemaining = 1;
             this.cdTracker.modifyCooldown(Checkmate, -15);
             this.cdTracker.modifyCooldown(DoubleCheck, -15);
         }
-        else if (ability.type === 'gcd') { // any other gcd ability = 2 ogcd
+        // any other gcd ability = 2 ogcd
+        else if (ability.type === 'gcd') {
             this.ogcdsRemaining = 2;
         }
         return super.use(ability);
@@ -561,7 +574,8 @@ export class MchCycleProcessor extends CycleProcessor {
     executeNextGcd() {
         const gcdAbility = this.getNextGcdAbility();
 
-        if (this.timeBeforeNextBurstWindow(this.gcdCalculated) < this.gcdCalculated) { // next action will be start of 2m burst
+        if (this.timeBeforeNextBurstWindow(this.gcdCalculated) < this.gcdCalculated) {
+            // next action will be start of 2m burst
             this.calculateGaugeUsageForNextCycle();
         }
         this.use(gcdAbility);

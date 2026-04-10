@@ -6,9 +6,6 @@ import {ColDefs, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {MchSimSettings, MchSimResult} from "@xivgear/sims/ranged/mch/mch_sheet_sim";
 import type {MchPreDmgUsedAbility} from "@xivgear/sims/ranged/mch/mch_types";
 
-// Fully copied from https://github.com/xiv-gear-planner/gear-planner/pull/556
-// will figure out later possible updates
-
 export class MchSimGui extends BaseMultiCycleSimGui<MchSimResult, MchSimSettings> {
     static generateResultColumns(result: CycleSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
         return [{

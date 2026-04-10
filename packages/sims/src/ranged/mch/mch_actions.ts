@@ -233,7 +233,7 @@ export const AutomatonQueenArmPunch: MchOgcdAbility = {
 export const AutomatonQueenPileBunker: MchOgcdAbility = {
     type: 'ogcd',
     name: '(Automaton Queen) Pile Bunker',
-    alternativeScalings: ['Pet Action Weapon Damage'],
+    alternativeScalings: ['Pet Action Weapon Damage', 'Automaton Queen Dexterity Scaling'],
     animationLock: 0,
     appDelay: 0,
     id: 16503,
@@ -244,7 +244,7 @@ export const AutomatonQueenPileBunker: MchOgcdAbility = {
 export const AutomatonQueenCrownedCollider: MchOgcdAbility = {
     type: 'ogcd',
     name: '(Automaton Queen) Crowned Collider',
-    alternativeScalings: ['Pet Action Weapon Damage'],
+    alternativeScalings: ['Pet Action Weapon Damage', 'Automaton Queen Dexterity Scaling'],
     animationLock: 0,
     appDelay: 0,
     id: 25787,
