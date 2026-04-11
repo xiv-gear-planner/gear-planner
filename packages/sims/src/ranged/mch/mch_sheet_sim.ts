@@ -143,11 +143,13 @@ export class MchCycleProcessor extends CycleProcessor {
             this.hyperchargeUses += 1;
         }
         // we have ""one more"" air anchor use on opener (as in, we use it 4 times instead of 3 in the first 2 minutes)
-        if (opener) {
+        // that will only happen with 2.5 gcd or without cd alignment, as other gcds will drift it beyond the 2 minute mark to realign it
+        if (opener && (this.gcdCalculated === 2.5 || this.simSettings.dontAlignCds)) {
             status.battery += 20;
         }
         this.hyperchargeUses += 1; // Hypercharged buff
         this.batteryOnNextBurst = status.battery;
+        console.log(`[${formatDuration(this.currentTime)}] Calculated ${this.batteryOnNextBurst} battery on next burst and ${this.hyperchargeUses} hypercharge uses.`);
     }
 
     /**
@@ -316,9 +318,12 @@ export class MchCycleProcessor extends CycleProcessor {
             return false;
         }
         // use at 160 or above so that we can reach 50+ when it's time to align to 80 remaining before burst
-        if (this.batteryOnNextBurst - this.gauge.battery >= 160) {
+        if (this.batteryOnNextBurst >= 200) {
             return true;
         }
+        // if (this.batteryOnNextBurst - this.gauge.battery >= 160) {
+        //     return true;
+        // }
         if (this.batteryOnNextBurst > 100) {
             return this.batteryOnNextBurst - this.gauge.battery <= 100;
         }
