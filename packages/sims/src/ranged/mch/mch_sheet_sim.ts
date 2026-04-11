@@ -27,6 +27,9 @@ interface ActionQueueItem {
 /** Array of the 1/2/3 combo actions */
 const COMBO_ACTIONS = [HeatedSplitShot, HeatedSlugShot, HeatedCleanShot];
 
+/** Tracked actions for which warnings will be printed if they cap/drift */
+const DRIFT_WARNING_ABILITY = [Drill, AirAnchor, Chainsaw, DoubleCheck, Checkmate];
+
 /** Constants for the rotation, per job level */
 const ROTATION_CONSTANTS: Record<'100' /* | '90' | '80' | '70' */, RotationConstants> = {
     '100': {
@@ -182,9 +185,6 @@ export class MchCycleProcessor extends CycleProcessor {
     }
 
     private canUseDrill(): boolean {
-        if (this.cdTracker.statusOf(Drill).currentCharges === 2) {
-            console.warn(`[${formatDuration(this.currentTime)}] Drill overcapped`);
-        }
         if (this.keepDrillChargeForBurst()) {
             return false;
         }
@@ -536,6 +536,21 @@ export class MchCycleProcessor extends CycleProcessor {
         }
     }
 
+    private printAbilityDriftWarnings(usedAbility: Ability) {
+        if (this.currentTime < 15) {
+            // prevent printing a bunch of warnings while opener is being executed. 15 is totally arbitrary
+            return;
+        }
+        DRIFT_WARNING_ABILITY.forEach((ability) => {
+            if (ability.type !== usedAbility.type || ability.name === usedAbility.name) {
+                return;
+            }
+            if (this.cdTracker.statusOf(ability).capped) {
+                console.warn(`[${formatDuration(this.currentTime)}] ${ability.name} is capped/drifting.`);
+            }
+        });
+    }
+
     override addAbilityUse(ability: PreDmgAbilityUseRecordUnf) {
         this.useQueuedActions(ability);
         this.queueActions(ability);
@@ -563,6 +578,7 @@ export class MchCycleProcessor extends CycleProcessor {
         else if (ability.type === 'gcd') {
             this.ogcdsRemaining = 2;
         }
+        this.printAbilityDriftWarnings(ability);
         return super.use(ability);
     }
 
