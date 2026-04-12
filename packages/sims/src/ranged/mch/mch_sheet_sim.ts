@@ -115,9 +115,7 @@ export class MchCycleProcessor extends CycleProcessor {
      * @param [delay=0] Additional delay, useful for calculating the time before some point inside the burst window.
      * @param [absolute] Do not wrap it to 120, meaning the value could reach more than 120
      */
-    private timeBeforeNextBurstWindow(delay: number = 0, absolute = false, ogcd = false) {
-        const time = ogcd ? this.currentTime : this.nextGcdTime;
-
+    private timeBeforeNextBurstWindow(delay: number = 0, absolute = false) {
         if (absolute) {
             return 120 + delay - this.nextGcdTime % 120;
         }
