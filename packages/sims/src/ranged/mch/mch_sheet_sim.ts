@@ -22,6 +22,8 @@ interface RotationConstants {
 interface ActionQueueItem {
     ability: MchOgcdAbility & DamagingAbility,
     usedAt: number,
+    // Detonator is queued and needs its crit/dhit removed.
+    removeCritDhit?: boolean,
 }
 
 /** Array of the 1/2/3 combo actions */
@@ -469,15 +471,22 @@ export class MchCycleProcessor extends CycleProcessor {
     private useQueuedActions(ability: PreDmgAbilityUseRecordUnf) {
         const unusedActions = this.additionalActionsQueue.filter((queuedAction) => {
             if (ability.usedAt > queuedAction.usedAt) {
-                const buffs = this.getActiveBuffs(queuedAction.usedAt).filter(
+                const buffs = [...this.getActiveBuffs(queuedAction.usedAt)].filter(
                     (it) => it.name !== ReassembledBuff.name && it.name !== OverheatedBuff.name
                 );
+
+                // Wildfire special handling
+                const combinedEffects = combineBuffEffects(buffs);
+                if (queuedAction.removeCritDhit) {
+                    combinedEffects.critChanceIncrease = -1;
+                    combinedEffects.dhitChanceIncrease = -1;
+                }
 
                 super.addAbilityUse({
                     usedAt: queuedAction.usedAt,
                     ability: queuedAction.ability,
                     buffs: buffs,
-                    combinedEffects: combineBuffEffects(buffs),
+                    combinedEffects: combinedEffects,
                     totalTimeTaken: 0,
                     appDelay: queuedAction.ability.appDelay,
                     appDelayFromStart: queuedAction.ability.appDelay,
@@ -507,6 +516,7 @@ export class MchCycleProcessor extends CycleProcessor {
                 this.additionalActionsQueue.push({
                     ability: Detonator,
                     usedAt: use.usedAt + 10,
+                    removeCritDhit: true,
                 });
                 break;
             case AutomatonQueen.name:
