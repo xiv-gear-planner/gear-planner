@@ -27,6 +27,7 @@ import {pldSpec} from "./tank/pld/pld_sheet_sim";
 import {blmSpec} from "./caster/blm/blm_sheet_sim";
 import {drgSpec} from "./melee/drg/drg_sim";
 import {blmPpsSpec} from "./caster/blm/blm_pps_sim";
+import {mchSheetSpec} from "./ranged/mch/mch_sheet_sim";
 import {registerSim} from "@xivgear/core/sims/sim_registry";
 
 let registrationDone = false;
@@ -65,6 +66,7 @@ export function registerDefaultSims() {
     registerSim(samSpec);
     // Ranged
     registerSim(dncDtSheetSpec);
+    registerSim(mchSheetSpec);
     // Caster
     registerSim(blmSpec);
     registerSim(blmPpsSpec);

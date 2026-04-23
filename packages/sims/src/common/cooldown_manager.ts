@@ -134,7 +134,12 @@ export class CooldownTracker {
         }
         const key = cooldownKey(ability);
         const cdState = this.currentState.get(key);
-        this.currentState.set(cooldownKey(ability), new InternalState(cdState.cappedAt + delta));
+        if (cdState) {
+            this.currentState.set(cooldownKey(ability), new InternalState(cdState.cappedAt + delta));
+        }
+        else {
+            this.currentState.set(cooldownKey(ability), new InternalState(defaultStatus(ability, this.currentTime).cappedAt.absolute + delta));
+        }
     }
 
     /**

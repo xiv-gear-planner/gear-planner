@@ -3,6 +3,7 @@
 **/dist/
 .idea/*.xml
 .vs/
+.vscode/
 **/tsconfig.tsbuildinfo
 **/.nyc_output/
 **/.DS_Store

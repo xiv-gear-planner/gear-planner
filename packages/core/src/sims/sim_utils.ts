@@ -113,6 +113,9 @@ export function getScalingOverrides(alternativeScalings: AlternativeScaling[], s
             const livingShadowStrength = getLivingShadowStrength(stats.gearStats.strength, stats.levelStats.baseMainStat, stats.baseMainStatPlusRace) + strengthBuff;
             scalings.mainStatMulti = mainStatMultiLivingShadow(stats.levelStats, livingShadowStrength);
         }
+        if (alternativeScalings.includes("Automaton Queen Dexterity Scaling")) {
+            // TODO: Unsure how to go about this
+        }
         if (alternativeScalings.includes("Pet Action Weapon Damage")) {
             scalings.wdMulti = stats.wdMultiPetAction;
         }

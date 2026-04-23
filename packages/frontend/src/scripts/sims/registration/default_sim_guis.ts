@@ -51,6 +51,8 @@ import {BluBreath60Spec} from "@xivgear/sims/blu/blu_breath60";
 import {BluWinged60Spec} from "@xivgear/sims/blu/blu_winged60";
 import {BluFlame60Spec} from "@xivgear/sims/blu/blu_flame60";
 import {BluF2PSpec} from "@xivgear/sims/blu/blu_free_trial";
+import {mchSheetSpec} from "@xivgear/sims/ranged/mch/mch_sheet_sim";
+import {MchSimGui} from "../ranged/mch_sim_gui";
 import {registerGui} from "./sim_guis";
 import {registerDefaultSims} from "@xivgear/sims/default_sims";
 
@@ -83,6 +85,7 @@ export function registerDefaultSimGuis() {
     registerGui(samSpec, SamSimGui);
     // Ranged
     registerGui(dncDtSheetSpec, BaseUsageCountSimGui);
+    registerGui(mchSheetSpec, MchSimGui);
     // Caster
     registerGui(blmSpec, BlmSimGui);
     registerGui(blmPpsSpec, BlmPpsGui);
