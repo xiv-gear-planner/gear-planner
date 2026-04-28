@@ -182,16 +182,12 @@ export const Wildfire: MchOgcdAbility = {
 export const Detonator: MchOgcdAbility = {
     type: 'ogcd',
     name: 'Detonator',
+    alternativeScalings: ['Add Skill Speed Multiplier'],
     id: 16766,
-    potency: 0,
+    potency: 240 * 6, // could technically be less than 5, but we will always use it during 2 min anyway
     attackType: 'Ability',
     animationLock: 0,
     appDelay: 0,
-    dot: {
-        duration: 1,
-        id: 16766,
-        tickPotency: 240 * 6, // could technically be less than 5, but we will always use it during 2 min anyway
-    },
 };
 
 export const Reassemble: MchOgcdAbility = {

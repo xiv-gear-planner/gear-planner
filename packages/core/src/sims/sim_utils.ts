@@ -12,8 +12,10 @@ import {
     applyDhCritFull,
     baseDamageFull,
     combineHasteBuffs,
+    getAutomatonQueenDex,
     getDefaultScalings,
     getLivingShadowStrength,
+    mainStatMulti,
     mainStatMultiLivingShadow
 } from "@xivgear/xivmath/xivmath";
 import {multiplyFixed} from "@xivgear/xivmath/deviation";
@@ -70,12 +72,14 @@ export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, co
     }
 
     const strengthBeforeBuffs = stats.strength;
+    const dexBeforeBuffs = stats.dexterity;
     stats = combinedBuffEffects.modifyStats(stats);
-    // This is a little hacky but it's a way to get the strength bonus for Living Shadow abilities.
-    // This seemed better than the alternative of storing Living Shadow specific info in stats.
+    // This is a little hacky but it's a way to get the pot bonus for pet abilities.
+    // This seemed better than the alternative of storing pet specific info in stats.
     const strengthAfterBuffs = stats.strength;
+    const dexAfterBuffs = stats.dexterity;
 
-    const scalingOverrides = getScalingOverrides(ability.alternativeScalings, stats, strengthAfterBuffs - strengthBeforeBuffs);
+    const scalingOverrides = getScalingOverrides(ability.alternativeScalings, stats, strengthAfterBuffs - strengthBeforeBuffs, dexAfterBuffs - dexBeforeBuffs);
 
     // TODO: can we avoid having all of these separate stat modifications?
     return {
@@ -105,7 +109,7 @@ export function noBuffEffects(): CombinedBuffEffect {
 /**
  * Translates the given alternate scalings into the specific numerical scaling overrides.
  */
-export function getScalingOverrides(alternativeScalings: AlternativeScaling[], stats: ComputedSetStats, strengthBuff: number = 0): ScalingOverrides {
+export function getScalingOverrides(alternativeScalings: AlternativeScaling[], stats: ComputedSetStats, strengthBuff: number = 0, dexBuff: number = 0): ScalingOverrides {
     const scalings = getDefaultScalings(stats);
     // Process alternative scalings for the ability. There may be multiple.
     if (alternativeScalings) {
@@ -114,10 +118,14 @@ export function getScalingOverrides(alternativeScalings: AlternativeScaling[], s
             scalings.mainStatMulti = mainStatMultiLivingShadow(stats.levelStats, livingShadowStrength);
         }
         if (alternativeScalings.includes("Automaton Queen Dexterity Scaling")) {
-            // TODO: Unsure how to go about this
+            const automatonQueenDex = getAutomatonQueenDex(stats.gearStats.dexterity, stats.levelStats.baseMainStat, stats.baseMainStatPlusRace) + dexBuff;
+            scalings.mainStatMulti = mainStatMulti(stats.levelStats, stats.jobStats, automatonQueenDex);
         }
         if (alternativeScalings.includes("Pet Action Weapon Damage")) {
             scalings.wdMulti = stats.wdMultiPetAction;
+        }
+        if (alternativeScalings.includes("Add Skill Speed Multiplier")) {
+            scalings.addSkillSpeedMultiplier = true;
         }
     }
 

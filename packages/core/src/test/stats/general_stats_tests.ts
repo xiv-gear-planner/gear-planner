@@ -761,6 +761,8 @@ describe("Dmg/100p for known values", () => {
 describe("Final damage values for known values", () => {
     const fakeSheetDRK = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'DRK', level, undefined, false);
     const loadPromiseDRK = fakeSheetDRK.load();
+    const fakeSheetMCH = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'MCH', level, undefined, false);
+    const loadPromiseMCH = fakeSheetMCH.load();
     const fakeSheetWAR = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'WAR', level, undefined, false);
     const loadPromiseWAR = fakeSheetWAR.load();
     it('WAR test autocrit/dh', async () => {
@@ -940,5 +942,51 @@ describe("Final damage values for known values", () => {
         // 620 potency Living Shadow Attack
         const damageBeforeCrit620 = baseDamageFull(stats, 620, 'Ability', false, false, livingShadowScalingOverrides);
         expect(damageBeforeCrit620.expected).to.eq(32125);
+    });
+    it('Machinist Automaton Queen known value scaling', async () => {
+        await loadPromiseMCH;
+        // Based on known values from the following spreadsheet. These all match up :)
+        // https://docs.google.com/spreadsheets/d/1RtvS28VByQQIHC5PrLZht2eLCfx-aVCyk4biIgkelaM/edit?gid=1780265791#gid=1780265791
+        const stats = finalizeStats(
+            new RawStats({
+                hp: 18106,
+                vitality: 902,
+                strength: 374,
+                dexterity: 958,
+                intelligence: 353,
+                mind: 375,
+                piety: 440,
+                crit: 640,
+                dhit: 420,
+                determination: 440,
+                tenacity: 420,
+                skillspeed: 430,
+                spellspeed: 420,
+                wdPhys: 134,
+                wdMag: 134,
+                weaponDelay: 2.64,
+            }),
+            // Using Rava for consistency with spreadsheet
+            {}, level, getLevelStats(level), 'MCH', fakeSheetMCH.classJobStats, 0, getRaceStats("Rava"));
+        expect(stats.mainStatValue).to.eq(958);
+        expect(stats.determination).to.eq(440);
+        expect(stats.wdMag).to.eq(134);
+        expect(stats.wdPhys).to.eq(134);
+
+        // These match up with observed values.
+        const queenScalings: AlternativeScaling[] = ["Automaton Queen Dexterity Scaling", "Pet Action Weapon Damage"];
+        const queenScalingOverrides = getScalingOverrides(queenScalings, stats);
+
+        // 50 gauge Arm Punch
+        const damageBeforeCrit50ArmPunch = baseDamageFull(stats, 2.4 * 50, 'Ability', false, false, queenScalingOverrides);
+        expect(damageBeforeCrit50ArmPunch.expected).to.eq(873);
+
+        // 50 gauge Pile Bunker
+        const damageBeforeCrit50PileBunker = baseDamageFull(stats, 6.8 * 50, 'Ability', false, false, queenScalingOverrides);
+        expect(damageBeforeCrit50PileBunker.expected).to.eq(2475);
+
+        // 50 gauge Crowned Collider
+        const damageBeforeCrit50Crowned = baseDamageFull(stats, 7.8 * 50, 'Ability', false, false, queenScalingOverrides);
+        expect(damageBeforeCrit50Crowned.expected).to.eq(2838);
     });
 });
