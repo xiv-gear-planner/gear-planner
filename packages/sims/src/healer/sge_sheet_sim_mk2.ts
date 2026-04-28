@@ -73,7 +73,7 @@ const eDosis: GcdAbility = {
             dot: {
                 id: 2864,
                 duration: 30,
-                tickPotency: 85,
+                tickPotency: 90,
             },
             id: 24314,
         },
@@ -104,7 +104,7 @@ const phlegma: GcdAbility = {
         {
             minLevel: 82,
             name: "Phlegma III",
-            potency: 600,
+            potency: 690,
             id: 24313,
         }],
 };
@@ -120,7 +120,7 @@ const psyche: OgcdAbility = {
     },
     levelModifiers: [{
         minLevel: 92,
-        potency: 600,
+        potency: 690,
     }],
 };
 
