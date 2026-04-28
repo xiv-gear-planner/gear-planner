@@ -978,12 +978,12 @@ describe("Final damage values for known values", () => {
         const queenScalingOverrides = getScalingOverrides(queenScalings, stats);
 
         // 50 gauge Arm Punch
-        const damageBeforeCrit420 = baseDamageFull(stats, 2.4 * 50, 'Ability', false, false, queenScalingOverrides);
-        expect(damageBeforeCrit420.expected).to.eq(873);
+        const damageBeforeCrit50ArmPunch = baseDamageFull(stats, 2.4 * 50, 'Ability', false, false, queenScalingOverrides);
+        expect(damageBeforeCrit50ArmPunch.expected).to.eq(873);
 
         // 50 gauge Pile Bunker
-        const damageBeforeCrit620 = baseDamageFull(stats, 6.8 * 50, 'Ability', false, false, queenScalingOverrides);
-        expect(damageBeforeCrit620.expected).to.eq(2475);
+        const damageBeforeCrit50PileBunker = baseDamageFull(stats, 6.8 * 50, 'Ability', false, false, queenScalingOverrides);
+        expect(damageBeforeCrit50PileBunker.expected).to.eq(2475);
 
         // 50 gauge Crowned Collider
         const damageBeforeCrit50Crowned = baseDamageFull(stats, 7.8 * 50, 'Ability', false, false, queenScalingOverrides);
