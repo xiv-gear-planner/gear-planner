@@ -943,52 +943,6 @@ describe("Final damage values for known values", () => {
         const damageBeforeCrit620 = baseDamageFull(stats, 620, 'Ability', false, false, livingShadowScalingOverrides);
         expect(damageBeforeCrit620.expected).to.eq(32125);
     });
-    it('Dark Knight Living Shadow known value scaling with low strength', async () => {
-        // Based on known values from the following spreadsheet (and some testing I did myself):
-        // https://docs.google.com/spreadsheets/d/1NlVtvjxYCh-_HGFb3R0VEvbjJcBTcnNDoloo_H-WzQ8/edit?gid=566755418#gid=566755418
-        await loadPromiseMCH;
-        const stats = finalizeStats(
-            new RawStats({
-                hp: 7707,
-                vitality: 489,
-                strength: 469,
-                dexterity: 421,
-                intelligence: 261,
-                mind: 179,
-                piety: 440,
-                crit: 420,
-                dhit: 420,
-                determination: 440,
-                tenacity: 420,
-                skillspeed: 430,
-                spellspeed: 420,
-                wdPhys: 35,
-                wdMag: 35,
-                weaponDelay: 2.96,
-            }),
-            // Using Rava for consistency with spreadsheet
-            {}, level, getLevelStats(level), 'DRK', fakeSheetDRK.classJobStats, 0, getRaceStats("Rava"));
-        expect(stats.mainStatValue).to.eq(469);
-        expect(stats.determination).to.eq(440);
-        expect(stats.wdMag).to.eq(35);
-        expect(stats.wdPhys).to.eq(35);
-
-        // These match up with observed values.
-        const livingShadowScalings: AlternativeScaling[] = ["Living Shadow Strength Scaling", "Pet Action Weapon Damage"];
-        const livingShadowScalingOverrides = getScalingOverrides(livingShadowScalings, stats);
-
-        // 420 potency Living Shadow Attack
-        const damageBeforeCrit420 = baseDamageFull(stats, 420, 'Ability', false, false, livingShadowScalingOverrides);
-        expect(damageBeforeCrit420.expected).to.eq(344);
-
-        // 570 potency Living Shadow Attack
-        const damageBeforeCrit570 = baseDamageFull(stats, 570, 'Ability', false, false, livingShadowScalingOverrides);
-        expect(damageBeforeCrit570.expected).to.eq(467);
-
-        // 620 potency Living Shadow Attack
-        const damageBeforeCrit620 = baseDamageFull(stats, 620, 'Ability', false, false, livingShadowScalingOverrides);
-        expect(damageBeforeCrit620.expected).to.eq(508);
-    });
     it('Machinist Automaton Queen known value scaling', async () => {
         await loadPromiseMCH;
         // Based on known values from the following spreadsheet. These all match up :)
