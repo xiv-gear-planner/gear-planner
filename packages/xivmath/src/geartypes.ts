@@ -1398,6 +1398,11 @@ export type ScalingOverrides = {
      * actors, e.g. Earthly Star, Living Shadow, Queen, SMN abilities.
      */
     wdMulti: number,
+    /**
+     * Add skill speed multiplier. Overridden by Wildfire, which gets DoT scaling despite not
+     * being a 'real' DoT.
+     */
+    addSkillSpeedMultiplier: boolean,
 }
 
 // TODO: look at Int16Array and friends to see if this can be compressed further

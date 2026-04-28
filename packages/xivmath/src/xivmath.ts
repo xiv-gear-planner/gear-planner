@@ -374,6 +374,19 @@ export function getLivingShadowStrength(rawStrength: number, baseMainStat: numbe
 }
 
 /**
+ * Gets Automaton Queen's dex value from a given set of gear stats and racial bonuses.
+ *
+ * @param rawStrength The raw dex (pre party bonus)
+ * @param baseMainStat The base main stat for this level
+ * @param playerBaseMainStat The player's base main stat, i.e. main stat for this level + job mod + racial bonus
+ */
+export function getAutomatonQueenDex(rawDex: number, baseMainStat: number, playerBaseMainStat: number): number {
+    const automatonQueenRacialBonus = 0;
+    const automatonQueenDex = rawDex - playerBaseMainStat + baseMainStat + automatonQueenRacialBonus;
+    return automatonQueenDex;
+}
+
+/**
  * Returns the "zero" ScalingOverrides object, which represents normal scalings for
  * an ability.
  */
@@ -381,10 +394,10 @@ export function getDefaultScalings(stats: ComputedSetStats): ScalingOverrides {
     return {
         mainStatMulti: stats.mainStatMulti,
         wdMulti: stats.wdMulti,
+        addSkillSpeedMultiplier: false,
     };
 }
 
-// TODO: autoCrit unit tests
 /**
  * Computes base damage. Does not factor in crit/dh RNG nor damage variance.
  */
@@ -401,9 +414,13 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
         // the timers. Also affects a spell's damage over time or healing over time potency."
         spdMulti = (attackType === 'Weaponskill') ? stats.sksDotMulti : stats.spsDotMulti;
     }
+    else if (scalingOverrides.addSkillSpeedMultiplier) {
+        spdMulti = stats.sksDotMulti;
+    }
     else {
         spdMulti = 1.0;
     }
+
     // Multiplier from main stat
     let mainStatMulti = scalingOverrides.mainStatMulti;
 
