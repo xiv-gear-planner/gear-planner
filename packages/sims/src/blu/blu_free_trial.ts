@@ -82,8 +82,8 @@ export class BluF2PSim extends blu.BluSim<BluF2PSimResult, BluF2PSettings> {
         const shockStrikeSoon = !(cp.cdTracker.canUse(blu.ShockStrike, nextWeaveTime) === shockStrikeReady);
         const weaveSoon = jKickSoon || featherRainSoon || shockStrikeSoon;
 
-        if (!weaveSoon && cp.bleedEnd < nextBleedStart &&
-            Math.min(bloomCd.readyAt.absolute - bleedComboTime,
+        if (!weaveSoon && cp.bleedEnd < nextBleedStart
+            && Math.min(bloomCd.readyAt.absolute - bleedComboTime,
                 cp.remainingTime - bleedComboTime) > 15) {
             cp.use(blu.Bristle);
             this.useOgcdFiller(cp);
@@ -100,9 +100,9 @@ export class BluF2PSim extends blu.BluSim<BluF2PSimResult, BluF2PSettings> {
         }
 
         // use Rose of Destruction if off cooldown and it won't interfere with the next Flute window
-        if (cp.isReady(blu.RoseOfDestruction) &&
-            cp.cdTracker.statusOfAt(blu.Nightbloom, cp.nextGcdTime).readyAt.relative >
-            cp.stats.gcdMag(blu.RoseOfDestruction.cooldown.time)) {
+        if (cp.isReady(blu.RoseOfDestruction)
+            && cp.cdTracker.statusOfAt(blu.Nightbloom, cp.nextGcdTime).readyAt.relative
+            > cp.stats.gcdMag(blu.RoseOfDestruction.cooldown.time)) {
             cp.use(blu.RoseOfDestruction);
             return;
         }

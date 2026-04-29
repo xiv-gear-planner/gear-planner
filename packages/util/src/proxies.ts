@@ -51,14 +51,14 @@ export function toSerializableForm<X extends object>(obj: X): X {
             return Array.from(keys);
         },
         getOwnPropertyDescriptor(target, prop) {
-            const descriptor = Object.getOwnPropertyDescriptor(target, prop) ||
-                Object.getOwnPropertyDescriptor(Object.getPrototypeOf(target), prop);
+            const descriptor = Object.getOwnPropertyDescriptor(target, prop)
+                || Object.getOwnPropertyDescriptor(Object.getPrototypeOf(target), prop);
 
             if (
-                descriptor &&
-                typeof descriptor.get === 'function' &&
-                typeof prop === 'string' &&
-                !prop.startsWith('_')
+                descriptor
+                && typeof descriptor.get === 'function'
+                && typeof prop === 'string'
+                && !prop.startsWith('_')
             ) {
                 return {
                     enumerable: true,

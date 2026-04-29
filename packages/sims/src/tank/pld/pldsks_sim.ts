@@ -141,10 +141,10 @@ export const pldSKSSheetSpec: SimSpec<PldSKSSheetSim, PldSKSSheetSettingsExterna
     },
     supportedJobs: ['PLD'],
     supportedLevels: [100],
-    description: "Paladin w/SKS Strategy Simulator (DT 7.05)\n" +
-        "A playground for trying different rotation ideas as they relate to PLD, at 2.50 GCD, and Faster!\n" +
-        "Warning! Assert EXTREME caution when comparing different GCDs speeds. Mostly you should " +
-        "use this Sim's options to compare approaches with the same GCD... if even that!",
+    description: "Paladin w/SKS Strategy Simulator (DT 7.05)\n"
+        + "A playground for trying different rotation ideas as they relate to PLD, at 2.50 GCD, and Faster!\n"
+        + "Warning! Assert EXTREME caution when comparing different GCDs speeds. Mostly you should "
+        + "use this Sim's options to compare approaches with the same GCD... if even that!",
     isDefaultSim: false,
     maintainers: [{
         name: 'Chromatophore',

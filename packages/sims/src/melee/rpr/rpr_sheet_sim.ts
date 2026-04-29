@@ -453,8 +453,8 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprSimSett
 
                 while (cp.remainingGcdTime > 0) {
 
-                    while (cp.remainingGcdTime > 0 &&
-                        (cp.cdTracker.statusOf(Actions.ArcaneCircle).readyAt.relative > enshroudTime - gcdAnimLock
+                    while (cp.remainingGcdTime > 0
+                        && (cp.cdTracker.statusOf(Actions.ArcaneCircle).readyAt.relative > enshroudTime - gcdAnimLock
                         || cp.gauge.shroudGauge < 50)){
 
                         cp.useFiller();

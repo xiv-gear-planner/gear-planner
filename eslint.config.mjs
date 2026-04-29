@@ -54,6 +54,7 @@ export default [
             "@stylistic/js/comma-spacing": "error",
             "@stylistic/js/keyword-spacing": "error",
             "@stylistic/js/no-trailing-spaces": "error",
+            "@stylistic/js/operator-linebreak": ["error", "before"],
             "@stylistic/js/eol-last": "error",
             "@stylistic/js/space-infix-ops": "error",
             "@stylistic/js/brace-style": ["error", "stroustrup"],

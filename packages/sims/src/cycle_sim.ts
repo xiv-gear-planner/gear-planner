@@ -1490,10 +1490,10 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
         const base = ability.cast ?? (STANDARD_ANIMATION_LOCK + CASTER_TAX);
         const stats = effects.modifyStats(this.stats);
         const haste = stats.haste(ability.attackType, effects.haste, this.gaugeHaste);
-        return ability.fixedGcd ? base :
-            (ability.attackType === "Spell") ?
-                (stats.gcdMag(base ?? this.gcdBase, haste)) :
-                (stats.gcdPhys(base ?? this.gcdBase, haste));
+        return ability.fixedGcd ? base
+            : (ability.attackType === "Spell")
+                ? (stats.gcdMag(base ?? this.gcdBase, haste))
+                : (stats.gcdPhys(base ?? this.gcdBase, haste));
     }
 
     /**
@@ -1512,10 +1512,10 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
         const base = ability.gcd;
         const stats = effects.modifyStats(this.stats);
         const haste = stats.haste(ability.attackType, effects.haste, this.gaugeHaste);
-        return ability.fixedGcd ? base :
-            (ability.attackType === "Spell") ?
-                (stats.gcdMag(base ?? this.gcdBase, haste)) :
-                (stats.gcdPhys(base ?? this.gcdBase, haste));
+        return ability.fixedGcd ? base
+            : (ability.attackType === "Spell")
+                ? (stats.gcdMag(base ?? this.gcdBase, haste))
+                : (stats.gcdPhys(base ?? this.gcdBase, haste));
     }
 
     /**

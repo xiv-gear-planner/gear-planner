@@ -73,8 +73,8 @@ export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60
         const nextWeaveTime = cp.nextGcdTime + cp.gcdRecast * 2;
         const featherRainSoon = !(cp.cdTracker.canUse(blu.FeatherRain, nextWeaveTime) === featherRainReady);
 
-        if (!featherRainSoon && cp.bleedEnd < nextBleedStart &&
-            Math.min(bloomCd.readyAt.absolute - bleedComboTime,
+        if (!featherRainSoon && cp.bleedEnd < nextBleedStart
+            && Math.min(bloomCd.readyAt.absolute - bleedComboTime,
                 cp.remainingTime - bleedComboTime) > 15) {
             cp.use(blu.Bristle);
             this.useOgcdFiller(cp);
@@ -92,9 +92,9 @@ export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60
         }
 
         // use Rose of Destruction if off cooldown and it won't interfere with the next Flute window
-        if (cp.isReady(blu.RoseOfDestruction) &&
-            cp.cdTracker.statusOfAt(blu.Quasar, cp.nextGcdTime).readyAt.relative + cp.gcdRecast * 2 >
-            cp.stats.gcdMag(blu.RoseOfDestruction.cooldown.time)) {
+        if (cp.isReady(blu.RoseOfDestruction)
+            && cp.cdTracker.statusOfAt(blu.Quasar, cp.nextGcdTime).readyAt.relative + cp.gcdRecast * 2
+            > cp.stats.gcdMag(blu.RoseOfDestruction.cooldown.time)) {
             cp.use(blu.RoseOfDestruction);
             return;
         }

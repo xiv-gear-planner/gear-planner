@@ -82,8 +82,8 @@ export class BluFlame120Sim extends blu.BluSim<BluFlame120SimResult, BluFlame120
         const shockStrikeSoon = !(cp.cdTracker.canUse(blu.ShockStrike, nextWeaveTime) === shockStrikeReady);
         const weaveSoon = jKickSoon || featherRainSoon || shockStrikeSoon;
 
-        if (!weaveSoon && cp.bleedEnd < nextBleedStart &&
-            Math.min(bloomCd.readyAt.absolute - bleedComboTime,
+        if (!weaveSoon && cp.bleedEnd < nextBleedStart
+            && Math.min(bloomCd.readyAt.absolute - bleedComboTime,
                 cp.remainingTime - bleedComboTime) > 15) {
             cp.use(blu.Bristle);
             this.useOgcdFiller(cp);
@@ -107,9 +107,9 @@ export class BluFlame120Sim extends blu.BluSim<BluFlame120SimResult, BluFlame120
 
         // if this is the first cycle, build stacks of Winged Reprobation for the next Flute window
         // or, if fight is about to end, use remaining Winged Reprobation stacks
-        if ((cp.currentTime < 120 && cp.wingedCounter < 2) ||
-            (cp.remainingTime < blu.WingedReprobation.cooldown.time &&
-            cp.isReady(blu.WingedReprobation))) {
+        if ((cp.currentTime < 120 && cp.wingedCounter < 2)
+            || (cp.remainingTime < blu.WingedReprobation.cooldown.time
+            && cp.isReady(blu.WingedReprobation))) {
             cp.use(blu.WingedReprobation);
             this.useOgcdFiller(cp);
             return;

@@ -69,13 +69,13 @@ export class StatsServer extends ServerBase {
                 info: {
                     title: 'Xivgear Stats and Exported Data API',
                     version: '1.0.0',
-                    description: 'This is the exported data and stats API for Xivgear. ' +
-                        'Most of these endpoints expect you to provide a reference to a particular sheet/set in one form or another.\n\n' +
-                        'Except for deprecated legacy endpoints, you can supply them in various forms (see StatsQueryParams schema).\n\n' +
-                        'Generally, you can either:\n' +
-                        '- Provide a complete URL (encoded) in the `url` parameter, e.g. `/basedata?url=encode(https://xivgear.app/?page=sl|0d84fb82-f4b0-4352-bfc7-ff2eb1dfabf8)`.\n' +
-                        '- Provide a partial URL (encoded) in the `url` parameter, e.g. `/basedata?url=encode(?page=sl|0d84fb82-f4b0-4352-bfc7-ff2eb1dfabf8)` but properly encoded.\n' +
-                        '- Transplant individual URL parameters from the desired URL onto this endpoint, e.g. `https://xivgear.app/?page=sl|0d84fb82-f4b0-4352-bfc7-ff2eb1dfabf8` becomes `/basedata?page=sl|0d84fb82-f4b0-4352-bfc7-ff2eb1dfabf8`.\n',
+                    description: 'This is the exported data and stats API for Xivgear. '
+                        + 'Most of these endpoints expect you to provide a reference to a particular sheet/set in one form or another.\n\n'
+                        + 'Except for deprecated legacy endpoints, you can supply them in various forms (see StatsQueryParams schema).\n\n'
+                        + 'Generally, you can either:\n'
+                        + '- Provide a complete URL (encoded) in the `url` parameter, e.g. `/basedata?url=encode(https://xivgear.app/?page=sl|0d84fb82-f4b0-4352-bfc7-ff2eb1dfabf8)`.\n'
+                        + '- Provide a partial URL (encoded) in the `url` parameter, e.g. `/basedata?url=encode(?page=sl|0d84fb82-f4b0-4352-bfc7-ff2eb1dfabf8)` but properly encoded.\n'
+                        + '- Transplant individual URL parameters from the desired URL onto this endpoint, e.g. `https://xivgear.app/?page=sl|0d84fb82-f4b0-4352-bfc7-ff2eb1dfabf8` becomes `/basedata?page=sl|0d84fb82-f4b0-4352-bfc7-ff2eb1dfabf8`.\n',
                 },
             },
         });
@@ -143,9 +143,9 @@ export class StatsServer extends ServerBase {
             instance.get('/toEmbed', {
                 schema: {
                     summary: 'Convert a page to an embed URL',
-                    description: 'Takes a page (in any supported format) and returns the corresponding embed URL(s). ' +
-                        'If the input is a set, it will return the embed URL for that set as a ToEmbedSetResponse. ' +
-                        'If the input is a sheet, it will return an embed URL for each (non-separator) set in the sheet (see ToEmbedSheetResponse).',
+                    description: 'Takes a page (in any supported format) and returns the corresponding embed URL(s). '
+                        + 'If the input is a set, it will return the embed URL for that set as a ToEmbedSetResponse. '
+                        + 'If the input is a sheet, it will return an embed URL for each (non-separator) set in the sheet (see ToEmbedSheetResponse).',
                     tags: ['public'],
                     querystring: {$ref: 'ToEmbedQuery#'},
                     response: {
