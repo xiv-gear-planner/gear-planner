@@ -393,9 +393,9 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
             // Can we fit WWT in both buffs?
             const canFitInLC = timeUntilLC < timeUntilOvercap;
             const canFitInGsk = timeUntilGsk < timeUntilOvercap;
-            const canFitInBoth = Math.max(timeUntilGsk, timeUntilLC) < timeUntilOvercap ||
-                            (canFitInLC && timeLeftInGsk > timeUntilLC) ||
-                            (canFitInGsk && timeLeftInLC > timeUntilGsk);
+            const canFitInBoth = Math.max(timeUntilGsk, timeUntilLC) < timeUntilOvercap
+                            || (canFitInLC && timeLeftInGsk > timeUntilLC)
+                            || (canFitInGsk && timeLeftInLC > timeUntilGsk);
 
             // Only worry about this for 2.4 and 2.5
             if (gcd === 2.5 && (canFitInBoth || canFitInLC || canFitInGsk)) {

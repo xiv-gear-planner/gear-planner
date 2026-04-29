@@ -13,9 +13,9 @@ class CompatCheckerOverviewModal extends BaseModal {
     constructor(sheet: GearPlanSheet, baseSet: CharacterGearSet) {
         super();
         this.headerText = 'Compatibility Checker';
-        const descriptionText = 'This shows the compatibility of the selected set with all other sets in the sheet. ' +
-            '"Compatible" means that if the same item is used on both sets, that the same materia is installed on both sets. ' +
-            'If the item is not unique, then it is considered "soft incompatible" - you can still assemble both sets, but you will need duplicate items. ';
+        const descriptionText = 'This shows the compatibility of the selected set with all other sets in the sheet. '
+            + '"Compatible" means that if the same item is used on both sets, that the same materia is installed on both sets. '
+            + 'If the item is not unique, then it is considered "soft incompatible" - you can still assemble both sets, but you will need duplicate items. ';
         const description = el('div', {class: 'description'}, [descriptionText]);
         const setsToCompare = sheet.sets.filter(otherSet => otherSet !== baseSet);
         if (setsToCompare.length === 0) {

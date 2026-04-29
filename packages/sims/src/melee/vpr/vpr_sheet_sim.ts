@@ -449,8 +449,8 @@ export class VprCycleProcessor extends CycleProcessor {
         }
 
         const postReawakenTime = this.nextGcdTime + this.getReawakenDuration();
-        const nextSecondaryBuffRefresh = (this.cdTracker.statusOfAt(Actions.Vicewinder, postReawakenTime).readyToUse) ?
-            postReawakenTime + this.gcdTime(Actions.Vicewinder)
+        const nextSecondaryBuffRefresh = (this.cdTracker.statusOfAt(Actions.Vicewinder, postReawakenTime).readyToUse)
+            ? postReawakenTime + this.gcdTime(Actions.Vicewinder)
             : postReawakenTime + ((1 - this.rotationState.comboStep) % 3) * this.gcdTime(Actions.ReavingFangs);
 
         if (this.gauge.serpentOfferings >= 50

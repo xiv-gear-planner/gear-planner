@@ -380,9 +380,9 @@ export class BlmSim extends BaseMultiCycleSim<BlmSimResult, BlmSettings, BlmCycl
         }
 
         // End of fire phase is: no MP for lv.80 and above, <1600 MP for below
-        if (cp.gaugeManager.isInFire(3) &&
-                (cp.gaugeManager.magicPoints === 0 ||
-                    cp.stats.level < 80 && cp.gaugeManager.magicPoints < 1600)) {
+        if (cp.gaugeManager.isInFire(3)
+                && (cp.gaugeManager.magicPoints === 0
+                    || cp.stats.level < 80 && cp.gaugeManager.magicPoints < 1600)) {
             // Use manafont if available
             if (cp.cdTracker.statusOf(Actions.Manafont).readyToUse) {
                 if (cp.canUseWithoutClipping(Actions.Manafont)) {

@@ -296,10 +296,10 @@ export type ComboBehavior = ComboData['comboBehavior'];
  * Alternate scalings that can exist for abilities, e.g. Living
  * Shadow, Bunshin, SMN pet actions.
  */
-export type AlternativeScaling = "Living Shadow Strength Scaling" |
-                                 "Automaton Queen Dexterity Scaling" |
-                                 "Pet Action Weapon Damage" |
-                                 "Add Skill Speed Multiplier"
+export type AlternativeScaling = "Living Shadow Strength Scaling"
+                                 | "Automaton Queen Dexterity Scaling"
+                                 | "Pet Action Weapon Damage"
+                                 | "Add Skill Speed Multiplier"
 
 export type BaseAbility = Readonly<LevelModifiable<{
     /**

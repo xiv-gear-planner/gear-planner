@@ -424,8 +424,8 @@ export class SchSim extends BaseMultiCycleSim<SchSimResult, SchSettings, Scholar
                         cp.useDotIfWorth();
                         if (cp.isReady(aetherflow)) {
                             cp.use(aetherflow);
-                            if (cycle.cycleNumber % 3 === 2 || //5, 11, 17 minute aetherflow, spend and diss before buffs
-                                cp.remainingTime < cp.timeUntilReady(chain)) { //or the fight will end before chain is ready
+                            if (cycle.cycleNumber % 3 === 2 //5, 11, 17 minute aetherflow, spend and diss before buffs
+                                || cp.remainingTime < cp.timeUntilReady(chain)) { //or the fight will end before chain is ready
                                 cp.spendEDs();
                             }
                         }
