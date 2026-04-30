@@ -504,6 +504,8 @@ export class CustomTable<RowDataType, SelectionType extends TableSelectionModel<
                 this.dataRowMap.set(item, newRow);
                 // Lazy-load outside of the threshold
                 const lazy = this.lazyRenderStrategy;
+                // If we have not hit the lazy render threshold, then observer will be null because the logic that calls
+                // this method will skip the logic and pass a null here instead of creating a useless observer.
                 if (rowNum < lazy.immediateRows || !observer) {
                     newRow.refreshFull();
                 }
