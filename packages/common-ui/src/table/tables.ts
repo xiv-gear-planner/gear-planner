@@ -504,7 +504,7 @@ export class CustomTable<RowDataType, SelectionType extends TableSelectionModel<
                 this.dataRowMap.set(item, newRow);
                 // Lazy-load outside of the threshold
                 const lazy = this.lazyRenderStrategy;
-                if (rowNum < lazy.immediateRows) {
+                if (rowNum < lazy.immediateRows || !observer) {
                     newRow.refreshFull();
                 }
                 else {
