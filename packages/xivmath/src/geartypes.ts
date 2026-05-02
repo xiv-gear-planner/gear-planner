@@ -632,6 +632,10 @@ export interface JobDataConst {
     gcdDisplayOverrides?: (level: SupportedLevel) => (GcdDisplayOverride[]) | null;
 
     /**
+     * The minimum level of the job.
+     */
+    readonly minLevel: SupportedLevel;
+    /**
      * The maximum level of the job.
      */
     readonly maxLevel: SupportedLevel;

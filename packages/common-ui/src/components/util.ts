@@ -70,7 +70,7 @@ export class OptionDataElement<X> extends HTMLOptionElement {
 }
 
 export class DataSelect<X> extends HTMLSelectElement {
-    constructor(items: X[], textGetter: (item: X) => string, callback: ((newValue: X) => void) | undefined, initialSelectedItem: (typeof items[number] | undefined) = undefined) {
+    constructor(items: readonly X[], textGetter: (item: X) => string, callback: ((newValue: X) => void) | undefined, initialSelectedItem: (typeof items[number] | undefined) = undefined) {
         super();
         for (const item of items) {
             const opt = new OptionDataElement(item);

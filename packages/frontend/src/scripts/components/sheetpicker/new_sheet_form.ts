@@ -11,7 +11,7 @@ import {JOB_DATA, JobName, LEVEL_ITEMS, MAX_ILVL, SupportedLevel} from "@xivgear
 import {SheetHandle, SheetManager} from "@xivgear/core/persistence/saved_sheets";
 import {GearPlanSheet, SheetProvider} from "@xivgear/core/sheet";
 import {GearPlanSheetGui} from "../sheet/sheet_gui";
-import {levelSelect} from "@xivgear/common-ui/components/level_picker";
+import {clampJobLevel, jobBasedLevelSelect} from "@xivgear/common-ui/components/level_picker";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {SHARED_SET_NAME} from "@xivgear/core/imports/imports";
 import {JobIcon} from "../job/job_icon";
@@ -24,14 +24,19 @@ export type NewSheetTempSettings = {
     ilvlSyncEnabled: boolean,
     ilvlSync: number,
     multiJob: boolean,
+    level: SupportedLevel,
 }
 
+/**
+ * NewSheetFormFieldSet is used both for the new sheet form, as well as the "Save As" and "Change Sheet Properties"
+ * modals where you have the opportunity to change sheet settings.
+ */
 export class NewSheetFormFieldSet extends HTMLFieldSetElement {
     readonly nameInput: HTMLInputElement;
     // readonly jobDropdown: DataSelect<JobName>;
     readonly jobPicker: JobPicker;
     readonly multiJobCb: FieldBoundCheckBox<NewSheetTempSettings>;
-    readonly levelDropdown: DataSelect<SupportedLevel>;
+    private _levelDropdown: DataSelect<SupportedLevel>;
     readonly ilvlSyncCheckbox: FieldBoundCheckBox<typeof this.newSheetSettings>;
     readonly ilvlSyncValue: FieldBoundIntField<typeof this.newSheetSettings>;
     readonly newSheetSettings: NewSheetTempSettings;
@@ -51,6 +56,7 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
             ilvlSyncEnabled: settings?.ilvlSyncEnabled ?? false,
             ilvlSync: settings?.ilvlSyncLevel ?? 700,
             multiJob: settings?.multiJob ?? false,
+            level: settings?.level ?? clampJobLevel(settings.job, settings?.level),
         };
 
         // Sheet Name
@@ -65,6 +71,7 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
 
         // Job selection
         this.jobPicker = new JobPicker(settings.job ?? null, settings.allowedRoles);
+        this.jobPicker.addEventListener('jobchange', () => this.revalidateLevelSelect());
         this.appendChild(this.jobPicker);
         this.appendChild(spacer());
 
@@ -78,21 +85,11 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
         this.appendChild(spacer());
 
         // Level selection
-        this.levelDropdown = levelSelect(newValue => {
-            const isync = LEVEL_ITEMS[newValue]?.defaultIlvlSync;
-            if (isync !== undefined) {
-                this.newSheetSettings.ilvlSyncEnabled = true;
-                this.newSheetSettings.ilvlSync = isync;
-                this.ilvlSyncValue.reloadValue();
-                this.ilvlSyncCheckbox.reloadValue();
-            }
-            this.recheck();
-        }, settings?.level);
-        this.levelDropdown.id = "new-sheet-level-dropdown";
-        this.levelDropdown.required = true;
-        this.appendChild(labelFor('Level: ', this.levelDropdown));
-        this.appendChild(this.levelDropdown);
+        this.revalidateLevelSelect();
+        this.appendChild(labelFor('Level: ', this._levelDropdown));
+        this.appendChild(this._levelDropdown);
         this.appendChild(spacer());
+
         this.ilvlSyncCheckbox = new FieldBoundCheckBox(this.newSheetSettings, 'ilvlSyncEnabled');
         this.ilvlSyncCheckbox.id = 'new-sheet-ilvl-sync-enable';
         this.append(quickElement('div', [], [this.ilvlSyncCheckbox, labelFor("Sync Item Level", this.ilvlSyncCheckbox)]));
@@ -120,10 +117,42 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
         this.ilvlSyncValue.style.display = this.ilvlSyncCheckbox.currentValue ? '' : 'none';
     }
 
+    get levelDropdown(): DataSelect<SupportedLevel> {
+        return this._levelDropdown;
+    }
+
+    set levelDropdown(value: DataSelect<SupportedLevel>) {
+        const oldDropdown = this._levelDropdown;
+        if (oldDropdown) {
+            oldDropdown.replaceWith(value);
+        }
+        this._levelDropdown = value;
+    }
+
+    revalidateLevelSelect() {
+        const settings = this.newSheetSettings;
+        const job = this.jobPicker.selectedJob;
+        settings.level = clampJobLevel(job, settings.level);
+        const select = jobBasedLevelSelect(newValue => {
+            const isync = LEVEL_ITEMS[newValue]?.defaultIlvlSync;
+            if (isync !== undefined) {
+                this.newSheetSettings.ilvlSyncEnabled = true;
+                this.newSheetSettings.ilvlSync = isync;
+                this.ilvlSyncValue.reloadValue();
+                this.ilvlSyncCheckbox.reloadValue();
+            }
+            settings.level = newValue;
+            this.recheck();
+        }, job, settings?.level);
+        select.id = "new-sheet-level-dropdown";
+        select.required = true;
+        this.levelDropdown = select;
+    }
+
     validateIsync(): boolean {
         const ilvlSyncEnabled = this.newSheetSettings.ilvlSyncEnabled;
         const ilvlSync = this.newSheetSettings.ilvlSync;
-        const level: SupportedLevel = this.levelDropdown.selectedItem;
+        const level: SupportedLevel = this.newSheetSettings.level;
         if (ilvlSyncEnabled) {
             const expectedMaxIlvl = LEVEL_ITEMS[level]?.defaultIlvlSync ?? MAX_ILVL;
             if (ilvlSync > expectedMaxIlvl) {
@@ -191,7 +220,7 @@ export class NewSheetForm extends HTMLFormElement {
 
         const multiJob = settings.multiJob;
         const isync = settings.ilvlSyncEnabled ? settings.ilvlSync : undefined;
-        const level = this.fieldSet.levelDropdown.selectedItem;
+        const level = settings.level;
         const summary: SheetSummary = {
             isync,
             job,
@@ -342,6 +371,17 @@ function spacer() {
 /**
  * JobPicker provides a graphical job selection UI
  */
+export class JobChangeEvent extends CustomEvent<JobChangeEventDetail> {
+    constructor(detail: JobChangeEventDetail) {
+        super('jobchange', {detail});
+    }
+}
+
+export interface JobChangeEventDetail {
+    oldJob: JobName | null;
+    newJob: JobName | null;
+}
+
 class JobPicker extends HTMLElement {
 
     private _selectedJob: JobName | null = null;
@@ -391,10 +431,12 @@ class JobPicker extends HTMLElement {
             }
             parent.appendChild(jobSelector);
             jobSelector.addEventListener('click', (ev) => {
+                const oldJob = this._selectedJob;
                 this._selectedJob = jobName;
                 this._selectedSelector?.classList.remove('selected');
                 jobSelector.classList.add('selected');
                 this._selectedSelector = jobSelector;
+                this.dispatchEvent(new JobChangeEvent({oldJob, newJob: jobName}));
             });
         });
         if (allowedRoles) {

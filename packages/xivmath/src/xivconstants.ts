@@ -100,8 +100,9 @@ export type RaceName = 'Duskwight' | 'Wildwood'
 /**
  * Supported levels.
  */
-export const SupportedLevels = [70, 80, 90, 100] as const;
+export const SupportedLevels = [50, 60, 70, 80, 90, 100] as const;
 export const CURRENT_MAX_LEVEL: SupportedLevel = 100;
+export const TYPICAL_MIN_LEVEL: SupportedLevel = 70;
 export type SupportedLevel = typeof SupportedLevels[number];
 
 // TODO: block modifications to this
@@ -119,7 +120,13 @@ export const MELEE_AUTO_POTENCY = 90;
  */
 export const RANGE_AUTO_POTENCY = 80;
 
+const DEFAULT_JOB_LEVELS = {
+    minLevel: 70,
+    maxLevel: CURRENT_MAX_LEVEL,
+} as const satisfies Partial<JobDataConst>;
+
 const STANDARD_HEALER: JobDataConst = {
+    ...DEFAULT_JOB_LEVELS,
     role: 'Healer',
     mainStat: 'mind',
     secondaryStat: 'piety',
@@ -129,10 +136,10 @@ const STANDARD_HEALER: JobDataConst = {
     meldParamIndex: 6,
     aaPotency: MELEE_AUTO_POTENCY,
     excludedRelicSubstats: ['dhit'],
-    maxLevel: CURRENT_MAX_LEVEL,
 } as const;
 
 const STANDARD_TANK: JobDataConst = {
+    ...DEFAULT_JOB_LEVELS,
     role: 'Tank',
     mainStat: 'strength',
     secondaryStat: 'tenacity',
@@ -141,10 +148,10 @@ const STANDARD_TANK: JobDataConst = {
     meldParamIndex: 1,
     aaPotency: MELEE_AUTO_POTENCY,
     excludedRelicSubstats: ['dhit'],
-    maxLevel: CURRENT_MAX_LEVEL,
 } as const;
 
 const STANDARD_MELEE: Omit<JobDataConst, 'meldParamIndex'> = {
+    ...DEFAULT_JOB_LEVELS,
     role: 'Melee',
     mainStat: 'strength',
     secondaryStat: 'dhit',
@@ -152,7 +159,6 @@ const STANDARD_MELEE: Omit<JobDataConst, 'meldParamIndex'> = {
     irrelevantSubstats: ['spellspeed', 'tenacity', 'piety'],
     aaPotency: MELEE_AUTO_POTENCY,
     excludedRelicSubstats: [],
-    maxLevel: CURRENT_MAX_LEVEL,
 } as const;
 
 const MELEE_STRIKING: JobDataConst = {
@@ -173,6 +179,7 @@ const MELEE_MAIMING: JobDataConst = {
 } as const;
 
 const STANDARD_RANGED: JobDataConst = {
+    ...DEFAULT_JOB_LEVELS,
     role: 'Ranged',
     mainStat: 'dexterity',
     secondaryStat: 'dhit',
@@ -182,10 +189,10 @@ const STANDARD_RANGED: JobDataConst = {
     meldParamIndex: 4,
     aaPotency: RANGE_AUTO_POTENCY,
     excludedRelicSubstats: [],
-    maxLevel: CURRENT_MAX_LEVEL,
 } as const;
 
 const STANDARD_CASTER: JobDataConst = {
+    ...DEFAULT_JOB_LEVELS,
     role: 'Caster',
     mainStat: 'intelligence',
     secondaryStat: 'dhit',
@@ -195,7 +202,6 @@ const STANDARD_CASTER: JobDataConst = {
     meldParamIndex: 5,
     aaPotency: MELEE_AUTO_POTENCY,
     excludedRelicSubstats: [],
-    maxLevel: CURRENT_MAX_LEVEL,
 } as const;
 
 /**
@@ -347,6 +353,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
     },
     BLU: {
         ...STANDARD_CASTER,
+        minLevel: 50,
         maxLevel: 80,
         traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.5, // Maim and Mend V
     },
@@ -506,6 +513,36 @@ export const RACE_STATS: Record<RaceName, RawStats> = {
  * Level-specific stat modifiers
  */
 export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
+    50: {
+        level: 50,
+        baseMainStat: 202,
+        baseSubStat: 341,
+        levelDiv: 341,
+        hp: 1700,
+        hpScalar: {
+            Tank: 14.5,
+            other: 10.8,
+        },
+        mainStatPowerMod: {
+            Tank: 56,
+            other: 75,
+        },
+    },
+    60: {
+        level: 60,
+        baseMainStat: 218,
+        baseSubStat: 354,
+        levelDiv: 600,
+        hp: 1700,
+        hpScalar: {
+            Tank: 16.0,
+            other: 12.0,
+        },
+        mainStatPowerMod: {
+            Tank: 91,
+            other: 114,
+        },
+    },
     70: {
         level: 70,
         baseMainStat: 292,
@@ -587,6 +624,34 @@ const defaultItemDispBase = {
  * Numbers governing the minimum/maximum item levels to request from xivapi, as well as default display settings.
  */
 export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
+    50: {
+        minILvl: 50,
+        maxILvl: 999,
+        defaultIlvlSync: 135,
+        minILvlFood: 250,
+        maxILvlFood: 999,
+        minMateria: 4,
+        maxMateria: 4,
+        defaultDisplaySettings: {
+            ...defaultItemDispBase,
+            minILvl: 120,
+            maxILvl: 135,
+        },
+    },
+    60: {
+        minILvl: 135,
+        maxILvl: 999,
+        defaultIlvlSync: 275,
+        minILvlFood: 250,
+        maxILvlFood: 999,
+        minMateria: 4,
+        maxMateria: 4,
+        defaultDisplaySettings: {
+            ...defaultItemDispBase,
+            minILvl: 250,
+            maxILvl: 275,
+        },
+    },
     70: {
         minILvl: 290,
         maxILvl: 999,
