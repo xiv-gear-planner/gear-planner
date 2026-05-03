@@ -1361,8 +1361,18 @@ export class GearPlanSheet {
         this._sets.forEach(set => set.forceRecalc());
     }
 
+    /**
+     * All gear items, not including custom items nor food.
+     */
     get allItems(): GearItem[] {
         return this.dataManager.allItems;
+    }
+
+    /**
+     * All food items, not including custom foods.
+     */
+    get allFoodItems(): FoodItem[] {
+        return this.dataManager.allFoodItems;
     }
 
     /**

@@ -99,13 +99,19 @@ export function randomId(prefix: string = 'unique-id-'): string {
     return prefix + (idCounter++);
 }
 
-export function labelFor(label: string | Node, labelFor: HTMLElement) {
+export function labelFor(label: string | Node, labelFor: HTMLElement): HTMLLabelElement {
     const element = quickElement('label', [], [label]);
     if (!labelFor.id) {
         labelFor.id = randomId('lbl-id-');
     }
     element.htmlFor = labelFor.id;
     return element;
+}
+
+export function wrappedLabelPost(label: string | Node, inputElement: HTMLElement): HTMLLabelElement {
+    const out = labelFor(label, inputElement);
+    out.prepend(inputElement);
+    return out;
 }
 
 export type BooleanListener = (value: boolean) => void;
