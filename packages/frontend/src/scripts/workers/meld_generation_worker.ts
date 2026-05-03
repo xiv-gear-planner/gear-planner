@@ -23,12 +23,8 @@ export class GearsetGenerationWorker extends WorkerBehavior<GearsetGenerationJob
     override async execute(request: GearsetGenerationRequest) {
         const settings = request.data;
         const gearset = this.sheet.importGearSet(settings.gearset);
-        const gearsetGenSettings = {
-            ...settings,
-            gearset,
-        };
 
-        const setGenerator = new GearsetGenerator(this.sheet, gearsetGenSettings);
+        const setGenerator = new GearsetGenerator(this.sheet);
 
         const genCallback: ((sets: MicroSetExport[]) => void) = (sets: MicroSetExport[]) => {
             const exports: MicroSetExport[] = [];
@@ -48,7 +44,7 @@ export class GearsetGenerationWorker extends WorkerBehavior<GearsetGenerationJob
             } satisfies GearsetGenerationStatusUpdate);
         };
 
-        await setGenerator.getMeldPossibilitiesForGearset(gearsetGenSettings, genCallback, statusCallback);
+        await setGenerator.getMeldPossibilitiesForGearset(gearset, settings, genCallback, statusCallback);
 
         this.postResult(
             'done'
