@@ -121,7 +121,7 @@ export const MELEE_AUTO_POTENCY = 90;
 export const RANGE_AUTO_POTENCY = 80;
 
 const DEFAULT_JOB_LEVELS = {
-    minLevel: 70,
+    minLevel: TYPICAL_MIN_LEVEL,
     maxLevel: CURRENT_MAX_LEVEL,
 } as const satisfies Partial<JobDataConst>;
 
@@ -383,6 +383,7 @@ export const JOB_IDS: Record<JobName, number> = {
     SGE: 40,
     VPR: 41,
     PCT: 42,
+    // BST: 43,
 };
 
 /**
@@ -634,7 +635,7 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
         maxMateria: 4,
         defaultDisplaySettings: {
             ...defaultItemDispBase,
-            minILvl: 120,
+            minILvl: 115,
             maxILvl: 135,
         },
     },
@@ -699,7 +700,7 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
         defaultDisplaySettings: {
             ...defaultItemDispBase,
             minILvl: 640,
-            maxILvl: 999,
+            maxILvl: 665,
         },
     },
     100: {

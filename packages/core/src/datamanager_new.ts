@@ -1,5 +1,6 @@
 import {
     getClassJobStats,
+    JOB_DATA,
     JobName,
     LEVEL_ITEMS,
     MATERIA_LEVEL_MAX_NORMAL,
@@ -57,6 +58,7 @@ export class NewApiDataManager implements DataManager {
     private readonly _level: SupportedLevel;
     private readonly _ilvlSync: number | undefined;
     private readonly apiClient: DataApiClient<never>;
+    private readonly minEquipIlvl: number;
 
     public constructor(classJobs: DmJobs, level: SupportedLevel, ilvlSync?: number | undefined) {
         this._classJob = classJobs[0];
@@ -69,6 +71,8 @@ export class NewApiDataManager implements DataManager {
         this._maxIlvlFood = lvlData.maxILvlFood;
         this._ilvlSync = ilvlSync;
         this.apiClient = DATA_API_CLIENT;
+        const minLevel = Math.min(...classJobs.map(job => JOB_DATA[job].minLevel)) as SupportedLevel;
+        this.minEquipIlvl = LEVEL_ITEMS[minLevel].minILvl;
     }
 
     private _allItems: DataApiGearInfo[] | undefined;
@@ -281,10 +285,11 @@ export class NewApiDataManager implements DataManager {
             }).then((rawItems) => {
                 this._allItems = rawItems
                     .filter(i => {
-                        // TODO: can this just be server-side?
                         try {
-                            return Object.keys(i.baseParamMapHQ).length > 0
-                                || (i.classJobs.includes('BLU') && i.equipSlotCategory.mainHand === 1); // Don't filter out BLU weapons
+                            // Filter out lower-level items for jobs that don't care about it
+                            return i.ilvl >= this.minEquipIlvl
+                                && (Object.keys(i.baseParamMapHQ).length > 0
+                                    || (i.classJobs.includes('BLU') && i.equipSlotCategory.mainHand === 1)); // Don't filter out BLU weapons
                         }
                         catch (e) {
                             console.log(e);
@@ -298,6 +303,21 @@ export class NewApiDataManager implements DataManager {
                         else {
                             return [new DataApiGearInfo(i)];
                         }
+                    })
+                    .filter(i => {
+                        // Filter out ARR/HW junk items
+                        if (i.isCustomRelic) {
+                            return true;
+                        }
+                        if (i.equipLvl < 70) {
+                            if (i.materiaSlots.length === 0 && !i.primarySubstat) {
+                                return false;
+                            }
+                            // The item must have some main stat
+                            return i.stats.extraMainStat || i.stats.vitality || i.stats.intelligence || i.stats.mind || i.stats.strength || i.stats.dexterity;
+                        }
+                        return true;
+
                     });
                 this._maxIlvlForEquipLevel = new Map();
                 this._maxIlvlForEquipLevelWeapon = new Map();
@@ -688,16 +708,11 @@ export class DataApiGearInfo implements GearItem {
         this.computeSubstats();
         this.materiaSlots = [];
         const baseMatCount: number = data.materiaSlotCount;
-        if (baseMatCount === 0) {
-            // If there are no materia slots, then it might be a custom relic
-
+        // If there are no materia slots, and it is purple rarity, then it might be a custom relic
+        if (baseMatCount === 0 && data.rarity === 4) {
             // Pre-order earrings and other items that directly provide main stat
             if (this.baseStats.extraMainStat) {
                 this.isCustomRelic = false;
-            }
-            else if (this.displayGearSlot !== DisplayGearSlotMapping.OffHand) {
-                // Offhands never have materia slots
-                this.isCustomRelic = true;
             }
             else if (!this.primarySubstat) {
                 // If there is no primary substat on the item, then consider it a relic

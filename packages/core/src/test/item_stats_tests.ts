@@ -89,6 +89,11 @@ describe('bug #695 - offhands have wrong stats', () => {
                     // Known issue with this specific PLD 1H+Shield
                     return;
                 }
+                // Due to BLU's lower minimum level, it will pick up a lot of items that offer the wrong main stat.
+                // It is expected that these mismatch, because a caster will have a lower value on non-int main stats.
+                if (job === 'BLU' && item.stats.intelligence === 0) {
+                    return;
+                }
                 const primarySub = item.primarySubstat;
                 const primarySubValue = item.stats[primarySub];
                 const primarySubCap = item.statCaps[primarySub];
@@ -224,3 +229,39 @@ describe('Feature 24 - support items that give primary/secondary stat directly s
         expect(menphina.isCustomRelic).to.equal(false);
     });
 }).timeout(30_000);
+
+describe('Custom relic detection', () => {
+    const bluSheet = HEADLESS_SHEET_PROVIDER.fromScratch(undefined, 'relic test BLU', 'BLU', 50, 135, false);
+    const pldSheet = HEADLESS_SHEET_PROVIDER.fromScratch(undefined, 'relic test PLD', 'PLD', 90, 665, false);
+    before(async function () {
+        this.timeout(30_000);
+        await Promise.all([bluSheet.load(), pldSheet.load()]);
+    });
+    it('detects PLD items as relics correctly', () => {
+        // Relic Sword
+        expect(pldSheet.itemById(40932).isCustomRelic).to.eq(true);
+        // Relic Shield
+        expect(pldSheet.itemById(40951).isCustomRelic).to.eq(true);
+        // Non-relic sword
+        expect(pldSheet.itemById(40165).isCustomRelic).to.eq(false);
+        // Non-relic shield
+        expect(pldSheet.itemById(40184).isCustomRelic).to.eq(false);
+        // Pre-order earrings
+        const menphina = pldSheet.itemById(33648);
+        expect(menphina.isCustomRelic).to.equal(false);
+    });
+    it('detects BLU items correctly', () => {
+        // Random 1-rarity item
+        // Disabled because this is now getting filtered out
+        // expect(bluSheet.itemById(11958).isCustomRelic).to.eq(false);
+        expect(bluSheet.itemById(11958)).to.be.undefined;
+        // Pentameld item
+        expect(bluSheet.itemById(10922).isCustomRelic).to.eq(false);
+        // Aetherial item
+        // expect(bluSheet.itemById(13417).isCustomRelic).to.eq(false);
+        expect(bluSheet.itemById(13417)).to.be.undefined;
+        // Normal item
+        expect(bluSheet.itemById(8922).isCustomRelic).to.eq(false);
+    });
+
+});

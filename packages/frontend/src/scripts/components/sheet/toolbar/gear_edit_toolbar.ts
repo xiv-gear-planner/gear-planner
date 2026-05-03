@@ -14,7 +14,7 @@ import {GearPlanSheetGui} from "../sheet_gui";
 import {recordSheetEvent} from "../../../analytics/analytics";
 import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {redoIcon, undoIcon} from "@xivgear/common-ui/components/icons";
-import {MIN_ILVL_FOOD, MIN_ILVL_ITEMS, TYPICAL_MIN_LEVEL} from "@xivgear/xivmath/xivconstants";
+import {MIN_ILVL_FOOD, MIN_ILVL_ITEMS} from "@xivgear/xivmath/xivconstants";
 
 function makeGearFiltersArea(
     sheet: GearPlanSheetGui,
