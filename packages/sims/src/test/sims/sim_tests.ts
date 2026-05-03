@@ -16,13 +16,7 @@ import {effectiveSupportedLevels, getRegisteredSimSpecs} from "@xivgear/core/sim
 import {BaseMultiCycleSim} from '@xivgear/sims/processors/sim_processors';
 import {potRatioSimSpec} from '@xivgear/sims/common/potency_ratio';
 import {registerDefaultSims} from '@xivgear/sims/default_sims';
-import {
-    CURRENT_MAX_LEVEL,
-    getClassJobStats,
-    JobName, MAX_ILVL,
-    SupportedLevel,
-    SupportedLevels
-} from "@xivgear/xivmath/xivconstants";
+import {getClassJobStats, JobName, MAX_ILVL, SupportedLevel, SupportedLevels} from "@xivgear/xivmath/xivconstants";
 import {expect} from "chai";
 import {EquipSlotInfo, EquipSlotKey} from "@xivgear/xivmath/geartypes";
 import {FakeLocalStorage} from "@xivgear/core/test/test_utils";
