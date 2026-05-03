@@ -103,6 +103,7 @@ export type RaceName = 'Duskwight' | 'Wildwood'
 export const SupportedLevels = [50, 60, 70, 80, 90, 100] as const;
 export const CURRENT_MAX_LEVEL: SupportedLevel = 100;
 export const TYPICAL_MIN_LEVEL: SupportedLevel = 70;
+export const HARD_MIN_LEVEL: SupportedLevel = 50;
 export type SupportedLevel = typeof SupportedLevels[number];
 
 // TODO: block modifications to this

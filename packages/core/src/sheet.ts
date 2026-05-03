@@ -1263,7 +1263,7 @@ export class GearPlanSheet {
                         || item.isCustomRelic && settings.higherRelics)
                     && (!item.isNqVersion || settings.showNq)
                     // TODO: later, introduce an additional item filter as a property of the job
-                    && (!this.allJobs.includes('BLU') || item.stats.intelligence || item.stats.extraMainStat);
+                    && (!this.allJobs.includes('BLU') || item.stats.intelligence || item.stats.extraMainStat || item.displayGearSlotName === 'Weapon');
             }),
             ...this._customItems];
     }

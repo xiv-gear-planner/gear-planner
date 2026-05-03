@@ -262,6 +262,8 @@ describe('Custom relic detection', () => {
         expect(bluSheet.itemById(13417)).to.be.undefined;
         // Normal item
         expect(bluSheet.itemById(8922).isCustomRelic).to.eq(false);
+        // Should pick up weapons despite them not having INT
+        expect(bluSheet.itemById(41700).isCustomRelic).to.eq(false);
     });
 
 });
