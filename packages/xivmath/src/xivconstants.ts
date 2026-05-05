@@ -357,6 +357,8 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
         minLevel: 50,
         maxLevel: 80,
         traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.5, // Maim and Mend V
+        // BLU having 50/60 support means a ton of junk would be included. BLU's WD is based on Int, so just filter out anything without Int except weapons.
+        extraItemFilter: (item) => item.stats.intelligence > 0 || item.stats.extraMainStat > 0 || item.displayGearSlotName === 'Weapon',
     },
     PCT: STANDARD_CASTER,
 };

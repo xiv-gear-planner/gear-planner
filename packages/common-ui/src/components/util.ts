@@ -70,8 +70,11 @@ export class OptionDataElement<X> extends HTMLOptionElement {
 }
 
 export class DataSelect<X> extends HTMLSelectElement {
+    protected textGetter: (item: X) => string;
+
     constructor(items: readonly X[], textGetter: (item: X) => string, callback: ((newValue: X) => void) | undefined, initialSelectedItem: (typeof items[number] | undefined) = undefined) {
         super();
+        this.textGetter = textGetter;
         for (const item of items) {
             const opt = new OptionDataElement(item);
             opt.textContent = textGetter(item);
@@ -89,6 +92,43 @@ export class DataSelect<X> extends HTMLSelectElement {
 
     get selectedItem(): X {
         return (this.selectedOptions.item(0) as OptionDataElement<X>).dataValue;
+    }
+
+    set selectedItem(item: X) {
+        for (let i = 0; i < this.options.length; i++) {
+            const opt = this.options.item(i) as OptionDataElement<X>;
+            if (opt.dataValue === item) {
+                if (this.selectedIndex !== i) {
+                    this.selectedIndex = i;
+                    this.dispatchEvent(new Event('change'));
+                }
+                return;
+            }
+        }
+    }
+
+    /**
+     * Update the list of items in the select, and the selected item.
+     *
+     * @param items The new list of items.
+     * @param selectedItem The new selected item. Must be either null, or an item in the list of items.
+     */
+    updateItems<ActualItem extends X>(items: readonly ActualItem[], selectedItem: ActualItem | null) {
+        const textGetter = this.textGetter;
+        this.options.length = 0;
+        let indexToSelect = -1;
+        for (const item of items) {
+            const opt = new OptionDataElement(item);
+            opt.textContent = textGetter(item);
+            this.options.add(opt);
+            if (selectedItem !== null && item === selectedItem) {
+                indexToSelect = this.options.length - 1;
+            }
+        }
+        if (this.selectedIndex !== indexToSelect) {
+            this.selectedIndex = indexToSelect;
+            this.dispatchEvent(new Event('change'));
+        }
     }
 
 }

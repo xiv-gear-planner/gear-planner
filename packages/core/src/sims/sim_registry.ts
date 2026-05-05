@@ -8,7 +8,7 @@ import {
     TYPICAL_MIN_LEVEL
 } from "@xivgear/xivmath/xivconstants";
 import {SimSpec} from "@xivgear/core/sims/sim_types";
-import {SimResult, Simulation} from "./sim_types";
+import {SimResult, SimSettings, Simulation} from "./sim_types";
 
 const simSpecs: SimSpec<any, any>[] = [];
 
@@ -33,11 +33,11 @@ export function getRegisteredSimSpecs() {
  *
  * @param stub The sim spec stub
  */
-export function getSimSpecByStub(stub: string): SimSpec<any, any> | undefined {
+export function getSimSpecByStub(stub: string): AnySimSpec | undefined {
     return simSpecs.find(simSpec => simSpec.stub === stub);
 }
 
-export type AnySimSpec = SimSpec<Simulation<SimResult, unknown, unknown>, unknown>;
+export type AnySimSpec = SimSpec<Simulation<SimResult, SimSettings, unknown>, unknown>;
 
 /**
  * Get the default simulations for a new sheet for the given job and level.
@@ -45,7 +45,7 @@ export type AnySimSpec = SimSpec<Simulation<SimResult, unknown, unknown>, unknow
  * @param job The job
  * @param level The character level
  */
-export function getDefaultSims(job: JobName, level: SupportedLevel): SimSpec<any, any>[] {
+export function getDefaultSims(job: JobName, level: SupportedLevel): AnySimSpec[] {
     if (simSpecs.length === 0) {
         // TODO: just have a flag for whether it registered or not
         console.warn('No simulations are registered - possible race condition');
@@ -67,7 +67,7 @@ export function getDefaultSims(job: JobName, level: SupportedLevel): SimSpec<any
     return defaultSims;
 }
 
-export function effectiveSupportedLevels(spec: SimSpec<Simulation<SimResult, unknown, unknown>, unknown>): SupportedLevel[] {
+export function effectiveSupportedLevels(spec: AnySimSpec): SupportedLevel[] {
     // Use explicit values first
     if (spec.supportedLevels) {
         return spec.supportedLevels;

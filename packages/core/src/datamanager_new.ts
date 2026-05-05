@@ -310,12 +310,15 @@ export class NewApiDataManager implements DataManager {
                             return true;
                         }
                         if (i.equipLvl < 70) {
+                            // Always include weapons.
+                            if (i.displayGearSlotName === 'Weapon') {
+                                return true;
+                            }
                             if (i.materiaSlots.length === 0 && !i.primarySubstat) {
                                 return false;
                             }
                             // The item must have some main stat, or be a weapon
-                            return i.displayGearSlotName === "Weapon"
-                                || i.stats.extraMainStat || i.stats.vitality || i.stats.intelligence || i.stats.mind || i.stats.strength || i.stats.dexterity;
+                            return i.stats.extraMainStat || i.stats.vitality || i.stats.intelligence || i.stats.mind || i.stats.strength || i.stats.dexterity;
                         }
                         return true;
 

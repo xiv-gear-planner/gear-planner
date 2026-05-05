@@ -7,11 +7,19 @@ import {
     nonNegative,
     quickElement
 } from "@xivgear/common-ui/components/util";
-import {JOB_DATA, JobName, LEVEL_ITEMS, MAX_ILVL, SupportedLevel} from "@xivgear/xivmath/xivconstants";
+import {
+    ALL_COMBAT_JOBS,
+    CURRENT_MAX_LEVEL,
+    JOB_DATA,
+    JobName,
+    LEVEL_ITEMS,
+    MAX_ILVL,
+    SupportedLevel
+} from "@xivgear/xivmath/xivconstants";
 import {SheetHandle, SheetManager} from "@xivgear/core/persistence/saved_sheets";
 import {GearPlanSheet, SheetProvider} from "@xivgear/core/sheet";
 import {GearPlanSheetGui} from "../sheet/sheet_gui";
-import {clampJobLevel, jobBasedLevelSelect} from "@xivgear/common-ui/components/level_picker";
+import {fieldBoundLevelSelect} from "@xivgear/common-ui/components/level_picker";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {SHARED_SET_NAME} from "@xivgear/core/imports/imports";
 import {JobIcon} from "../job/job_icon";
@@ -19,6 +27,7 @@ import {RoleKey, SheetSummary} from "@xivgear/xivmath/geartypes";
 import {openSheetByKey} from "../../base_ui";
 import {GRAPHICAL_SHEET_PROVIDER} from "../sheet/provider";
 import {recordSheetEvent} from "../../analytics/analytics";
+import {clampJobLevel, levelsForJob} from "@xivgear/core/util/job_utils";
 
 export type NewSheetTempSettings = {
     ilvlSyncEnabled: boolean,
@@ -28,18 +37,37 @@ export type NewSheetTempSettings = {
 }
 
 /**
+ * Finalized settings used for creating or updating a sheet.
+ */
+export type FinalizedSheetSettings = {
+    name: string,
+    job: JobName,
+    level: SupportedLevel,
+    ilvlSync: number | undefined,
+    multiJob: boolean,
+}
+
+/**
  * NewSheetFormFieldSet is used both for the new sheet form, as well as the "Save As" and "Change Sheet Properties"
  * modals where you have the opportunity to change sheet settings.
+ *
+ * The expected behavior is:
+ *
+ * 1. You select a job.
+ * 2. You optionally enable multi-job mode.
+ * 3. When selecting a job, reset the selected level if it falls outside the range of the new job.
+ * 4. When selecting a level (including as part of step 3, enable/disable the ilvl sync based on
+ * whether or not it is the current global max level.
+ *
  */
 export class NewSheetFormFieldSet extends HTMLFieldSetElement {
-    readonly nameInput: HTMLInputElement;
-    // readonly jobDropdown: DataSelect<JobName>;
-    readonly jobPicker: JobPicker;
-    readonly multiJobCb: FieldBoundCheckBox<NewSheetTempSettings>;
+    private readonly nameInput: HTMLInputElement;
+    private readonly jobPicker: JobPicker;
+    private readonly multiJobCb: FieldBoundCheckBox<NewSheetFormFieldSet>;
     private _levelDropdown: DataSelect<SupportedLevel>;
-    readonly ilvlSyncCheckbox: FieldBoundCheckBox<typeof this.newSheetSettings>;
-    readonly ilvlSyncValue: FieldBoundIntField<typeof this.newSheetSettings>;
-    readonly newSheetSettings: NewSheetTempSettings;
+    private readonly ilvlSyncCheckbox: FieldBoundCheckBox<NewSheetFormFieldSet>;
+    private readonly ilvlSyncValue: FieldBoundIntField<NewSheetFormFieldSet>;
+    private readonly newSheetSettings: NewSheetTempSettings;
 
     constructor(settings: {
         name?: string,
@@ -53,10 +81,10 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
         super();
 
         this.newSheetSettings = {
-            ilvlSyncEnabled: settings?.ilvlSyncEnabled ?? false,
-            ilvlSync: settings?.ilvlSyncLevel ?? 700,
-            multiJob: settings?.multiJob ?? false,
-            level: settings?.level ?? clampJobLevel(settings.job, settings?.level),
+            ilvlSyncEnabled: settings.ilvlSyncEnabled ?? false,
+            ilvlSync: settings.ilvlSyncLevel ?? 700,
+            multiJob: settings.multiJob ?? false,
+            level: clampJobLevel(settings.job, settings.level ?? CURRENT_MAX_LEVEL),
         };
 
         // Sheet Name
@@ -71,11 +99,13 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
 
         // Job selection
         this.jobPicker = new JobPicker(settings.job ?? null, settings.allowedRoles);
-        this.jobPicker.addEventListener('jobchange', () => this.revalidateLevelSelect());
+        this.jobPicker.addEventListener('jobchange', (ev: JobChangeEvent) => {
+            this.setSelectedJob(ev.detail.newJob, ev.detail.oldJob);
+        });
         this.appendChild(this.jobPicker);
         this.appendChild(spacer());
 
-        this.multiJobCb = new FieldBoundCheckBox(this.newSheetSettings, 'multiJob');
+        this.multiJobCb = new FieldBoundCheckBox<NewSheetFormFieldSet>(this, 'multiJob');
         this.append(labeledCheckbox('Multi Job', this.multiJobCb));
         this.appendChild(spacer());
 
@@ -85,15 +115,10 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
         this.appendChild(spacer());
 
         // Level selection
-        this.revalidateLevelSelect();
-        this.appendChild(labelFor('Level: ', this._levelDropdown));
-        this.appendChild(this._levelDropdown);
-        this.appendChild(spacer());
 
-        this.ilvlSyncCheckbox = new FieldBoundCheckBox(this.newSheetSettings, 'ilvlSyncEnabled');
+        this.ilvlSyncCheckbox = new FieldBoundCheckBox<NewSheetFormFieldSet>(this, 'ilvlSyncEnabled');
         this.ilvlSyncCheckbox.id = 'new-sheet-ilvl-sync-enable';
-        this.append(quickElement('div', [], [this.ilvlSyncCheckbox, labelFor("Sync Item Level", this.ilvlSyncCheckbox)]));
-        this.ilvlSyncValue = new FieldBoundIntField(this.newSheetSettings, 'ilvlSync', {
+        this.ilvlSyncValue = new FieldBoundIntField<NewSheetFormFieldSet>(this, 'ilvlSync', {
             postValidators: [
                 nonNegative,
                 (ctx) => {
@@ -104,9 +129,109 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
             ],
         });
         this.ilvlSyncValue.style.display = 'none';
-        this.ilvlSyncCheckbox.addListener(() => this.recheck());
+
+        // This requires us to have the elements initialized
+        this.revalidateLevelSelect();
+        this.appendChild(labelFor('Level: ', this._levelDropdown));
+        this.appendChild(this._levelDropdown);
+
+        this.appendChild(spacer());
+        this.append(quickElement('div', [], [this.ilvlSyncCheckbox, labelFor("Sync Item Level", this.ilvlSyncCheckbox)]));
+
         this.appendChild(this.ilvlSyncValue);
         this.appendChild(spacer());
+
+        this.recheck();
+    }
+
+    private get selectedJob(): JobName | null {
+        return this.jobPicker.selectedJob;
+    }
+
+    private setSelectedJob(job: JobName | null, oldJob: JobName | null) {
+        // JobPicker handles its own internal state and UI when clicked,
+        // but we might be calling this from code too.
+        // If it's the same, do nothing.
+        const newLevel = clampJobLevel(job, this.level);
+        if (newLevel !== this.level) {
+            this.level = newLevel;
+            // The level setter will handle ilvl sync and updating the dropdown.
+            // However, we also need to revalidate the level select because the list of valid levels might have changed.
+            this.revalidateLevelSelect();
+        }
+        else if (job !== oldJob) {
+            // Even if level didn't change, we might need to refresh the level dropdown
+            // because valid levels might have changed.
+            this.revalidateLevelSelect();
+        }
+    }
+
+    get level(): SupportedLevel {
+        return this.newSheetSettings.level;
+    }
+
+    set level(newLevel: SupportedLevel) {
+        this.newSheetSettings.level = newLevel;
+        const isync = LEVEL_ITEMS[newLevel]?.defaultIlvlSync;
+        if (isync !== undefined) {
+            this.ilvlSyncEnabled = true;
+            this.ilvlSync = isync;
+        }
+        else {
+            this.ilvlSyncEnabled = false;
+        }
+        if (this._levelDropdown && this._levelDropdown.selectedItem !== newLevel) {
+            this._levelDropdown.selectedItem = newLevel;
+        }
+    }
+
+    get ilvlSyncEnabled(): boolean {
+        return this.newSheetSettings.ilvlSyncEnabled;
+    }
+
+    set ilvlSyncEnabled(enabled: boolean) {
+        this.newSheetSettings.ilvlSyncEnabled = enabled;
+        this.recheck();
+    }
+
+    get ilvlSync(): number {
+        return this.newSheetSettings.ilvlSync;
+    }
+
+    set ilvlSync(isync: number) {
+        this.newSheetSettings.ilvlSync = isync;
+        this.recheck();
+    }
+
+    get multiJob(): boolean {
+        return this.newSheetSettings.multiJob;
+    }
+
+    set multiJob(multiJob: boolean) {
+        this.newSheetSettings.multiJob = multiJob;
+        this.recheck();
+    }
+
+    private get nameValue(): string {
+        return this.nameInput.value;
+    }
+
+    private set nameValue(name: string) {
+        this.nameInput.value = name;
+    }
+
+    get finalizedSettings(): FinalizedSheetSettings | 'no-job' {
+        const job = this.selectedJob;
+        if (job === null) {
+            return 'no-job';
+        }
+        return {
+            name: this.nameValue,
+            job: job,
+            level: this.level,
+            ilvlSync: this.ilvlSyncEnabled ? this.ilvlSync : undefined,
+            multiJob: this.multiJob,
+        };
     }
 
     takeFocus() {
@@ -114,14 +239,17 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
     }
 
     recheck() {
-        this.ilvlSyncValue.style.display = this.ilvlSyncCheckbox.currentValue ? '' : 'none';
+        this.ilvlSyncCheckbox.reloadValue();
+        this.ilvlSyncValue.reloadValue();
+        // this.multiJobCb.reloadValue();
+        this.ilvlSyncValue.style.display = this.ilvlSyncEnabled ? '' : 'none';
     }
 
-    get levelDropdown(): DataSelect<SupportedLevel> {
+    private get levelDropdown(): DataSelect<SupportedLevel> {
         return this._levelDropdown;
     }
 
-    set levelDropdown(value: DataSelect<SupportedLevel>) {
+    private set levelDropdown(value: DataSelect<SupportedLevel>) {
         const oldDropdown = this._levelDropdown;
         if (oldDropdown) {
             oldDropdown.replaceWith(value);
@@ -129,21 +257,11 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
         this._levelDropdown = value;
     }
 
-    revalidateLevelSelect() {
-        const settings = this.newSheetSettings;
-        const job = this.jobPicker.selectedJob;
-        settings.level = clampJobLevel(job, settings.level);
-        const select = jobBasedLevelSelect(newValue => {
-            const isync = LEVEL_ITEMS[newValue]?.defaultIlvlSync;
-            if (isync !== undefined) {
-                this.newSheetSettings.ilvlSyncEnabled = true;
-                this.newSheetSettings.ilvlSync = isync;
-                this.ilvlSyncValue.reloadValue();
-                this.ilvlSyncCheckbox.reloadValue();
-            }
-            settings.level = newValue;
-            this.recheck();
-        }, job, settings?.level);
+    private revalidateLevelSelect() {
+        const job = this.selectedJob ?? 'SGE';
+        const select = fieldBoundLevelSelect<NewSheetFormFieldSet>(this, 'level');
+        const levels = levelsForJob(job);
+        select.updateItems([...levels], this.level);
         select.id = "new-sheet-level-dropdown";
         select.required = true;
         this.levelDropdown = select;
@@ -199,37 +317,27 @@ export class NewSheetForm extends HTMLFormElement {
         this.fieldSet.takeFocus();
     }
 
-    recheck() {
-        this.fieldSet.recheck();
-    }
-
     private doSubmit(ev: SubmitEvent) {
-        const result = this.fieldSet.validateIsync();
-        if (!result) {
+        if (!this.fieldSet.validateIsync()) {
             ev.preventDefault();
             return;
         }
-        const job = this.fieldSet.jobPicker.selectedJob;
-        if (job === null) {
+        const settings = this.fieldSet.finalizedSettings;
+        if (settings === 'no-job') {
             alert("Please select a job");
             ev.preventDefault();
             return;
         }
-        const settings = this.fieldSet.newSheetSettings;
-        const sheetName = this.fieldSet.nameInput.value;
 
-        const multiJob = settings.multiJob;
-        const isync = settings.ilvlSyncEnabled ? settings.ilvlSync : undefined;
-        const level = settings.level;
         const summary: SheetSummary = {
-            isync,
-            job,
-            level,
-            multiJob,
-            name: sheetName,
+            isync: settings.ilvlSync,
+            job: settings.job,
+            level: settings.level,
+            multiJob: settings.multiJob,
+            name: settings.name,
         };
         const handle: SheetHandle = this.sheetManager.newSheetFromScratch(summary);
-        const gearPlanSheet = this.sheetProvider.fromScratch(handle.key, sheetName, job, level, isync, multiJob);
+        const gearPlanSheet = this.sheetProvider.fromScratch(handle.key, settings.name, settings.job, settings.level, settings.ilvlSync, settings.multiJob);
         recordSheetEvent("newSheet", gearPlanSheet);
         this.sheetOpenCallback(gearPlanSheet).then(() => gearPlanSheet.requestSave());
     }
@@ -278,30 +386,6 @@ export abstract class BaseSheetSettingsModal extends BaseModal {
         this.fieldSet.recheck();
     }
 
-    protected get ilvlSyncEnabled(): boolean {
-        return this.fieldSet.newSheetSettings.ilvlSyncEnabled;
-    }
-
-    protected get ilvlSync(): number {
-        return this.fieldSet.newSheetSettings.ilvlSync;
-    }
-
-    protected get level(): SupportedLevel {
-        return this.fieldSet.levelDropdown.selectedItem;
-    }
-
-    protected get selectedJob(): JobName | null {
-        return this.fieldSet.jobPicker.selectedJob;
-    }
-
-    protected get multiJob(): boolean {
-        return this.fieldSet.newSheetSettings.multiJob;
-    }
-
-    protected get nameValue(): string {
-        return this.fieldSet.nameInput.value;
-    }
-
     protected confirmJobMultiChange(currentJob: JobName, currentIsMultiJob: boolean, newJob: JobName, newIsMultiJob: boolean): boolean {
         if (newJob !== currentJob && !newIsMultiJob) {
             const result = confirm(`You are attempting to change a sheet from ${currentJob} to ${newJob}. Weapons and other class-specific items will be de-selected if they are not equippable as ${newJob}.`);
@@ -341,20 +425,19 @@ export class SaveAsModal extends BaseSheetSettingsModal {
     }
 
     protected onSubmit(): void {
-        const ilvlSyncEnabled = this.ilvlSyncEnabled;
-        const ilvlSync = this.ilvlSync;
-        const level: SupportedLevel = this.level;
-        const newJob = this.selectedJob ?? this.existingSheet.classJobName;
-        const multiJob = this.multiJob;
-        if (!this.confirmJobMultiChange(this.existingSheet.classJobName, this.existingSheet.isMultiJob, newJob, multiJob)) {
+        const settings = this.fieldSet.finalizedSettings;
+        if (settings === 'no-job') {
+            return;
+        }
+        if (!this.confirmJobMultiChange(this.existingSheet.classJobName, this.existingSheet.isMultiJob, settings.job, settings.multiJob)) {
             return;
         }
         const newSheetSaveKey: string = this.existingSheet.saveAs(
-            this.nameValue,
-            newJob,
-            level,
-            ilvlSyncEnabled ? ilvlSync : undefined,
-            multiJob
+            settings.name,
+            settings.job,
+            settings.level,
+            settings.ilvlSync,
+            settings.multiJob
         );
         const newSheet = GRAPHICAL_SHEET_PROVIDER.fromSaved(newSheetSaveKey);
         console.log("new sheet key", newSheet.saveKey);
@@ -391,7 +474,7 @@ class JobPicker extends HTMLElement {
      * @param defaultJob The job to default to, or null if nothing should be selected by default.
      * @param allowedRoles If specified, restrict which roles may be chosen.
      */
-    constructor(defaultJob: JobName | null, allowedRoles?: RoleKey[]) {
+    constructor(defaultJob: JobName | null = null, allowedRoles?: RoleKey[]) {
         super();
         const tankDiv = quickElement('div', ['job-picker-section', 'job-picker-section-tank'], []);
         const healerDiv = quickElement('div', ['job-picker-section', 'job-picker-section-healer'], []);
@@ -399,9 +482,7 @@ class JobPicker extends HTMLElement {
         const rangeDiv = quickElement('div', ['job-picker-section', 'job-picker-section-range'], []);
         const casterDiv = quickElement('div', ['job-picker-section', 'job-picker-section-caster'], []);
 
-        const jobs = Object.keys(JOB_DATA) as JobName[];
-
-        jobs.forEach((jobName) => {
+        ALL_COMBAT_JOBS.forEach((jobName) => {
             const job = JOB_DATA[jobName];
             const jobSelector = quickElement('button', ['job-picker-job-icon'], [new JobIcon(jobName)]);
             jobSelector.value = jobName;
@@ -436,7 +517,10 @@ class JobPicker extends HTMLElement {
                 this._selectedSelector?.classList.remove('selected');
                 jobSelector.classList.add('selected');
                 this._selectedSelector = jobSelector;
-                this.dispatchEvent(new JobChangeEvent({oldJob, newJob: jobName}));
+                this.dispatchEvent(new JobChangeEvent({
+                    oldJob,
+                    newJob: jobName,
+                }));
             });
         });
         if (allowedRoles) {
@@ -483,33 +567,31 @@ export class ChangePropsModal extends BaseSheetSettingsModal {
     }
 
     protected onSubmit(): void {
-        const desiredJob = this.selectedJob ?? this.sheet.classJobName;
-        const desiredMultiJob = this.multiJob;
-
-        const newName = this.nameValue;
-        const newLevel = this.level;
-        const newIlvl = this.ilvlSyncEnabled ? this.ilvlSync : undefined;
-
-        if (!this.confirmJobMultiChange(this.sheet.classJobName, this.sheet.isMultiJob, desiredJob, desiredMultiJob)) {
+        const settings = this.fieldSet.finalizedSettings;
+        if (settings === 'no-job') {
             return;
         }
 
-        const changed = (this.sheet.sheetName !== newName)
-            || (this.sheet.classJobName !== desiredJob)
-            || (this.sheet.isMultiJob !== desiredMultiJob)
-            || (this.sheet.level !== newLevel)
-            || (this.sheet.ilvlSync !== newIlvl);
+        if (!this.confirmJobMultiChange(this.sheet.classJobName, this.sheet.isMultiJob, settings.job, settings.multiJob)) {
+            return;
+        }
+
+        const changed = (this.sheet.sheetName !== settings.name)
+            || (this.sheet.classJobName !== settings.job)
+            || (this.sheet.isMultiJob !== settings.multiJob)
+            || (this.sheet.level !== settings.level)
+            || (this.sheet.ilvlSync !== settings.ilvlSync);
         if (!changed) {
             this.close();
             return;
         }
 
         // Apply in-place updates for all fields, then save and reload this sheet
-        this.sheet.sheetName = newName;
-        this.sheet.classJobName = desiredJob;
-        this.sheet.isMultiJob = desiredMultiJob;
-        this.sheet.level = newLevel as SupportedLevel;
-        this.sheet.ilvlSync = newIlvl;
+        this.sheet.sheetName = settings.name;
+        this.sheet.classJobName = settings.job;
+        this.sheet.isMultiJob = settings.multiJob;
+        this.sheet.level = settings.level as SupportedLevel;
+        this.sheet.ilvlSync = settings.ilvlSync;
         this.sheet.saveData();
         if (this.sheet.saveKey) {
             openSheetByKey(this.sheet.saveKey);

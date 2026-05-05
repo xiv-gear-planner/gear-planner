@@ -264,6 +264,8 @@ describe('Custom relic detection', () => {
         expect(bluSheet.itemById(8922).isCustomRelic).to.eq(false);
         // Should pick up weapons despite them not having INT
         expect(bluSheet.itemById(41700).isCustomRelic).to.eq(false);
+        // Should pick up the level 50 weapon
+        expect(bluSheet.itemById(24551).isCustomRelic).to.eq(false);
     });
 
 });

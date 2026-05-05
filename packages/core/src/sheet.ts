@@ -1261,9 +1261,7 @@ export class GearPlanSheet {
                 return item.ilvl >= settings.minILvl
                     && (item.ilvl <= settings.maxILvl
                         || item.isCustomRelic && settings.higherRelics)
-                    && (!item.isNqVersion || settings.showNq)
-                    // TODO: later, introduce an additional item filter as a property of the job
-                    && (!this.allJobs.includes('BLU') || item.stats.intelligence || item.stats.extraMainStat || item.displayGearSlotName === 'Weapon');
+                    && (!item.isNqVersion || settings.showNq);
             }),
             ...this._customItems];
     }
