@@ -2074,6 +2074,7 @@ div.gear-sheet-toolbar-holder {
 .load-bar-inner {
   background-color: var(--border-color-highlight);
   border-radius: 3px;
+  height: 30px;
 }
 
 .meld-solver-set {
@@ -2084,61 +2085,6 @@ div.gear-sheet-toolbar-holder {
   }
 }
 
-.meld-solver-area {
-  white-space: pre-wrap;
-}
-
-.meld-solver-settings {
-
-  float: left;
-  display: flex;
-  flex-direction: column;
-  border-width: 1px;
-  border-color: #00ff00;
-  text-align: left;
-
-  li {
-    margin: 5px;
-    list-style-type: none;
-    display: block;
-
-    * > {
-      display: inline;
-    }
-
-    input[type="text"] {
-      border: var(--faint-border);
-    }
-    .meld-solver-warn-threshold-input {
-      max-width: 100px;
-    }
-    .meld-solver-target-gcd-input {
-      max-width: 30px;
-    }
-
-    input[type="text"]:disabled {
-      border: var(--faint-border);
-      opacity: 50%;
-    }
-
-    select.meld-solver-sim-dropdown {
-      max-width: fit-content;
-      width: 100%;
-
-      option {
-        padding: 5px;
-      }
-    }
-  }
-
-  button {
-    margin: 5px;
-    border-width: 1px;
-    border-color: #909090;
-    float: left;
-    height: 100%;
-  }
-}
 
 .gear-set-editor-toolbar {
 
