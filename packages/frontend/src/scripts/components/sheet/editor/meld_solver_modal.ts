@@ -5,7 +5,8 @@ import {
     FieldBoundFloatField,
     FieldBoundIntField,
     labelFor,
-    makeActionButton
+    makeActionButton,
+    wrappedLabelPost
 } from "@xivgear/common-ui/components/util";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {GearPlanSheetGui} from "../sheet_gui";
@@ -307,6 +308,7 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
     private readonly useTargetGcdCheckBox: FieldBoundCheckBox<GearsetGenerationSettings>;
     private readonly overwriteFoodCheckbox: FieldBoundCheckBox<GearsetGenerationSettings>;
     private readonly overwriteFoodText: HTMLSpanElement;
+    private readonly filterFoodCheckbox: FieldBoundCheckBox<GearsetGenerationSettings>;
     private readonly targetGcdInput: FieldBoundFloatField<GearsetGenerationSettings>;
     private readonly warnIfAboveCheckBox: FieldBoundCheckBox<PersistentSettings>;
     private readonly warnIfAboveNumberField: FieldBoundIntField<PersistentSettings>;
@@ -330,7 +332,7 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
         const haste = Math.max(set.computedStats.haste("Weaponskill", buffHaste, gaugeHaste), set.computedStats.haste("Spell", buffHaste, gaugeHaste));
         const gcd = Math.min(set.computedStats.gcdPhys(2.5, haste), set.computedStats.gcdMag(2.5, haste));
 
-        this.gearsetGenSettings = new GearsetGenerationSettings(set, false, true, gcd);
+        this.gearsetGenSettings = new GearsetGenerationSettings(set, false, true, gcd, false, SETTINGS.solverFilterFood);
         this.simSettings = {
             sim: sheet.sims.at(0),
             sets: undefined, // Not referenced in UI
@@ -367,6 +369,11 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
         this.overwriteFoodText = labelFor("Overwrite food? ", this.overwriteFoodCheckbox);
         // this.overwriteFoodText.classList.add('meld-solver-settings');
 
+        this.filterFoodCheckbox = new FieldBoundCheckBox(this.gearsetGenSettings, 'filterFood');
+        this.filterFoodCheckbox.addAndRunListener(val => SETTINGS.solverFilterFood = val);
+        const filterFood = wrappedLabelPost("Use visible food? ", this.filterFoodCheckbox);
+        filterFood.title = 'If checked, use visible food instead of default food filtering logic.';
+
         this.overwriteMateriaCheckbox = new FieldBoundCheckBox(this.gearsetGenSettings, 'overwriteExistingMateria');
         // this.overwriteMateriaCheckbox.classList.add('meld-solver-settings');
         this.overwriteMateriaText = labelFor("Overwrite existing materia?", this.overwriteMateriaCheckbox);
@@ -397,11 +404,12 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
 
         this.checkboxContainer = el('div', {class: 'meld-solver-settings'},
             [
+                el('li', {}, [simText, this.simDropdown]),
+                el('li', {}, [this.useTargetGcdCheckBox, targetGcdText, this.targetGcdInput]),
                 el('li', {}, [this.overwriteMateriaCheckbox, this.overwriteMateriaText]),
                 el('li', {}, [this.overwriteFoodCheckbox, this.overwriteFoodText]),
-                el('li', {}, [this.useTargetGcdCheckBox, targetGcdText, this.targetGcdInput]),
+                el('li', {}, [filterFood]),
                 el('li', {}, [this.warnIfAboveCheckBox, labelFor('Confirm before simming more than ', this.warnIfAboveCheckBox), this.warnIfAboveNumberField, labelFor(' sets', this.warnIfAboveNumberField)]),
-                el('li', {}, [simText, this.simDropdown]),
             ]
         );
 

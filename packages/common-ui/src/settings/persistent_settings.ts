@@ -16,6 +16,7 @@ export type PersistentSettings = {
     hideWelcomeMessage: boolean;
     generatorWarnIfAbove: boolean;
     generatorWarnThreshold: number;
+    solverFilterFood: boolean;
 }
 
 // TODO: this whole thing should just be a single JSON object stored under a single key, not this mess.
@@ -29,6 +30,7 @@ const WORKERS_OVERRIDE_KEY = 'workers-override';
 const REVERSE_ITEM_SORT_KEY = 'reverse-item-sort';
 const GENERATOR_WARN_KEY = 'generator-warn';
 const GENERATOR_WARN_THRESHOLD_KEY = 'generator-warn-threshold';
+const SOLVER_FILTER_FOOD_KEY = 'solver-filter-food';
 export const SETTINGS: PersistentSettings = {
     get lightMode(): boolean | undefined {
         return getBool(LIGHT_MODE_KEY);
@@ -97,6 +99,12 @@ export const SETTINGS: PersistentSettings = {
     },
     set generatorWarnThreshold(value: number) {
         setInt(GENERATOR_WARN_THRESHOLD_KEY, value);
+    },
+    get solverFilterFood(): boolean {
+        return getBool(SOLVER_FILTER_FOOD_KEY) ?? false;
+    },
+    set solverFilterFood(value: boolean) {
+        setBool(SOLVER_FILTER_FOOD_KEY, value);
     },
 };
 
