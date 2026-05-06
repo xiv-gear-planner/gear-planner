@@ -19,7 +19,6 @@ import {SolverSimulationSettings} from "@xivgear/core/solving/sim_runner";
 import {recordSheetEvent} from "../../../analytics/analytics";
 import {PersistentSettings, SETTINGS} from "@xivgear/common-ui/settings/persistent_settings";
 import {GearsetGenerationStatusUpdate, MeldSolvingStatusUpdate} from "@xivgear/core/solving/types";
-import {rangeInc} from "@xivgear/util/array_utils";
 
 export class MeldSolverDialog extends BaseModal {
     private _sheet: GearPlanSheetGui;
