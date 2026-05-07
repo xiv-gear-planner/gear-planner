@@ -12,17 +12,11 @@ import {
     MultiCycleSettings,
     Rotation
 } from "@xivgear/sims/cycle_sim";
-import {getRegisteredSimSpecs} from "@xivgear/core/sims/sim_registry";
+import {effectiveSupportedLevels, getRegisteredSimSpecs} from "@xivgear/core/sims/sim_registry";
 import {BaseMultiCycleSim} from '@xivgear/sims/processors/sim_processors';
 import {potRatioSimSpec} from '@xivgear/sims/common/potency_ratio';
 import {registerDefaultSims} from '@xivgear/sims/default_sims';
-import {
-    CURRENT_MAX_LEVEL,
-    getClassJobStats,
-    JobName,
-    SupportedLevel,
-    SupportedLevels
-} from "@xivgear/xivmath/xivconstants";
+import {getClassJobStats, JobName, MAX_ILVL, SupportedLevel, SupportedLevels} from "@xivgear/xivmath/xivconstants";
 import {expect} from "chai";
 import {EquipSlotInfo, EquipSlotKey} from "@xivgear/xivmath/geartypes";
 import {FakeLocalStorage} from "@xivgear/core/util/fake_local_storage";
@@ -231,14 +225,16 @@ describe('Default sims', () => {
                 });
                 let levels = [...(simSpec.supportedLevels ?? SupportedLevels)];
                 const job = simSpec.supportedJobs ? simSpec.supportedJobs[0] : 'WHM';
-                const maxLevel = getClassJobStats(job).maxLevel ?? CURRENT_MAX_LEVEL;
-                levels = levels.filter(lvl => lvl <= maxLevel);
+                levels = effectiveSupportedLevels(simSpec);
                 levels.forEach(level => {
                     it(`Can run at level ${level}`, async () => {
                         const inst: Simulation<SimResult, any, any> = simSpec.makeNewSimInstance() as Simulation<any, any, any>;
-                        const level = simSpec.supportedLevels ? simSpec.supportedLevels[0] : (getClassJobStats(job).maxLevel ?? 100);
+                        // const level = simSpec.supportedLevels ? simSpec.supportedLevels[0] : (getClassJobStats(job).maxLevel ?? 100);
                         const sheet = await getSheetFor(job, level);
                         const set = new CharacterGearSet(sheet);
+                        // Sims for newer jobs won't necessarily have lower-level items, so override the display
+                        // settings so that we can actually equip stuff.
+                        sheet.itemDisplaySettings.maxILvl = MAX_ILVL;
                         // Equip random gear in each slot
                         set.forEachSlot((slotKey: EquipSlotKey) => {
                             // Ignore offhand for classes which do not support it

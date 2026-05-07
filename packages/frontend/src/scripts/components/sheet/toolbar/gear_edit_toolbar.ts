@@ -24,7 +24,8 @@ function makeGearFiltersArea(
     const filtersForm = document.createElement('form');
     filtersForm.style.display = 'contents';
     filtersForm.classList.add('ilvl-picker-area');
-    const itemIlvlRange = new ILvlRangePicker(itemDisplaySettings, 'minILvl', 'maxILvl', 'Gear:', MIN_ILVL_ITEMS);
+    const actualMinIlvl = Math.min(MIN_ILVL_ITEMS, itemDisplaySettings.minILvl);
+    const itemIlvlRange = new ILvlRangePicker(itemDisplaySettings, 'minILvl', 'maxILvl', 'Gear:', actualMinIlvl);
     itemIlvlRange.addListener((min, max) => {
         recordSheetEvent('itemIlvlRange', sheet, {
             min: min,

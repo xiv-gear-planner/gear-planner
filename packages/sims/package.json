@@ -5,7 +5,7 @@
   "scripts": {
     "build": "tsc --build",
     "buildprod": "tsc --build",
-    "test": "ts-mocha --no-experimental-strip-types --exit \"src/test/**/*test.ts\" \"src/test/**/*tests.ts\""
+    "test": "ts-mocha --no-experimental-strip-types --parallel=true --timeout 15000 --exit \"src/test/**/*test.ts\" \"src/test/**/*tests.ts\""
   },
   "dependencies": {
     "@xivgear/core": "workspace:*",

@@ -632,10 +632,21 @@ export interface JobDataConst {
     gcdDisplayOverrides?: (level: SupportedLevel) => (GcdDisplayOverride[]) | null;
 
     /**
+     * The minimum level of the job.
+     */
+    readonly minLevel: SupportedLevel;
+    /**
      * The maximum level of the job.
      */
     readonly maxLevel: SupportedLevel;
+
+    /**
+     * Optional override for item display filtering logic.
+     */
+    readonly extraItemFilter?: ClassItemFilter;
 }
+
+export type ClassItemFilter = (item: GearItem) => boolean;
 
 export type GcdDisplayOverride = {
     /**
