@@ -1,7 +1,7 @@
 import {ExportTypes, HEADLESS_SHEET_PROVIDER} from "../sheet";
 import {expect} from "chai";
 import {CharacterGearSet} from "../gear";
-import {FakeLocalStorage} from "./test_utils";
+import {FakeLocalStorage} from "../util/fake_local_storage";
 
 // HEADLESS_SHEET_PROVIDER uses localStorage to save/load, so we still need this
 // noinspection JSConstantReassignment

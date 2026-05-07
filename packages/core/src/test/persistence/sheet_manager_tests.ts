@@ -1,4 +1,4 @@
-import {FakeLocalStorage} from "../test_utils";
+import {FakeLocalStorage} from "../../util/fake_local_storage";
 import {SheetManagerImpl, SyncStatus} from "../../persistence/saved_sheets";
 import {expect} from "chai";
 import {SheetExport, SheetSummary} from "@xivgear/xivmath/geartypes";

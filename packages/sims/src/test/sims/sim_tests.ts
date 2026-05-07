@@ -25,7 +25,7 @@ import {
 } from "@xivgear/xivmath/xivconstants";
 import {expect} from "chai";
 import {EquipSlotInfo, EquipSlotKey} from "@xivgear/xivmath/geartypes";
-import {FakeLocalStorage} from "@xivgear/core/test/test_utils";
+import {FakeLocalStorage} from "@xivgear/core/util/fake_local_storage";
 import {GearPlanSheet, HEADLESS_SHEET_PROVIDER} from "@xivgear/core/sheet";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {whmNewSheetSpec} from "../../healer/whm_new_sheet_sim";

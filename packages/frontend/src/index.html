@@ -33,7 +33,7 @@
                 return;
             }
             const target = event.target;
-            if (target && target.tagName.toLowerCase() === 'script') {
+            if (target && target?.tagName?.toLowerCase() === 'script') {
                 const scriptSrc = target.src;
                 if (scriptSrc?.includes('main') && scriptSrc?.includes('.js')) {
                     console.error("Main script load appears to have failed", event);
