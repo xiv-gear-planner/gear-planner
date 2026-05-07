@@ -19,6 +19,7 @@ import {GearsetGenerationSettings} from "@xivgear/core/solving/gearset_generatio
 import {SolverSimulationSettings} from "@xivgear/core/solving/sim_runner";
 import {recordSheetEvent} from "../../../analytics/analytics";
 import {PersistentSettings, SETTINGS} from "@xivgear/common-ui/settings/persistent_settings";
+import {GearsetGenerationStatusUpdate, MeldSolvingStatusUpdate} from "@xivgear/core/solving/types";
 
 export class MeldSolverDialog extends BaseModal {
     private _sheet: GearPlanSheetGui;
@@ -61,55 +62,13 @@ export class MeldSolverDialog extends BaseModal {
             const meldSolveStart: number = Date.now();
             this.buttonArea.removeChild(this.solveMeldsButton);
             this.showProgress();
-            this.progressDisplay.loadbar.updateProgress(0);
+            this.progressDisplay.reset();
 
-            let displayedSimText: boolean = false;
             const solverPromise = this.solver.solveMelds(
                 this.settingsDiv.gearsetGenSettings,
                 this.settingsDiv.simSettings,
                 update => {
-                    if ('done' in update) {
-                        const percentage = 100.0 * update.done / update.total;
-                        this.progressDisplay.loadbar.updateProgress(percentage);
-                        // Don't re-render this unnecessarily
-                        if (!displayedSimText) {
-                            this.progressDisplay.text.textContent = `Simulating ${update.total} sets...`;
-                            displayedSimText = true;
-                        }
-                    }
-                    else {
-                        let out: string;
-                        switch (update.phase) {
-                            case 0:
-                                out = "Initializing...";
-                                break;
-                            case 1:
-                                out = "Generating Piece Combinations...";
-                                break;
-                            case 2:
-                                if ("subPhase" in update) {
-                                    out = `Generating Sets - Slot ${update.subPhase.phase} / ${update.subPhase.phaseMax}... ${update.count} so far`;
-                                }
-                                else {
-                                    out = `Generating Sets... ${update.count} so far`;
-                                }
-                                break;
-                            case 3:
-                                if ("subPhase" in update) {
-                                    out = `Sorting ${update.subPhase.phase} / ${update.subPhase.phaseMax} Sets...`;
-                                }
-                                else {
-                                    out = `Sorting ${update.count} Sets...`;
-                                }
-                                break;
-                            case 4:
-                                out = `Finalizing ${update.count} Sets (${update.subPhase.phase} / ${update.subPhase.phaseMax})...`;
-                                break;
-                            default:
-                                return;
-                        }
-                        this.progressDisplay.text.textContent = out;
-                    }
+                    this.progressDisplay.displayUpdate(update);
 
                 }, async (count: number) => {
                     if (!SETTINGS.generatorWarnIfAbove) {
@@ -234,7 +193,6 @@ class LoadBar extends HTMLDivElement {
 
         this.innerBar = document.createElement('div');
         this.innerBar.classList.add('load-bar-inner');
-        this.innerBar.style.height = "30px";
         this.innerBar.style.width = "0%";
 
         this.outerBar.replaceChildren(this.innerBar);
@@ -246,19 +204,99 @@ class LoadBar extends HTMLDivElement {
     }
 }
 
+type ExtendedPhase = 0 | 1 | 2 | 3 | 4 | 5;
+
 class MeldSolverProgressDisplay extends HTMLDivElement {
 
-    public readonly loadbar: LoadBar;
+    private readonly inPhaseLoadBar: LoadBar;
+    private displayedSimText: boolean = false;
     text: HTMLHeadingElement;
+    private phaseIndicators: LoadBar[] = [];
+    private lastSeenPhase: ExtendedPhase = 0;
 
     constructor() {
         super();
 
-        this.loadbar = new LoadBar;
+        this.inPhaseLoadBar = new LoadBar();
+        this.inPhaseLoadBar.classList.add('in-phase-progress');
         this.text = document.createElement('h4');
         this.text.textContent = "Generating meld combinations...";
+        this.classList.add('meld-solver-progress-display');
 
-        this.replaceChildren(this.text, this.loadbar);
+        for (let i: ExtendedPhase = 0; i <= 5; i++) {
+            this.phaseIndicators.push(new LoadBar());
+        }
+        const phaseHolder = el('div', {class: 'phases-holder'}, this.phaseIndicators);
+
+        this.replaceChildren(phaseHolder, this.inPhaseLoadBar, this.text);
+    }
+
+    reset() {
+        this.inPhaseLoadBar.updateProgress(0);
+    }
+
+    updatePhase(phase: ExtendedPhase, phaseProgress: number, phaseMax: number) {
+        const percentage = phaseMax > 0 ? 100.0 * phaseProgress / phaseMax : 0;
+        this.inPhaseLoadBar.updateProgress(percentage);
+        this.phaseIndicators[phase].updateProgress(percentage);
+        // If transitioning to a new phase, reset the state of these
+        if (phase !== this.lastSeenPhase) {
+            this.phaseIndicators.forEach((l, i) => {
+                if (i < phase) {
+                    l.updateProgress(100);
+                }
+                else if (i > phase) {
+                    l.updateProgress(0);
+                }
+            });
+            this.lastSeenPhase = phase;
+        }
+    }
+
+    displayUpdate(update: GearsetGenerationStatusUpdate | MeldSolvingStatusUpdate) {
+
+        if ('done' in update) {
+            this.updatePhase(5, update.done, update.total);
+            // Don't re-render this unnecessarily
+            if (!this.displayedSimText) {
+                this.text.textContent = `Simulating ${update.total} sets...`;
+                this.displayedSimText = true;
+            }
+        }
+        else {
+            let out: string;
+            this.updatePhase(update.phase, update.subPhase?.phase ?? 0, update.subPhase?.phaseMax ?? 0);
+            switch (update.phase) {
+                case 0:
+                    out = "Initializing...";
+                    break;
+                case 1:
+                    out = "Generating Piece Combinations...";
+                    break;
+                case 2:
+                    if ("subPhase" in update) {
+                        out = `Generating Sets - Slot ${update.subPhase.phase} / ${update.subPhase.phaseMax}... ${update.count} so far`;
+                    }
+                    else {
+                        out = `Generating Sets... ${update.count} so far`;
+                    }
+                    break;
+                case 3:
+                    if ("subPhase" in update) {
+                        out = `Sorting ${update.subPhase.phase} / ${update.subPhase.phaseMax} Sets...`;
+                    }
+                    else {
+                        out = `Sorting ${update.count} Sets...`;
+                    }
+                    break;
+                case 4:
+                    out = `Finalizing ${update.count} Sets (${update.subPhase.phase} / ${update.subPhase.phaseMax})...`;
+                    break;
+                default:
+                    return;
+            }
+            this.text.textContent = out;
+        }
     }
 }
 

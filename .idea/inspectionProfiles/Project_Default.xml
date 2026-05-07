@@ -19,7 +19,7 @@
     <inspection_tool class="HtmlUnknownTag" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="myValues">
         <value>
-          <list size="63">
+          <list size="64">
             <item index="0" class="java.lang.String" itemvalue="nobr" />
             <item index="1" class="java.lang.String" itemvalue="noembed" />
             <item index="2" class="java.lang.String" itemvalue="comment" />
@@ -83,6 +83,7 @@
             <item index="60" class="java.lang.String" itemvalue="popout-editor" />
             <item index="61" class="java.lang.String" itemvalue="compat-checker-overview-modal" />
             <item index="62" class="java.lang.String" itemvalue="compat-checker-set-modal" />
+            <item index="63" class="java.lang.String" itemvalue="meld-solver-progress-display" />
           </list>
         </value>
       </option>
