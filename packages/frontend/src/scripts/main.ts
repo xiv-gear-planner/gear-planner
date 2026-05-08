@@ -1,5 +1,5 @@
+import './early_init';
 import '@ungap/custom-elements';
-import {FakeLocalStorage} from "@xivgear/core/util/fake_local_storage";
 import {processHashLegacy, processNav} from "./nav_hash";
 import {earlyUiSetup, initialLoad, initTopMenu, showFatalError} from "./base_ui";
 import {installFallbackPrivacyArea} from "./components/general/ads";
@@ -20,31 +20,9 @@ declare global {
 
 window.xivgearLoadStarted = true;
 
-function isInIframe(): boolean {
-    return window.self !== window.top;
-}
-
-function checkIframeLocalStorage() {
-    if (isInIframe()) {
-        try {
-            localStorage.getItem("test");
-        }
-        catch (e) {
-            console.warn("localStorage is not available in iframe, using FakeLocalStorage", e);
-            const fakeLocalStorage = new FakeLocalStorage();
-            Object.defineProperty(window, 'localStorage', {
-                get() {
-                    return fakeLocalStorage;
-                },
-            });
-        }
-    }
-}
-
 // Main entry point for actual browsers
 document.addEventListener("DOMContentLoaded", () => {
     try {
-        checkIframeLocalStorage();
         // Sim configuration
         // Just kick off the async loading - don't wait
         ASYNC_SIM_LOADER.load();
