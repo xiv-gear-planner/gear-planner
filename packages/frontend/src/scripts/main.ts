@@ -1,6 +1,6 @@
 import './early_init';
 import '@ungap/custom-elements';
-import {processHashLegacy, processNav} from "./nav_hash";
+import {isEmbed, processHashLegacy, processNav} from "./nav_hash";
 import {earlyUiSetup, initialLoad, initTopMenu, showFatalError} from "./base_ui";
 import {installFallbackPrivacyArea} from "./components/general/ads";
 import {installDoubleClickHandler} from "@xivgear/common-ui/util/stop_double_click";
