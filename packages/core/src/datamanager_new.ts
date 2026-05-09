@@ -957,7 +957,7 @@ export class DataApiFoodInfo implements FoodItem {
 
 export function processRawMateriaInfo(data: ApiMateriaData): Materia[] {
     const out: Materia[] = [];
-    for (let i = MATERIA_LEVEL_MIN_RELEVANT - 1; i < MATERIA_LEVEL_MAX_NORMAL; i++) {
+    for (let i = 0; i < MATERIA_LEVEL_MAX_NORMAL; i++) {
         const itemData = data.item[i];
         const itemId = itemData.rowId;
         const itemName = itemData.name;

@@ -26,7 +26,7 @@ export const MATERIA_LEVEL_MAX_NORMAL = 12;
 /**
  * Max supported materia level for overmeld slots.
  */
-export const MATERIA_LEVEL_MAX_OVERMELD = 11;
+export const MATERIA_LEVEL_MAX_OVERMELD = MATERIA_LEVEL_MAX_NORMAL - 1;
 
 /**
  * The unmodified GCD time of a typical GCD skill

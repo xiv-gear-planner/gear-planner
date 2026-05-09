@@ -13,14 +13,15 @@ import {
 } from "@xivgear/core/workers/worker_types";
 import {registerDefaultSims} from "@xivgear/sims/default_sims";
 
-const originalConsoleValues: Partial<typeof console> = {
+const originalConsoleValues = {
     log: console.log,
     info: console.info,
     trace: console.trace,
     debug: console.debug,
-} as const;
+    error: console.error,
+} as const satisfies Partial<typeof console>;
 
-const silencedConsoleValues: typeof originalConsoleValues = {
+const silencedConsoleValues = {
     log: () => {
     },
     info: () => {
@@ -29,7 +30,9 @@ const silencedConsoleValues: typeof originalConsoleValues = {
     },
     debug: () => {
     },
-} as const;
+    // Keep error intact
+    error: console.error,
+} as const satisfies typeof originalConsoleValues;
 
 function blockConsoleSpam() {
     Object.assign(console, silencedConsoleValues);

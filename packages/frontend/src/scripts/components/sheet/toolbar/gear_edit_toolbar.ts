@@ -14,7 +14,7 @@ import {GearPlanSheetGui} from "../sheet_gui";
 import {recordSheetEvent} from "../../../analytics/analytics";
 import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {redoIcon, undoIcon} from "@xivgear/common-ui/components/icons";
-import {MIN_ILVL_FOOD, MIN_ILVL_ITEMS} from "@xivgear/xivmath/xivconstants";
+import {JOB_DATA, LEVEL_ITEMS, MIN_ILVL_FOOD, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 
 function makeGearFiltersArea(
     sheet: GearPlanSheetGui,
@@ -24,7 +24,10 @@ function makeGearFiltersArea(
     const filtersForm = document.createElement('form');
     filtersForm.style.display = 'contents';
     filtersForm.classList.add('ilvl-picker-area');
-    const actualMinIlvl = Math.min(MIN_ILVL_ITEMS, itemDisplaySettings.minILvl);
+    const minLevel = Math.min(...sheet.allJobs.map(job => JOB_DATA[job].minLevel)) as SupportedLevel;
+    const levelMinIlvl = LEVEL_ITEMS[minLevel].minILvl;
+    // If someone had previously entered a lower ilvl when it wasn't validating input correctly, allow that lower
+    const actualMinIlvl = Math.min(levelMinIlvl, itemDisplaySettings.minILvl);
     const itemIlvlRange = new ILvlRangePicker(itemDisplaySettings, 'minILvl', 'maxILvl', 'Gear:', actualMinIlvl);
     itemIlvlRange.addListener((min, max) => {
         recordSheetEvent('itemIlvlRange', sheet, {

@@ -274,6 +274,7 @@ export class CharacterGearSet {
     private _reverting: boolean = false;
     private _undoHook: () => void = () => null;
     isSeparator: boolean = false;
+    private _materiaGradeCache: Map<number, number> = new Map();
 
     constructor(sheet: GearPlanSheet) {
         this._sheet = sheet;
@@ -362,6 +363,21 @@ export class CharacterGearSet {
      */
     earlySetJobOverride(job: JobName | null) {
         this._jobOverride = job;
+    }
+
+    private getMaxGradeForIlvl(ilvl: number): number {
+        const cached = this._materiaGradeCache.get(ilvl);
+        if (cached !== undefined) {
+            return cached;
+        }
+        const materia = this.sheet.allMateria.filter(mat => mat.ilvl <= ilvl && mat.primaryStat === 'determination');
+        if (materia.length === 0) {
+            this._materiaGradeCache.set(ilvl, 0);
+            return 0;
+        }
+        const maxGrade = Math.max(...materia.map(mat => mat.materiaGrade));
+        this._materiaGradeCache.set(ilvl, maxGrade);
+        return maxGrade;
     }
 
     /**
@@ -1214,7 +1230,7 @@ export class CharacterGearSet {
                 // Must be same slot
                 && otherItem.occGearSlotName === thisItem.occGearSlotName
                 // Must be better or same stats
-                && isSameOrBetterItem(otherItem, thisItem)
+                && this.isSameOrBetterItem(otherItem, thisItem)
                 // Only allow items up to current max level for this job
                 && otherItem.equipLvl <= this.classJobStats.maxLevel)) {
                 return false;
@@ -1229,6 +1245,68 @@ export class CharacterGearSet {
             }
             return true;
         });
+    }
+
+    /**
+     * Returns true if 'candidateItem' has identical or better stats than 'baseItem'.
+     *
+     * In order to be true, every stat must be identical or greater.
+     *
+     * @param candidateItem
+     * @param baseItem
+     */
+    private isSameOrBetterItem(candidateItem: GearItem, baseItem: GearItem): boolean {
+        // TODO: consider actual materia
+
+        // Phase 1: Raw stats
+        const candidateStats = candidateItem.stats;
+        const baseStats = baseItem.stats;
+        for (const [statKey, baseValue] of Object.entries(baseStats)) {
+            const candidateValue = candidateStats[statKey as RawStatKey] as number;
+            // For skill/spell speed, we want an exact match, since allowing extra sks/sps could cause
+            // it to bump up a GCD tier.
+            if (statKey as RawStatKey === 'skillspeed' || statKey as RawStatKey === 'spellspeed' || statKey as RawStatKey === 'gearHaste') {
+                if (candidateValue !== baseValue) {
+                    return false;
+                }
+            }
+            else { // For everything else, it's fine if the candidate value is greater than the base value.
+                if (candidateValue < baseValue) {
+                    return false;
+                }
+            }
+        }
+        // Phase 2: Materia
+        // The logic here is to just check that every materia slot in the base item:
+        // 1. Exists in the candidate item,
+        // 2. is at least the same grade, and
+        // 3. is high grade if the source slot is also high grade
+        for (let index = 0; index < baseItem.materiaSlots.length; index++){
+            const baseSlot = baseItem.materiaSlots[index];
+            // const baseBestMateria = this.sheet.getBestMateria('determination', baseSlot);
+            if (index in candidateItem.materiaSlots) {
+                const candidateSlot = candidateItem.materiaSlots[index];
+                // const candBestMateria = this.sheet.getBestMateria('determination', baseSlot);
+                // Check that the supported grade is at least the same as the base item
+                const baseMaxGrade = Math.min(baseSlot.maxGrade, this.getMaxGradeForIlvl(baseSlot.ilvl));
+                const candMaxGrade = Math.min(candidateSlot.maxGrade, this.getMaxGradeForIlvl(candidateSlot.ilvl));
+                if (candMaxGrade < baseMaxGrade) {
+                    return false;
+                }
+                else if (baseSlot.allowsHighGrade && !candidateSlot.allowsHighGrade) {
+                    // Also check that if the base item allows high grade, that the candidate also does.
+                    // Without this, an 11 would be considered an acceptable substitute to a 10, despite the fact that
+                    // grade 11 materia are better than grade 10 materia.
+                    return false;
+                }
+            }
+            else {
+                // Not enough slots
+                return false;
+            }
+        }
+
+        return true;
     }
 }
 
@@ -1282,63 +1360,6 @@ export type ItemSingleStatDetail = {
 };
 
 
-/**
- * Returns true if 'candidateItem' has identical or better stats than 'baseItem'.
- *
- * In order to be true, every stat must be identical or greater.
- *
- * @param candidateItem
- * @param baseItem
- */
-export function isSameOrBetterItem(candidateItem: GearItem, baseItem: GearItem): boolean {
-    // TODO: consider actual materia
-
-    // Phase 1: Raw stats
-    const candidateStats = candidateItem.stats;
-    const baseStats = baseItem.stats;
-    for (const [statKey, baseValue] of Object.entries(baseStats)) {
-        const candidateValue = candidateStats[statKey as RawStatKey] as number;
-        // For skill/spell speed, we want an exact match, since allowing extra sks/sps could cause
-        // it to bump up a GCD tier.
-        if (statKey as RawStatKey === 'skillspeed' || statKey as RawStatKey === 'spellspeed' || statKey as RawStatKey === 'gearHaste') {
-            if (candidateValue !== baseValue) {
-                return false;
-            }
-        }
-        else { // For everything else, it's fine if the candidate value is greater than the base value.
-            if (candidateValue < baseValue) {
-                return false;
-            }
-        }
-    }
-    // Phase 2: Materia
-    // The logic here is to just check that every materia slot in the base item:
-    // 1. Exists in the candidate item,
-    // 2. is at least the same grade, and
-    // 3. is high grade if the source slot is also high grade
-    for (const baseSlot of baseItem.materiaSlots) {
-        const index = baseItem.materiaSlots.indexOf(baseSlot);
-        if (index in candidateItem.materiaSlots) {
-            const candidateSlot = candidateItem.materiaSlots[index];
-            // Check that the supported grade is at least the same as the base item
-            if (candidateSlot.maxGrade < baseSlot.maxGrade) {
-                return false;
-            }
-            else if (baseSlot.allowsHighGrade && !candidateSlot.allowsHighGrade) {
-                // Also check that if the base item allows high grade, that the candidate also does.
-                // Without this, an 11 would be considered an acceptable substitute to a 10, despite the fact that
-                // grade 11 materia are better than grade 10 materia.
-                return false;
-            }
-        }
-        else {
-            // Not enough slots
-            return false;
-        }
-    }
-
-    return true;
-}
 
 export type LvlSyncInfo = {
     lvlSync: number | null;
