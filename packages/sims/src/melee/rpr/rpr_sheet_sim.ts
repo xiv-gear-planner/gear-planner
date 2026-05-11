@@ -10,7 +10,7 @@ import {sum} from "@xivgear/util/array_utils";
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import {BaseMultiCycleSim} from "@xivgear/sims/processors/sim_processors";
 import {animationLock} from "../../ability_helpers";
-import { CycleSettings } from "../../cycle_settings";
+import {CycleSettings} from "../../cycle_settings";
 
 
 export interface RprSheetSimResult extends CycleSimResult {
