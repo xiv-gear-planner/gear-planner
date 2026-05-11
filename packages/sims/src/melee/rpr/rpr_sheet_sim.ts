@@ -10,6 +10,7 @@ import {sum} from "@xivgear/util/array_utils";
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import {BaseMultiCycleSim} from "@xivgear/sims/processors/sim_processors";
 import {animationLock} from "../../ability_helpers";
+import {CycleSettings} from "../../cycle_settings";
 
 
 export interface RprSheetSimResult extends CycleSimResult {
@@ -19,7 +20,8 @@ export interface RprSheetSimResult extends CycleSimResult {
 }
 
 export interface RprSimSettings extends SimSettings {
-
+    // the length of the fight in seconds
+    fightTime: number;
 }
 
 export interface RprSimSettingsExternal extends ExternalCycleSettings<RprSimSettings> {
@@ -419,13 +421,29 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprSimSett
     shortName = "rpr-sheet-sim";
     displayName = rprSheetSpec.displayName;
     manuallyActivatedBuffs = [ArcaneCircleBuff];
+    cycleSettings: CycleSettings = {
+        useAutos: true,
+        totalTime: this.settings.fightTime,
+        cycles: 0,
+        which: 'totalTime',
+        cutoffMode: 'prorate-gcd',
+    };
+
 
     constructor(settings?: RprSimSettingsExternal) {
         super('RPR', settings);
     }
 
     makeDefaultSettings(): RprSimSettings {
-        return {};
+        return {
+            // 8:30 Killtime. This is chosen as a default because
+            // RPR's full uptime standard rotation falls apart
+            // at 10:30 and beyond. 8:30 is the longest time that
+            // doesn't need adjustments and is also a potential parse KT target.
+            // Worth noting that an immediately post burst KT biases towards having
+            // more abilities in buffs than average (relevant when crit/DH buffs are present)
+            fightTime: (8 * 60) + 30,
+        };
     }
 
     protected createCycleProcessor(settings: MultiCycleSettings): RprCycleProcessor {
