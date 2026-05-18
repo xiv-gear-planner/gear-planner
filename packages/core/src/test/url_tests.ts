@@ -3,12 +3,9 @@ import {expect} from "chai";
 import {STATIC_SERVER} from "../external/static_bis";
 
 describe("check that beta URLs weren't accidentally committed", () => {
-    // eslint-disable-next-line no-constant-condition
-    if (false) {
-        it('data api', () => {
-            expect(DATA_API_CLIENT.baseUrl).to.eq('https://data.xivgear.app');
-        });
-    }
+    it('data api', () => {
+        expect(DATA_API_CLIENT.baseUrl).to.eq('https://data.xivgear.app');
+    });
     it('static bis', () => {
         expect(STATIC_SERVER.toString()).to.eq('https://staticbis.xivgear.app/');
     });
