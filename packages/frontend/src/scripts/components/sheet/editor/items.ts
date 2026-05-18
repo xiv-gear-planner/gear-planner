@@ -53,7 +53,7 @@ import {makeRelicStatEditor} from "../../items/relic_stats";
 import {ShowHideButton, ShowHideCallback} from "@xivgear/common-ui/components/show_hide_chevron";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {recordSheetEvent} from "../../../analytics/analytics";
-import {makeTrashIcon} from "@xivgear/common-ui/components/icons";
+import {hideIcon, makeTrashIcon, showIcon} from "@xivgear/common-ui/components/icons";
 import {sortItemsInPlace} from "../../items/item_utils";
 
 function removeStatCellStyles(cell: CustomCell<GearSlotItem, unknown>) {
@@ -802,7 +802,19 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                         this.refreshMateria();
                         this.refreshRowData(rowValue);
                     });
-                    return quickElement('div', ['item-name-holder-editable'], [quickElement('span', [], [shortenItemName(name)]), trashButton]);
+                    const hideButton = quickElement('button', ['hide-item-button'], ['Hide']);
+
+                    hideButton.replaceChildren(sheet.isItemHidden(rowValue.item) ? showIcon() : hideIcon());
+
+                    hideButton.addEventListener('click', () => {
+                        // This will trigger a refresh on its own, so no need to force any sort of refresh
+                        sheet.setItemHidden(rowValue.item, !sheet.isItemHidden(rowValue.item));
+                        if (sheet.itemDisplaySettings.showHidden) {
+                            this.updateHiddenState();
+                        }
+                    });
+                    const buttonsArea = el('div', {class: 'item-hover-buttons-area'}, [trashButton, hideButton]);
+                    return quickElement('div', ['item-name-holder-editable'], [quickElement('span', [], [shortenItemName(name)]), buttonsArea]);
                 },
                 colStyler: (value, colElement, internalElement, rowValue) => {
                 },
@@ -888,6 +900,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
         ];
         this.data = data;
         this.updateShowHide();
+        this.updateHiddenState();
     }
 
     refreshMateria() {
@@ -920,6 +933,12 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
             else {
                 row.style.display = '';
             }
+        });
+    }
+
+    private updateHiddenState() {
+        this.dataRowMap.forEach((row, value) => {
+            row.classList.toggle('hidden-item', this.gearSet.sheet.isItemHidden(value.item));
         });
     }
 }

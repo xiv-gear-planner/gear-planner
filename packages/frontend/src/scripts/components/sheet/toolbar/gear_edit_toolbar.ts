@@ -53,6 +53,20 @@ function makeGearFiltersArea(
     const nqCbWithLabel = labeledCheckbox('Show NQ Items', nqCb);
     filtersForm.appendChild(nqCbWithLabel);
 
+    const showHidden = new FieldBoundCheckBox(itemDisplaySettings, 'showHidden');
+    showHidden.addListener(hidden => {
+        recordSheetEvent('showHidden', sheet, {
+            hidden: hidden,
+        });
+    });
+    const showHiddenWithLabel = labeledCheckbox('Show Hidden', showHidden);
+    filtersForm.appendChild(showHiddenWithLabel);
+
+    const resetHidden = makeActionButton('Unhide All', () => {
+        sheet.resetHiddenItems();
+    });
+    filtersForm.appendChild(resetHidden);
+
     const fakeSubmitButton = quickElement("button", [], ['Hidden']);
     fakeSubmitButton.style.display = 'none';
     fakeSubmitButton.type = 'submit';

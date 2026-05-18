@@ -1125,7 +1125,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
                     else {
                         const existing = this._openSetPopouts.get(item);
                         if (existing && !existing.closed) {
-                            const header = el('h3', {}, [`${item.name} editor is open in a popout`]);
+                            const header = el('h3', {}, [`'${item.name}' is already open in a popout`]);
                             const focusBtn = makeActionButton('Focus Popout', () => {
                                 try {
                                     existing.focus();
