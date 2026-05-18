@@ -62,6 +62,8 @@ export interface SimSpec<SimType extends Simulation<any, any, any>, SettingsExpo
     supportedJobs?: JobName[] | undefined;
     /**
      * Optional: restrict this simulation to certain levels.
+     *
+     * Do not query this directly - use {@link effectiveSupportedLevels}.
      */
     supportedLevels?: SupportedLevel[] | undefined;
     /**
@@ -297,9 +299,9 @@ export type ComboBehavior = ComboData['comboBehavior'];
  * Shadow, Bunshin, SMN pet actions.
  */
 export type AlternativeScaling = "Living Shadow Strength Scaling"
-                                 | "Automaton Queen Dexterity Scaling"
-                                 | "Pet Action Weapon Damage"
-                                 | "Add Skill Speed Multiplier"
+    | "Automaton Queen Dexterity Scaling"
+    | "Pet Action Weapon Damage"
+    | "Add Skill Speed Multiplier"
 
 export type BaseAbility = Readonly<LevelModifiable<{
     /**

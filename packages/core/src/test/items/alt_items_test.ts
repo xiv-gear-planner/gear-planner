@@ -55,3 +55,43 @@ describe('alt items logic', () => {
     });
 });
 
+describe('materia alt items logic', () => {
+    let sheet: GearPlanSheet;
+    let set: CharacterGearSet;
+
+    before(async () => {
+        sheet = HEADLESS_SHEET_PROVIDER.fromScratch(undefined, "Alt Items Test", "BLU", 80, 535, false);
+        await sheet.load();
+        set = new CharacterGearSet(sheet);
+    });
+    it('should not list lower level weapons as alts because the materia slots cannot accept higher ilvl materia', () => {
+        // Blue-eyes
+        const lvl80wep = sheet.itemById(40345);
+        // Gentlemage's Umbrella
+        const lvl80wep2 = sheet.itemById(40476);
+        // Exquisite Gentlemage's Umbrella
+        const lvl80wep3 = sheet.itemById(41700);
+
+        // Predatrice
+        const lvl70wep = sheet.itemById(32644);
+        // Friar Rush
+        const lvl70wep2 = sheet.itemById(32645);
+
+        const alts70 = set.getAltItemsFor(lvl70wep);
+        expect(alts70).to.contain(lvl80wep);
+        expect(alts70).to.contain(lvl80wep2);
+        expect(alts70).to.contain(lvl80wep3);
+        // should not contain self
+        expect(alts70).to.not.contain(lvl70wep);
+        expect(alts70).to.contain(lvl70wep2);
+
+        const alts80 = set.getAltItemsFor(lvl80wep);
+        // should not contain self
+        expect(alts80).to.not.contain(lvl80wep);
+        expect(alts80).to.contain(lvl80wep2);
+        expect(alts80).to.contain(lvl80wep3);
+        expect(alts80).to.not.contain(lvl70wep);
+        expect(alts80).to.not.contain(lvl70wep2);
+    });
+
+});

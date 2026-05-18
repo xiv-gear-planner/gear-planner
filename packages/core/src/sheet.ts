@@ -35,7 +35,7 @@ import {
     Materia,
     MateriaAutoFillController,
     MateriaAutoFillPrio,
-    MateriaFillMode,
+    MateriaFillMode, MateriaSlot,
     MeldableMateriaSlot,
     NormalOccGearSlotKey,
     OccGearSlotKey,
@@ -1215,8 +1215,9 @@ export class GearPlanSheet {
      *
      * @param slot
      */
-    getRelevantMateriaFor(slot: MeldableMateriaSlot) {
-        const materia = this._relevantMateria.filter(mat => mat.ilvl <= slot.materiaSlot.ilvl);
+    getRelevantMateriaFor(slot: MeldableMateriaSlot | MateriaSlot): Materia[] {
+        const actualSlot: MateriaSlot = 'materiaSlot' in slot ? slot.materiaSlot : slot;
+        const materia = this._relevantMateria.filter(mat => mat.ilvl <= actualSlot.ilvl);
         // Sort materia from highest to lowest
         materia.sort((left, right) => {
             if (left.materiaGrade > right.materiaGrade) {
@@ -1371,6 +1372,10 @@ export class GearPlanSheet {
      */
     get allFoodItems(): FoodItem[] {
         return this.dataManager.allFoodItems;
+    }
+
+    get allMateria(): Materia[] {
+        return this.dataManager.allMateria;
     }
 
     /**

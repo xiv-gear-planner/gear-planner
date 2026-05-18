@@ -106,8 +106,11 @@ export class GearSetEditor extends HTMLElement {
         // Not enough to just use the items, because rings can be in either ring slot, so we
         // need options to reflect that.
         const itemMapping: Map<DisplayGearSlotKey, GearItem[]> = new Map();
+        const classFilter = this.gearSet.classJobStats.extraItemFilter;
         this.sheet.itemsForDisplay
             .filter(item => item.usableByJob(this.gearSet.job))
+            // If no class filter, allow all items. It has already been filtered by the sheet at this point.
+            .filter(item => classFilter?.(item) ?? true)
             .forEach((item) => {
                 const slot = item.displayGearSlotName;
                 if (itemMapping.has(slot)) {

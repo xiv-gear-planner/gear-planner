@@ -546,6 +546,7 @@ export interface LevelItemInfo {
     defaultIlvlSync?: number,
     minILvlFood: number,
     maxILvlFood: number,
+    // TODO: current unused
     minMateria: number,
     maxMateria: number,
     defaultDisplaySettings: ItemDisplaySettings
@@ -632,10 +633,21 @@ export interface JobDataConst {
     gcdDisplayOverrides?: (level: SupportedLevel) => (GcdDisplayOverride[]) | null;
 
     /**
+     * The minimum level of the job.
+     */
+    readonly minLevel: SupportedLevel;
+    /**
      * The maximum level of the job.
      */
     readonly maxLevel: SupportedLevel;
+
+    /**
+     * Optional override for item display filtering logic.
+     */
+    readonly extraItemFilter?: ClassItemFilter;
 }
+
+export type ClassItemFilter = (item: GearItem) => boolean;
 
 export type GcdDisplayOverride = {
     /**

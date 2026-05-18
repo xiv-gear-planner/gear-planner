@@ -245,7 +245,7 @@ export class GearsetGenerator {
             count++;
 
 
-            const foods = [gearset.food];
+            const foods = gearset.food ? [gearset.food] : [];
             // Solve for food if we have no food enabled, or if overwrite is ticked
             if (!foods[0] || settings.overwriteFood) {
                 let foodItems: FoodItem[];

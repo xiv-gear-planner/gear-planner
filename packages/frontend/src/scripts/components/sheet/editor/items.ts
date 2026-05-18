@@ -1121,7 +1121,7 @@ export class AltItemsModal extends BaseModal {
 
         const text = el('p');
         if (sheet.ilvlSync) {
-            text.replaceChildren('These items are ', el('b', {}, ['equivalent to ']), baseItem.nameTranslation.asCurrentLang, ` when synced to i${baseItem.ilvl}:`);
+            text.replaceChildren('These items are ', el('b', {}, ['equivalent to ']), baseItem.nameTranslation.asCurrentLang, ` when synced to i${sheet.ilvlSync}:`);
         }
         else {
             text.replaceChildren('These items are ', el('b', {}, ['equivalent to or better than ']), baseItem.nameTranslation.asCurrentLang, ':');
@@ -1176,13 +1176,20 @@ export class AltItemsModal extends BaseModal {
 }
 
 /**
- * Component for an ilvl range picker. Binds to an object with a minimum and maximum field.
+ * Component for an ilvl range picker. Binds to an object with a minimum and maximum field, but defers updates to
+ * the underlying object until input validation passes.
+ *
+ * Future TODO: make "minimum too low" a warning so that if someone wants to be lazy they can just put "0" or "1" in the field
+ * to effectively mean "show as low as possible".
  */
-export class ILvlRangePicker<ObjType> extends HTMLElement {
-    private _listeners: ((min: number, max: number) => void)[] = [];
-    private readonly obj: ObjType;
-    private readonly minField: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType];
-    private readonly maxField: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType];
+export class ILvlRangePicker<ObjType extends {}> extends HTMLElement {
+    private readonly validityListener: (min: number, max: number) => boolean;
+    private readonly _listeners: ((min: number, max: number) => void)[] = [];
+    private isInputValid: boolean = true;
+    private readonly tempValues: {
+        min: number,
+        max: number,
+    };
 
     /**
      * Construct an ilvl picker.
@@ -1195,9 +1202,6 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
      */
     constructor(obj: ObjType, minField: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType], maxField: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType], label: string | undefined, minIlvl: number) {
         super();
-        this.obj = obj;
-        this.minField = minField;
-        this.maxField = maxField;
         this.classList.add('ilvl-range-picker');
 
         if (label) {
@@ -1206,20 +1210,32 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
             this.appendChild(labelElement);
         }
 
-        const lowerBoundControl = new FieldBoundIntField(obj, minField);
-        const upperBoundControl = new FieldBoundIntField(obj, maxField);
+        this.tempValues = {
+            min: obj[minField] as number,
+            max: obj[maxField] as number,
+        };
+
+        const lowerBoundControl = new FieldBoundIntField(this.tempValues, 'min');
+        const upperBoundControl = new FieldBoundIntField(this.tempValues, 'max');
         lowerBoundControl.title = `Minimum value must be between ${minIlvl} and the chosen maximum value`;
         upperBoundControl.title = `Maximum value must be between the chosen minimum value and ${MAX_ILVL}`;
-        const borderListener = function (min: number, max: number) {
+        this.validityListener = function (min: number, max: number): boolean {
             const invalid = min > max;
             lowerBoundControl.classList.toggle("invalid-numeric-input", invalid);
             upperBoundControl.classList.toggle("invalid-numeric-input", invalid);
             if (min < minIlvl) {
                 lowerBoundControl.classList.add('invalid-numeric-input');
                 lowerBoundControl.title = `Must be at least ${minIlvl}`;
+                return false;
             }
+            return !invalid;
         };
-        this._listeners.push(borderListener);
+        this.addListener((min, max) => {
+            // @ts-expect-error don't have concrete type
+            obj[minField] = this.tempValues.min;
+            // @ts-expect-error don't have concrete type
+            obj[maxField] = this.tempValues.max;
+        });
 
         lowerBoundControl.addListener(() => this.runListeners());
         upperBoundControl.addListener(() => this.runListeners());
@@ -1236,8 +1252,12 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
     }
 
     private runListeners() {
-        const minField = this.obj[this.minField] as number;
-        const maxField = this.obj[this.maxField] as number;
+        const minField = this.tempValues.min;
+        const maxField = this.tempValues.max;
+        this.isInputValid = this.validityListener(minField, maxField);
+        if (!this.isInputValid) {
+            return;
+        }
         for (const listener of this._listeners) {
             listener(minField, maxField);
         }
