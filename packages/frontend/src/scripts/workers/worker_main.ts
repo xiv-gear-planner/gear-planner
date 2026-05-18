@@ -18,9 +18,13 @@ const originalConsoleValues = {
     info: console.info,
     trace: console.trace,
     debug: console.debug,
+    warn: console.warn,
     error: console.error,
 } as const satisfies Partial<typeof console>;
 
+/**
+ * Special version of console that silences everything except error
+ */
 const silencedConsoleValues = {
     log: () => {
     },
@@ -29,6 +33,8 @@ const silencedConsoleValues = {
     trace: () => {
     },
     debug: () => {
+    },
+    warn: () => {
     },
     // Keep error intact
     error: console.error,

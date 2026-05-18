@@ -546,6 +546,7 @@ export interface LevelItemInfo {
     defaultIlvlSync?: number,
     minILvlFood: number,
     maxILvlFood: number,
+    // TODO: current unused
     minMateria: number,
     maxMateria: number,
     defaultDisplaySettings: ItemDisplaySettings

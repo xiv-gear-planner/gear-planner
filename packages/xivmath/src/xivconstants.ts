@@ -649,7 +649,7 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
         minILvlFood: 250,
         maxILvlFood: 999,
         minMateria: 4,
-        maxMateria: 4,
+        maxMateria: 5,
         defaultDisplaySettings: {
             ...defaultItemDispBase,
             minILvl: 250,

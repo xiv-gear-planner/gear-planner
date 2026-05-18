@@ -1121,7 +1121,7 @@ export class AltItemsModal extends BaseModal {
 
         const text = el('p');
         if (sheet.ilvlSync) {
-            text.replaceChildren('These items are ', el('b', {}, ['equivalent to ']), baseItem.nameTranslation.asCurrentLang, ` when synced to i${baseItem.ilvl}:`);
+            text.replaceChildren('These items are ', el('b', {}, ['equivalent to ']), baseItem.nameTranslation.asCurrentLang, ` when synced to i${sheet.ilvlSync}:`);
         }
         else {
             text.replaceChildren('These items are ', el('b', {}, ['equivalent to or better than ']), baseItem.nameTranslation.asCurrentLang, ':');
