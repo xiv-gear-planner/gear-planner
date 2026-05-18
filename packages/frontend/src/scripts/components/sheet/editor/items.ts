@@ -273,7 +273,19 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
                         gearSet.food = undefined;
                         this.refreshSelection();
                     });
-                    return quickElement('div', ['food-name-holder-editable'], [quickElement('span', [], [name]), trashButton]);
+
+                    const hideButton = quickElement('button', ['hide-food-button'], ['Hide']);
+                    hideButton.replaceChildren(sheet.isItemHidden(rowValue) ? showIcon() : hideIcon());
+                    hideButton.addEventListener('click', () => {
+                        // This will trigger a refresh on its own, so no need to force any sort of refresh
+                        sheet.setItemHidden(rowValue, !sheet.isItemHidden(rowValue));
+                        if (sheet.itemDisplaySettings.showHidden) {
+                            this.updateHiddenState();
+                        }
+                    });
+
+                    const buttonsArea = el('div', {class: 'item-hover-buttons-area'}, [trashButton, hideButton]);
+                    return quickElement('div', ['food-name-holder-editable'], [quickElement('span', [], [name]), buttonsArea]);
                 },
                 // renderer: name => {
                 //     return quickElement('div', [], [document.createTextNode(name)]);
@@ -342,6 +354,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
             super.data = [showHideRow.row, new HeaderRow(), new TitleRow('No items available - please check your filters')];
         }
         this.updateShowHide();
+        this.updateHiddenState();
     }
 
     private updateShowHide() {
@@ -352,6 +365,12 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
             else {
                 row.style.display = '';
             }
+        });
+    }
+
+    private updateHiddenState() {
+        this.dataRowMap.forEach((row, value) => {
+            row.classList.toggle('hidden-item', this.gearSet.sheet.isItemHidden(value));
         });
     }
 }
@@ -802,10 +821,9 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                         this.refreshMateria();
                         this.refreshRowData(rowValue);
                     });
+
                     const hideButton = quickElement('button', ['hide-item-button'], ['Hide']);
-
                     hideButton.replaceChildren(sheet.isItemHidden(rowValue.item) ? showIcon() : hideIcon());
-
                     hideButton.addEventListener('click', () => {
                         // This will trigger a refresh on its own, so no need to force any sort of refresh
                         sheet.setItemHidden(rowValue.item, !sheet.isItemHidden(rowValue.item));
@@ -813,6 +831,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                             this.updateHiddenState();
                         }
                     });
+
                     const buttonsArea = el('div', {class: 'item-hover-buttons-area'}, [trashButton, hideButton]);
                     return quickElement('div', ['item-name-holder-editable'], [quickElement('span', [], [shortenItemName(name)]), buttonsArea]);
                 },

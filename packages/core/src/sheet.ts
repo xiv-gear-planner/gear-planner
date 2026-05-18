@@ -1313,7 +1313,9 @@ export class GearPlanSheet {
                 // Unless the user has opted into showing one-stat-relevant food, only show food with two relevant substats.
                 // _dmRelevantFood is already filtered to food which has at least one relevant stat.
                 && (settings.showOneStatFood || (this.isStatRelevant(item.primarySubStat) && this.isStatRelevant(item.secondarySubStat)));
-        }), ...this._customFoods];
+        }), ...this._customFoods].filter(item => {
+            return settings.showHidden || !this.isItemHidden(item);
+        });
     }
 
     /**
@@ -1568,11 +1570,11 @@ export class GearPlanSheet {
         return null;
     }
 
-    isItemHidden(item: GearItem): boolean {
+    isItemHidden(item: GearItem | FoodItem): boolean {
         return this.hiddenItems.has(item.id);
     }
 
-    setItemHidden(item: GearItem, isHidden: boolean) {
+    setItemHidden(item: GearItem | FoodItem, isHidden: boolean) {
         if (isHidden) {
             this.hiddenItems.add(item.id);
         }

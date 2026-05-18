@@ -59,6 +59,7 @@ function makeGearFiltersArea(
             hidden: hidden,
         });
     });
+    showHidden.addListener(displayUpdateImmediate);
     const showHiddenWithLabel = labeledCheckbox('Show Hidden', showHidden);
     filtersForm.appendChild(showHiddenWithLabel);
 
