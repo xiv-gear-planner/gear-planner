@@ -151,7 +151,6 @@ export class MeldSolverDialog extends BaseModal {
     }
 
     onClose() {
-        super.close();
         this._sheet.setDefaultSolverSettings(this._set, this.settingsDiv.gearsetGenSettings);
     }
 }
