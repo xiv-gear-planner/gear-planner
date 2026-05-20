@@ -372,7 +372,6 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
         // this.overwriteFoodText.classList.add('meld-solver-settings');
 
         this.filterFoodCheckbox = new FieldBoundCheckBox(this.gearsetGenSettings, 'filterFood');
-        this.filterFoodCheckbox.addAndRunListener(val => SETTINGS.solverFilterFood = val);
         const filterFood = wrappedLabelPost("Use visible food? ", this.filterFoodCheckbox);
         filterFood.title = 'If checked, use visible food instead of default food filtering logic.';
 
