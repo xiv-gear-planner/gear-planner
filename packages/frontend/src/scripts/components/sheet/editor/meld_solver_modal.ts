@@ -23,6 +23,7 @@ import {GearsetGenerationStatusUpdate, MeldSolvingStatusUpdate} from "@xivgear/c
 
 export class MeldSolverDialog extends BaseModal {
     private _sheet: GearPlanSheetGui;
+    private _set: CharacterGearSet;
 
     private form: HTMLFormElement;
     private descriptionText: HTMLDivElement;
@@ -38,6 +39,7 @@ export class MeldSolverDialog extends BaseModal {
     constructor(sheet: GearPlanSheetGui, set: CharacterGearSet) {
         super();
         this._sheet = sheet;
+        this._set = set;
         this.id = 'meld-solver-dialog';
         this.headerText = 'Meld and Food Solver';
         this.form = document.createElement("form");
@@ -54,7 +56,8 @@ export class MeldSolverDialog extends BaseModal {
         // this.setNameText.textContent = `"${set.name}"`;
         // this.setNameText.classList.add('meld-solver-set');
 
-        this.settingsDiv = new MeldSolverSettingsMenu(sheet, set);
+        const gearsetGenSettings = sheet.getDefaultSolverSettings(set);
+        this.settingsDiv = new MeldSolverSettingsMenu(sheet, set, gearsetGenSettings);
 
 
         this.solveMeldsButton = makeActionButton("Solve Melds", async () => {
@@ -145,6 +148,10 @@ export class MeldSolverDialog extends BaseModal {
     // Block accidental closing once in progress
     get explicitCloseOnly() {
         return this.inProgress;
+    }
+
+    onClose() {
+        this._sheet.setDefaultSolverSettings(this._set, this.settingsDiv.gearsetGenSettings);
     }
 }
 
@@ -301,8 +308,8 @@ class MeldSolverProgressDisplay extends HTMLDivElement {
 }
 
 class MeldSolverSettingsMenu extends HTMLDivElement {
-    public gearsetGenSettings: GearsetGenerationSettings;
-    public simSettings: SolverSimulationSettings;
+    public readonly gearsetGenSettings: GearsetGenerationSettings;
+    public readonly simSettings: SolverSimulationSettings;
     private readonly overwriteMateriaText: HTMLSpanElement;
     private readonly overwriteMateriaCheckbox: FieldBoundCheckBox<GearsetGenerationSettings>;
     private readonly useTargetGcdCheckBox: FieldBoundCheckBox<GearsetGenerationSettings>;
@@ -319,25 +326,19 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
         disabled?: boolean
     }[] = [];
 
-    constructor(sheet: GearPlanSheetGui, set: CharacterGearSet) {
+    constructor(sheet: GearPlanSheetGui, set: CharacterGearSet, settings: GearsetGenerationSettings) {
         super();
 
-        const override = sheet.classJobStats.gcdDisplayOverrides?.(sheet.level);
-        let buffHaste = 0;
-        let gaugeHaste = 0;
-        if (override && override.length >= 1) {
-            buffHaste += (override[0].buffHaste ?? 0);
-            gaugeHaste += (override[0].gaugeHaste ?? 0);
-        }
-        const haste = Math.max(set.computedStats.haste("Weaponskill", buffHaste, gaugeHaste), set.computedStats.haste("Spell", buffHaste, gaugeHaste));
-        const gcd = Math.min(set.computedStats.gcdPhys(2.5, haste), set.computedStats.gcdMag(2.5, haste));
+        this.gearsetGenSettings = settings;
 
-        this.gearsetGenSettings = new GearsetGenerationSettings(set, false, true, gcd, false, SETTINGS.solverFilterFood);
         this.simSettings = {
             sim: sheet.sims.at(0),
             sets: undefined, // Not referenced in UI
         };
 
+        // TODO for later: to make it more clear, it should display the default GCD as a placeholder, rather than
+        // the actual value, so that we can differentiate between "left it as the default" and "explicitly set to the
+        // same value as the default".
         this.targetGcdInput = new FieldBoundFloatField(this.gearsetGenSettings, 'targetGcd', {
             postValidators: [ctx => {
                 const val = ctx.newValue;
@@ -370,7 +371,6 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
         // this.overwriteFoodText.classList.add('meld-solver-settings');
 
         this.filterFoodCheckbox = new FieldBoundCheckBox(this.gearsetGenSettings, 'filterFood');
-        this.filterFoodCheckbox.addAndRunListener(val => SETTINGS.solverFilterFood = val);
         const filterFood = wrappedLabelPost("Use visible food? ", this.filterFoodCheckbox);
         filterFood.title = 'If checked, use visible food instead of default food filtering logic.';
 

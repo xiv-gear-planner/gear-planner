@@ -90,6 +90,7 @@ import {GearSetEditor} from "./editor/set_editor";
 import {DataManager} from "@xivgear/core/datamanager";
 import {ASYNC_SIM_LOADER} from "../../sims/asyncloader/async_loader";
 import {HEALER_MP_SIM_STUB_NAME} from "@xivgear/sims/healer/healer_mp_consts";
+import {GearsetGenerationSettings} from "@xivgear/core/solving/gearset_generation";
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 
@@ -1990,6 +1991,76 @@ export class GearPlanSheetGui extends GearPlanSheet {
     set activeSpecialStat(value: SpecialStatType | null) {
         super.activeSpecialStat = value;
         this.resetEditorArea();
+    }
+
+    private readonly defaultSolverSettings = {
+        overwriteExistingMateria: false,
+        useTargetGcd: true,
+        overwriteFood: false,
+    };
+
+    private readonly solverGcdOverrides = new Map<CharacterGearSet, number>();
+
+    /**
+     * Compute the default GCD for solver purposes. Tries to use the first GCD display override, otherwise falls back
+     * to the normal 2.5s GCD for either a spell or weaponskill (whichever results in a faster GCD).
+     *
+     * @param set The gear set.
+     * @private
+     */
+    private getDefaultSolverGcd(set: CharacterGearSet): number {
+        const override = set.classJobStats.gcdDisplayOverrides?.(this.level);
+        let buffHaste = 0;
+        let gaugeHaste = 0;
+        if (override && override.length >= 1) {
+            buffHaste += (override[0].buffHaste ?? 0);
+            gaugeHaste += (override[0].gaugeHaste ?? 0);
+        }
+        const haste = Math.max(set.computedStats.haste("Weaponskill", buffHaste, gaugeHaste), set.computedStats.haste("Spell", buffHaste, gaugeHaste));
+        return Math.min(set.computedStats.gcdPhys(2.5, haste), set.computedStats.gcdMag(2.5, haste));
+    }
+
+    /**
+     * Get the solver settings for a particular set.
+     *
+     * @param set
+     */
+    getDefaultSolverSettings(set: CharacterGearSet): GearsetGenerationSettings {
+        const gcd = this.solverGcdOverrides.get(set) ?? this.getDefaultSolverGcd(set);
+
+        return new GearsetGenerationSettings(
+            set,
+            this.defaultSolverSettings.overwriteExistingMateria,
+            this.defaultSolverSettings.useTargetGcd,
+            gcd,
+            this.defaultSolverSettings.overwriteFood,
+            SETTINGS.solverFilterFood);
+    }
+
+    /**
+     * After the user alters their solver settings, it should be piped back into this method so that the changes can
+     * be (semi-)persisted. Only the "filter food" option is fully persisted, the rest are just in-memory.
+     *
+     * The target GCD is stored in-memory on a per-set basis, and only if the GCD you're setting is not equal to
+     * the default GCD for that set.
+     *
+     * @param set
+     * @param settings
+     */
+    setDefaultSolverSettings(set: CharacterGearSet, settings: GearsetGenerationSettings) {
+        SETTINGS.solverFilterFood = settings.filterFood;
+        this.defaultSolverSettings.overwriteFood = settings.overwriteFood;
+        this.defaultSolverSettings.useTargetGcd = settings.useTargetGcd;
+        this.defaultSolverSettings.overwriteExistingMateria = settings.overwriteExistingMateria;
+
+        const defaultGcd = this.getDefaultSolverGcd(set);
+        const actualGcd = settings.targetGcd;
+        if (defaultGcd !== actualGcd) {
+            this.solverGcdOverrides.set(set, actualGcd);
+        }
+        else {
+            this.solverGcdOverrides.delete(set);
+        }
     }
 }
 
