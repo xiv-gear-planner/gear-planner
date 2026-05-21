@@ -1505,6 +1505,13 @@ table.gear-items-table, table.food-items-table {
   // Match direct children only
   > tbody {
 
+    > tr.hidden-item {
+      > td {
+        filter: saturate(5%);
+        color: color-mix(in srgb, var(--fg-color) 30%, transparent);
+      }
+    }
+
     > tr, td {
       height: 25px;
       box-sizing: border-box;
@@ -1584,19 +1591,16 @@ table.gear-items-table, table.food-items-table {
           width: 1px;
         }
 
-        .remove-item-button, .remove-food-button {
-          display: none;
-        }
-      }
+        // The button area should only show when hovering
+        .item-hover-buttons-area {
+          display: contents;
 
-      &:hover {
-        &[is-selected="true"] {
-          .remove-item-button, .remove-food-button {
+          button {
+            cursor: pointer;
             background: none;
-            display: block;
             .borderless-button();
 
-            padding: 0;
+            padding: 0 0 0 3px;
             margin: 0;
 
             height: min-content;
@@ -1614,6 +1618,33 @@ table.gear-items-table, table.food-items-table {
               }
             }
           }
+
+          // The remove item button should also be hidden unless the item is selected
+          .remove-item-button {
+            display: none;
+          }
+        }
+      }
+
+      &[is-selected="true"] {
+        // When the item is selected, don't hide the remove-item-button
+        .item-hover-buttons-area {
+          .remove-item-button {
+            display: block;
+          }
+        }
+      }
+
+      &:not(:hover) {
+        .item-hover-buttons-area {
+          display: none;
+        }
+      }
+
+      &:hover {
+        .item-hover-buttons-area {
+          // When hovering, unhide the button area
+          //display: contents;
         }
       }
     }
@@ -2239,6 +2270,10 @@ div.gear-set-editor-toolbar, set-view-toolbar {
         text-align: center;
         margin-right: 2px;
       }
+    }
+
+    .labeled-checkbox {
+      text-align: left;
     }
   }
 

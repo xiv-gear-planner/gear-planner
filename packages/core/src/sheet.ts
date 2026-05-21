@@ -35,7 +35,8 @@ import {
     Materia,
     MateriaAutoFillController,
     MateriaAutoFillPrio,
-    MateriaFillMode, MateriaSlot,
+    MateriaFillMode,
+    MateriaSlot,
     MeldableMateriaSlot,
     NormalOccGearSlotKey,
     OccGearSlotKey,
@@ -223,6 +224,9 @@ export class GearPlanSheet {
 
     protected sheetManager: SheetManager;
 
+    // Set of item IDs which are hidden
+    private hiddenItems: Set<number> = new Set<number>();
+
     // Can't make ctor private for custom element, but DO NOT call this directly - use fromSaved or fromScratch
     constructor(sheetKey: string | undefined, importedData: SheetExport, manager: SheetManager) {
         console.log(importedData);
@@ -244,12 +248,19 @@ export class GearPlanSheet {
         ] : [];
         this.ilvlSync = importedData.ilvlSync;
         this._description = importedData.description;
+        const defaults = getDefaultDisplaySettings(this.level, this.classJobName, this.ilvlSync);
         if (importedData.itemDisplaySettings) {
             Object.assign(this._itemDisplaySettings, importedData.itemDisplaySettings);
         }
         else {
-            const defaults = getDefaultDisplaySettings(this.level, this.classJobName, this.ilvlSync);
             Object.assign(this._itemDisplaySettings, defaults);
+        }
+        if (importedData.hiddenItems) {
+            importedData.hiddenItems.forEach(itemId => this.hiddenItems.add(itemId));
+        }
+        else {
+            // if the import does not include hidden item info, reset this to the default.
+            this._itemDisplaySettings.showHidden = defaults.showHidden;
         }
         this.materiaAutoFillPrio = {
             statPrio: importedData.mfp ?? [...DefaultMateriaFillPrio.filter(stat => this.isStatRelevant(stat))],
@@ -582,6 +593,9 @@ export class GearPlanSheet {
         };
         if (opts.includeSaveKey) {
             out.saveKey = this._saveKey;
+        }
+        if (opts.includeItemFlags) {
+            out.hiddenItems = Array.from(this.hiddenItems);
         }
         // @ts-expect-error Don't know how to make it work - the only issue is that 'sets' is the wrong type.
         return out;
@@ -1264,7 +1278,10 @@ export class GearPlanSheet {
                         || item.isCustomRelic && settings.higherRelics)
                     && (!item.isNqVersion || settings.showNq);
             }),
-            ...this._customItems];
+            ...this._customItems].filter(item => {
+            // TODO: setting to allow showing of hidden items
+            return settings.showHidden || !this.isItemHidden(item);
+        });
     }
 
     /**
@@ -1296,7 +1313,9 @@ export class GearPlanSheet {
                 // Unless the user has opted into showing one-stat-relevant food, only show food with two relevant substats.
                 // _dmRelevantFood is already filtered to food which has at least one relevant stat.
                 && (settings.showOneStatFood || (this.isStatRelevant(item.primarySubStat) && this.isStatRelevant(item.secondarySubStat)));
-        }), ...this._customFoods];
+        }), ...this._customFoods].filter(item => {
+            return settings.showHidden || !this.isItemHidden(item);
+        });
     }
 
     /**
@@ -1550,6 +1569,27 @@ export class GearPlanSheet {
         }
         return null;
     }
+
+    isItemHidden(item: GearItem | FoodItem): boolean {
+        return this.hiddenItems.has(item.id);
+    }
+
+    setItemHidden(item: GearItem | FoodItem, isHidden: boolean) {
+        if (isHidden) {
+            this.hiddenItems.add(item.id);
+        }
+        else {
+            this.hiddenItems.delete(item.id);
+        }
+        // TODO: this is inefficient because it causes all of the gear tables to refresh, not just the one that we
+        // actually hid an item in.
+        this.gearDisplaySettingsUpdateNow();
+    }
+
+    resetHiddenItems() {
+        this.hiddenItems.clear();
+        this.gearDisplaySettingsUpdateNow();
+    }
 }
 
 function checkItemCompat(itemA: EquippedItem, itemB: EquippedItem): SlotIncompatibility | 'compatible' {
@@ -1664,21 +1704,14 @@ export type SlotIncompatibility = {
 export type SlotIncompatibilityReason = 'materia-mismatch' | 'relic-stat-mismatch';
 
 export type SheetExportOptions = {
-    /*
-    External seems to be true for:
-    1. We are publishing or explicitly exporting a set
-    2. A full stats request
-
-
-    It is false for:
-    Meld solver - this is a unique case, as we want sims but not a save key
-
-    We should deprecate this and break it down into smaller options.
-     */
-    // external: boolean;
     includeStats: boolean;
     includeSims: SimExportMode;
     includeSaveKey: boolean;
+    /**
+     * Whether to include flags such as items that are hidden, or (future state) items that are intended for inclusion
+     * in the gear solver possibilities.
+     */
+    includeItemFlags: boolean;
 }
 
 // TODO: make ternaries for the rest of the combinations
@@ -1696,6 +1729,7 @@ export const SolverExport = {
     includeStats: false,
     includeSims: 'none',
     includeSaveKey: false,
+    includeItemFlags: true,
 } as const satisfies SheetExportOptions;
 
 /**
@@ -1706,6 +1740,7 @@ const ExternalExport = {
     includeStats: false,
     includeSims: 'selected-only',
     includeSaveKey: false,
+    includeItemFlags: false,
 } as const satisfies SheetExportOptions;
 
 /**
@@ -1715,6 +1750,7 @@ const InternalSave = {
     includeStats: false,
     includeSims: 'all',
     includeSaveKey: true,
+    includeItemFlags: true,
 } as const satisfies SheetExportOptions;
 
 /**
@@ -1725,6 +1761,7 @@ const InternalSaveAs = {
     includeStats: false,
     includeSims: 'all',
     includeSaveKey: false,
+    includeItemFlags: true,
 } as const satisfies SheetExportOptions;
 
 /**
@@ -1734,6 +1771,7 @@ const FullStatsExport = {
     includeStats: true,
     includeSims: 'all',
     includeSaveKey: false,
+    includeItemFlags: true,
 } as const satisfies SheetExportOptions;
 
 export const ExportTypes = {

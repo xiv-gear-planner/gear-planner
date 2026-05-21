@@ -622,6 +622,7 @@ const defaultItemDispBase = {
     minILvlFood: 770,
     maxILvlFood: 999,
     showOneStatFood: false,
+    showHidden: false,
 } as const satisfies Partial<ItemDisplaySettings>;
 
 /**
@@ -1017,6 +1018,7 @@ export const defaultItemDisplaySettings: Readonly<ItemDisplaySettings> = {
     higherRelics: true,
     showNq: false,
     showOneStatFood: false,
+    showHidden: false,
 } as const;
 
 export const MAX_PARTY_BONUS: PartyBonusAmount = 5;

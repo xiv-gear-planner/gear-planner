@@ -848,6 +848,11 @@ export interface SheetExport {
     isMultiJob?: boolean,
 
     specialStats?: string | null,
+
+    /**
+     * List of hidden items and food, by item ID
+     */
+    hiddenItems?: number[],
 }
 
 export type SheetModificationKey = number;
@@ -1185,6 +1190,11 @@ export interface ItemDisplaySettings {
      * Show food with only one relevant stat
      */
     showOneStatFood: boolean,
+
+    /**
+     * Show hidden items, allowing you to unhide them.
+     */
+    showHidden: boolean,
 }
 
 export const AttackTypes = ['Unknown', 'Auto-attack', 'Spell', 'Weaponskill', 'Ability', 'Item'] as const;
