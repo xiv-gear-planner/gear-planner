@@ -823,10 +823,12 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                     });
 
                     const hideButton = quickElement('button', ['hide-item-button'], ['Hide']);
-                    hideButton.replaceChildren(sheet.isItemHidden(rowValue.item) ? showIcon() : hideIcon());
+                    const isHidden = sheet.isItemHidden(rowValue.item);
+                    hideButton.replaceChildren(isHidden ? showIcon() : hideIcon());
+                    hideButton.title = `Click to ${isHidden ? 'un-hide' : 'hide'} item`;
                     hideButton.addEventListener('click', () => {
                         // This will trigger a refresh on its own, so no need to force any sort of refresh
-                        sheet.setItemHidden(rowValue.item, !sheet.isItemHidden(rowValue.item));
+                        sheet.setItemHidden(rowValue.item, !isHidden);
                         if (sheet.itemDisplaySettings.showHidden) {
                             this.updateHiddenState();
                         }
