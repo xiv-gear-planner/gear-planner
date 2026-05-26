@@ -406,54 +406,51 @@ export class CharacterGearSet {
         // console.debug(`Set ${this.name}: slot ${slot} => ${item?.name}`);
         if (materiaAutoFillController) {
             const mode = materiaAutoFillController.autoFillMode;
-            if (mode === 'leave_empty') {
-                // Do nothing
-            }
-            else {
-                // This var tracks what we would like to re-equip
-                let reEquip: {
-                    materia: Materia | null,
-                    locked: boolean,
-                }[] = [];
-                if (mode === 'retain_slot' || mode === 'retain_slot_else_prio') {
-                    if (old && old.melds.find(meld => meld.equippedMateria)) {
-                        reEquip = old.melds.map(meld => {
-                            return {
-                                materia: meld.equippedMateria,
-                                locked: meld.locked,
-                            };
-                        }).filter(value => value);
-                    }
+            // This var tracks what we would like to re-equip
+            let reEquip: {
+                materia: Materia | null,
+                locked: boolean,
+            }[] = [];
+            if (mode === 'retain_slot' || mode === 'retain_slot_else_prio') {
+                if (old && old.melds.find(meld => meld.equippedMateria)) {
+                    reEquip = old.melds.map(meld => {
+                        return {
+                            materia: meld.equippedMateria,
+                            locked: meld.locked,
+                        };
+                    }).filter(value => value);
                 }
-                else if (mode === 'retain_item' || mode === 'retain_item_else_prio') {
-                    const remembered = this.materiaMemory.get(slot, item);
-                    remembered.forEach((slotMemory, index) => {
-                        const materiaId = slotMemory.id;
-                        if (materiaId <= 0) {
+            }
+            else if (item) {
+                const remembered = this.materiaMemory.get(slot, item);
+                remembered.forEach((slotMemory, index) => {
+                    const materiaId = slotMemory.id;
+                    if (materiaId <= 0) {
+                        reEquip.push({
+                            materia: null,
+                            locked: slotMemory.locked,
+                        });
+                    }
+                    else {
+                        const meld = this.equipment[slot].melds[index];
+                        if (meld) {
+                            reEquip.push({
+                                materia: this._sheet.getMateriaById(materiaId),
+                                locked: slotMemory.locked,
+                            });
+                        }
+                        else {
                             reEquip.push({
                                 materia: null,
                                 locked: slotMemory.locked,
                             });
                         }
-                        else {
-                            const meld = this.equipment[slot].melds[index];
-                            if (meld) {
-                                reEquip.push({
-                                    materia: this._sheet.getMateriaById(materiaId),
-                                    locked: slotMemory.locked,
-                                });
-                            }
-                            else {
-                                reEquip.push({
-                                    materia: null,
-                                    locked: slotMemory.locked,
-                                });
-                            }
-                        }
-                    });
-                }
-                // We want to unconditionally restore locked materia
-                const eq = this.equipment[slot]!;
+                    }
+                });
+            }
+            // We want to unconditionally restore locked materia
+            const eq = this.equipment[slot];
+            if (eq) {
                 for (let i = 0; i < reEquip.length; i++) {
                     if (i in eq.melds) {
                         const meld = eq.melds[i];
@@ -462,7 +459,7 @@ export class CharacterGearSet {
                         const materia = req.materia;
                         if (materia && isMateriaAllowed(materia, meld.materiaSlot)
                             // We want to restore the materia if the slot is locked, or if the mode is not autofill
-                            && (meld.locked || mode !== 'autofill')) {
+                            && (meld.locked || (mode !== 'autofill' && mode !== 'leave_empty'))) {
                             meld.equippedMateria = materia;
                         }
                     }

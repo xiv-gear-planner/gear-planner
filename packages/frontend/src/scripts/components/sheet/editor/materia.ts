@@ -25,7 +25,7 @@ import {GearPlanSheetGui} from "../sheet_gui";
 import {recordCurrentSheetEvent} from "../../../analytics/analytics";
 import {MODAL_CONTROL} from "@xivgear/common-ui/modalcontrol";
 import {makeLockIcon, makeNewSheetIcon, makePlusIcon, makeTrashIcon} from "@xivgear/common-ui/components/icons";
-import {materiaShortLabel} from "@xivgear/core/materia/materia_utils";
+import {getMateriaFillModeName, materiaShortLabel} from "@xivgear/core/materia/materia_utils";
 
 /**
  * Component for managing all materia slots on an item
@@ -441,24 +441,7 @@ export class MateriaPriorityPicker extends HTMLElement {
         const header = document.createElement('span');
         header.textContent = 'Mat Prio: ';
         const fillModeDropdown = new FieldBoundDataSelect<MateriaAutoFillController, MateriaFillMode>(prioController, 'autoFillMode',
-            (val: MateriaFillMode) => {
-                switch (val) {
-                    case "leave_empty":
-                        return "Leave Empty";
-                    case "autofill":
-                        return "Prio Fill";
-                    case "retain_slot_else_prio":
-                        return "Keep Slot > Prio";
-                    case "retain_item_else_prio":
-                        return "Keep Item > Prio";
-                    case "retain_slot":
-                        return "Keep Slot > None";
-                    case "retain_item":
-                        return "Keep Item > None";
-                    default:
-                        return "?";
-                }
-            }, [...MATERIA_FILL_MODES]);
+            getMateriaFillModeName, [...MATERIA_FILL_MODES]);
         fillModeDropdown.title = 'Control what happens when an item is selected.\n'
             + 'Leave Empty: Do not fill any materia when selecting an item.\n'
             + 'Prio Fill: Fill materia slots according to the priority above.\n'
