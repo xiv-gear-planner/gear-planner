@@ -20,8 +20,17 @@ export class AsyncSimLoader {
                     }
                     return chunk;
                 })).then(mod => {
-                    mod.registerSims();
-                    mod.registerDefaultSimGuis();
+                    type modType = typeof mod;
+                    if ('registerSims' in mod) {
+                        mod.registerSims();
+                        mod.registerDefaultSimGuis();
+                    }
+                    // Path for unit testing
+                    else if ('exports' in mod) {
+                        const exports: modType = mod['exports'];
+                        exports.registerSims();
+                        exports.registerDefaultSimGuis();
+                    }
                 }),
             ]);
         }

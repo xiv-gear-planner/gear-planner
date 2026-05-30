@@ -1094,6 +1094,10 @@ export class GearPlanSheetGui extends GearPlanSheet {
         return null;
     }
 
+    set selectedGearSet(set: CharacterGearSet | null) {
+        this.editorItem = set ?? undefined;
+    }
+
     get isViewOnly() {
         return super.isViewOnly;
     }
