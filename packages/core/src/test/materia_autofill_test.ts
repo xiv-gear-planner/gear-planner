@@ -1,7 +1,8 @@
 import {expect} from "chai";
 import {GearPlanSheet, HEADLESS_SHEET_PROVIDER} from "../sheet";
 import {CharacterGearSet} from "../gear";
-import {GearItem, Materia} from "@xivgear/xivmath/geartypes";
+import {GearItem} from "@xivgear/xivmath/geartypes";
+
 describe("Materia Autofill Modes", () => {
     let sheet: GearPlanSheet;
     let gearSet: CharacterGearSet;
