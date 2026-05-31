@@ -706,7 +706,7 @@ export type ElOpts<X extends keyof HTMLElementTagNameMap> = {
  * @param opts The options to use
  * @param nodes Child nodes
  */
-export function el<X extends keyof HTMLElementTagNameMap>(tag: X, opts: ElOpts<X> = {}, nodes: Parameters<ParentNode['replaceChildren']> = []) {
+export function el<X extends keyof HTMLElementTagNameMap>(tag: X, opts: ElOpts<X> = {}, nodes: Parameters<ParentNode['replaceChildren']> = []): HTMLElementTagNameMap[X] {
     const classes = opts.classes ?? [];
     if (opts.class) {
         classes.push(opts.class);
@@ -714,6 +714,9 @@ export function el<X extends keyof HTMLElementTagNameMap>(tag: X, opts: ElOpts<X
     const out = quickElement(tag, classes, nodes);
     if (opts.id) {
         out.id = opts.id;
+    }
+    if (opts.title) {
+        out.title = opts.title;
     }
     if (opts.props) {
         for (const [key, value] of Object.entries(opts.props)) {

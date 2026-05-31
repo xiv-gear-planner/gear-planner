@@ -413,6 +413,7 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
             ]
         );
 
+        // TODO: move this to CSS
         const pentameldWarning = el('li', {
             style: {
                 overflow: 'hidden',

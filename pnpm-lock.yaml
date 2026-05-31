@@ -171,6 +171,9 @@ importers:
       '@types/chai':
         specifier: ^4.3.20
         version: 4.3.20
+      '@types/jsdom':
+        specifier: ^21.1.7
+        version: 21.1.7
       '@types/mocha':
         specifier: ^10.0.10
         version: 10.0.10
@@ -180,6 +183,12 @@ importers:
       chai:
         specifier: ^4.5.0
         version: 4.5.0
+      global-jsdom:
+        specifier: ^25.0.0
+        version: 25.0.0(jsdom@25.0.1)
+      jsdom:
+        specifier: ^25.0.1
+        version: 25.0.1
       ts-loader:
         specifier: ^9.5.2
         version: 9.5.4(typescript@5.9.3)(webpack@5.105.2)
