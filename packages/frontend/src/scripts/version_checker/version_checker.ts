@@ -63,10 +63,15 @@ export class VersionChecker {
     }
 
     start(): void {
+        this.fired = false;
         if (this.running) {
             return;
         }
         void this.run();
+    }
+
+    stop(): void {
+        this.running = false;
     }
 
     private async delayMs(ms: number): Promise<void> {
@@ -94,6 +99,10 @@ export class VersionChecker {
         }
 
         while (!this.fired) {
+            if (!this.running) {
+                // cancelled
+                return;
+            }
             try {
                 const res = await cfg.fetchFn(remoteUrl);
                 if (res.ok) {
