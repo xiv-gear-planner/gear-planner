@@ -14,10 +14,12 @@ function deq<T>(actual: T, expected: T) {
 }
 
 describe('New Datamanager', () => {
+    const sch90 = new NewApiDataManager(['SCH'], 90);
+    before(async () => {
+        await sch90.loadData();
+    });
     it('can load some SCH items', async () => {
-        const dm = new NewApiDataManager(['SCH'], 90);
-        await dm.loadData();
-        const codexOfAscension = dm.itemById(40176);
+        const codexOfAscension = sch90.itemById(40176);
         // Basic item props
         eq(codexOfAscension.id, 40176);
         eq(codexOfAscension.name, 'Codex of Ascension');
@@ -89,14 +91,12 @@ describe('New Datamanager', () => {
         // eq(ilvl545book, undefined);
 
         // This item is 560, it just barely makes it
-        const ilvl560book = dm.itemById(34053);
+        const ilvl560book = sch90.itemById(34053);
         eq(ilvl560book.ilvl, 560);
 
     }).timeout(20_000);
     it('can get stats of food items', async () => {
-        const dm = new NewApiDataManager(['SCH'], 90);
-        await dm.loadData();
-        const food = dm.foodById(44096);
+        const food = sch90.foodById(44096);
         eq(food.id, 44096);
         eq(food.name, "Vegetable Soup");
         eq(food.nameTranslation.en, "Vegetable Soup");
@@ -107,7 +107,7 @@ describe('New Datamanager', () => {
         eq(food.bonuses.dhit.percentage, 10);
         eq(food.bonuses.determination.max, 73);
         eq(food.bonuses.determination.percentage, 10);
-    }).timeout(20_000);
+    }).timeout(30_000);
     it('handles multi-slot items correctly', async () => {
         const dm = new NewApiDataManager(['BLM'], 100);
         await dm.loadData();

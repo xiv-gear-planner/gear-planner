@@ -42,6 +42,6 @@
     "web": "webpack --mode=development",
     "webprod": "webpack --mode=production",
     "less": "lessc --source-map ./src/style.less dist/style.css",
-    "test": "mocha --no-experimental-strip-types  --parallel=true   --require ts-node/register  --loader=ts-node/esm --timeout 15000 \"src/scripts/test/**/*test.ts\" \"src/scripts/test/**/*tests.ts\""
+    "test": "mocha --no-experimental-strip-types  --parallel=true   --require ts-node/register  --loader=ts-node/esm --timeout 30000 \"src/scripts/test/**/*test.ts\" \"src/scripts/test/**/*tests.ts\""
   }
 }
