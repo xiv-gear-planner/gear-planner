@@ -55,6 +55,7 @@ import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {recordSheetEvent} from "../../../analytics/analytics";
 import {hideIcon, makeTrashIcon, showIcon} from "@xivgear/common-ui/components/icons";
 import {sortItemsInPlace} from "../../items/item_utils";
+import {bold, p} from "@xivgear/common-ui/components/templates";
 
 function removeStatCellStyles(cell: CustomCell<GearSlotItem, unknown>) {
     cell.classList.remove("secondary");
@@ -1159,12 +1160,12 @@ export class AltItemsModal extends BaseModal {
         super();
         this.headerText = 'Alternative Items';
 
-        const text = el('p');
+        let text: HTMLParagraphElement;
         if (sheet.ilvlSync) {
-            text.replaceChildren('These items are ', el('b', {}, ['equivalent to ']), baseItem.nameTranslation.asCurrentLang, ` when synced to i${sheet.ilvlSync}:`);
+            text = p`These items are ${bold`equivalent to`} ${baseItem.nameTranslation.asCurrentLang} when synced to i${sheet.ilvlSync}:`;
         }
         else {
-            text.replaceChildren('These items are ', el('b', {}, ['equivalent to or better than ']), baseItem.nameTranslation.asCurrentLang, ':');
+            text = p`These items are ${bold`equivalent to or better than`} ${baseItem.nameTranslation.asCurrentLang}:`;
         }
         this.contentArea.appendChild(el('div', {class: 'alt-items-text-holder'}, [text]));
 
@@ -1210,6 +1211,9 @@ export class AltItemsModal extends BaseModal {
         // Other UI option - don't show the base item at all.
         table.data = [new HeaderRow(), ...altItems];
         this.contentArea.appendChild(table);
+
+        const disclaimer = p`Please note that this is not an exhaustive list. Other items, such as custom relics, may also be equivalent or better.`;
+        this.contentArea.appendChild(disclaimer);
 
         this.addCloseButton();
     }

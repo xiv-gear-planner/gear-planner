@@ -1,5 +1,5 @@
 import {BaseModal} from "@xivgear/common-ui/components/modal";
-import {el} from "@xivgear/common-ui/components/util";
+import {p} from "@xivgear/common-ui/components/templates";
 
 export function showNewVersionModal() {
     new NewVersionModal().attachAndShowTop();
@@ -13,9 +13,7 @@ export class NewVersionModal extends BaseModal {
     constructor() {
         super();
         this.headerText = 'New Version Available';
-        const description = el('p', {}, [
-            'A new version of the site is available. We recommend you reload the page.',
-        ]);
+        const description = p`A new version of the site is available. We recommend you reload the page.`;
         this.contentArea.append(description);
         this.addActionButton('Reload', () => this.reload());
         this.addCloseButton('Close');
