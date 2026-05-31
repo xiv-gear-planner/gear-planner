@@ -16,6 +16,14 @@ describe("VersionPoller", () => {
         return new DOMParser().parseFromString(html, "text/html");
     }
 
+    let toClose: VersionChecker[] = [];
+
+    beforeEach(() => {
+        const toCloseNow = toClose;
+        toClose = [];
+        toCloseNow.forEach(vc => vc.stop());
+    });
+
     it("does not detect when main script does not change", async () => {
         const doc = makeDoc(`<!doctype html><html><head><script src="main.123.js"></script></head><body></body></html>`);
 
@@ -36,6 +44,7 @@ describe("VersionPoller", () => {
                 detected = true;
             },
         });
+        toClose.push(poller);
 
         poller.start();
 
@@ -73,6 +82,7 @@ describe("VersionPoller", () => {
                     resolve();
                 },
             });
+            toClose.push(poller);
             poller.start();
         });
 
@@ -110,6 +120,7 @@ describe("VersionPoller", () => {
                 detected = true;
             },
         });
+        toClose.push(poller);
 
         poller.start();
 
@@ -146,6 +157,7 @@ describe("VersionPoller", () => {
                 detected = true;
             },
         });
+        toClose.push(poller);
 
         poller.start();
 
