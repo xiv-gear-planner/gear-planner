@@ -177,11 +177,14 @@ class SheetWorker {
     }
 }
 
+export type WorkerCreator = (name: string) => Worker;
+
 export class WorkerPool {
 
-    workers: SheetWorker[] = [];
-    messageQueue: WorkRequestInternal<AnyJobContext>[] = [];
-    currentSheet: GearPlanSheet | null = null;
+    private readonly workers: SheetWorker[] = [];
+    private messageQueue: WorkRequestInternal<AnyJobContext>[] = [];
+    private currentSheet: GearPlanSheet | null = null;
+    private workerProvider: WorkerCreator | null = null;
 
     constructor(readonly minWorkers: number, readonly maxWorkers: number) {
         console.log(`WorkerPool starting. minWorkers ${minWorkers}, maxWorkers ${maxWorkers}`);
@@ -196,6 +199,11 @@ export class WorkerPool {
         return this.workers.filter(worker => worker.isInitializing).length;
     }
 
+    setWorkerProvider(provider: WorkerCreator) {
+        this.workerProvider = provider;
+        this.stateUpdate();
+    }
+
     /**
      * Get a free worker, or null if there are no free workers.
      * @private
@@ -206,11 +214,12 @@ export class WorkerPool {
 
     /**
      * Add a new worker. The worker will initially be in "initializing" state, but it is immediately added to the
-     * list.
+     * list. This method should ONLY be called in {@link #stateUpdate}.
      *
      * @private
      */
     private addNewWorker(doStateUpdate: boolean = true): void {
+
         const worker = this.makeActualWorker();
         this.workers.push(worker);
         if (this.currentSheet !== null) {
@@ -223,9 +232,17 @@ export class WorkerPool {
 
     /**
      * stateUpdate must be called any time that work is added to the queue, or a worker becomes available.
+     * It looks at the current state of the task queue and workers, and processes any update needed to make work
+     * progress or housekeeping activities. It is responsible for creating new workers, and for giving work tasks
+     * to those workers.
+     *
      * @private
      */
     private stateUpdate() {
+        if (!this.workerProvider) {
+            console.log("ignored worker pool state update because no worker provider exists");
+            return;
+        }
         // First, remove any workers in terminated state
         let i = this.workers.length;
         while (i--) {
@@ -294,12 +311,7 @@ export class WorkerPool {
     private makeActualWorker(): SheetWorker {
         const name = 'worker-' + this.workerId++;
         console.log(`Creating worker ${name}`);
-        const worker = new Worker(
-            /* @ts-expect-error not a module */
-            /* webpackChunkName: "worker_main" */ new URL('./worker_main', import.meta.url),
-            {
-                name: name,
-            });
+        const worker = this.workerProvider(name);
         // console.log("worker URL:", foo.toString());
         return new SheetWorker(worker, name, () => this.stateUpdate());
     }
