@@ -1245,24 +1245,34 @@ export class CharacterGearSet {
         });
     }
 
+    /**
+     * Get food items that could replace the given food - either identical in terms of effective stats, or strictly
+     * better with the exception that sps/sks must match exactly. Since food provides % bonuses, this considers the
+     * actual amount it would give. Note that this means that unlike gear, this result may depend on other slots,
+     * i.e. changing a different gear slot may result in a change in what food is considered equivalent.
+     *
+     * @param thisFood
+     */
     getAltFoodFor(thisFood: FoodItem): FoodItem[] {
         return this.sheet.allFoodItems.filter(thatFood => {
             // Cannot be the same food item
             if (thisFood.id === thatFood.id) {
                 return false;
             }
-            const thisEffectiveBonuses = this.getEffectiveFoodBonuses(thisFood);
-            const thatEffectiveBonuses = this.getEffectiveFoodBonuses(thatFood);
+            const thisBonuses = this.getEffectiveFoodBonuses(thisFood);
+            const thatBonuses = this.getEffectiveFoodBonuses(thatFood);
             for (const stat of ALL_STATS) {
-                const thisValue = thisEffectiveBonuses[stat];
-                const thatValue = thatEffectiveBonuses[stat];
+                const thisValue = thisBonuses[stat];
+                const thatValue = thatBonuses[stat];
                 if (stat === 'skillspeed' || stat === 'spellspeed') {
+                    // sks/sps requires exact equality
                     if (thisValue !== thatValue) {
                         return false;
                     }
                 }
                 else {
-                    if (thisValue < thatValue) {
+                    // other stats only require greater than or equal
+                    if (thisValue > thatValue) {
                         return false;
                     }
                 }
