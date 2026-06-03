@@ -121,7 +121,8 @@ export class GearSetViewer extends HTMLElement {
         // Food table TODO make readonly
         const food = this.gearSet.food;
         if (food) {
-            const foodTable = new FoodItemViewTable(this.sheet, this.gearSet, food);
+            const alts = this.gearSet.getAltFoodFor(food);
+            const foodTable = new FoodItemViewTable(this.sheet, this.gearSet, food, alts);
             foodTable.classList.add('food-view-table');
             // foodTable.id = "food-items-table";
             this.appendChild(foodTable);
