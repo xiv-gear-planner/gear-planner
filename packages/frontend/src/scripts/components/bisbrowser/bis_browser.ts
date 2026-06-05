@@ -10,7 +10,7 @@ import {
 } from "@xivgear/common-ui/table/tables";
 import {NamedSection} from "../general/section";
 import {BIS_BROWSER_HASH, BIS_HASH, makeUrlSimple} from "@xivgear/core/nav/common_nav";
-import {ALL_COMBAT_JOBS, JOB_DATA, JOB_IDS, JobName} from "@xivgear/xivmath/xivconstants";
+import {ALL_COMBAT_JOBS, ALL_JOBS, JOB_DATA, JOB_IDS, JobName} from "@xivgear/xivmath/xivconstants";
 import {makeActionButton, quickElement} from "@xivgear/common-ui/components/util";
 import {capitalizeFirstLetter} from "@xivgear/util/strutils";
 import {JobIcon} from "../job/job_icon";
@@ -186,7 +186,7 @@ function looksLikeJob(a: DirNode): a is JobNode {
 }
 
 function compareJobs(a: JobNode, b: JobNode): number {
-    return ALL_COMBAT_JOBS.indexOf(a.job) - ALL_COMBAT_JOBS.indexOf(b.job);
+    return ALL_JOBS.indexOf(a.job) - ALL_JOBS.indexOf(b.job);
 }
 
 function compareDirs(a: DirNode, b: DirNode): number {

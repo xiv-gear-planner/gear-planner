@@ -919,6 +919,12 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
             itemTableStatColumn(sheet, gearSet, 'skillspeed', true),
             itemTableStatColumn(sheet, gearSet, 'piety', true),
             itemTableStatColumn(sheet, gearSet, 'tenacity', true),
+            itemTableStatColumn(sheet, gearSet, 'gp', true),
+            itemTableStatColumn(sheet, gearSet, 'gathering', true),
+            itemTableStatColumn(sheet, gearSet, 'perception', true),
+            itemTableStatColumn(sheet, gearSet, 'cp', true),
+            itemTableStatColumn(sheet, gearSet, 'craftsmanship', true),
+            itemTableStatColumn(sheet, gearSet, 'control', true)
         ];
         this.data = data;
         this.updateShowHide();
@@ -1098,6 +1104,39 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
             };
         }
 
+        const statCols: ReturnType<typeof w>[] = [];
+
+        switch (gearSet.classJobStats.type) {
+            case 'Combat': {
+                statCols.push(
+                    w(itemTableStatColumn(sheet, gearSet, 'crit', true)),
+                    w(itemTableStatColumn(sheet, gearSet, 'dhit', true)),
+                    w(itemTableStatColumn(sheet, gearSet, 'determination', true)),
+                    w(itemTableStatColumn(sheet, gearSet, 'spellspeed', true)),
+                    w(itemTableStatColumn(sheet, gearSet, 'skillspeed', true)),
+                    w(itemTableStatColumn(sheet, gearSet, 'piety', true)),
+                    w(itemTableStatColumn(sheet, gearSet, 'tenacity', true))
+                );
+                break;
+            }
+            case "DoL": {
+                statCols.push(
+                    w(itemTableStatColumn(sheet, gearSet, 'gp', true)),
+                    w(itemTableStatColumn(sheet, gearSet, 'gathering', true)),
+                    w(itemTableStatColumn(sheet, gearSet, 'perception', true))
+                );
+                break;
+            }
+            case "DoH": {
+                statCols.push(
+                    w(itemTableStatColumn(sheet, gearSet, 'cp', true)),
+                    w(itemTableStatColumn(sheet, gearSet, 'craftsmanship', true)),
+                    w(itemTableStatColumn(sheet, gearSet, 'control', true))
+                );
+                break;
+            }
+        }
+
         super.columns = [
             col({
                 shortName: "icon",
@@ -1119,6 +1158,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
                 },
                 // initialWidth: 300,
             }),
+            ...statCols,
             // {
             //     shortName: "wd",
             //     displayName: "WD",
@@ -1142,13 +1182,6 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
             // itemTableStatColumn(sheet, gearSet, 'dexterity'),
             // itemTableStatColumn(sheet, gearSet, 'intelligence'),
             // itemTableStatColumn(sheet, gearSet, 'mind'),
-            w(itemTableStatColumn(sheet, gearSet, 'crit', true)),
-            w(itemTableStatColumn(sheet, gearSet, 'dhit', true)),
-            w(itemTableStatColumn(sheet, gearSet, 'determination', true)),
-            w(itemTableStatColumn(sheet, gearSet, 'spellspeed', true)),
-            w(itemTableStatColumn(sheet, gearSet, 'skillspeed', true)),
-            w(itemTableStatColumn(sheet, gearSet, 'piety', true)),
-            w(itemTableStatColumn(sheet, gearSet, 'tenacity', true)),
         ];
         this.data = data;
     }

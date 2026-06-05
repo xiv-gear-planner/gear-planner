@@ -145,14 +145,14 @@ export function getRelicStatModelFor(gearItem: GearItem, baseParams: BaseParamMa
                 const relicStats = item.relicStats;
                 if (statToReport) {
                     if (relicStats[statToReport] && jobData.excludedRelicSubstats.includes(statToReport)) {
-                        failures.push(err(`${STAT_FULL_NAMES[statToReport]} is not available on ${jobData.role.toLowerCase()} relics.`));
+                        failures.push(err(`${STAT_FULL_NAMES[statToReport]} is not available on ${jobData.combatRole.toLowerCase()} relics.`));
                     }
                 }
                 else {
                     for (const entry of Object.entries(relicStats)) {
                         const stat = entry[0] as Substat;
                         if (entry[1] && jobData.excludedRelicSubstats.includes(stat)) {
-                            failures.push(err(`Stat ${STAT_FULL_NAMES[stat]} is not available on ${jobData.role.toLowerCase()} relics.`));
+                            failures.push(err(`Stat ${STAT_FULL_NAMES[stat]} is not available on ${jobData.combatRole.toLowerCase()} relics.`));
                         }
                     }
                 }

@@ -15,7 +15,7 @@ import {
     quickElement,
     randomId
 } from "@xivgear/common-ui/components/util";
-import {ALL_STATS, ALL_SUB_STATS, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "@xivgear/xivmath/xivconstants";
+import {ALL_COMBAT_STATS, ALL_SUB_STATS, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "@xivgear/xivmath/xivconstants";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {DropdownActionMenu} from "../general/dropdown_actions_menu";
 import {NormalOccGearSlots, RawStats, Substat} from "@xivgear/xivmath/geartypes";
@@ -161,7 +161,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 headerStyler: setTitle('Number of restricted materia slots'),
                 colStyler: setTitle('Number of restricted materia slots'),
             },
-            ...ALL_STATS.map(stat => {
+            ...ALL_COMBAT_STATS.map(stat => {
                 return col({
                     shortName: STAT_ABBREVIATIONS[stat],
                     displayName: STAT_ABBREVIATIONS[stat],

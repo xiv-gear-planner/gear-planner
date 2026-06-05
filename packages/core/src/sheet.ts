@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // TODO: get back to fixing this at some point
 import {
-    ALL_COMBAT_JOBS,
+    ALL_COMBAT_JOBS, ALL_COMBAT_STATS,
     ALL_SUB_STATS,
     CURRENT_MAX_LEVEL,
     defaultItemDisplaySettings,
-    DefaultMateriaFillPrio,
+    DefaultMateriaFillPrio, DOH_STATS, DOL_STATS,
     getClassJobStats,
     getDefaultDisplaySettings,
     getRaceStats,
@@ -182,7 +182,7 @@ export class GearPlanSheet {
     private _partyBonus: PartyBonusAmount;
     private readonly _saveKey: string | undefined;
     private readonly _importedData: SheetExport;
-    shouldAddDefaultSimsToNewSheet: boolean;
+    shouldAddDefaultSimsToNewSheet: boolean = false;
 
     // Sheet data
     private _sets: CharacterGearSet[] = [];
@@ -242,7 +242,7 @@ export class GearPlanSheet {
         this.isMultiJob = importedData.isMultiJob ?? false;
         this._activeSpecialStat = (importedData.specialStats ?? null) as SpecialStatType | null;
         this.altJobs = this.isMultiJob ? [
-            ...ALL_COMBAT_JOBS.filter(job => JOB_DATA[job].role === JOB_DATA[this.classJobName].role
+            ...ALL_COMBAT_JOBS.filter(job => JOB_DATA[job].combatRole === JOB_DATA[this.classJobName].combatRole
                 // Don't include the primary job in the list of alt jobs
                 && job !== this.classJobName),
         ] : [];
@@ -1105,18 +1105,25 @@ export class GearPlanSheet {
             // Not sure what the best way to handle this is
             return true;
         }
-        if (MAIN_STATS.includes(stat as typeof MAIN_STATS[number])) {
-            return (stat === this.classJobEarlyStats.mainStat);
-        }
-        if (stat === 'gearHaste') {
-            const specialStat = this.activeSpecialStat;
-            return SPECIAL_STATS_MAPPING[specialStat]?.showHaste ?? false;
-        }
-        if (this.classJobEarlyStats.irrelevantSubstats) {
-            return !this.classJobEarlyStats.irrelevantSubstats.includes(stat as Substat);
-        }
-        else {
-            return true;
+        switch (this.classJobEarlyStats.type) {
+            case "Combat":
+                if (MAIN_STATS.includes(stat as typeof MAIN_STATS[number])) {
+                    return (stat === this.classJobEarlyStats.mainStat);
+                }
+                if (stat === 'gearHaste') {
+                    const specialStat = this.activeSpecialStat;
+                    return SPECIAL_STATS_MAPPING[specialStat]?.showHaste ?? false;
+                }
+                if (this.classJobEarlyStats.irrelevantSubstats) {
+                    return !this.classJobEarlyStats.irrelevantSubstats.includes(stat as Substat);
+                }
+                else {
+                    return ALL_COMBAT_STATS.includes(stat as typeof ALL_COMBAT_STATS[number]);
+                }
+            case "DoH":
+                return DOH_STATS.includes(stat as typeof DOH_STATS[number]);
+            case "DoL":
+                return DOL_STATS.includes(stat as typeof DOL_STATS[number]);
         }
     }
 
@@ -1127,7 +1134,7 @@ export class GearPlanSheet {
      * @param stat
      */
     isStatPossibleOnGear(stat: RawStatKey | undefined): boolean {
-        const role = this.classJobEarlyStats.role;
+        const role = this.classJobEarlyStats.combatRole;
         if (stat === 'vitality') {
             return true;
         }

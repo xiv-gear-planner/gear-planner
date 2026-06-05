@@ -1,6 +1,6 @@
 import {JobName} from "@xivgear/xivmath/xivconstants";
 import {DATA_API_CLIENT, ApiJobType, checkResponse} from "@xivgear/core/data_api_client";
-import {RoleKey} from "@xivgear/xivmath/geartypes";
+import {CombatRoleKey} from "@xivgear/xivmath/geartypes";
 import {quickElement} from "@xivgear/common-ui/components/util";
 import {toTranslatable} from "@xivgear/i18n/translation";
 
@@ -20,7 +20,7 @@ function getDataPromise(): Promise<Map<JobName, ApiJobType>> {
     return dataPromise;
 }
 
-export function jobAbbrevTranslated(job: JobName | RoleKey): HTMLSpanElement {
+export function jobAbbrevTranslated(job: JobName | CombatRoleKey): HTMLSpanElement {
     const text = quickElement('span', ['job-name-translation'], [job]);
     getDataPromise().then(pr => {
         // If it is a role key, then it will miss on this lookup and do nothing, which is as good as we can get without

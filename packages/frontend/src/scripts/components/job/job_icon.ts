@@ -1,9 +1,9 @@
 import {JOB_DATA, JOB_IDS, JobName} from "@xivgear/xivmath/xivconstants";
 import {xivApiIconUrl} from "@xivgear/core/external/xivapi";
-import {RoleKey, ROLES} from "@xivgear/xivmath/geartypes";
+import {CombatRoleKey, COMBAT_ROLES} from "@xivgear/xivmath/geartypes";
 
 export class JobIcon extends HTMLImageElement {
-    constructor(jobOrRole: JobName | RoleKey) {
+    constructor(jobOrRole: JobName | CombatRoleKey) {
         super();
         this.alt = jobOrRole;
         this.title = jobOrRole;
@@ -17,7 +17,7 @@ export class JobIcon extends HTMLImageElement {
         const id = JOB_IDS[jobOrRole as JobName];
         if (id) {
             const jobDataConst = JOB_DATA[jobOrRole as JobName];
-            switch (jobDataConst.role) {
+            switch (jobDataConst.combatRole) {
                 case "Healer":
                     className = 'ffxiv-role-healer';
                     break;
@@ -33,8 +33,8 @@ export class JobIcon extends HTMLImageElement {
             // Rather, it seems that it's just 062100 + id (or 062000 if you don't want the border)
             iconId = 62100 + id;
         }
-        else if (ROLES.includes(jobOrRole as RoleKey)) {
-            const role = jobOrRole as RoleKey;
+        else if (COMBAT_ROLES.includes(jobOrRole as CombatRoleKey)) {
+            const role = jobOrRole as CombatRoleKey;
             switch (role) {
                 case "Healer":
                     className = 'ffxiv-role-healer';

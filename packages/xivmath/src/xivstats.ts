@@ -354,6 +354,30 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
         return result;
     }
 
+    get craftsmanship(): number {
+        return this.currentStats.craftsmanship + this.finalBonusStats.craftsmanship;
+    }
+
+    get control(): number {
+        return this.currentStats.control + this.finalBonusStats.control;
+    }
+
+    get cp(): number {
+        return this.currentStats.cp + this.finalBonusStats.cp;
+    }
+
+    get perception(): number {
+        return this.currentStats.perception + this.finalBonusStats.perception;
+    }
+
+    get gathering(): number {
+        return this.currentStats.gathering + this.finalBonusStats.gathering;
+    }
+
+    get gp(): number {
+        return this.currentStats.gp + this.finalBonusStats.gp;
+    }
+
     get job(): JobName {
         return this.classJob;
     }
@@ -418,6 +442,9 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
     };
 
     get mainStatValue(): number {
+        if (!this.classJobStats.mainStat) {
+            return 0;
+        }
         return this[this.classJobStats.mainStat];
     }
 
@@ -426,11 +453,17 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
     };
 
     get baseMainStatPlusRace(): number {
+        if (!this.classJobStats.mainStat) {
+            return 0;
+        }
         const mainStat = this.classJobStats.mainStat;
         return getBaseMainStat(this.levelStats, this.classJobStats, this.classJobStats.mainStat) + this.racialStats[mainStat];
     }
 
     get aaStatMulti(): number {
+        if (!this.classJobStats.autoAttackStat) {
+            return 0;
+        }
         return mainStatMulti(this.levelStats, this.classJobStats, this[this.classJobStats.autoAttackStat]);
     };
 
@@ -516,14 +549,16 @@ export function finalizeStatsInt(
     effectiveFoodBonuses: RawStats
 } {
     const combinedStats: RawStats = {...gearStats};
-    const mainStatKey = classJobStats.mainStat;
-    const secondaryStatKey = classJobStats.secondaryStat;
-    const aaStatKey = classJobStats.autoAttackStat;
-    combinedStats[mainStatKey] += gearStats.extraMainStat;
-    combinedStats[secondaryStatKey] += gearStats.extraSecondaryStat;
-    combinedStats[mainStatKey] = fl(combinedStats[mainStatKey] * (1 + 0.01 * partyBonus));
-    if (mainStatKey !== aaStatKey) {
-        combinedStats[aaStatKey] = fl(combinedStats[aaStatKey] * (1 + 0.01 * partyBonus));
+    if (classJobStats.type === 'Combat') {
+        const mainStatKey = classJobStats.mainStat;
+        const secondaryStatKey = classJobStats.secondaryStat;
+        const aaStatKey = classJobStats.autoAttackStat;
+        combinedStats[mainStatKey] += gearStats.extraMainStat;
+        combinedStats[secondaryStatKey] += gearStats.extraSecondaryStat;
+        combinedStats[mainStatKey] = fl(combinedStats[mainStatKey] * (1 + 0.01 * partyBonus));
+        if (aaStatKey && mainStatKey !== aaStatKey) {
+            combinedStats[aaStatKey] = fl(combinedStats[aaStatKey] * (1 + 0.01 * partyBonus));
+        }
     }
     combinedStats.vitality = fl(combinedStats.vitality * (1 + 0.01 * partyBonus));
     const effectiveFoodBonuses = new RawStats();

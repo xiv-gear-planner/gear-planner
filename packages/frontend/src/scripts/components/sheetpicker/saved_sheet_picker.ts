@@ -219,7 +219,7 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
                 displayName: "Job",
                 getter: sheet => {
                     if (sheet.multiJob) {
-                        return JOB_DATA[sheet.job].role;
+                        return JOB_DATA[sheet.job].combatRole;
                     }
                     return sheet.job;
                 },
@@ -233,7 +233,7 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
                 displayName: "Job Icon",
                 getter: sheet => {
                     if (sheet.multiJob) {
-                        return JOB_DATA[sheet.job].role;
+                        return JOB_DATA[sheet.job].combatRole;
                     }
                     return sheet.job;
                 },

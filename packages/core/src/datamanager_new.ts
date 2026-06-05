@@ -176,6 +176,24 @@ export class NewApiDataManager implements DataManager {
                                     // Secondary stats also should all be the same
                                     ilvlModifier = row.directHitRate;
                                     break;
+                                case "cp":
+                                    ilvlModifier = row.CP;
+                                    break;
+                                case "control":
+                                    ilvlModifier = row.control;
+                                    break;
+                                case "craftsmanship":
+                                    ilvlModifier = row.craftsmanship;
+                                    break;
+                                case "gp":
+                                    ilvlModifier = row.GP;
+                                    break;
+                                case "gathering":
+                                    ilvlModifier = row.gathering;
+                                    break;
+                                case "perception":
+                                    ilvlModifier = row.perception;
+                                    break;
                                 default:
                                     console.warn(`Bad ilvl modifier! ${statsKey}:${slot}`);
                                     ilvlModifier = undefined;
@@ -186,7 +204,7 @@ export class NewApiDataManager implements DataManager {
                                 const bpInfo = baseParams[statsKey as RawStatKey];
                                 const baseParamModifier: number = bpInfo.slots[slot];
                                 const jobCap = bpInfo.meldParam[jobStats.meldParamIndex] / 100;
-                                if (jobCap !== undefined) {
+                                if (jobCap !== undefined && ilvlModifier !== undefined) {
                                     return Math.round(jobCap * Math.round(ilvlModifier * baseParamModifier / 1000));
                                 }
                                 else {

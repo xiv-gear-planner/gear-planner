@@ -78,10 +78,16 @@ export const ALL_COMBAT_JOBS = [
     'BRD', 'MCH', 'DNC',
     'BLM', 'SMN', 'RDM', 'PCT', 'BLU',
 ] as const;
+
+export const ALL_DOH_JOBS = ['CRP', 'BSM', 'ARM', 'GSM', 'LTW', 'WVR', 'ALC', 'CUL'] as const;
+
+export const ALL_DOL_JOBS = ['MIN', 'BTN', 'FSH'] as const;
+
+export const ALL_JOBS = [...ALL_COMBAT_JOBS, ...ALL_DOH_JOBS, ...ALL_DOL_JOBS] as const;
 /**
  * Supported Jobs.
  */
-export type JobName = typeof ALL_COMBAT_JOBS[number];
+export type JobName = typeof ALL_JOBS[number];
 
 /**
  * All clans/races.
@@ -121,14 +127,20 @@ export const MELEE_AUTO_POTENCY = 90;
  */
 export const RANGE_AUTO_POTENCY = 80;
 
-const DEFAULT_JOB_LEVELS = {
+
+const ALL_JOB_DEFAULTS = {
     minLevel: TYPICAL_MIN_LEVEL,
     maxLevel: CURRENT_MAX_LEVEL,
 } as const satisfies Partial<JobDataConst>;
 
+const COMBAT_JOB_DEFAULTS = {
+    ...ALL_JOB_DEFAULTS,
+    type: 'Combat',
+} as const satisfies Partial<JobDataConst>;
+
 const STANDARD_HEALER: JobDataConst = {
-    ...DEFAULT_JOB_LEVELS,
-    role: 'Healer',
+    ...COMBAT_JOB_DEFAULTS,
+    combatRole: 'Healer',
     mainStat: 'mind',
     secondaryStat: 'piety',
     autoAttackStat: 'strength',
@@ -140,8 +152,8 @@ const STANDARD_HEALER: JobDataConst = {
 } as const;
 
 const STANDARD_TANK: JobDataConst = {
-    ...DEFAULT_JOB_LEVELS,
-    role: 'Tank',
+    ...COMBAT_JOB_DEFAULTS,
+    combatRole: 'Tank',
     mainStat: 'strength',
     secondaryStat: 'tenacity',
     autoAttackStat: 'strength',
@@ -151,16 +163,16 @@ const STANDARD_TANK: JobDataConst = {
     excludedRelicSubstats: ['dhit'],
 } as const;
 
-const STANDARD_MELEE: Omit<JobDataConst, 'meldParamIndex'> = {
-    ...DEFAULT_JOB_LEVELS,
-    role: 'Melee',
+const STANDARD_MELEE  = {
+    ...COMBAT_JOB_DEFAULTS,
+    combatRole: 'Melee',
     mainStat: 'strength',
     secondaryStat: 'dhit',
     autoAttackStat: 'strength',
     irrelevantSubstats: ['spellspeed', 'tenacity', 'piety'],
     aaPotency: MELEE_AUTO_POTENCY,
     excludedRelicSubstats: [],
-} as const;
+} as const satisfies Omit<JobDataConst, 'meldParamIndex'>;
 
 const MELEE_STRIKING: JobDataConst = {
     ...STANDARD_MELEE,
@@ -180,8 +192,8 @@ const MELEE_MAIMING: JobDataConst = {
 } as const;
 
 const STANDARD_RANGED: JobDataConst = {
-    ...DEFAULT_JOB_LEVELS,
-    role: 'Ranged',
+    ...COMBAT_JOB_DEFAULTS,
+    combatRole: 'Ranged',
     mainStat: 'dexterity',
     secondaryStat: 'dhit',
     autoAttackStat: 'dexterity',
@@ -193,8 +205,8 @@ const STANDARD_RANGED: JobDataConst = {
 } as const;
 
 const STANDARD_CASTER: JobDataConst = {
-    ...DEFAULT_JOB_LEVELS,
-    role: 'Caster',
+    ...COMBAT_JOB_DEFAULTS,
+    combatRole: 'Caster',
     mainStat: 'intelligence',
     secondaryStat: 'dhit',
     autoAttackStat: 'strength',
@@ -204,6 +216,30 @@ const STANDARD_CASTER: JobDataConst = {
     aaPotency: MELEE_AUTO_POTENCY,
     excludedRelicSubstats: [],
 } as const;
+
+const NON_COMBAT = {
+    ...ALL_JOB_DEFAULTS,
+    // TODO
+    mainStat: null,
+    secondaryStat: null,
+    autoAttackStat: null,
+    aaPotency: 0,
+    excludedRelicSubstats: [], // TODO?
+    combatRole: null, // Role is for combat roles
+} as const satisfies Partial<JobDataConst>;
+
+const STANDARD_DOL: JobDataConst = {
+    ...NON_COMBAT,
+    type: 'DoL',
+    meldParamIndex: 0, // TODO
+} as const;
+
+const STANDARD_DOH: JobDataConst = {
+    ...NON_COMBAT,
+    type: 'DoH',
+    meldParamIndex: 0, // TODO
+} as const;
+
 
 /**
  * Create a trait applier function for a standard haste trait.
@@ -361,9 +397,35 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
         extraItemFilter: (item) => item.stats.intelligence > 0 || item.stats.extraMainStat > 0 || item.displayGearSlotName === 'Weapon',
     },
     PCT: STANDARD_CASTER,
+
+    MIN: STANDARD_DOL,
+    BTN: STANDARD_DOL,
+    FSH: STANDARD_DOL,
+
+    ALC: STANDARD_DOH,
+    ARM: STANDARD_DOH,
+    BSM: STANDARD_DOH,
+    CRP: STANDARD_DOH,
+    CUL: STANDARD_DOH,
+    GSM: STANDARD_DOH,
+    LTW: STANDARD_DOH,
+    WVR: STANDARD_DOH,
+
 };
 
 export const JOB_IDS: Record<JobName, number> = {
+    CRP: 8,
+    BSM: 9,
+    ARM: 10,
+    GSM: 11,
+    LTW: 12,
+    WVR: 13,
+    ALC: 14,
+    CUL: 15,
+    MIN: 16,
+    BTN: 17,
+    FSH: 18,
+
     PLD: 19,
     MNK: 20,
     WAR: 21,
@@ -748,34 +810,37 @@ export function getDefaultDisplaySettings(level: SupportedLevel, job: JobName, i
 /**
  * Main stats in current version of the game.
  */
-export const MAIN_STATS = ['strength', 'dexterity', 'intelligence', 'mind', 'vitality'] as const;
+export const MAIN_STATS = ['strength', 'dexterity', 'intelligence', 'mind', 'vitality'] as const satisfies RawStatKey[];
 // TODO: It's hacky to declare hp like this, but oh well.
 /**
  * Substats that are treated as main stats for stat calc purposes.
  */
-export const FAKE_MAIN_STATS = ['determination', 'piety'] as const;
+export const FAKE_MAIN_STATS = ['determination', 'piety'] as const satisfies RawStatKey[];
 /**
  * Substats that get the substat-specific math treatment.
  */
-export const SPECIAL_SUB_STATS = ['crit', 'dhit', 'spellspeed', 'skillspeed', 'tenacity'] as const;
+export const SPECIAL_SUB_STATS = ['crit', 'dhit', 'spellspeed', 'skillspeed', 'tenacity'] as const satisfies RawStatKey[];
 /**
  * All sub-stats. The type is specified explicitly because ts-json-schema-generator can't infer list concat types.
  */
-export const ALL_SUB_STATS: readonly [...typeof FAKE_MAIN_STATS, ...typeof SPECIAL_SUB_STATS] = [...FAKE_MAIN_STATS, ...SPECIAL_SUB_STATS] as const;
+export const ALL_SUB_STATS: readonly [...typeof FAKE_MAIN_STATS, ...typeof SPECIAL_SUB_STATS] = [...FAKE_MAIN_STATS, ...SPECIAL_SUB_STATS] as const satisfies RawStatKey[];
 /**
  * All stats
  */
-export const ALL_STATS = [...MAIN_STATS, ...ALL_SUB_STATS] as const;
+export const ALL_COMBAT_STATS = [...MAIN_STATS, ...ALL_SUB_STATS] as const;
 
 // TODO: make everything use this
 const statDisplayTmp: RawStatKey[] = ['vitality', ...MAIN_STATS, 'crit', 'dhit', 'determination', 'spellspeed', 'skillspeed', 'piety', 'tenacity'];
-ALL_STATS.forEach(stat => {
+ALL_COMBAT_STATS.forEach(stat => {
     if (!statDisplayTmp.includes(stat)) {
         statDisplayTmp.push(stat);
     }
 });
 
 export const STAT_DISPLAY_ORDER: RawStatKey[] = [...statDisplayTmp];
+
+export const DOH_STATS = ['craftsmanship', 'control', 'cp'] as const satisfies RawStatKey[];
+export const DOL_STATS = ['perception', 'gathering', 'gp'] as const satisfies RawStatKey[];
 
 /**
  * Which substats can be granted by materia.
@@ -816,6 +881,12 @@ export const STAT_FULL_NAMES: Record<RawStatKey, string> = {
     gearHaste: "Gear Haste",
     extraMainStat: "Extra Main Stat",
     extraSecondaryStat: "Extra Secondary Stat",
+    control: "Control",
+    cp: "Crafting Points",
+    craftsmanship: "Craftsmanship",
+    gathering: "Gathering",
+    perception: "Perception",
+    gp: "Gathering Points",
 };
 
 /**
@@ -844,6 +915,12 @@ export const STAT_ABBREVIATIONS: Record<RawStatKey, string> = {
     // Game calls these "Main Attribute" and "Secondary Attribute"
     extraMainStat: "MA",
     extraSecondaryStat: "SA",
+    control: "CT", // TODO
+    craftsmanship: "CS", // TODO
+    cp: "CP",
+    gathering: "GT", // TODO
+    perception: "PC", // TODO
+    gp: "GP",
 };
 
 /**
@@ -868,6 +945,10 @@ export function statById(id: number): keyof RawStats | undefined {
             return "piety";
         case 7:
             return "hp";
+        case 10:
+            return "gp";
+        case 11:
+            return "cp";
         case 12:
             return "wdPhys";
         case 13:
@@ -899,6 +980,14 @@ export function statById(id: number): keyof RawStats | undefined {
             return 'extraMainStat';
         case 56:
             return 'extraSecondaryStat';
+        case 70:
+            return "craftsmanship";
+        case 71:
+            return "control";
+        case 72:
+            return "gathering";
+        case 73:
+            return "perception";
         default:
             return undefined;
     }
