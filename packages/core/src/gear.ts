@@ -1,5 +1,5 @@
 import {
-    ALL_SUB_STATS,
+    ALL_COMBAT_SUB_STATS, ALL_SUB_STATS,
     bluWdfromInt,
     EMPTY_STATS,
     FAKE_MAIN_STATS,

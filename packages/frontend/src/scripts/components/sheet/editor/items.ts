@@ -31,7 +31,7 @@ import {
     TitleRow
 } from "@xivgear/common-ui/table/tables";
 import {
-    ALL_SUB_STATS,
+    ALL_COMBAT_SUB_STATS,
     formatAcquisitionSource,
     MateriaSubstat,
     MateriaSubstats,
@@ -450,7 +450,7 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                 if (!currentEquipment || currentEquipment.gearItem !== item) {
                     // If the relic has no stats configured, return a special marker value that causes all of the cells
                     // to display blank values rather than 0.
-                    if (!(ALL_SUB_STATS.find(stat => {
+                    if (!(ALL_COMBAT_SUB_STATS.find(stat => {
                         const statValue = preview.relicStats[stat];
                         return statValue !== undefined && statValue !== 0;
                     }))) {

@@ -9,7 +9,7 @@ import {
     Substat
 } from "@xivgear/xivmath/geartypes";
 import {
-    ALL_SUB_STATS,
+    ALL_COMBAT_SUB_STATS,
     getClassJobStats,
     JobName,
     STAT_ABBREVIATIONS,
@@ -40,7 +40,7 @@ function ewRelic(large: number, small: number): EwRelicStatModel {
             let reportSmall = !statToReport;
             let reportLarge = !statToReport;
             const caps = item.gearItem.unsyncedVersion.statCaps;
-            for (const stat of ALL_SUB_STATS) {
+            for (const stat of ALL_COMBAT_SUB_STATS) {
                 const current = item.relicStats[stat];
                 const cap = caps[stat];
                 if (current === undefined) {
@@ -84,7 +84,7 @@ function customRelic(total: number): CustomRelicStatModel {
             const out: GearSetIssue[] = [];
             let runningTotal = 0;
             const caps = item.gearItem.unsyncedVersion.statCaps;
-            for (const stat of ALL_SUB_STATS) {
+            for (const stat of ALL_COMBAT_SUB_STATS) {
                 const current = item.relicStats[stat];
                 const cap = caps[stat];
                 if (current && cap && current > cap && (!statToReport || statToReport === stat)) {
@@ -186,7 +186,7 @@ function getRelicStatModelForPartial(gearItem: GearItem, baseParams: BaseParamMa
         validate(item: EquippedItem, statToReport?: Substat): GearSetIssue[] {
             const out: GearSetIssue[] = [];
             const caps = item.gearItem.unsyncedVersion.statCaps;
-            const stats: readonly Substat[] = (statToReport ? [statToReport] as const : ALL_SUB_STATS);
+            const stats: readonly Substat[] = (statToReport ? [statToReport] as const : ALL_COMBAT_SUB_STATS);
             for (const stat of stats) {
                 const current: number = item.relicStats[stat as Substat];
                 const cap = caps[stat as Substat];

@@ -35,7 +35,7 @@ import {
     vitToHp,
     wdMulti
 } from "./xivmath";
-import {JobName, SupportedLevel} from "./xivconstants";
+import {BASE_CP, BASE_GP, JobName, SupportedLevel} from "./xivconstants";
 import {sum} from "@xivgear/util/array_utils";
 
 /**
@@ -363,7 +363,7 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
     }
 
     get cp(): number {
-        return this.currentStats.cp + this.finalBonusStats.cp;
+        return BASE_CP + this.currentStats.cp + this.finalBonusStats.cp;
     }
 
     get perception(): number {
@@ -375,7 +375,7 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
     }
 
     get gp(): number {
-        return this.currentStats.gp + this.finalBonusStats.gp;
+        return BASE_GP + this.currentStats.gp + this.finalBonusStats.gp;
     }
 
     get job(): JobName {

@@ -219,27 +219,32 @@ const STANDARD_CASTER: JobDataConst = {
 
 const NON_COMBAT = {
     ...ALL_JOB_DEFAULTS,
-    // TODO
+    // Only for combat roles, null them out here
     mainStat: null,
     secondaryStat: null,
     autoAttackStat: null,
-    aaPotency: 0,
-    excludedRelicSubstats: [], // TODO?
     combatRole: null, // Role is for combat roles
+    aaPotency: 0,
+    excludedRelicSubstats: [],
+    offhand: true,
+    // Don't display any GCDs
+    gcdDisplayOverrides: () => [],
 } as const satisfies Partial<JobDataConst>;
 
 const STANDARD_DOL: JobDataConst = {
     ...NON_COMBAT,
     type: 'DoL',
-    meldParamIndex: 0, // TODO
+    meldParamIndex: 0, // they're all the same, doesn't matter
 } as const;
 
 const STANDARD_DOH: JobDataConst = {
     ...NON_COMBAT,
     type: 'DoH',
-    meldParamIndex: 0, // TODO
+    meldParamIndex: 0, // they're all the same, doesn't matter
 } as const;
 
+export const BASE_GP = 400;
+export const BASE_CP = 180;
 
 /**
  * Create a trait applier function for a standard haste trait.
@@ -823,11 +828,11 @@ export const SPECIAL_SUB_STATS = ['crit', 'dhit', 'spellspeed', 'skillspeed', 't
 /**
  * All sub-stats. The type is specified explicitly because ts-json-schema-generator can't infer list concat types.
  */
-export const ALL_SUB_STATS: readonly [...typeof FAKE_MAIN_STATS, ...typeof SPECIAL_SUB_STATS] = [...FAKE_MAIN_STATS, ...SPECIAL_SUB_STATS] as const satisfies RawStatKey[];
+export const ALL_COMBAT_SUB_STATS: readonly [...typeof FAKE_MAIN_STATS, ...typeof SPECIAL_SUB_STATS] = [...FAKE_MAIN_STATS, ...SPECIAL_SUB_STATS] as const satisfies RawStatKey[];
 /**
  * All stats
  */
-export const ALL_COMBAT_STATS = [...MAIN_STATS, ...ALL_SUB_STATS] as const;
+export const ALL_COMBAT_STATS = [...MAIN_STATS, ...ALL_COMBAT_SUB_STATS] as const;
 
 // TODO: make everything use this
 const statDisplayTmp: RawStatKey[] = ['vitality', ...MAIN_STATS, 'crit', 'dhit', 'determination', 'spellspeed', 'skillspeed', 'piety', 'tenacity'];
@@ -842,18 +847,19 @@ export const STAT_DISPLAY_ORDER: RawStatKey[] = [...statDisplayTmp];
 export const DOH_STATS = ['craftsmanship', 'control', 'cp'] as const satisfies RawStatKey[];
 export const DOL_STATS = ['perception', 'gathering', 'gp'] as const satisfies RawStatKey[];
 
+export const ALL_SUB_STATS = [...ALL_COMBAT_SUB_STATS, ...DOH_STATS, ...DOL_STATS];
 /**
  * Which substats can be granted by materia.
  *
  * If SE ever gives us main stat or vitality materia again, this will need to be updated.
  */
-export const MateriaSubstats: (Exclude<typeof ALL_SUB_STATS[number], 'vitality'>)[] = ['crit', 'dhit', 'determination', 'spellspeed', 'skillspeed', 'piety', 'tenacity'];
+export const MateriaSubstats: (Exclude<typeof ALL_COMBAT_SUB_STATS[number], 'vitality'>)[] = ['crit', 'dhit', 'determination', 'spellspeed', 'skillspeed', 'piety', 'tenacity'];
 /**
  * Like MateriaSubstats, but in the order that makes the most sense for auto-fill.
  *
  * SkS/SpS are first because they realistically need to be in order for GCD-targeted auto-fill to work.
  */
-export const DefaultMateriaFillPrio: (Exclude<typeof ALL_SUB_STATS[number], 'vitality'>)[] = ['spellspeed', 'skillspeed', 'crit', 'dhit', 'determination', 'piety', 'tenacity'];
+export const DefaultMateriaFillPrio: (Exclude<typeof ALL_COMBAT_SUB_STATS[number], 'vitality'>)[] = ['spellspeed', 'skillspeed', 'crit', 'dhit', 'determination', 'piety', 'tenacity'];
 export type MateriaSubstat = typeof MateriaSubstats[number];
 
 /**
@@ -915,11 +921,11 @@ export const STAT_ABBREVIATIONS: Record<RawStatKey, string> = {
     // Game calls these "Main Attribute" and "Secondary Attribute"
     extraMainStat: "MA",
     extraSecondaryStat: "SA",
-    control: "CT", // TODO
-    craftsmanship: "CS", // TODO
+    control: "Ctr",
+    craftsmanship: "Cms",
     cp: "CP",
-    gathering: "GT", // TODO
-    perception: "PC", // TODO
+    gathering: "Gt",
+    perception: "Pc",
     gp: "GP",
 };
 

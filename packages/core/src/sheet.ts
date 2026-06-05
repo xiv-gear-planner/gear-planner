@@ -2,7 +2,7 @@
 // TODO: get back to fixing this at some point
 import {
     ALL_COMBAT_JOBS, ALL_COMBAT_STATS,
-    ALL_SUB_STATS,
+    ALL_COMBAT_SUB_STATS,
     CURRENT_MAX_LEVEL,
     defaultItemDisplaySettings,
     DefaultMateriaFillPrio, DOH_STATS, DOL_STATS,
@@ -1608,7 +1608,7 @@ function checkItemCompat(itemA: EquippedItem, itemB: EquippedItem): SlotIncompat
     if (itemA.gearItem.isCustomRelic) {
         // Dealing with relics
         const badSubStats: string[] = [];
-        ALL_SUB_STATS.forEach(stat => {
+        ALL_COMBAT_SUB_STATS.forEach(stat => {
             const statValueA = itemA.relicStats[stat];
             const statValueB = itemB.relicStats[stat];
             if (statValueA !== statValueB) {
