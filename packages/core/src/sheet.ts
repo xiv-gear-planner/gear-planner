@@ -2,7 +2,7 @@
 // TODO: get back to fixing this at some point
 import {
     ALL_COMBAT_JOBS, ALL_COMBAT_STATS,
-    ALL_COMBAT_SUB_STATS,
+    ALL_COMBAT_SUB_STATS, ALL_JOBS,
     CURRENT_MAX_LEVEL,
     defaultItemDisplaySettings,
     DefaultMateriaFillPrio, DOH_STATS, DOL_STATS,
@@ -242,9 +242,13 @@ export class GearPlanSheet {
         this.isMultiJob = importedData.isMultiJob ?? false;
         this._activeSpecialStat = (importedData.specialStats ?? null) as SpecialStatType | null;
         this.altJobs = this.isMultiJob ? [
-            ...ALL_COMBAT_JOBS.filter(job => JOB_DATA[job].combatRole === JOB_DATA[this.classJobName].combatRole
-                // Don't include the primary job in the list of alt jobs
-                && job !== this.classJobName),
+            ...ALL_JOBS.filter(job => {
+                const thatJobData = JOB_DATA[job];
+                const thisJobData = JOB_DATA[this.classJobName];
+                return thatJobData.type === thisJobData.type && thatJobData.combatRole === thisJobData.combatRole
+                    // Don't include the primary job in the list of alt jobs
+                    && job !== this.classJobName;
+            }),
         ] : [];
         this.ilvlSync = importedData.ilvlSync;
         this._description = importedData.description;
@@ -1069,7 +1073,7 @@ export class GearPlanSheet {
         return this.statsForJob(this.classJobName);
     }
 
-    private get classJobEarlyStats(): JobDataConst {
+    get classJobEarlyStats(): JobDataConst {
         return getClassJobStats(this.classJobName);
     }
 

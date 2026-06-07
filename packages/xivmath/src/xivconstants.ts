@@ -163,7 +163,7 @@ const STANDARD_TANK: JobDataConst = {
     excludedRelicSubstats: ['dhit'],
 } as const;
 
-const STANDARD_MELEE  = {
+const STANDARD_MELEE = {
     ...COMBAT_JOB_DEFAULTS,
     combatRole: 'Melee',
     mainStat: 'strength',
@@ -794,11 +794,19 @@ const BLU_ITEM_DISPLAY = {
     ...LEVEL_ITEMS[80].defaultDisplaySettings,
     minILvl: 520,
     maxILvl: 535,
-} satisfies ItemDisplaySettings;
+} as const satisfies ItemDisplaySettings;
+
+const DOH_DOL_ITEM_DISPLAY = {
+    ...LEVEL_ITEMS[100].defaultDisplaySettings,
+    minILvl: 700,
+} as const satisfies ItemDisplaySettings;
 
 export function getDefaultDisplaySettings(level: SupportedLevel, job: JobName, isync: number | undefined): Readonly<ItemDisplaySettings> {
     if (job === 'BLU' && level === JOB_DATA.BLU.maxLevel) {
         return BLU_ITEM_DISPLAY;
+    }
+    if (JOB_DATA[job]?.type !== 'Combat') {
+        return DOH_DOL_ITEM_DISPLAY;
     }
     // Make a defensive copy - there was a bug where this could get modified and would affect subsequent defaults
     const out = {
@@ -853,13 +861,13 @@ export const ALL_SUB_STATS = [...ALL_COMBAT_SUB_STATS, ...DOH_STATS, ...DOL_STAT
  *
  * If SE ever gives us main stat or vitality materia again, this will need to be updated.
  */
-export const MateriaSubstats: (Exclude<typeof ALL_COMBAT_SUB_STATS[number], 'vitality'>)[] = ['crit', 'dhit', 'determination', 'spellspeed', 'skillspeed', 'piety', 'tenacity'];
+export const MateriaSubstats: (Exclude<typeof ALL_SUB_STATS[number], 'vitality'>)[] = ['crit', 'dhit', 'determination', 'spellspeed', 'skillspeed', 'piety', 'tenacity', 'cp', 'craftsmanship', 'control', 'gp', 'gathering', 'perception'];
 /**
  * Like MateriaSubstats, but in the order that makes the most sense for auto-fill.
  *
  * SkS/SpS are first because they realistically need to be in order for GCD-targeted auto-fill to work.
  */
-export const DefaultMateriaFillPrio: (Exclude<typeof ALL_COMBAT_SUB_STATS[number], 'vitality'>)[] = ['spellspeed', 'skillspeed', 'crit', 'dhit', 'determination', 'piety', 'tenacity'];
+export const DefaultMateriaFillPrio: (Exclude<typeof ALL_SUB_STATS[number], 'vitality'>)[] = ['spellspeed', 'skillspeed', 'crit', 'dhit', 'determination', 'piety', 'tenacity', 'cp', 'craftsmanship', 'control', 'gp', 'gathering', 'perception'];
 export type MateriaSubstat = typeof MateriaSubstats[number];
 
 /**

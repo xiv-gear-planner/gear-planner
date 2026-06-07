@@ -387,6 +387,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
         });
 
         const outer = this;
+        const isCombat = this.sheet.classJobEarlyStats.type === 'Combat';
 
         function simpleStat(stat: RawStatKey, overrides: Partial<CustomColumnSpec<CharacterGearSet, unknown>> = {}): CustomColumn<CharacterGearSet, unknown, unknown> {
             const sheet = outer.sheet;
@@ -548,6 +549,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
                 renderer: multiplierStatTooltip,
                 extraClasses: ['stat-col', 'stat-col-less-important'],
                 rowCondition: noSeparators,
+                condition: () => isCombat,
             } as CustomColumnSpec<CharacterGearSet, MultiplierStat>,
             {
                 shortName: "hp",
@@ -555,6 +557,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
                 getter: gearSet => gearSet.computedStats.hp,
                 extraClasses: ['stat-col', 'stat-col-hp', 'stat-col-less-important'],
                 rowCondition: noSeparators,
+                condition: () => isCombat,
             },
             {
                 ...mainStatCol(this.sheet, 'dexterity'),
@@ -641,8 +644,8 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
                 rowCondition: noSeparators,
             }),
             simpleStat('cp', {displayName: 'CP'}),
-            simpleStat('control', {initialWidth: 80}),
-            simpleStat('craftsmanship', {initialWidth: 80}),
+            simpleStat('control', {displayName: 'Ctrl.'}),
+            simpleStat('craftsmanship', {displayName: 'Cms.'}),
 
             simpleStat('gp', {displayName: 'GP'}),
             simpleStat('gathering', {initialWidth: 80}),

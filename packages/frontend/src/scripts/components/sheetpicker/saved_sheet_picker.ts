@@ -20,6 +20,7 @@ import {
     makePlusIcon,
     makeTrashIcon
 } from "@xivgear/common-ui/components/icons";
+import {jobRole} from "@xivgear/xivmath/geartypes";
 
 export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionModel<SheetHandle, never, never, SheetHandle | null>> {
 
@@ -219,7 +220,7 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
                 displayName: "Job",
                 getter: sheet => {
                     if (sheet.multiJob) {
-                        return JOB_DATA[sheet.job].combatRole;
+                        return jobRole(sheet.job);
                     }
                     return sheet.job;
                 },
@@ -233,7 +234,7 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
                 displayName: "Job Icon",
                 getter: sheet => {
                     if (sheet.multiJob) {
-                        return JOB_DATA[sheet.job].combatRole;
+                        return jobRole(sheet.job);
                     }
                     return sheet.job;
                 },

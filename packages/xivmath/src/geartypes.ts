@@ -1,5 +1,5 @@
 import {
-    FAKE_MAIN_STATS,
+    FAKE_MAIN_STATS, JOB_DATA,
     JobName,
     MAIN_STATS,
     MateriaSubstat,
@@ -1490,4 +1490,9 @@ export type MicroSlotExport = FoodMicroSlotExport | NormalItemMicroSlotExport | 
 export type IlvlSyncInfo = {
     readonly ilvl: number;
     substatCap(slot: OccGearSlotKey, statsKey: RawStatKey): number;
+}
+
+export function jobRole(job: JobName): AllRoleKey {
+    const jobdatum = JOB_DATA[job];
+    return jobdatum.type === 'Combat' ? jobdatum.combatRole : jobdatum.type;
 }

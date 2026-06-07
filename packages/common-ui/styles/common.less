@@ -10,12 +10,23 @@ body {
   --border-color-highlight: #888890;
   --default-table-bg-color: #202027;
   --table-bg-color: var(--default-table-bg-color);
+
+  // Combat substats
   --color-sps-sks: #22ff22;
   --color-crit: #ff2222;
   --color-dhit: #ff8800;
   --color-det: #0099ff;
   --color-tnc: #ffff00;
   --color-piety: #ff00ff;
+  // DoH substats
+  --color-cp: #00a3b0;
+  --color-craftsmanship: #003cff;
+  --color-control: #574bff;
+  // DoL substats
+  --color-gp: #09b600;
+  --color-gathering: #00b78d;
+  --color-perception: #a6c000;
+
   --stat-mix-primary: 65%;
   --stat-mix-primary-bg: 12%;
   --stat-mix-secondary: 15%;
@@ -85,6 +96,8 @@ body {
   --role-color-tank: #4848ff;
   --role-color-healer: #13a813;;
   --role-color-dps: #ff0000;
+  --role-color-doh: #ffcd00;
+  --role-color-dol: var(--role-color-doh);
   --invalid-input-box-shadow: 1px 1px 2px red inset, -1px -1px 2px #ff6000 inset;
 
   --perfect-tiering-box-shadow: 0 0 5px -1px inset color-mix(in srgb, var(--stat-color) 50%, var(--border-color));
@@ -994,6 +1007,13 @@ job-picker {
     &.job-picker-section-range,
     &.job-picker-section-caster {
       --role-color: var(--role-color-dps);
+    }
+
+    &.job-picker-section-doh {
+      --role-color: var(--role-color-doh);
+    }
+    &.job-picker-section-dol {
+      --role-color: var(--role-color-dol);
     }
 
     padding-top: 10px;
@@ -3121,6 +3141,37 @@ gear-set-viewer {
   .color-stat-column();
 }
 
+.stat-gp {
+  --stat-color: var(--color-gp);
+  .color-stat-column();
+}
+
+.stat-gathering {
+  --stat-color: var(--color-gathering);
+  .color-stat-column();
+}
+
+.stat-perception {
+  --stat-color: var(--color-perception);
+  .color-stat-column();
+}
+
+.stat-cp {
+  --stat-color: var(--color-cp);
+  .color-stat-column();
+}
+
+.stat-craftsmanship {
+  --stat-color: var(--color-craftsmanship);
+  .color-stat-column();
+}
+
+.stat-control {
+  --stat-color: var(--color-control);
+  .color-stat-column();
+}
+
+
 td.stat-melded, td.stat-melded-overcapped, td.stat-melded-overcapped-major, td.stat-synced-down {
   //box-shadow: 0 0 4px 2px rgb(from color-mix(in srgb, var(--stat-color) 40%, var(--materia-melded-slot-blend-color)) r g b / 80%) inset;
   box-shadow: 0 0 2px var(--materia-box-shadow-spread) color-mix(in srgb, color-mix(in srgb, var(--stat-color) 40%, var(--materia-melded-slot-blend-color)), transparent 35%) inset;
@@ -3417,6 +3468,14 @@ sheet-export-modal, set-export-modal {
 
   &.ffxiv-role-dps {
     --role-color: var(--role-color-dps);
+  }
+
+  &.ffxiv-role-doh {
+    --role-color: var(--role-color-doh);
+  }
+
+  &.ffxiv-role-dol {
+    --role-color: var(--role-color-dol);
   }
 
   background: linear-gradient(var(--role-color), color-mix(in srgb, var(--role-color) 50%, #000));

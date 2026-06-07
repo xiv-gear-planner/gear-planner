@@ -32,7 +32,7 @@ import {
 } from "@xivgear/common-ui/table/tables";
 import {
     ALL_COMBAT_SUB_STATS,
-    formatAcquisitionSource,
+    formatAcquisitionSource, JOB_DATA,
     MateriaSubstat,
     MateriaSubstats,
     MAX_ILVL,
@@ -669,6 +669,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
         const selectionTracker = new Map<keyof EquipmentSet, CustomRow<GearSlotItem> | GearSlotItem>();
         this.selectionTracker = selectionTracker;
         const refreshSingleItem = (item: CustomRow<GearSlotItem> | GearSlotItem) => this.refreshRowData(item);
+        const isCombat = sheet.classJobEarlyStats.type === 'Combat';
         for (const [name, slot] of Object.entries(EquipSlotInfo)) {
             if (handledSlots && !handledSlots.includes(name as EquipSlotKey)) {
                 continue;
@@ -901,7 +902,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                     }
                 },
                 initialWidth: 33,
-                condition: () => handledSlots === undefined || handledSlots.includes('Weapon'),
+                condition: () => isCombat && (handledSlots === undefined || handledSlots.includes('Weapon')),
                 titleSetter: (_, rowValue: GearSlotItem) => {
                     const statDetail = gearSet.getEquipStatDetail(gearSet.toEquippedItem(rowValue.item), rowValue.item.stats.wdPhys > rowValue.item.stats.wdMag ? 'wdPhys' : 'wdMag');
                     return statCellTitle(statDetail);
@@ -919,12 +920,12 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
             itemTableStatColumn(sheet, gearSet, 'skillspeed', true),
             itemTableStatColumn(sheet, gearSet, 'piety', true),
             itemTableStatColumn(sheet, gearSet, 'tenacity', true),
-            itemTableStatColumn(sheet, gearSet, 'gp', true),
-            itemTableStatColumn(sheet, gearSet, 'gathering', true),
-            itemTableStatColumn(sheet, gearSet, 'perception', true),
-            itemTableStatColumn(sheet, gearSet, 'cp', true),
-            itemTableStatColumn(sheet, gearSet, 'craftsmanship', true),
-            itemTableStatColumn(sheet, gearSet, 'control', true)
+            itemTableStatColumn(sheet, gearSet, 'gp', false),
+            itemTableStatColumn(sheet, gearSet, 'gathering', false),
+            itemTableStatColumn(sheet, gearSet, 'perception', false),
+            itemTableStatColumn(sheet, gearSet, 'cp', false),
+            itemTableStatColumn(sheet, gearSet, 'craftsmanship', false),
+            itemTableStatColumn(sheet, gearSet, 'control', false),
         ];
         this.data = data;
         this.updateShowHide();
@@ -1121,17 +1122,17 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
             }
             case "DoL": {
                 statCols.push(
-                    w(itemTableStatColumn(sheet, gearSet, 'gp', true)),
-                    w(itemTableStatColumn(sheet, gearSet, 'gathering', true)),
-                    w(itemTableStatColumn(sheet, gearSet, 'perception', true))
+                    w(itemTableStatColumn(sheet, gearSet, 'gp', false)),
+                    w(itemTableStatColumn(sheet, gearSet, 'gathering', false)),
+                    w(itemTableStatColumn(sheet, gearSet, 'perception', false))
                 );
                 break;
             }
             case "DoH": {
                 statCols.push(
-                    w(itemTableStatColumn(sheet, gearSet, 'cp', true)),
-                    w(itemTableStatColumn(sheet, gearSet, 'craftsmanship', true)),
-                    w(itemTableStatColumn(sheet, gearSet, 'control', true))
+                    w(itemTableStatColumn(sheet, gearSet, 'cp', false)),
+                    w(itemTableStatColumn(sheet, gearSet, 'craftsmanship', false)),
+                    w(itemTableStatColumn(sheet, gearSet, 'control', false))
                 );
                 break;
             }
