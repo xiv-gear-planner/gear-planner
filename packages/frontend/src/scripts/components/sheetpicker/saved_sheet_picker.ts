@@ -19,7 +19,8 @@ import {
     makePlusIcon,
     makeTrashIcon
 } from "@xivgear/common-ui/components/icons";
-import {jobRole} from "@xivgear/xivmath/geartypes";
+
+import {jobRole} from "@xivgear/core/util/job_utils";
 
 export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionModel<SheetHandle, never, never, SheetHandle | null>> {
 

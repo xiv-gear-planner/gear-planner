@@ -1,6 +1,7 @@
 import {JOB_IDS, JobName} from "@xivgear/xivmath/xivconstants";
 import {xivApiIconUrl} from "@xivgear/core/external/xivapi";
-import {ALL_ROLES, AllRoleKey, jobRole} from "@xivgear/xivmath/geartypes";
+import {ALL_ROLES, AllRoleKey} from "@xivgear/xivmath/geartypes";
+import {jobRole} from "@xivgear/core/util/job_utils";
 
 export class JobIcon extends HTMLImageElement {
     constructor(jobOrRole: JobName | AllRoleKey) {
