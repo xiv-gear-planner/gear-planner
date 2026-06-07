@@ -32,7 +32,7 @@ import {
 } from "@xivgear/common-ui/table/tables";
 import {
     ALL_COMBAT_SUB_STATS,
-    formatAcquisitionSource, JOB_DATA,
+    formatAcquisitionSource,
     MateriaSubstat,
     MateriaSubstats,
     MAX_ILVL,

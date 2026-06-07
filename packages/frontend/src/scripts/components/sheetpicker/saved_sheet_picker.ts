@@ -4,7 +4,6 @@ import {SheetHandle, SheetManager, SyncStatus} from "@xivgear/core/persistence/s
 import {getHashForSaveKey, openSheetByKey, showNewSheetForm} from "../../base_ui";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import {JobIcon} from "../job/job_icon";
-import {JOB_DATA} from "@xivgear/xivmath/xivconstants";
 import {jobAbbrevTranslated} from "../job/job_name_translator";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {installDragHelper} from "../../util/draghelpers";

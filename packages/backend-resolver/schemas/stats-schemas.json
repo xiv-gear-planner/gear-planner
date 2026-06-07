@@ -85,6 +85,16 @@
       },
       "type": "object"
     },
+    "CombatRoleKey": {
+      "enum": [
+        "Healer",
+        "Melee",
+        "Ranged",
+        "Caster",
+        "Tank"
+      ],
+      "type": "string"
+    },
     "ComputedSetStats": {
       "additionalProperties": false,
       "properties": {
@@ -1182,7 +1192,7 @@
               "description": "The primary stat as used for auto-attack calculations specifically"
             },
             "combatRole": {
-              "$ref": "#/definitions/RoleKey",
+              "$ref": "#/definitions/CombatRoleKey",
               "description": "The role of the job"
             },
             "excludedRelicSubstats": {
@@ -1742,7 +1752,13 @@
         "dhit",
         "spellspeed",
         "skillspeed",
-        "tenacity"
+        "tenacity",
+        "craftsmanship",
+        "control",
+        "cp",
+        "perception",
+        "gathering",
+        "gp"
       ],
       "type": "string"
     },
@@ -2358,16 +2374,6 @@
         }
       },
       "type": "object"
-    },
-    "RoleKey": {
-      "enum": [
-        "Healer",
-        "Melee",
-        "Ranged",
-        "Caster",
-        "Tank"
-      ],
-      "type": "string"
     },
     "SetExport": {
       "additionalProperties": false,

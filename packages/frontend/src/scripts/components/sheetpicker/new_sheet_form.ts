@@ -8,7 +8,7 @@ import {
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {
-    ALL_COMBAT_JOBS, ALL_JOBS,
+    ALL_JOBS,
     CURRENT_MAX_LEVEL,
     JOB_DATA,
     JobName,

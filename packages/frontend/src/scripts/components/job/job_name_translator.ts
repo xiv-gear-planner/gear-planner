@@ -1,6 +1,6 @@
 import {JobName} from "@xivgear/xivmath/xivconstants";
-import {DATA_API_CLIENT, ApiJobType, checkResponse} from "@xivgear/core/data_api_client";
-import {AllRoleKey, CombatRoleKey} from "@xivgear/xivmath/geartypes";
+import {ApiJobType, checkResponse, DATA_API_CLIENT} from "@xivgear/core/data_api_client";
+import {AllRoleKey} from "@xivgear/xivmath/geartypes";
 import {quickElement} from "@xivgear/common-ui/components/util";
 import {toTranslatable} from "@xivgear/i18n/translation";
 

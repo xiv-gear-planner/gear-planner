@@ -502,6 +502,7 @@ export type RawStatsPart = Partial<RawStats>;
  */
 export const NO_SYNC_STATS: RawStatKey[] = ['weaponDelay'];
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export class RawStats implements RawStats {
     hp: number = 0;
     vitality: number = 0;

@@ -1,11 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // TODO: get back to fixing this at some point
 import {
-    ALL_COMBAT_JOBS, ALL_COMBAT_STATS,
-    ALL_COMBAT_SUB_STATS, ALL_JOBS,
+    ALL_COMBAT_STATS,
+    ALL_COMBAT_SUB_STATS,
+    ALL_JOBS,
     CURRENT_MAX_LEVEL,
     defaultItemDisplaySettings,
-    DefaultMateriaFillPrio, DOH_STATS, DOL_STATS,
+    DefaultMateriaFillPrio,
+    DOH_STATS,
+    DOL_STATS,
     getClassJobStats,
     getDefaultDisplaySettings,
     getRaceStats,

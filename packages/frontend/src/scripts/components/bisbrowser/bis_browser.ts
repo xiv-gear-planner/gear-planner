@@ -10,7 +10,7 @@ import {
 } from "@xivgear/common-ui/table/tables";
 import {NamedSection} from "../general/section";
 import {BIS_BROWSER_HASH, BIS_HASH, makeUrlSimple} from "@xivgear/core/nav/common_nav";
-import {ALL_COMBAT_JOBS, ALL_JOBS, JOB_DATA, JOB_IDS, JobName} from "@xivgear/xivmath/xivconstants";
+import {ALL_JOBS, JOB_DATA, JOB_IDS, JobName} from "@xivgear/xivmath/xivconstants";
 import {makeActionButton, quickElement} from "@xivgear/common-ui/components/util";
 import {capitalizeFirstLetter} from "@xivgear/util/strutils";
 import {JobIcon} from "../job/job_icon";
