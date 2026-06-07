@@ -212,10 +212,26 @@ export class NewApiDataManager implements DataManager {
                                 }
                             }
 
-                            // Theoretically, this is safe even for multi-job because the item stat cap multipliers
-                            // are role-bound.
+                            // There is some weird rounding behavior that I think I have mostly figured out, but not
+                            // completely. There are still some cases where it is off by one.
+                            // Here's how I think it works, using Crit on PLD as an example:
+                            // BaseParam Critical Hit has 1H% = 100, OH% = 40, and 2H% = 140. Notice how 100 + 40 = 140.
+                            // The caps *should* be the same as a 1H, but due to roundoff, they might not be.
+                            // In order to prevent stacking roundoff error (i.e. where both round up or both round down),
+                            // It seems that you're supposed to just ignore the OH% entirely, and instead calculate the
+                            // 2H cap and 1H cap and subtract them.
+                            // However, this is not the case for all stats - e.g. Craftsmanship is OH% == 1h% == 2H% = 350.
+                            // Gathering stats (excl. GP) are also weird, they have 350 for 2H, but then 350/200 or 200/350.
                             if (slot === 'OffHand') {
-                                return calcCap('Weapon2H') - calcCap('Weapon1H');
+                                const ohCap = calcCap('OffHand');
+                                const oneCap = calcCap('Weapon1H');
+                                const twoCap = calcCap('Weapon2H');
+                                // Combat stats = 1H + OH == 2H
+                                if (oneCap + ohCap === twoCap) {
+                                    return calcCap('Weapon2H') - calcCap('Weapon1H');
+                                }
+                                // Other stats - just go with OH cap
+                                return ohCap;
                             }
                             return calcCap(slot);
                         },
