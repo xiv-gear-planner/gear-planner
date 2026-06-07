@@ -223,15 +223,15 @@ export class NewApiDataManager implements DataManager {
                             // However, this is not the case for all stats - e.g. Craftsmanship is OH% == 1h% == 2H% = 350.
                             // Gathering stats (excl. GP) are also weird, they have 350 for 2H, but then 350/200 or 200/350.
                             if (slot === 'OffHand') {
-                                const ohCap = calcCap('OffHand');
-                                const oneCap = calcCap('Weapon1H');
-                                const twoCap = calcCap('Weapon2H');
+                                const bpInfo = baseParams[statsKey as RawStatKey];
+                                const oneCap: number = bpInfo.slots['Weapon1H'];
+                                const twoCap: number = bpInfo.slots['Weapon2H'];
+                                const ohCap: number = bpInfo.slots['OffHand'];
                                 // Combat stats = 1H + OH == 2H
                                 if (oneCap + ohCap === twoCap) {
                                     return calcCap('Weapon2H') - calcCap('Weapon1H');
                                 }
                                 // Other stats - just go with OH cap
-                                return ohCap;
                             }
                             return calcCap(slot);
                         },
