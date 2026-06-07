@@ -35,4 +35,3 @@ export function jobRole(job: JobName): AllRoleKey {
     const jobdatum = JOB_DATA[job];
     return jobdatum.type === 'Combat' ? jobdatum.combatRole : jobdatum.type;
 }
-
