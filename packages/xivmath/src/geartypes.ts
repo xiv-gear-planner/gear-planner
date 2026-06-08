@@ -1099,10 +1099,15 @@ export type SetExportExternalSingle = SetExport & {
 }
 
 /**
+ * Serialized form of ComputedSetStats. Removes jobStats because it doesn't serialize well.
+ */
+export type ComputedSetStatsExport = Omit<ComputedSetStats, "jobStats">;
+
+/**
  * Special version of {@link SetExport} that comes from the /fulldata/ endpoint.
  */
 export type SetStatsExport = SetExport & {
-    computedStats: ComputedSetStats
+    computedStats: ComputedSetStatsExport
 }
 
 // noinspection JSUnusedGlobalSymbols
