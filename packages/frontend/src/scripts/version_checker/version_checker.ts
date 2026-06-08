@@ -14,7 +14,7 @@ export interface VersionPollerConfig {
 const DEFAULT_CONFIG = {
     intervalMs: 60_000,
     requiredConsecutiveChanges: 3,
-    fetchFn: (url: URL) => fetch(url, {credentials: "same-origin"}),
+    fetchFn: (url: URL) => fetch(url, {cache: 'no-cache', credentials: "same-origin"}),
     getRemoteUrl: () => {
         return new URL("index.html", window.location.href);
     },
