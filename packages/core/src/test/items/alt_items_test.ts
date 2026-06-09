@@ -52,6 +52,20 @@ describe('alt items logic', () => {
             // Should contain this because it is not equipped.
             expect(nuAlts).to.contain(uniqueRing2);
         });
+        it('should list a custom relic as an alt if it could make the same stats as another relic', () => {
+            // Majestic Manderville Wings (i645) 39937
+            const mmb = sheet.itemById(39937);
+            // Should be equivalent to Mandervillious Wings (i665) 40949
+            const mw = sheet.itemById(40949);
+            // These are both synced down
+            const set = new CharacterGearSet(sheet);
+            const emmb = set.toEquippedItem(mmb);
+            emmb.relicStats.crit = 293;
+            emmb.relicStats.determination = 293;
+            emmb.relicStats.piety = 72;
+            const alts = set.getAltItemsFor(mmb);
+            expect(alts).to.contain(mw);
+        });
     });
 });
 
