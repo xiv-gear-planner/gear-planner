@@ -96,7 +96,7 @@ body {
   --role-color-tank: #4848ff;
   --role-color-healer: #13a813;;
   --role-color-dps: #ff0000;
-  --role-color-doh: #ffcd00;
+  --role-color-doh: #ffd632;
   --role-color-dol: var(--role-color-doh);
   --invalid-input-box-shadow: 1px 1px 2px red inset, -1px -1px 2px #ff6000 inset;
 
@@ -1043,8 +1043,16 @@ job-picker {
         //opacity: 50%;
       }
 
+      --brightness-filter: brightness(80%);
+      --saturate-filter: saturate(200%);
+      --role-shadow: drop-shadow(0 0 7px var(--role-color));
+      &:has(.ffxiv-role-doh, .ffxiv-role-dol) {
+        --extra-hover-emphasis: brightness(120%);
+      }
+
       &:hover {
-        filter: saturate(200%);
+        filter: var(--saturate-filter) var(--extra-hover-emphasis, );
+
 
         img {
           opacity: 100%;
@@ -1053,19 +1061,20 @@ job-picker {
 
       &:active {
         border-color: #00000000;
-        filter: brightness(80%);
+        filter: var(--brightness-filter);
       }
 
       &.selected {
         &:active {
           border-color: #00000000;
-          filter: drop-shadow(0 0 10px var(--role-color)) saturate(200%) brightness(80%);
+          filter: var(--role-shadow) var(--saturate-filter) var(--brightness-filter);
         }
 
         // This has a LOWER z-index so that the shadows do not appear over other buttons
         z-index: 2;
         //background-color: var(--role-color);
-        filter: drop-shadow(0 0 10px var(--role-color)) saturate(200%);
+        filter: var(--role-shadow) var(--saturate-filter);
+
 
         img {
           opacity: 100%;
