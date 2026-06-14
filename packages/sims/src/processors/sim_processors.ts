@@ -112,7 +112,7 @@ export abstract class BaseMultiCycleSim<
      */
     get useAutosByDefault(): boolean {
         const jobData = JOB_DATA[this.job];
-        return jobData.role !== 'Healer' && jobData.role !== 'Caster';
+        return jobData.combatRole !== 'Healer' && jobData.combatRole !== 'Caster';
     }
 
     get defaultCutoffMode(): CutoffMode {

@@ -480,6 +480,17 @@ export interface RawStats {
      * converted to the actual concrete stat at that point.
      */
     extraSecondaryStat: number,
+
+    // DoH
+    craftsmanship: number,
+    control: number,
+    cp: number,
+
+    // DoL
+    perception: number,
+    gathering: number,
+    gp: number,
+
 }
 
 export type RawStatKey = keyof RawStats;
@@ -515,6 +526,16 @@ export class RawStats implements RawStats {
     extraMainStat: number = 0;
     extraSecondaryStat: number = 0;
 
+    // DoH
+    craftsmanship: number = 0;
+    control: number = 0;
+    cp: number = 0;
+
+    // DoL
+    perception: number = 0;
+    gathering: number = 0;
+    gp: number = 0;
+
     constructor(values: ({ [K in RawStatKey]?: number } | undefined) = undefined) {
         if (values) {
             Object.assign(this, values);
@@ -531,12 +552,12 @@ export interface LevelStats {
     hpScalar:
         ({
             'other': number
-        } & { [K in RoleKey]?: number })
-        | { [K in RoleKey]: number },
+        } & { [K in CombatRoleKey]?: number })
+        | { [K in CombatRoleKey]: number },
     // You can specify either 'default' and a non-exhaustive list, or an exhaustive list (i.e. every role).
     mainStatPowerMod: {
         'other': number
-    } & { [K in RoleKey]?: number }
+    } & { [K in CombatRoleKey]?: number }
 }
 
 
@@ -553,22 +574,30 @@ export interface LevelItemInfo {
 }
 
 
-export const ROLES = ['Healer', 'Melee', 'Ranged', 'Caster', 'Tank'] as const;
+export const COMBAT_ROLES = ['Healer', 'Melee', 'Ranged', 'Caster', 'Tank'] as const;
 
-export type RoleKey = typeof ROLES[number];
+export type CombatRoleKey = typeof COMBAT_ROLES[number];
 
 export type Mainstat = typeof MAIN_STATS[number];
 export type Substat = (typeof FAKE_MAIN_STATS[number] | typeof SPECIAL_SUB_STATS[number]);
+
+export const JOB_TYPES = ['Combat', 'DoH', 'DoL'] as const;
+export type JobType = typeof JOB_TYPES[number];
+
+export const ALL_ROLES = [...COMBAT_ROLES, 'DoH' satisfies JobType, 'DoL' satisfies JobType] as const;
+export type AllRoleKey = typeof ALL_ROLES[number];
 
 /**
  * JobDataConst represents the subset of job-related data which we do not pull from Xivapi.
  * These are mostly manually curated.
  */
-export interface JobDataConst {
+export type JobDataConst = ({
+    // combat jobs
+    readonly type: 'Combat',
     /**
      * The role of the job
      */
-    readonly role: RoleKey,
+    readonly combatRole: CombatRoleKey,
     /**
      * The primary stat
      */
@@ -586,6 +615,17 @@ export interface JobDataConst {
      * Optional function to apply a damage multiplication trait.
      */
     readonly traitMulti?: (level: number, attackType: AttackType) => number;
+} | {
+    readonly type: 'DoH' | 'DoL'
+
+    // TODO: break these into a sub-object?
+    readonly combatRole: null,
+    readonly mainStat: null;
+    readonly secondaryStat: null;
+    readonly autoAttackStat: null;
+    readonly traitMulti?: undefined;
+}) & {
+    // This section is common to all jobs
     /**
      * Optional list of stat-modifying traits
      */
@@ -701,7 +741,7 @@ export type JobMultipliers = {
 /**
  * JobData is the combination of {@link JobDataConst} and other data pulled from Xivapi.
  */
-export interface JobData extends JobDataConst {
+export type JobData = JobDataConst & {
     jobStatMultipliers: JobMultipliers,
 }
 
@@ -1059,10 +1099,15 @@ export type SetExportExternalSingle = SetExport & {
 }
 
 /**
+ * Serialized form of ComputedSetStats. Removes jobStats because it doesn't serialize well.
+ */
+export type ComputedSetStatsExport = Omit<ComputedSetStats, "jobStats">;
+
+/**
  * Special version of {@link SetExport} that comes from the /fulldata/ endpoint.
  */
 export type SetStatsExport = SetExport & {
-    computedStats: ComputedSetStats
+    computedStats: ComputedSetStatsExport
 }
 
 // noinspection JSUnusedGlobalSymbols
@@ -1452,3 +1497,4 @@ export type IlvlSyncInfo = {
     readonly ilvl: number;
     substatCap(slot: OccGearSlotKey, statsKey: RawStatKey): number;
 }
+

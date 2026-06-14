@@ -4,7 +4,6 @@ import {SheetHandle, SheetManager, SyncStatus} from "@xivgear/core/persistence/s
 import {getHashForSaveKey, openSheetByKey, showNewSheetForm} from "../../base_ui";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import {JobIcon} from "../job/job_icon";
-import {JOB_DATA} from "@xivgear/xivmath/xivconstants";
 import {jobAbbrevTranslated} from "../job/job_name_translator";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {installDragHelper} from "../../util/draghelpers";
@@ -20,6 +19,8 @@ import {
     makePlusIcon,
     makeTrashIcon
 } from "@xivgear/common-ui/components/icons";
+
+import {jobRole} from "@xivgear/core/util/job_utils";
 
 export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionModel<SheetHandle, never, never, SheetHandle | null>> {
 
@@ -219,7 +220,7 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
                 displayName: "Job",
                 getter: sheet => {
                     if (sheet.multiJob) {
-                        return JOB_DATA[sheet.job].role;
+                        return jobRole(sheet.job);
                     }
                     return sheet.job;
                 },
@@ -233,7 +234,7 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
                 displayName: "Job Icon",
                 getter: sheet => {
                     if (sheet.multiJob) {
-                        return JOB_DATA[sheet.job].role;
+                        return jobRole(sheet.job);
                     }
                     return sheet.job;
                 },

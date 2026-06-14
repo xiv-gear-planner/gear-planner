@@ -1,9 +1,10 @@
-import {JOB_DATA, JOB_IDS, JobName} from "@xivgear/xivmath/xivconstants";
+import {JOB_IDS, JobName} from "@xivgear/xivmath/xivconstants";
 import {xivApiIconUrl} from "@xivgear/core/external/xivapi";
-import {RoleKey, ROLES} from "@xivgear/xivmath/geartypes";
+import {ALL_ROLES, AllRoleKey} from "@xivgear/xivmath/geartypes";
+import {jobRole} from "@xivgear/core/util/job_utils";
 
 export class JobIcon extends HTMLImageElement {
-    constructor(jobOrRole: JobName | RoleKey) {
+    constructor(jobOrRole: JobName | AllRoleKey) {
         super();
         this.alt = jobOrRole;
         this.title = jobOrRole;
@@ -11,13 +12,14 @@ export class JobIcon extends HTMLImageElement {
         this.setAttribute('intrinsicsize', '64x64');
 
         let iconId: number | null = null;
-        let className: 'ffxiv-role-dps' | 'ffxiv-role-healer' | 'ffxiv-role-tank' | 'ffxiv-job-missing' | null = null;
+        let className: 'ffxiv-role-dps' | 'ffxiv-role-healer' | 'ffxiv-role-tank' | 'ffxiv-role-doh' | 'ffxiv-role-dol' | 'ffxiv-job-missing' | null = null;
 
         // Try to look up job first
         const id = JOB_IDS[jobOrRole as JobName];
         if (id) {
-            const jobDataConst = JOB_DATA[jobOrRole as JobName];
-            switch (jobDataConst.role) {
+            // An ID hit implies it is a job
+            const role = jobRole(jobOrRole as JobName);
+            switch (role) {
                 case "Healer":
                     className = 'ffxiv-role-healer';
                     break;
@@ -28,13 +30,21 @@ export class JobIcon extends HTMLImageElement {
                 case "Ranged":
                 case "Caster":
                     className = 'ffxiv-role-dps';
+                    break;
+                case "DoH":
+                    className = 'ffxiv-role-doh';
+                    break;
+                case "DoL":
+                    className = 'ffxiv-role-dol';
+                    break;
+
             }
             // No real sheet to map these.
             // Rather, it seems that it's just 062100 + id (or 062000 if you don't want the border)
             iconId = 62100 + id;
         }
-        else if (ROLES.includes(jobOrRole as RoleKey)) {
-            const role = jobOrRole as RoleKey;
+        else if (ALL_ROLES.includes(jobOrRole as AllRoleKey)) {
+            const role = jobOrRole as AllRoleKey;
             switch (role) {
                 case "Healer":
                     className = 'ffxiv-role-healer';
@@ -55,6 +65,14 @@ export class JobIcon extends HTMLImageElement {
                 case "Caster":
                     className = 'ffxiv-role-dps';
                     iconId = 62587;
+                    break;
+                case "DoH":
+                    className = 'ffxiv-role-doh';
+                    iconId = 62146;
+                    break;
+                case "DoL":
+                    className = 'ffxiv-role-dol';
+                    iconId = 62146;
                     break;
                 default:
                     className = 'ffxiv-job-missing';

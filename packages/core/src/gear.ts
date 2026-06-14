@@ -1278,7 +1278,7 @@ export class CharacterGearSet {
         // 1. Exists in the candidate item,
         // 2. is at least the same grade, and
         // 3. is high grade if the source slot is also high grade
-        for (let index = 0; index < baseItem.materiaSlots.length; index++){
+        for (let index = 0; index < baseItem.materiaSlots.length; index++) {
             const baseSlot = baseItem.materiaSlots[index];
             // const baseBestMateria = this.sheet.getBestMateria('determination', baseSlot);
             if (index in candidateItem.materiaSlots) {
@@ -1355,7 +1355,6 @@ export type ItemSingleStatDetail = {
     fullAmount: 0,
     cap: 0,
 };
-
 
 
 export type LvlSyncInfo = {

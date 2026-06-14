@@ -1,11 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // TODO: get back to fixing this at some point
 import {
-    ALL_COMBAT_JOBS,
-    ALL_SUB_STATS,
+    ALL_COMBAT_STATS,
+    ALL_COMBAT_SUB_STATS,
+    ALL_JOBS,
     CURRENT_MAX_LEVEL,
     defaultItemDisplaySettings,
     DefaultMateriaFillPrio,
+    DOH_STATS,
+    DOL_STATS,
     getClassJobStats,
     getDefaultDisplaySettings,
     getRaceStats,
@@ -21,6 +24,8 @@ import {
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
 import {
+    ComputedSetStats,
+    ComputedSetStatsExport,
     DisplayGearSlotKey,
     EquippedItem,
     EquipSlotKey,
@@ -59,7 +64,6 @@ import {getDefaultSims, getRegisteredSimSpecs, getSimSpecByStub} from "./sims/si
 import {DUMMY_SHEET_MGR, SheetManager} from "./persistence/saved_sheets";
 import {CustomItem} from "./customgear/custom_item";
 import {CustomFood} from "./customgear/custom_food";
-import {statsSerializationProxy} from "@xivgear/xivmath/xivstats";
 import {isMateriaAllowed, materiaShortLabel} from "./materia/materia_utils";
 import {inflateSetExport} from "./util/sheet_utils";
 import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
@@ -182,7 +186,7 @@ export class GearPlanSheet {
     private _partyBonus: PartyBonusAmount;
     private readonly _saveKey: string | undefined;
     private readonly _importedData: SheetExport;
-    shouldAddDefaultSimsToNewSheet: boolean;
+    shouldAddDefaultSimsToNewSheet: boolean = false;
 
     // Sheet data
     private _sets: CharacterGearSet[] = [];
@@ -242,9 +246,13 @@ export class GearPlanSheet {
         this.isMultiJob = importedData.isMultiJob ?? false;
         this._activeSpecialStat = (importedData.specialStats ?? null) as SpecialStatType | null;
         this.altJobs = this.isMultiJob ? [
-            ...ALL_COMBAT_JOBS.filter(job => JOB_DATA[job].role === JOB_DATA[this.classJobName].role
-                // Don't include the primary job in the list of alt jobs
-                && job !== this.classJobName),
+            ...ALL_JOBS.filter(job => {
+                const thatJobData = JOB_DATA[job];
+                const thisJobData = JOB_DATA[this.classJobName];
+                return thatJobData.type === thisJobData.type && thatJobData.combatRole === thisJobData.combatRole
+                    // Don't include the primary job in the list of alt jobs
+                    && job !== this.classJobName;
+            }),
         ] : [];
         this.ilvlSync = importedData.ilvlSync;
         this._description = importedData.description;
@@ -1069,7 +1077,7 @@ export class GearPlanSheet {
         return this.statsForJob(this.classJobName);
     }
 
-    private get classJobEarlyStats(): JobDataConst {
+    get classJobEarlyStats(): JobDataConst {
         return getClassJobStats(this.classJobName);
     }
 
@@ -1105,18 +1113,25 @@ export class GearPlanSheet {
             // Not sure what the best way to handle this is
             return true;
         }
-        if (MAIN_STATS.includes(stat as typeof MAIN_STATS[number])) {
-            return (stat === this.classJobEarlyStats.mainStat);
-        }
-        if (stat === 'gearHaste') {
-            const specialStat = this.activeSpecialStat;
-            return SPECIAL_STATS_MAPPING[specialStat]?.showHaste ?? false;
-        }
-        if (this.classJobEarlyStats.irrelevantSubstats) {
-            return !this.classJobEarlyStats.irrelevantSubstats.includes(stat as Substat);
-        }
-        else {
-            return true;
+        switch (this.classJobEarlyStats.type) {
+            case "Combat":
+                if (MAIN_STATS.includes(stat as typeof MAIN_STATS[number])) {
+                    return (stat === this.classJobEarlyStats.mainStat);
+                }
+                if (stat === 'gearHaste') {
+                    const specialStat = this.activeSpecialStat;
+                    return SPECIAL_STATS_MAPPING[specialStat]?.showHaste ?? false;
+                }
+                if (this.classJobEarlyStats.irrelevantSubstats) {
+                    return !this.classJobEarlyStats.irrelevantSubstats.includes(stat as Substat);
+                }
+                else {
+                    return ALL_COMBAT_STATS.includes(stat as typeof ALL_COMBAT_STATS[number]);
+                }
+            case "DoH":
+                return DOH_STATS.includes(stat as typeof DOH_STATS[number]);
+            case "DoL":
+                return DOL_STATS.includes(stat as typeof DOL_STATS[number]);
         }
     }
 
@@ -1127,7 +1142,7 @@ export class GearPlanSheet {
      * @param stat
      */
     isStatPossibleOnGear(stat: RawStatKey | undefined): boolean {
-        const role = this.classJobEarlyStats.role;
+        const role = this.classJobEarlyStats.combatRole;
         if (stat === 'vitality') {
             return true;
         }
@@ -1273,6 +1288,11 @@ export class GearPlanSheet {
         const settings = this._itemDisplaySettings;
         return [
             ...this.dataManager.allItems.filter(item => {
+                // Special case for FSH
+                if (item.displayGearSlotName === 'OffHand'
+                    && item.usableByJob('FSH')) {
+                    return true;
+                }
                 return item.ilvl >= settings.minILvl
                     && (item.ilvl <= settings.maxILvl
                         || item.isCustomRelic && settings.higherRelics)
@@ -1601,7 +1621,7 @@ function checkItemCompat(itemA: EquippedItem, itemB: EquippedItem): SlotIncompat
     if (itemA.gearItem.isCustomRelic) {
         // Dealing with relics
         const badSubStats: string[] = [];
-        ALL_SUB_STATS.forEach(stat => {
+        ALL_COMBAT_SUB_STATS.forEach(stat => {
             const statValueA = itemA.relicStats[stat];
             const statValueB = itemB.relicStats[stat];
             if (statValueA !== statValueB) {
@@ -1781,3 +1801,75 @@ export const ExportTypes = {
     InternalSaveAs,
     FullStatsExport,
 } as const;
+
+/**
+ * Transform a ComputedSetStats into a form that serializes properly. That is, it serializes the getters rather
+ * than only the backing data. This is realistically what you would want out of the fulldata API endpoint.
+ *
+ * @param stats
+ */
+export function statsSerializationProxy(stats: ComputedSetStats): ComputedSetStatsExport {
+    // The purpose of this is that the fullstats API won't correctly serialize the ComputedSetStatsImpl normally.
+    // We care about the
+    return new Proxy(stats, {
+        get(target, prop, receiver) {
+            // Remove this field, it doesn't serialize well anyway
+            if (prop === 'jobStats') {
+                return undefined;
+            }
+            // Check if the property is a getter on the prototype chain
+            let descriptor = Object.getOwnPropertyDescriptor(target, prop as string);
+            let proto = Object.getPrototypeOf(target);
+
+            while (!descriptor && proto) {
+                descriptor = Object.getOwnPropertyDescriptor(proto, prop as string);
+                proto = Object.getPrototypeOf(proto);
+            }
+
+            if (descriptor && typeof descriptor.get === 'function') {
+                return descriptor.get.call(target);
+            }
+
+            return Reflect.get(target, prop, receiver);
+        },
+        ownKeys(target) {
+            const keys = new Set<string | symbol>();
+
+            let obj: object = target;
+            while (obj) {
+                Reflect.ownKeys(obj).forEach((key) => {
+                    if (key === 'jobStats') {
+                        return;
+                    }
+                    if (typeof key === 'string' && !key.startsWith('_')) {
+                        const descriptor = Object.getOwnPropertyDescriptor(obj, key);
+                        if (descriptor && typeof descriptor.get === 'function') {
+                            keys.add(key);
+                        }
+                    }
+                });
+                obj = Object.getPrototypeOf(obj);
+            }
+
+            return Array.from(keys);
+        },
+        getOwnPropertyDescriptor(target, prop) {
+            if (prop === 'jobStats') {
+                return undefined;
+            }
+            const descriptor = Object.getOwnPropertyDescriptor(target, prop)
+                || Object.getOwnPropertyDescriptor(Object.getPrototypeOf(target), prop);
+
+            if (descriptor
+                && typeof descriptor.get === 'function'
+                && typeof prop === 'string'
+                && !prop.startsWith('_')) {
+                return {
+                    enumerable: true,
+                    configurable: true,
+                };
+            }
+            return undefined;
+        },
+    }) as unknown as ComputedSetStatsExport;
+}
