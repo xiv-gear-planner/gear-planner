@@ -1288,6 +1288,11 @@ export class GearPlanSheet {
         const settings = this._itemDisplaySettings;
         return [
             ...this.dataManager.allItems.filter(item => {
+                // Special case for FSH
+                if (item.displayGearSlotName === 'OffHand'
+                    && item.usableByJob('FSH')) {
+                    return true;
+                }
                 return item.ilvl >= settings.minILvl
                     && (item.ilvl <= settings.maxILvl
                         || item.isCustomRelic && settings.higherRelics)

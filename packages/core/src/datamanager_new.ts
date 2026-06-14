@@ -319,10 +319,15 @@ export class NewApiDataManager implements DataManager {
                 this._allItems = rawItems
                     .filter(i => {
                         try {
+                            // Always include FSH offhand
+                            if (i.classJobs.includes('FSH') && i.equipSlotCategory.offHand === 1) {
+                                return true;
+                            }
                             // Filter out lower-level items for jobs that don't care about it
                             return i.ilvl >= this.minEquipIlvl
                                 && (Object.keys(i.baseParamMapHQ).length > 0
-                                    || (i.classJobs.includes('BLU') && i.equipSlotCategory.mainHand === 1)); // Don't filter out BLU weapons
+                                    // Don't filter out BLU weapons
+                                    || (i.classJobs.includes('BLU') && i.equipSlotCategory.mainHand === 1));
                         }
                         catch (e) {
                             console.log(e);
@@ -347,10 +352,15 @@ export class NewApiDataManager implements DataManager {
                             if (i.displayGearSlotName === 'Weapon') {
                                 return true;
                             }
+                            if (i.displayGearSlotName === 'OffHand' && i.usableByJob('FSH'))  {
+                                // Include FSH offhand
+                                console.log(`Including FSH offhand ${i.id}`);
+                                return true;
+                            }
                             if (i.materiaSlots.length === 0 && !i.primarySubstat) {
                                 return false;
                             }
-                            // The item must have some main stat, or be a weapon
+                            // The item must have some main stat, or a FSH offhand
                             return i.stats.extraMainStat || i.stats.vitality || i.stats.intelligence || i.stats.mind || i.stats.strength || i.stats.dexterity;
                         }
                         return true;
