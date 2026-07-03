@@ -696,7 +696,7 @@ export type ElOpts<X extends keyof HTMLElementTagNameMap> = {
      */
     style?: {
         [K in WritableCssProp]?: string;
-    }
+    };
 };
 
 /**

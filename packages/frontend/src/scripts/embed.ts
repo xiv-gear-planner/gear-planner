@@ -8,8 +8,22 @@ import {getCurrentHash, getCurrentState} from "./nav_hash";
 import {recordSheetEvent} from "./analytics/analytics";
 
 import {makeNewTabIcon} from "@xivgear/common-ui/components/icons";
+import {elt} from "@xivgear/common-ui/components/templates";
 
 let embedDiv: HTMLDivElement;
+
+const OPEN_FULL_OPTIONS = [
+    'Click to Open Full View',
+    'Open Full View',
+    'View on Xivgear',
+    'View/Edit on Xivgear',
+    'View Full Gear Set',
+    'View Full Stats',
+    'Show More',
+    'Show Full',
+    'Expand View',
+    'Open in New Tab',
+];
 
 export function getEmbedDiv(): HTMLDivElement | undefined {
     return embedDiv;
@@ -40,26 +54,26 @@ export async function openEmbed(sheet: GearPlanSheetGui) {
         console.log("openEmbed mid");
         const editorArea = sheet.editorArea;
 
-        // const placeHolder = editorArea.querySelector("a#embed-stats-placeholder");
-        // placeHolder.parentElement.insertBefore(statTotals, placeHolder);
-
-        embedDiv.replaceChildren(editorArea);
-
-        const openFullLink = document.createElement('a');
-        openFullLink.classList.add('embed-open-full-link');
+        const buttonText = OPEN_FULL_OPTIONS[Math.floor(Math.random() * OPEN_FULL_OPTIONS.length * 0.999)] ?? 'Open Full';
         const hash = getCurrentHash();
         const linkUrl = makeUrl(new NavState(hash.slice(1), undefined, getCurrentState().onlySetIndex));
         linkUrl.searchParams.delete(ONLY_SET_QUERY_PARAM);
-        openFullLink.href = linkUrl.toString();
-        openFullLink.target = '_blank';
-        openFullLink.addEventListener('click', () => {
-            recordSheetEvent("openEmbedToFull", sheet);
-        });
-        openFullLink.replaceChildren('Click to open full view ', makeNewTabIcon());
 
-        // const body = document.body;
-        // body.prepend(openFullLink);
-        embedDiv.prepend(openFullLink);
+        const openFullLink = elt('a', {
+            class: 'embed-open-full-link',
+            props: {
+                href: linkUrl.toString(),
+                target: '_blank',
+            },
+        })`${buttonText}${makeNewTabIcon()}`;
+
+        openFullLink.addEventListener('click', () => {
+            recordSheetEvent("openEmbedToFull", sheet, {
+                buttonText: buttonText,
+            });
+        });
+
+        embedDiv.replaceChildren(openFullLink, editorArea);
 
         console.log("openEmbed end");
         setTitle('Embed');
