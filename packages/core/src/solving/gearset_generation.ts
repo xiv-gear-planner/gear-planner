@@ -11,7 +11,7 @@ import {
     SetExport
 } from "@xivgear/xivmath/geartypes";
 import {
-    ALL_SUB_STATS,
+    ALL_COMBAT_SUB_STATS,
     MATERIA_ACCEPTABLE_OVERCAP_LOSS,
     MateriaSubstat,
     NORMAL_GCD
@@ -104,7 +104,7 @@ export class GearsetGenerator {
 
     public constructor(sheet: GearPlanSheet) {
         this._sheet = sheet;
-        this.relevantStats = ALL_SUB_STATS.filter(stat => this._sheet.isStatRelevant(stat) && stat !== 'piety');
+        this.relevantStats = ALL_COMBAT_SUB_STATS.filter(stat => this._sheet.isStatRelevant(stat) && stat !== 'piety');
     }
 
     async getMeldPossibilitiesForGearset(gearset: CharacterGearSet, settings: GearsetGenerationSettingsExport, genCallback: (sets: MicroSetExport[]) => void, statusCallback: (update: Omit<GearsetGenerationStatusUpdate, "type">) => void): Promise<void> {

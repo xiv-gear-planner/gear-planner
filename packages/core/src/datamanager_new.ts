@@ -176,6 +176,24 @@ export class NewApiDataManager implements DataManager {
                                     // Secondary stats also should all be the same
                                     ilvlModifier = row.directHitRate;
                                     break;
+                                case "cp":
+                                    ilvlModifier = row.CP;
+                                    break;
+                                case "control":
+                                    ilvlModifier = row.control;
+                                    break;
+                                case "craftsmanship":
+                                    ilvlModifier = row.craftsmanship;
+                                    break;
+                                case "gp":
+                                    ilvlModifier = row.GP;
+                                    break;
+                                case "gathering":
+                                    ilvlModifier = row.gathering;
+                                    break;
+                                case "perception":
+                                    ilvlModifier = row.perception;
+                                    break;
                                 default:
                                     console.warn(`Bad ilvl modifier! ${statsKey}:${slot}`);
                                     ilvlModifier = undefined;
@@ -186,7 +204,7 @@ export class NewApiDataManager implements DataManager {
                                 const bpInfo = baseParams[statsKey as RawStatKey];
                                 const baseParamModifier: number = bpInfo.slots[slot];
                                 const jobCap = bpInfo.meldParam[jobStats.meldParamIndex] / 100;
-                                if (jobCap !== undefined) {
+                                if (jobCap !== undefined && ilvlModifier !== undefined) {
                                     return Math.round(jobCap * Math.round(ilvlModifier * baseParamModifier / 1000));
                                 }
                                 else {
@@ -194,10 +212,26 @@ export class NewApiDataManager implements DataManager {
                                 }
                             }
 
-                            // Theoretically, this is safe even for multi-job because the item stat cap multipliers
-                            // are role-bound.
+                            // There is some weird rounding behavior that I think I have mostly figured out, but not
+                            // completely. There are still some cases where it is off by one.
+                            // Here's how I think it works, using Crit on PLD as an example:
+                            // BaseParam Critical Hit has 1H% = 100, OH% = 40, and 2H% = 140. Notice how 100 + 40 = 140.
+                            // The caps *should* be the same as a 1H, but due to roundoff, they might not be.
+                            // In order to prevent stacking roundoff error (i.e. where both round up or both round down),
+                            // It seems that you're supposed to just ignore the OH% entirely, and instead calculate the
+                            // 2H cap and 1H cap and subtract them.
+                            // However, this is not the case for all stats - e.g. Craftsmanship is OH% == 1h% == 2H% = 350.
+                            // Gathering stats (excl. GP) are also weird, they have 350 for 2H, but then 350/200 or 200/350.
                             if (slot === 'OffHand') {
-                                return calcCap('Weapon2H') - calcCap('Weapon1H');
+                                const bpInfo = baseParams[statsKey as RawStatKey];
+                                const oneCap: number = bpInfo.slots['Weapon1H'];
+                                const twoCap: number = bpInfo.slots['Weapon2H'];
+                                const ohCap: number = bpInfo.slots['OffHand'];
+                                // Combat stats = 1H + OH == 2H
+                                if (oneCap + ohCap === twoCap) {
+                                    return calcCap('Weapon2H') - calcCap('Weapon1H');
+                                }
+                                // Other stats - just go with OH cap
                             }
                             return calcCap(slot);
                         },
@@ -285,10 +319,15 @@ export class NewApiDataManager implements DataManager {
                 this._allItems = rawItems
                     .filter(i => {
                         try {
+                            // Always include FSH offhand
+                            if (i.classJobs.includes('FSH') && i.equipSlotCategory.offHand === 1) {
+                                return true;
+                            }
                             // Filter out lower-level items for jobs that don't care about it
                             return i.ilvl >= this.minEquipIlvl
                                 && (Object.keys(i.baseParamMapHQ).length > 0
-                                    || (i.classJobs.includes('BLU') && i.equipSlotCategory.mainHand === 1)); // Don't filter out BLU weapons
+                                    // Don't filter out BLU weapons
+                                    || (i.classJobs.includes('BLU') && i.equipSlotCategory.mainHand === 1));
                         }
                         catch (e) {
                             console.log(e);
@@ -313,10 +352,15 @@ export class NewApiDataManager implements DataManager {
                             if (i.displayGearSlotName === 'Weapon') {
                                 return true;
                             }
+                            if (i.displayGearSlotName === 'OffHand' && i.usableByJob('FSH'))  {
+                                // Include FSH offhand
+                                console.log(`Including FSH offhand ${i.id}`);
+                                return true;
+                            }
                             if (i.materiaSlots.length === 0 && !i.primarySubstat) {
                                 return false;
                             }
-                            // The item must have some main stat, or be a weapon
+                            // The item must have some main stat, or a FSH offhand
                             return i.stats.extraMainStat || i.stats.vitality || i.stats.intelligence || i.stats.mind || i.stats.strength || i.stats.dexterity;
                         }
                         return true;

@@ -19,7 +19,7 @@ describe('misc helpers', () => {
         });
 
         it("filter works", () => {
-            const icons = getJobIcons('frameless', job => JOB_DATA[job].role === 'Healer');
+            const icons = getJobIcons('frameless', job => JOB_DATA[job].combatRole === 'Healer');
             expect(icons).to.have.length(4);
         });
     });

@@ -8,7 +8,7 @@ import {
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {
-    ALL_COMBAT_JOBS,
+    ALL_JOBS,
     CURRENT_MAX_LEVEL,
     JOB_DATA,
     JobName,
@@ -23,7 +23,7 @@ import {fieldBoundLevelSelect} from "@xivgear/common-ui/components/level_picker"
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {SHARED_SET_NAME} from "@xivgear/core/imports/imports";
 import {JobIcon} from "../job/job_icon";
-import {RoleKey, SheetSummary} from "@xivgear/xivmath/geartypes";
+import {AllRoleKey, CombatRoleKey, SheetSummary} from "@xivgear/xivmath/geartypes";
 import {openSheetByKey} from "../../base_ui";
 import {GRAPHICAL_SHEET_PROVIDER} from "../sheet/provider";
 import {recordSheetEvent} from "../../analytics/analytics";
@@ -75,7 +75,7 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
         level?: SupportedLevel,
         ilvlSyncEnabled?: boolean,
         ilvlSyncLevel?: number,
-        allowedRoles?: RoleKey[],
+        allowedRoles?: AllRoleKey[],
         multiJob?: boolean,
     }) {
         super();
@@ -353,7 +353,7 @@ export abstract class BaseSheetSettingsModal extends BaseModal {
         level?: SupportedLevel,
         ilvlSyncEnabled?: boolean,
         ilvlSyncLevel?: number,
-        allowedRoles?: RoleKey[],
+        allowedRoles?: CombatRoleKey[],
         multiJob?: boolean,
     }, submitLabel: string) {
         super();
@@ -418,7 +418,7 @@ export class SaveAsModal extends BaseSheetSettingsModal {
             name: defaultName,
             ilvlSyncEnabled: existingSheet.ilvlSync !== undefined,
             ilvlSyncLevel: existingSheet.ilvlSync,
-            allowedRoles: [JOB_DATA[existingSheet.classJobName].role],
+            allowedRoles: [JOB_DATA[existingSheet.classJobName].combatRole],
             multiJob: existingSheet.isMultiJob,
         }, 'New Sheet');
         this.headerText = 'Save As';
@@ -474,15 +474,17 @@ class JobPicker extends HTMLElement {
      * @param defaultJob The job to default to, or null if nothing should be selected by default.
      * @param allowedRoles If specified, restrict which roles may be chosen.
      */
-    constructor(defaultJob: JobName | null = null, allowedRoles?: RoleKey[]) {
+    constructor(defaultJob: JobName | null = null, allowedRoles?: AllRoleKey[]) {
         super();
-        const tankDiv = quickElement('div', ['job-picker-section', 'job-picker-section-tank'], []);
-        const healerDiv = quickElement('div', ['job-picker-section', 'job-picker-section-healer'], []);
-        const meleeDiv = quickElement('div', ['job-picker-section', 'job-picker-section-melee'], []);
-        const rangeDiv = quickElement('div', ['job-picker-section', 'job-picker-section-range'], []);
-        const casterDiv = quickElement('div', ['job-picker-section', 'job-picker-section-caster'], []);
+        const tankDiv = quickElement('div', ['job-picker-section', 'job-picker-section-tank']);
+        const healerDiv = quickElement('div', ['job-picker-section', 'job-picker-section-healer']);
+        const meleeDiv = quickElement('div', ['job-picker-section', 'job-picker-section-melee']);
+        const rangeDiv = quickElement('div', ['job-picker-section', 'job-picker-section-range']);
+        const casterDiv = quickElement('div', ['job-picker-section', 'job-picker-section-caster']);
+        const dohDiv = quickElement('div', ['job-picker-section', 'job-picker-section-doh']);
+        const dolDiv = quickElement('div', ['job-picker-section', 'job-picker-section-dol']);
 
-        ALL_COMBAT_JOBS.forEach((jobName) => {
+        ALL_JOBS.forEach((jobName) => {
             const job = JOB_DATA[jobName];
             const jobSelector = quickElement('button', ['job-picker-job-icon'], [new JobIcon(jobName)]);
             jobSelector.value = jobName;
@@ -493,22 +495,35 @@ class JobPicker extends HTMLElement {
                 this._selectedSelector = jobSelector;
             }
             let parent: HTMLDivElement;
-            switch (job.role) {
-                case "Healer":
-                    parent = healerDiv;
+            switch (job.type) {
+                case "Combat": {
+                    switch (job.combatRole) {
+                        case "Healer":
+                            parent = healerDiv;
+                            break;
+                        case "Melee":
+                            parent = meleeDiv;
+                            break;
+                        case "Ranged":
+                            parent = rangeDiv;
+                            break;
+                        case "Caster":
+                            parent = casterDiv;
+                            break;
+                        case "Tank":
+                            parent = tankDiv;
+                            break;
+                    }
                     break;
-                case "Melee":
-                    parent = meleeDiv;
+                }
+                case "DoH": {
+                    parent = dohDiv;
                     break;
-                case "Ranged":
-                    parent = rangeDiv;
+                }
+                case "DoL": {
+                    parent = dolDiv;
                     break;
-                case "Caster":
-                    parent = casterDiv;
-                    break;
-                case "Tank":
-                    parent = tankDiv;
-                    break;
+                }
             }
             parent.appendChild(jobSelector);
             jobSelector.addEventListener('click', (ev) => {
@@ -540,10 +555,16 @@ class JobPicker extends HTMLElement {
             if (allowedRoles.includes('Caster')) {
                 children.push(casterDiv);
             }
+            if (allowedRoles.includes('DoH')) {
+                children.push(dohDiv);
+            }
+            if (allowedRoles.includes('DoL')) {
+                children.push(dolDiv);
+            }
             this.replaceChildren(...children);
         }
         else {
-            this.replaceChildren(tankDiv, healerDiv, meleeDiv, rangeDiv, casterDiv);
+            this.replaceChildren(tankDiv, healerDiv, meleeDiv, rangeDiv, casterDiv, dohDiv, dolDiv);
         }
     }
 
@@ -560,7 +581,7 @@ export class ChangePropsModal extends BaseSheetSettingsModal {
             level: sheet.level,
             ilvlSyncEnabled: sheet.ilvlSync !== undefined,
             ilvlSyncLevel: sheet.ilvlSync,
-            allowedRoles: [JOB_DATA[sheet.classJobName].role],
+            allowedRoles: [JOB_DATA[sheet.classJobName].combatRole],
             multiJob: sheet.isMultiJob,
         }, 'Apply');
         this.headerText = 'Change Sheet Properties';
