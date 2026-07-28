@@ -24,6 +24,12 @@ function err(description: string): GearSetIssue {
     };
 }
 
+/**
+ * EW/DT relic stat model
+ *
+ * @param large
+ * @param small
+ */
 function ewRelic(large: number, small: number): EwRelicStatModel {
     return {
         type: 'ewrelic',
@@ -171,6 +177,8 @@ function getRelicStatModelForPartial(gearItem: GearItem, baseParams: BaseParamMa
     const slotModifier = baseParams.crit.slots[gearItem.occGearSlotName] / 140;
     const statCap = gearItem.unsyncedVersion.statCaps.crit;
     switch (gearItem.ilvl) {
+        case 795:
+            return ewRelic(statCap, Math.round(108 * slotModifier));
         // EW relics are 2 capped stats, and one 72
         case 665:
             return ewRelic(statCap, Math.round(72 * slotModifier));
