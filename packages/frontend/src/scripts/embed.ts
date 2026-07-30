@@ -65,7 +65,7 @@ export async function openEmbed(sheet: GearPlanSheetGui) {
                 href: linkUrl.toString(),
                 target: '_blank',
             },
-        })`${buttonText}${makeNewTabIcon()}`;
+        })`${buttonText} ${makeNewTabIcon()}`;
 
         openFullLink.addEventListener('click', () => {
             recordSheetEvent("openEmbedToFull", sheet, {
