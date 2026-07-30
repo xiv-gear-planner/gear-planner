@@ -265,7 +265,7 @@ export class SingleMateriaViewOnly extends HTMLElement {
     constructor(materia: Materia) {
         super();
         this.classList.add("single-materia-view-only");
-        const imageHolder = el("div", {class:"materia-image-holder"});
+        const imageHolder = el("div", {class: "materia-image-holder"});
         this.image = document.createElement("img");
         this.text = el("span", {}, [materiaShortLabel(materia)]);
         imageHolder.appendChild(this.image);
@@ -305,21 +305,20 @@ function toRomanNumeral(grade: number) {
 
 export class SlotMateriaManagerPopup extends HTMLElement {
 
+    private showAllGrades = false;
+
     constructor(private sheet: GearPlanSheet, private materiaSlot: MeldableMateriaSlot, private callback: () => void) {
         super();
         this.hide();
     }
 
-    show() {
-        const allMateria = this.sheet.getRelevantMateriaFor(this.materiaSlot);
+    private renderTable(): HTMLTableElement {
+        const showAllGrades = this.showAllGrades;
+        const allMateria = this.sheet.getRelevantMateriaFor(this.materiaSlot, !showAllGrades);
         const typeMap: { [K in RawStatKey]?: Materia[] } = {};
         const stats: RawStatKey[] = [];
         const grades: number[] = [];
         for (const materia of allMateria) {
-            if (materia.materiaGrade > this.materiaSlot.materiaSlot.maxGrade
-                || materia.isHighGrade && !this.materiaSlot.materiaSlot.allowsHighGrade) {
-                continue;
-            }
             (typeMap[materia.primaryStat] = typeMap[materia.primaryStat] ?? []).push(materia);
             if (!stats.includes(materia.primaryStat)) {
                 stats.push(materia.primaryStat);
@@ -347,6 +346,7 @@ export class SlotMateriaManagerPopup extends HTMLElement {
             classes: ['materia-picker-lock', 'materia-picker-special-button'],
         }, [makeLockIcon()]);
         const slot = this.materiaSlot;
+
         function checkLock() {
             if (slot.locked) {
                 lock.classList.add('locked');
@@ -359,6 +359,7 @@ export class SlotMateriaManagerPopup extends HTMLElement {
                 lock.title = 'This slot is unlocked. It may be affected by auto-fill and the solver.\n\nClick to lock.';
             }
         }
+
         lock.addEventListener('mousedown', (ev) => {
             this.materiaSlot.locked = !this.materiaSlot.locked;
             checkLock();
@@ -406,7 +407,23 @@ export class SlotMateriaManagerPopup extends HTMLElement {
                 }
             }
         }
-        this.replaceChildren(table);
+        return table;
+    }
+
+    show() {
+        const table = this.renderTable();
+        if (this.showAllGrades) {
+            this.replaceChildren(table);
+        }
+        else {
+            const showAllGradesButton = el('button', {class: 'show-more-materia-button'}, ['Show lower materia']);
+            showAllGradesButton.addEventListener('mousedown', (ev) => {
+                this.showAllGrades = true;
+                this.replaceChildren(this.renderTable());
+                ev.stopPropagation();
+            });
+            this.replaceChildren(table, showAllGradesButton);
+        }
         const self = this;
         MODAL_CONTROL.setModal({
             modalElement: self,
@@ -517,10 +534,11 @@ export class MateriaPriorityPicker extends HTMLElement {
         });
         minGcdInput.title = 'Enter the minimum desired GCD in the form x.yz.\nSkS/SpS materia will be de-prioritized once this target GCD is met.';
         minGcdInput.classList.add('min-gcd-input');
+        const isCombat = sheet.classJobStats.type === "Combat";
         this.replaceChildren(header, drag,
             document.createElement('br'),
-            minGcdText, minGcdInput,
-            document.createElement('br'),
+            // Only show GCD for combat jobs
+            ...(isCombat ? [minGcdText, minGcdInput, document.createElement('br')] : []),
             fillModeLabel, fillModeDropdown,
             document.createElement('br'),
             fillEmptyNow, fillAllNow,
@@ -738,4 +756,3 @@ customElements.define("slot-materia-popup", SlotMateriaManagerPopup);
 customElements.define("materia-priority-picker", MateriaPriorityPicker);
 customElements.define("materia-drag-order", MateriaDragList);
 customElements.define("materia-dragger", MateriaDragger);
-

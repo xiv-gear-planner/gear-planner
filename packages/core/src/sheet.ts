@@ -1243,10 +1243,13 @@ export class GearPlanSheet {
      * in the slot.
      *
      * @param slot
+     * @param filterByGrade
      */
-    getRelevantMateriaFor(slot: MeldableMateriaSlot | MateriaSlot): Materia[] {
+    getRelevantMateriaFor(slot: MeldableMateriaSlot | MateriaSlot, filterByGrade: boolean = true): Materia[] {
         const actualSlot: MateriaSlot = 'materiaSlot' in slot ? slot.materiaSlot : slot;
-        const materia = this._relevantMateria.filter(mat => mat.ilvl <= actualSlot.ilvl);
+        const materia = this._relevantMateria.filter(mat => mat.ilvl <= actualSlot.ilvl)
+            .filter(mat => mat.materiaGrade <= actualSlot.maxGrade)
+            .filter(mat => !mat.isHighGrade || actualSlot.allowsHighGrade);
         // Sort materia from highest to lowest
         materia.sort((left, right) => {
             if (left.materiaGrade > right.materiaGrade) {
@@ -1262,9 +1265,10 @@ export class GearPlanSheet {
         }
         // Find highest grade materia
         const maxGrade = materia[0].materiaGrade;
-        // Find lowest grade that we want to display - three grades lower. e.g. if the gear can support materia X,
+        // If filterByGrade is true, find lowest grade that we want to display - three grades lower. e.g. if the gear can support materia X,
         // then we want to display X, IX for pentamelds, as well as IIX and VIII for budget sets.
-        const minDisplayGrade = maxGrade - 3;
+        // If filtering is disabled, show everything.
+        const minDisplayGrade = filterByGrade ? maxGrade - 3 : 1;
         return materia.filter(mat => mat.materiaGrade >= minDisplayGrade);
     }
 

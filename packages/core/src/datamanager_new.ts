@@ -1021,7 +1021,7 @@ export function processRawMateriaInfo(data: ApiMateriaData): Materia[] {
             primaryStat: stat,
             primaryStatValue: stats[stat],
             materiaGrade: grade,
-            isHighGrade: (grade % 2) === 0,
+            isHighGrade: (grade % 2) === 0 && grade >= 6,
             ilvl: itemData.ilvl ?? 0,
         });
     }
