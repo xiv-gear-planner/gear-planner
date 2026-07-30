@@ -1232,6 +1232,9 @@ export class CharacterGearSet {
                 && otherItem.equipLvl <= this.classJobStats.maxLevel)) {
                 return false;
             }
+            if (!otherItem.usableByJob(this.job)) {
+                return false;
+            }
             // For unique rings specifically, we need to check if the player already has that ring equipped in the
             // other slot, since you would not be able to equip it into both slots.
             if (otherItem.isUnique && otherItem.displayGearSlotName === 'Ring') {

@@ -6,7 +6,7 @@ describe('alt items logic', () => {
     let sheet: GearPlanSheet;
 
     before(async () => {
-        sheet = HEADLESS_SHEET_PROVIDER.fromScratch(undefined, "Alt Items Test", "SGE", 70, 290, false);
+        sheet = HEADLESS_SHEET_PROVIDER.fromScratch(undefined, "Alt Items Test", "SGE", 70, 290, true);
         await sheet.load();
     });
 
@@ -30,6 +30,7 @@ describe('alt items logic', () => {
             // This isn't actually equipped, but that doesn't matter
             const ur2Alts = setA.getAltItemsFor(uniqueRing2);
             const nuAlts = setA.getAltItemsFor(nonUniqueRing);
+            const wepAlts = setA.getAltItemsFor(i300WEP);
 
             // Should never list itself as an alt
             expect(ur1Alts).to.not.contain(uniqueRing1);
@@ -51,6 +52,10 @@ describe('alt items logic', () => {
             expect(nuAlts).not.to.contain(uniqueRing1);
             // Should contain this because it is not equipped.
             expect(nuAlts).to.contain(uniqueRing2);
+
+            for (const wepAlt of wepAlts) {
+                expect(wepAlt.usableByJob('SGE'), `Item ${wepAlt.id}: ${wepAlt.name}`).to.be.true;
+            }
         });
     });
 });

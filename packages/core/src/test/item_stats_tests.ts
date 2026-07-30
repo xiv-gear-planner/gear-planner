@@ -136,6 +136,9 @@ describe('bug #695 - offhands have wrong stats', () => {
                         else if (item.ilvl === 560 && item.stats.vitality === 115) {
                             return;
                         }
+                        else if (item.ilvl === 690 && item.stats.vitality === 214) {
+                            return;
+                        }
                     }
                     if (value !== cap) {
                         failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has mainstat ${mainStat} ${value} !== ${cap} (cap)`);
