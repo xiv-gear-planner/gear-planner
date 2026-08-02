@@ -1,0 +1,232 @@
+/*
+Search page header
+
+The search page header contains the search form and the optional "hide results"
+control that swaps the selected item into a standalone page.
+*/
+.item-search-header-inner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 20px;
+  box-sizing: border-box;
+}
+
+.item-search-header-main {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1 1 auto;
+  min-width: 0;
+
+  h1 {
+    margin: 0;
+  }
+}
+
+.item-search-header-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+
+  h1 {
+    margin: 0;
+  }
+}
+
+.item-search-form {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+  align-items: center;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+
+  input {
+    min-width: 0;
+    flex: 1 1 auto;
+    width: auto;
+  }
+}
+
+#item-search-selected-field-slot,
+#item-search-hide-results-slot {
+  display: contents;
+}
+
+.item-search-hide-results-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  align-self: stretch;
+  height: 100%;
+  padding: 4px 4px;
+  border-radius: 10px 0 0 10px;
+  color: inherit;
+  text-decoration: none;
+  line-height: 1;
+  text-align: center;
+  box-sizing: border-box;
+  background: linear-gradient(to right, var(--input-background-color) 50%, transparent);
+  padding-right: 20px;
+  margin-right: -20px;
+
+  &:hover {
+    --input-background-color: var(--input-hover-background-color);
+  }
+
+  &:active {
+    --input-background-color: var(--button-active-background-color);
+    border-color: var(--button-active-border-color);
+  }
+}
+
+.item-search-hide-results-arrow {
+  line-height: 1;
+}
+
+/*
+  Search page results body
+
+  The body begins with validation/prompt text and then renders a responsive grid
+  of clickable result cards.
+*/
+.item-search-results-area {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+
+  .item-search-error,
+  .item-search-warning,
+  .item-search-empty {
+    margin: 0;
+    padding: 12px 0;
+  }
+
+  .item-search-warning {
+    color: var(--issue-warning-color);
+  }
+
+  .item-search-empty {
+    opacity: 0.85;
+  }
+
+  .item-search-results {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+    gap: @search-result-gap;
+    align-content: start;
+  }
+}
+
+.item-search-result {
+  position: relative;
+  //display: flex;
+  //align-items: center;
+  border-radius: 4px;
+  background-color: var(--table-bg-color);
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  .shadow();
+
+  &:hover {
+    background-color: var(--input-hover-background-color);
+  }
+
+  &.selected {
+    background-color: var(--table-bg-color-selected);
+    box-shadow: var(--selected-outline) inset;
+  }
+
+  .item-search-result-main {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    flex: 1 1 100%;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 40px 8px 10px;
+    color: inherit;
+    text-decoration: none;
+    text-align: left;
+
+    img {
+      flex: 0 0 auto;
+    }
+  }
+
+  .item-search-result-main-text {
+    min-width: 0;
+    text-align: left;
+  }
+
+  .item-search-result-name {
+    font-weight: 600;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+
+  .item-search-result-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 0.9em;
+    opacity: 0.85;
+    overflow-wrap: anywhere;
+  }
+
+  .item-search-result-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    font-size: 0.9em;
+    overflow-wrap: anywhere;
+    padding-top: 4px;
+  }
+
+  stat-display {
+    display: flex;
+    gap: 3px;
+    background-color: color-mix(in srgb, var(--table-bg-color) 87%, var(--stat-color));
+    border-radius: 5px;
+    padding: 2px;
+    .stat-display-amount {
+      //font-weight: bold;
+      background-color: var(--table-bg-color);
+      border-radius: 3px;
+      padding-left: 2px;
+      padding-right: 2px;
+    }
+  }
+
+  .item-search-result-open {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    color: inherit;
+    text-decoration: none;
+    border-radius: 4px;
+
+    &:hover {
+      background-color: color-mix(in srgb, var(--table-bg-color) 64%, var(--bg-color));
+    }
+  }
+}

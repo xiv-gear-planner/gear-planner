@@ -335,6 +335,73 @@ importers:
         specifier: ^10.9.2
         version: 10.9.2(@types/node@22.19.11)(typescript@5.9.3)
 
+  packages/item-browser:
+    dependencies:
+      '@webcomponents/webcomponentsjs':
+        specifier: ^2.8.0
+        version: 2.8.0
+      '@xivgear/common-ui':
+        specifier: workspace:*
+        version: link:../common-ui
+      '@xivgear/core':
+        specifier: workspace:*
+        version: link:../core
+      '@xivgear/util':
+        specifier: workspace:*
+        version: link:../util
+      '@xivgear/xivmath':
+        specifier: workspace:*
+        version: link:../xivmath
+      highlight.js:
+        specifier: ^11.11.1
+        version: 11.11.1
+    devDependencies:
+      '@types/jsdom':
+        specifier: ^21.1.7
+        version: 21.1.7
+      '@types/mocha':
+        specifier: ^10.0.10
+        version: 10.0.10
+      global-jsdom:
+        specifier: ^25.0.0
+        version: 25.0.0(jsdom@25.0.1)
+      html-webpack-plugin:
+        specifier: ^5.6.3
+        version: 5.6.6(webpack@5.105.2)
+      htmx.org:
+        specifier: 2.0.10
+        version: 2.0.10
+      isomorphic-fetch:
+        specifier: ^3.0.0
+        version: 3.0.0
+      jsdom:
+        specifier: ^25.0.1
+        version: 25.0.1
+      less:
+        specifier: ^4.4.0
+        version: 4.5.1
+      mocha:
+        specifier: ^10.7.3
+        version: 10.8.2
+      ts-loader:
+        specifier: ^9.5.2
+        version: 9.5.4(typescript@5.9.3)(webpack@5.105.2)
+      ts-mocha:
+        specifier: ^10.1.0
+        version: 10.1.0(mocha@10.8.2)
+      ts-node:
+        specifier: ^10.9.2
+        version: 10.9.2(@types/node@22.19.11)(typescript@5.9.3)
+      typedoc:
+        specifier: ^0.28.4
+        version: 0.28.18(typescript@5.9.3)
+      webpack:
+        specifier: ^5.105.2
+        version: 5.105.2(webpack-cli@5.1.4)
+      webpack-cli:
+        specifier: ^5.1.4
+        version: 5.1.4(webpack-bundle-analyzer@5.2.0)(webpack-dev-server@5.2.3(tslib@2.8.1)(webpack@5.105.2))(webpack@5.105.2)
+
   packages/math-frontend:
     dependencies:
       '@webcomponents/webcomponentsjs':
@@ -2535,6 +2602,9 @@ packages:
 
   htmlparser2@6.1.0:
     resolution: {integrity: sha512-gyyPk6rgonLFEDGoeRgQNaEUvdJ4ktTmmUh/h2t7s+M8oPpIPxgNACWa+6ESR57kXstwqPiCut0V8NRpcwgU7A==}
+
+  htmx.org@2.0.10:
+    resolution: {integrity: sha512-kdeJe7ZVwaS6QMz/ebBIVtZdpwen6L0OQ5GOhPV9MKBb196TCZeZu4yA7ZIQsaLKv7EpXz+So7KSXNuHXhj7Cw==}
 
   http-deceiver@1.2.7:
     resolution: {integrity: sha512-LmpOGxTfbpgtGVxJrj5k7asXHCgNZp5nLfp+hWc8QQRqtb7fUy6kRY3BO1h9ddF6yIPYUARgxGOwB42DnxIaNw==}
@@ -7016,6 +7086,8 @@ snapshots:
       domhandler: 4.3.1
       domutils: 2.8.0
       entities: 2.2.0
+
+  htmx.org@2.0.10: {}
 
   http-deceiver@1.2.7: {}
 

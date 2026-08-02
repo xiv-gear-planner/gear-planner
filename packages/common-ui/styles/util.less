@@ -10,6 +10,10 @@
   box-shadow: var(--shadow-color) 0 4px 10px 0;
 }
 
+.shadow-big-extended {
+  box-shadow: var(--shadow-color) 0 4px 10px 10px;
+}
+
 .standard-border-radius {
   border-radius: var(--standard-border-radius);
 }
@@ -20,6 +24,16 @@
 
 .standard-border-input {
   border: var(--standard-border);
+}
+
+.standard-round-border {
+  .standard-border-radius();
+  .standard-border();
+}
+
+.standard-round-border-input {
+  .standard-border-radius();
+  .standard-border-input();
 }
 
 .standard-paragraph {

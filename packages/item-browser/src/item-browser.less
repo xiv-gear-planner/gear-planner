@@ -1,0 +1,52 @@
+@import "../../common-ui/styles/util.less";
+
+@layer base {
+  @import "../../common-ui/styles/common.less";
+}
+
+@layer modern {
+  @import "../../common-ui/styles/modern.less";
+}
+
+/*
+  Item browser stylesheet.
+
+  This file follows the page structure from the outside in:
+
+  1. page shell and grid
+  2. generic column wrapper
+  3. search page header/body
+  4. selected-item detail panel
+  5. shared utility behaviors
+*/
+
+@layer itembrowser {
+  // TODO: these are not imported correctly
+  // They are only used in one place
+  @column-padding: 15px;
+  @column-body-gap: 20px;
+  @search-result-gap: 10px;
+
+  @import "styles/page-shell.less";
+
+  @import "styles/columns/search-column.less";
+  @import "styles/columns/advanced-search.less";
+  @import "styles/columns/baseparamsearch.less";
+  @import "styles/columns/detail-column.less";
+
+  @import "styles/cards/item-detail-card.less";
+  @import "styles/cards/title-card.less";
+  @import "styles/cards/equip-slot-card.less";
+  @import "styles/cards/stats-card.less";
+  @import "styles/cards/shared-models-card.less";
+
+  @import "styles/homepage.less";
+
+  @import "styles/common.less";
+}
+
+@layer ads {
+  @import "styles/ads.less";
+}
+
+

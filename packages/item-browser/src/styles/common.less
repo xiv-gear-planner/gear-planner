@@ -1,0 +1,91 @@
+//@import (reference) "../../../common-ui/styles/util.less";
+@import (reference) "../../../common-ui/styles/common.less";
+// Assorted shared behaviors and styles
+//body .htmx-loading-surface {
+//  transition: filter var(--transition-time) ease, opacity var(--transition-time) ease;
+//  will-change: filter, opacity;
+//}
+//
+//body .htmx-loading-surface.htmx-request {
+//  filter: contrast(0.6) saturate(0.45);
+//}
+//
+//body .htmx-loading-surface.htmx-request > * {
+//  filter: blur(5px);
+//}
+
+.top-shadow-container {
+  height: 0;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  box-shadow: var(--shadow-color) 0 0px 12px 8px;
+}
+
+input {
+  height: var(--button-height);
+  box-sizing: border-box;
+
+  &:invalid {
+    box-shadow: var(--invalid-input-box-shadow);
+  }
+}
+
+input:disabled, select:disabled {
+  opacity: 50%;
+}
+
+select {
+  border: none;
+  box-sizing: border-box;
+}
+
+.link-button {
+  display: inline-block;
+  color: var(--fg-color);
+  background-color: var(--input-background-color);
+  .standard-border-radius();
+  border: var(--standard-border-input);
+  height: var(--button-height);
+  font-size: 13.333px;
+  box-sizing: border-box;
+  text-decoration: none;
+  padding: 1px 5px;
+
+  transition-duration: var(--input-transition-time);
+  transition-property: color, background-color, border-color, outline-color;
+
+  &:hover {
+    background-color: var(--input-hover-background-color);
+    transition: none;
+  }
+
+  &:active {
+    //color: #999999;
+    background-color: var(--button-active-background-color);
+    border-color: var(--button-active-border-color);
+  }
+}
+
+/*!* The shadow *!*/
+/*.item-page-grid > * > *:nth-child(2) > *:first-child::before {*/
+/*    position: absolute;*/
+/*    left: 0;*/
+/*    right: 0;*/
+/*    height: 10px;*/
+/*    background-color: #ff000020;*/
+/*    content: '';*/
+/*    z-index: 5;*/
+/*    box-shadow: cyan 5px 5px 5px 5px;*/
+/*}*/
+
+//
+//.htmx-request {
+//  filter: sepia(100%);
+//}
+//.htmx-swapping {
+//  filter: sepia(100%);
+//}
+//.htmx-settling {
+//  filter: sepia(100%);
+//}

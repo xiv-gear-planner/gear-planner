@@ -1,0 +1,435 @@
+/*
+Advanced search page
+
+Covers the advanced search criteria column
+*/
+
+#item-advanced-selected-field-slot,
+#item-advanced-hide-results-slot {
+  display: contents;
+}
+
+.advanced-search-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+// The criteria use a grid layout. Different types of criteria will *use* the columns differently,
+// but the basics are the same.
+.advanced-search-criteria-grid {
+  display: grid;
+  // Typically, it's [name, operator, value, remove], but there are exceptions
+  grid-template-columns: 1fr 50px 1fr min-content;
+  column-gap: 4px;
+  row-gap: 4px;
+  align-items: start;
+
+  .advanced-search-sort-row {
+    grid-template-columns: subgrid;
+    grid-template-rows: subgrid;
+    margin-bottom: 10px;
+    grid-column: 1 / -1;
+
+    .advanced-search-sort-row-line {
+      display: grid;
+      grid-template-columns: subgrid;
+      grid-column: 1 / -1;
+      align-items: center;
+
+      &:last-child {
+        margin-bottom: 10px;
+      }
+
+      > .advanced-search-row-cell:first-child {
+        text-align: left;
+      }
+    }
+
+    .advanced-search-sort-controls {
+      display: flex;
+      grid-column: 2 / span 2;
+      gap: 4px;
+      min-width: 0;
+
+      select {
+        flex: 1 1 0;
+        width: 0;
+        min-width: 0;
+        box-sizing: border-box;
+      }
+    }
+
+    .advanced-search-sort-base-param-cell {
+      display: flex;
+      grid-column: 2 / span 2;
+      align-items: center;
+      gap: 4px;
+      min-width: 0;
+
+      select {
+        flex: 1 1 auto;
+        width: 0;
+        min-width: 0;
+        box-sizing: border-box;
+      }
+
+      button {
+        flex: 0 0 auto;
+      }
+    }
+
+    .advanced-search-sort-hq-cell {
+      display: flex;
+      grid-column: 2 / span 2;
+      align-items: center;
+    }
+  }
+
+  .advanced-search-field-section {
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-column: 1 / -1;
+    row-gap: 10px;
+  }
+  .advanced-search-rows {
+    display: contents;
+  }
+
+  .advanced-search-single-row {
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-column: 1 / -1;
+    //gap: 12px;
+    align-items: center;
+    min-width: 0;
+    margin-bottom: 10px;
+  }
+
+  .advanced-search-range-row {
+    display: contents;
+
+    > .advanced-search-range-row-bottom {
+      margin-bottom: 10px;
+    }
+  }
+
+  .advanced-search-row-line {
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-column: 1 / -1;
+    align-items: center;
+    min-width: 0;
+  }
+
+  .advanced-search-row {
+    .advanced-search-row-cell {
+      min-width: 0;
+    }
+
+    .advanced-search-row-field-cell {
+      text-align: left;
+      overflow-wrap: anywhere;
+    }
+
+    .advanced-search-row-and-cell {
+      text-align: right;
+    }
+
+    .advanced-search-remove-cell {
+      justify-self: end;
+    }
+
+    .advanced-search-header-row {
+      text-align: left;
+
+      .advanced-search-remove-cell {
+        text-align: right;
+      }
+
+      .advanced-search-base-param-header-cell {
+        grid-column: span 2;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        select {
+          flex: 1 1 auto;
+          min-width: 0;
+        }
+      }
+
+      .advanced-search-item-ui-category-label-cell {
+        display: flex;
+        align-items: center;
+        > span {
+          flex-grow: 1;
+        }
+      }
+
+      .advanced-search-item-ui-category-selection-cell {
+        grid-column: span 2;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        select {
+          flex: 1 1 auto;
+          min-width: 0;
+        }
+      }
+    }
+
+    .advanced-search-boolean-field-cell {
+      grid-column: span 2;
+    }
+
+    .advanced-search-class-job-top-row {
+      .advanced-search-class-job-operator {
+        grid-column: span 2;
+      }
+    }
+
+    .advanced-search-class-job-picker-row {
+      margin-top: 6px;
+
+      > .advanced-search-class-job-picker {
+        grid-column: 1 / span 3;
+        justify-self: end;
+      }
+    }
+
+    .advanced-search-equip-slot-top-row {
+      .advanced-search-equip-slot-operators {
+        grid-column: 2 / span 2;
+        display: flex;
+        justify-content: flex-end;
+        gap: 4px;
+
+        select {
+          width: auto;
+          min-width: 0;
+        }
+      }
+    }
+
+    .advanced-search-equip-slot-picker-row {
+      margin-top: 6px;
+
+      > .advanced-search-equip-slot-picker {
+        grid-column: 1 / span 3;
+        justify-self: end;
+      }
+    }
+
+    .advanced-search-equip-slot-picker {
+      width: 100%;
+      max-width: 320px;
+      min-width: 0;
+
+      .equip-slot-label {
+        opacity: 1;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .advanced-search-equip-slot-option {
+        display: inline-flex;
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+
+        input {
+          position: absolute;
+          opacity: 0;
+          pointer-events: none;
+        }
+
+        .equip-slot-square {
+          opacity: 0.45;
+          transition: filter 120ms ease, opacity 120ms ease;
+        }
+
+        &:hover .equip-slot-square,
+        &.selected .equip-slot-square {
+          opacity: 1;
+        }
+      }
+    }
+
+    .advanced-search-class-job-picker {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      min-width: 0;
+      touch-action: none;
+    }
+
+    .advanced-search-class-job-selection-controls {
+      display: flex;
+      gap: 5px;
+      justify-content: flex-start;
+    }
+
+    .advanced-search-class-job-section {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 5px;
+      min-height: 32px;
+
+      &-tank {
+        --role-color: var(--role-color-tank);
+      }
+
+      &-healer {
+        --role-color: var(--role-color-healer);
+      }
+
+      &-melee,
+      &-ranged,
+      &-caster {
+        --role-color: var(--role-color-dps);
+      }
+
+      &-doh,
+      &-dol {
+        --role-color: #ffd632;
+      }
+
+      &-doh {
+        display: grid;
+        grid-template-columns: repeat(5, 32px);
+
+        .advanced-search-class-job-role {
+          grid-row: span 2;
+        }
+      }
+    }
+
+    .advanced-search-class-job-role {
+      flex: 0 0 32px;
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border: 0;
+      background: none;
+      cursor: pointer;
+      filter: saturate(50%);
+      transition: filter 120ms ease;
+
+      &:hover {
+        filter: saturate(200%);
+      }
+
+      img {
+        width: 32px;
+        height: 32px;
+      }
+    }
+
+    .advanced-search-class-job-label {
+      display: block;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      user-select: none;
+      filter: saturate(50%);
+      transition: filter 120ms ease;
+
+      input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      img {
+        width: 32px;
+        height: 32px;
+      }
+
+      &:hover {
+        filter: saturate(200%);
+      }
+
+      &:has(input:checked) {
+        filter: drop-shadow(0 0 7px var(--role-color)) saturate(180%);
+      }
+    }
+
+    .advanced-search-field-operator,
+    .advanced-search-value-input {
+      width: 100%;
+      box-sizing: border-box;
+
+      &:disabled {
+        opacity: 0.5;
+      }
+    }
+
+    .advanced-search-remove-button {
+      box-sizing: border-box;
+      width: auto;
+      justify-self: end;
+    }
+  }
+}
+
+.advanced-search-footer {
+  display: grid;
+  gap: 12px;
+
+  .advanced-search-actions {
+    display: grid;
+    grid-template-columns: 3fr 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+    align-items: center;
+
+    > button {
+      width: 100%;
+      height: 30px;
+    }
+  }
+
+  .reset-button:hover,
+  .revert-button:hover {
+    background-color: var(--issue-error-color);
+  }
+}
+
+.advanced-search-add-field-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  flex: 1 1 100%;
+}
+
+.advanced-search-add-field-category {
+  flex: 1 1 100%;
+}
+
+.advanced-search-add-field-category-header {
+  margin: 0 0 8px;
+}
+
+.advanced-search-add-field-category-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  > button {
+    width: 100%;
+    box-sizing: border-box;
+    flex: 0 1 calc((100% - 24px) / 3);
+    min-width: 0;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+}
+
+.advanced-search-checkbox-label {
+  display: flex;
+  align-items: center;
+}

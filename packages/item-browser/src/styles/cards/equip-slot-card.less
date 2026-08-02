@@ -1,0 +1,162 @@
+.equip-slot-widget {
+  display: grid;
+  gap: 8px;
+}
+
+.equip-slot-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24px 24px minmax(0, 1fr);
+  gap: 2px 6px;
+  justify-content: center;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.equip-slot-row {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  align-items: center;
+}
+
+.equip-slot-label {
+  min-width: 0;
+  opacity: 0;
+  text-align: center;
+  white-space: nowrap;
+
+  &:first-child {
+    text-align: right;
+  }
+
+  &:last-child {
+    text-align: left;
+  }
+}
+
+.equip-slot-label.equip-slot-label-relevant {
+  opacity: 1;
+}
+
+.equip-slot-label.equip-slot-label-blocked {
+  opacity: 0.7;
+  text-decoration: line-through;
+}
+
+.materia-slot-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 6px;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.materia-slot-placeholder {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  border: 2px #3c623c solid;
+  border-radius: 100%;
+}
+
+.materia-slot-placeholder.materia-slot-large-overmeld,
+.materia-slot-placeholder.materia-slot-small-overmeld {
+  border-style: dotted;
+}
+
+.materia-slot-placeholder.materia-slot-small-overmeld {
+  border-color: #397e86;
+}
+
+.equip-slot-summary {
+  min-width: 0;
+  line-height: 1.4;
+
+  p {
+    margin: 0;
+  }
+}
+
+/**
+The square representing a single equip slot.
+ */
+.equip-slot-square {
+  width: 24px;
+  height: 24px;
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  box-sizing: border-box;
+  filter: var(--equip-slot-tint-filter, none);
+  //noinspection CssUnknownTarget
+  background-image: url("/img/equip-slot-icons.png");
+  background-repeat: no-repeat;
+  background-size: 168px 48px;
+
+  &.equip-slot-icon-weapon {
+    background-position: 0 0;
+  }
+
+  &.equip-slot-icon-offhand {
+    background-position: -24px 0;
+  }
+
+  &.equip-slot-icon-head {
+    background-position: -48px 0;
+  }
+
+  &.equip-slot-icon-body {
+    background-position: -72px 0;
+  }
+
+  &.equip-slot-icon-hands {
+    background-position: -96px 0;
+  }
+
+  &.equip-slot-icon-legs {
+    background-position: -144px 0;
+  }
+
+  &.equip-slot-icon-feet {
+    background-position: 0 -24px;
+  }
+
+  &.equip-slot-icon-earring {
+    background-position: -24px -24px;
+  }
+
+  &.equip-slot-icon-neck {
+    background-position: -48px -24px;
+  }
+
+  &.equip-slot-icon-wrist {
+    background-position: -72px -24px;
+  }
+
+  &.equip-slot-icon-ring {
+    background-position: -96px -24px;
+  }
+
+  &.equip-slot-icon-soul-crystal {
+    background-position: -144px -24px;
+  }
+
+  &.equip-slot-square-empty {
+    background: none;
+  }
+
+  &.equip-slot-state-allowed {
+    --equip-slot-tint-filter: contrast(0) sepia(100%) hue-rotate(40deg) saturate(10);
+  }
+
+  &.equip-slot-state-blocked {
+    --equip-slot-tint-filter: contrast(0) sepia(100%) hue-rotate(-40deg) saturate(10);
+  }
+}

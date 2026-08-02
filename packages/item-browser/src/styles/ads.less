@@ -1,0 +1,40 @@
+.item-browser-ad {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-align: center;
+}
+
+.item-detail-header-ad {
+  flex: 1 1 320px;
+  justify-content: flex-end;
+  margin-left: auto;
+  background: var(--table-bg-color);
+}
+
+.item-detail-card-ad {
+  background: var(--bg-color);
+}
+// Clear out default card styling
+.item-detail-card:has(.item-detail-card-ad) {
+  background: none;
+  padding: 0;
+  box-shadow: none;
+}
+
+.advanced-search-form-ad,
+.search-form-ad,
+.search-results-ad {
+  //background: var(--table-bg-color);
+}
+
+
+
+
+

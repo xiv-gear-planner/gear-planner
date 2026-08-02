@@ -1,0 +1,179 @@
+/*
+  Page shell
+
+  The common page layout used for most areas of the app is a column-based layout, where
+  the top row is a header for each column, and the bottom row is the contents which are
+  scrollable on a per-column basis.
+*/
+.browser-page-shell {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/*
+  Defines the grid rows. Header row is auto, content row takes available space.
+*/
+.page-grid {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  row-gap: 0;
+  column-gap: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+
+  // TODO: is this still needed?
+  > * {
+    min-width: 0;
+    min-height: 0;
+    grid-column: auto;
+  }
+}
+
+/*
+  Generic column definition.
+
+  The column spans both rows but uses subgrid to adopt the page-wide row layout.
+*/
+.layout-column,
+.column {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: subgrid;
+  grid-column: auto;
+  grid-row: 1 / span 2;
+  align-self: stretch;
+  justify-self: stretch;
+  position: relative;
+}
+
+// Loading indicator. Adds a shimmer effect.
+.layout-column,
+.column,
+#content-area {
+  &::after {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    transition: none;
+  }
+
+  &.htmx-request {
+    &::after {
+      content: '';
+      pointer-events: none;
+      //--shimmer-color: var(--input-hover-background-color);
+      //--shimmer-color: rgb(188 207 255 / 0.43);
+      --shimmer-color: #99d2ff44;
+      background: repeating-linear-gradient(135deg, transparent 0%, transparent 10%, var(--shimmer-color) 25%, transparent 29%, transparent 50%);
+
+      background-size: 500px 500px;
+      background-repeat: repeat;
+      //background-position: 100% 0;
+
+      //transition: opacity .15s;
+      opacity: 1;
+      animation: shimmer 0.5s linear infinite;
+      @feather-radius: 60px;
+      mask-image:
+              linear-gradient(
+                      to right,
+                      transparent,
+                      black @feather-radius,
+                      black calc(100% - @feather-radius),
+                      transparent
+              ),
+              linear-gradient(
+                      to bottom,
+                      transparent,
+                      black @feather-radius,
+                      black calc(100% - @feather-radius),
+                      transparent
+              );
+
+      mask-composite: intersect;
+    }
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 0 500px;
+  }
+}
+
+// More loading blocker stuff
+.htmx-request, .htmx-swapping, .htmx-settling {
+  .column::after {
+    content: '';
+  }
+}
+
+.column-header {
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  background-color: var(--table-bg-color);
+
+  .browser-page-shell-top-inner {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+  }
+}
+
+// Make the final column always show the scrollbar
+.column:last-child {
+  .column-body {
+    overflow-y: scroll;
+  }
+}
+
+.column-body {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  // TODO: this causes the shadow to not take up the full width
+  // See above :last-child thing
+  //scrollbar-gutter: stable;
+  background-color: var(--bg-color);
+
+  // The actual body content
+  .column-body-content {
+    flex: 1 1 auto;
+    width: 100%;
+    box-sizing: border-box;
+    // Trying variables like this - they are pre-rendered when we build the CSS rather than evaluated at runtime.
+    padding: @column-padding;
+    display: flex;
+    flex-direction: column;
+    gap: @column-body-gap;
+  }
+}
+
+// Main menu stuff
+body {
+  #main-menu-area {
+    // Since we have a full-width column header, just use the table BG color
+    background-color: var(--table-bg-color);
+    margin: 0;
+    padding-bottom: 5px;
+  }
+
+  &.top-menu-hidden {
+    #main-menu-area-inner {
+      box-shadow: none;
+    }
+  }
+}
