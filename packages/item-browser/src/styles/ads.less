@@ -35,6 +35,19 @@
 }
 
 
+// Hide ad spaces if ad script isn't loaded at all
+body:not(.nloaded) {
+  .item-detail-card:has(.item-detail-card-ad),
+  .search-results-ad{
+    display: none;
+  }
+  //&.nloaded {
+  //  .item-detail-card:has(.item-detail-card-ad),
+  //  search-results-ad{
+  //    display: revert-layer;
+  //  }
+  //}
+}
 
 
 

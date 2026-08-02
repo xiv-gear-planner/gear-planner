@@ -26,10 +26,11 @@ Covers the advanced search criteria column
   align-items: start;
 
   .advanced-search-sort-row {
-    grid-template-columns: subgrid;
-    grid-template-rows: subgrid;
-    margin-bottom: 10px;
-    grid-column: 1 / -1;
+    //grid-template-columns: subgrid;
+    //grid-template-rows: subgrid;
+    //margin-bottom: 10px;
+    //grid-column: 1 / -1;
+    display: contents;
 
     .advanced-search-sort-row-line {
       display: grid;
@@ -37,12 +38,16 @@ Covers the advanced search criteria column
       grid-column: 1 / -1;
       align-items: center;
 
-      &:last-child {
-        margin-bottom: 10px;
-      }
+      //&:last-child {
+      //  margin-bottom: 10px;
+      //}
 
       > .advanced-search-row-cell:first-child {
         text-align: left;
+      }
+
+      &.spacer {
+        margin-bottom: 10px;
       }
     }
 

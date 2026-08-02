@@ -1273,12 +1273,12 @@ class AdvancedSearchCriteriaGrid extends HTMLElement {
             sortWithHqSpecialLabel,
         ]);
         const sortBaseParamRow = el('div', {classes: ['advanced-search-sort-row-line']}, [
-            el('div'),
             sortBaseParamCell,
         ]);
         const sortWithHqSpecialRow = el('div', {classes: ['advanced-search-sort-row-line']}, [
-            el('div'),
             sortWithHqSpecialCell,
+        ]);
+        const sortSpacerRow = el('div', {classes: ['advanced-search-sort-row-line', 'spacer']}, [
         ]);
         const updateSortBaseParamState = (): void => {
             const isBaseParam = sortField.value === 'BASE_PARAM';
@@ -1302,6 +1302,7 @@ class AdvancedSearchCriteriaGrid extends HTMLElement {
             ]),
             sortBaseParamRow,
             sortWithHqSpecialRow,
+            sortSpacerRow,
         ]);
         grid.prepend(sortRow);
         updateSortBaseParamState();

@@ -1,5 +1,7 @@
 // Sizes of the ads themselves (predetermined)
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
+import {recheckNow} from "./item-detail-layout";
+
 const AdSizes = [
     [300, 600],
     [336, 280],
@@ -58,11 +60,11 @@ function initializeAd(element: HTMLElement): void {
     element.replaceChildren();
 
     if (!window.nitroAds?.createAd) {
-        element.textContent = 'Ad goes here';
+        // element.textContent = 'Ad goes here';
         return;
     }
     window.nitroAds.createAd(element.id, {
-        demo: true,
+        demo: !document.location.hostname.includes("xivgear.app"),
         height: adHeight,
         delayLoading: true,
         report: {
@@ -73,14 +75,22 @@ function initializeAd(element: HTMLElement): void {
         },
     });
     element.dataset.adCreated = 'true';
+    recheckNow();
 }
 
-window.addEventListener('nitroAds.loaded', () => initializeAds());
+document.addEventListener('nitroAds.loaded', () => {
+    console.log('nloaded');
+    initializeAds();
+});
 
 function initializeAds(root: ParentNode = document): void {
-    root.querySelectorAll<HTMLElement>('[data-nitro-ad]').forEach(element => {
-        initializeAd(element);
-    });
+    // @ts-expect-error don't have this type def
+    if (window.nitroAds?.loaded) {
+        root.querySelectorAll<HTMLElement>('[data-nitro-ad]').forEach(element => {
+            document.body?.classList.add('nloaded');
+            initializeAd(element);
+        });
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => initializeAds());
