@@ -33,6 +33,11 @@ type QueuedAction = {
 
 let actionQueue: QueuedAction[] | null = [];
 
+/**
+ * Dump all pending umami actions into a real umami when we receive one.
+ *
+ * @param umami
+ */
 function flushQueue(umami: umami.umami) {
     if (actionQueue) {
         const queue = actionQueue;
@@ -49,7 +54,11 @@ function flushQueue(umami: umami.umami) {
     }
 }
 
+/**
+ * queueProxy is a proxy for umami, and holds pending actions until we get a real umami
+ */
 const queueProxy = new Proxy({} as umami.umami, {
+    // Since we only ever get functions, we want to just "hold" the function call until we get the real umami
     get(target, prop: keyof umami.umami) {
         return (...args: unknown[]) => {
             actionQueue?.push({
@@ -60,21 +69,27 @@ const queueProxy = new Proxy({} as umami.umami, {
     },
 });
 
-let umamiValue: umami.umami = window.umami ?? queueProxy;
+let realUmami: umami.umami | null = null;
 
+function getEffectiveUmami(): umami.umami {
+    return window.umami ?? queueProxy;
+}
+
+/**
+ * Only do this if we don't have the real umami yet
+ */
 if (!window.umami) {
     console.info("umami not yet loaded - using queue");
     try {
+        // We want to intercept the write to the real umami
         Object.defineProperty(window, 'umami', {
             get() {
-                return umamiValue;
+                return realUmami;
             },
             set(val: umami.umami) {
-                if (val && val !== queueProxy) {
-                    console.info("got real umami");
-                    umamiValue = val;
-                    flushQueue(val);
-                }
+                console.info("got real umami");
+                realUmami = val;
+                setTimeout(() => flushQueue(val));
             },
             configurable: true,
             enumerable: true,
@@ -86,16 +101,13 @@ if (!window.umami) {
 }
 else {
     console.info("umami already loaded - no queue needed");
-}
-
-// If it was already set but not to our proxy, flush it.
-if (window.umami && window.umami !== queueProxy) {
+    // Flush it just in case
     flushQueue(window.umami);
 }
 
 export function recordEvent(name: string, data?: ExtraData) {
     try {
-        window.umami.track(name, data);
+        getEffectiveUmami().track(name, data);
     }
     catch (e) {
         console.error("Error recording analytics", e);
@@ -103,7 +115,7 @@ export function recordEvent(name: string, data?: ExtraData) {
 }
 
 export function recordError(where: string, error: unknown, extraProps: object = {}) {
-    const umami = window.umami;
+    const umami = getEffectiveUmami();
     try {
         if (error instanceof Error) {
             const eventData = {
