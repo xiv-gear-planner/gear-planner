@@ -1115,6 +1115,9 @@ export class GearPlanSheet {
         }
         switch (this.classJobEarlyStats.type) {
             case "Combat":
+                if (DOH_STATS.includes(stat as typeof DOH_STATS[number]) || DOL_STATS.includes(stat as typeof DOL_STATS[number])) {
+                    return false;
+                }
                 if (MAIN_STATS.includes(stat as typeof MAIN_STATS[number])) {
                     return (stat === this.classJobEarlyStats.mainStat);
                 }
