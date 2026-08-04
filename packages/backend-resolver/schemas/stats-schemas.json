@@ -1,17 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "definitions": {
-    "AttackType": {
-      "enum": [
-        "Unknown",
-        "Auto-attack",
-        "Spell",
-        "Weaponskill",
-        "Ability",
-        "Item"
-      ],
-      "type": "string"
-    },
     "BaseDataQuery": {
       "additionalProperties": false,
       "properties": {
@@ -67,26 +56,9 @@
       },
       "type": "object"
     },
-    "ClassItemFilter": {
-      "$comment": "(item: GearItem) => boolean",
-      "properties": {
-        "namedArgs": {
-          "additionalProperties": false,
-          "properties": {
-            "item": {
-              "$ref": "#/definitions/GearItem"
-            }
-          },
-          "required": [
-            "item"
-          ],
-          "type": "object"
-        }
-      },
-      "type": "object"
-    },
-    "ComputedSetStats": {
+    "ComputedSetStatsExport": {
       "additionalProperties": false,
+      "description": "Serialized form of ComputedSetStats. Removes jobStats because it doesn't serialize well.",
       "properties": {
         "aaDelay": {
           "description": "Auto-attack delay",
@@ -114,6 +86,15 @@
         },
         "baseMainStatPlusRace": {
           "description": "Base main stat, multiplied by the job stat multiplier, plus racial bonus. For example, the main stat (e.g. 440 at level 100) multiplied by the jobStatMultiplier (e.g. 1.05 at level 100) plus the racial stat (e.g. +3 for The Lost's strength). This is useful for being able to unwind it later for abilities with different scaling, e.g. Living Shadow.",
+          "type": "number"
+        },
+        "control": {
+          "type": "number"
+        },
+        "cp": {
+          "type": "number"
+        },
+        "craftsmanship": {
           "type": "number"
         },
         "crit": {
@@ -169,12 +150,18 @@
           "description": "Represents direct secondary stat bonuses. Only applicable to item stats - not used in computed stats, as it should be converted to the actual concrete stat at that point.",
           "type": "number"
         },
+        "gathering": {
+          "type": "number"
+        },
         "gearHaste": {
           "type": "number"
         },
         "gearStats": {
           "$ref": "#/definitions/RawStats",
           "description": "Stats coming from the gear pre-party bonus. Important for some abilities' alternate scalings (e.g. Living Shadow)."
+        },
+        "gp": {
+          "type": "number"
         },
         "hp": {
           "description": "Raw HP provided by the item - does NOT include HP provided via vitality.",
@@ -186,10 +173,6 @@
         "job": {
           "$ref": "#/definitions/JobName",
           "description": "Current class/job"
-        },
-        "jobStats": {
-          "$ref": "#/definitions/JobData",
-          "description": "Job modifier data"
         },
         "level": {
           "$ref": "#/definitions/SupportedLevel",
@@ -212,6 +195,9 @@
         },
         "mpPerTick": {
           "description": "MP Per Tick",
+          "type": "number"
+        },
+        "perception": {
           "type": "number"
         },
         "piety": {
@@ -268,55 +254,60 @@
         }
       },
       "required": [
-        "aaDelay",
-        "aaMulti",
-        "aaStatMulti",
-        "autoCritBuffMulti",
-        "autoDhBonus",
-        "autoDhitBuffMulti",
-        "baseMainStatPlusRace",
-        "crit",
-        "critChance",
-        "critMulti",
-        "defenseDamageTaken",
-        "defenseMag",
-        "defensePhys",
-        "detMulti",
-        "determination",
-        "dexterity",
-        "dhit",
-        "dhitChance",
-        "dhitMulti",
-        "effectiveFoodBonuses",
-        "extraMainStat",
-        "extraSecondaryStat",
-        "gearHaste",
-        "gearStats",
-        "hp",
-        "intelligence",
-        "job",
-        "jobStats",
         "level",
         "levelStats",
-        "magicDefenseDamageTaken",
-        "mainStatMulti",
-        "mind",
-        "mpPerTick",
-        "piety",
-        "skillspeed",
-        "sksDotMulti",
-        "spellspeed",
+        "job",
+        "critChance",
+        "critMulti",
+        "dhitChance",
+        "dhitMulti",
+        "detMulti",
         "spsDotMulti",
-        "strength",
-        "tenacity",
-        "tncIncomingMulti",
+        "sksDotMulti",
         "tncMulti",
-        "vitality",
-        "wdMag",
+        "tncIncomingMulti",
         "wdMulti",
         "wdMultiPetAction",
+        "mainStatMulti",
+        "aaStatMulti",
+        "gearStats",
+        "baseMainStatPlusRace",
+        "autoDhBonus",
+        "autoCritBuffMulti",
+        "autoDhitBuffMulti",
+        "mpPerTick",
+        "aaMulti",
+        "aaDelay",
+        "defenseDamageTaken",
+        "magicDefenseDamageTaken",
+        "effectiveFoodBonuses",
+        "hp",
+        "vitality",
+        "strength",
+        "dexterity",
+        "intelligence",
+        "mind",
+        "piety",
+        "crit",
+        "dhit",
+        "determination",
+        "tenacity",
+        "spellspeed",
+        "skillspeed",
         "wdPhys",
-        "weaponDelay"
+        "wdMag",
+        "weaponDelay",
+        "defenseMag",
+        "defensePhys",
+        "gearHaste",
+        "extraMainStat",
+        "extraSecondaryStat",
+        "craftsmanship",
+        "control",
+        "cp",
+        "perception",
+        "gathering",
+        "gp"
       ],
       "type": "object"
     },
@@ -426,26 +417,6 @@
       ],
       "type": "object"
     },
-    "DisplayGearSlotInfo": {
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "DisplayGearSlotKey": {
-      "enum": [
-        "Weapon",
-        "OffHand",
-        "Head",
-        "Body",
-        "Hand",
-        "Legs",
-        "Feet",
-        "Ears",
-        "Neck",
-        "Wrist",
-        "Ring"
-      ],
-      "type": "string"
-    },
     "EmbedCheckQuery": {
       "$ref": "#/definitions/StatsQueryParams"
     },
@@ -483,100 +454,6 @@
         }
       ],
       "description": "Response of an embed validation response. Returns isValid: true and no message, or isValid: false and a message."
-    },
-    "EquipSlotKey": {
-      "enum": [
-        "Weapon",
-        "OffHand",
-        "Head",
-        "Body",
-        "Hand",
-        "Legs",
-        "Feet",
-        "Ears",
-        "Neck",
-        "Wrist",
-        "RingLeft",
-        "RingRight"
-      ],
-      "type": "string"
-    },
-    "EquipSlotMap": {
-      "additionalProperties": false,
-      "description": "The relationship between an item and all slots.",
-      "properties": {
-        "Body": {
-          "$ref": "#/definitions/EquipSlotValue"
-        },
-        "Ears": {
-          "$ref": "#/definitions/EquipSlotValue"
-        },
-        "Feet": {
-          "$ref": "#/definitions/EquipSlotValue"
-        },
-        "Hand": {
-          "$ref": "#/definitions/EquipSlotValue"
-        },
-        "Head": {
-          "$ref": "#/definitions/EquipSlotValue"
-        },
-        "Legs": {
-          "$ref": "#/definitions/EquipSlotValue"
-        },
-        "Neck": {
-          "$ref": "#/definitions/EquipSlotValue"
-        },
-        "OffHand": {
-          "$ref": "#/definitions/EquipSlotValue"
-        },
-        "RingLeft": {
-          "$ref": "#/definitions/EquipSlotValue"
-        },
-        "RingRight": {
-          "$ref": "#/definitions/EquipSlotValue"
-        },
-        "Weapon": {
-          "$ref": "#/definitions/EquipSlotValue"
-        },
-        "Wrist": {
-          "$ref": "#/definitions/EquipSlotValue"
-        },
-        "canEquipTo": {
-          "type": "boolean"
-        },
-        "getBlockedSlots": {
-          "items": {
-            "$ref": "#/definitions/EquipSlotKey"
-          },
-          "type": "array"
-        }
-      },
-      "required": [
-        "Body",
-        "Ears",
-        "Feet",
-        "Hand",
-        "Head",
-        "Legs",
-        "Neck",
-        "OffHand",
-        "RingLeft",
-        "RingRight",
-        "Weapon",
-        "Wrist",
-        "canEquipTo",
-        "getBlockedSlots"
-      ],
-      "type": "object"
-    },
-    "EquipSlotValue": {
-      "description": "The relationship between an item and a slot has three states: 1. The item cannot be equipped in the slot, e.g. cannot equip a head item in the leg slot. 2. The item can be equipped in the slot, e.g. a ring can be equipped to left right or right ring slot. 3. The item cannot be equipped in the slot, but if equipped into its correct slot, will block this slot. e.g. Vermilion Cloak.",
-      "enum": [
-        "none",
-        "equip",
-        "block"
-      ],
-      "type": "string"
     },
     "FoodStatBonus": {
       "additionalProperties": false,
@@ -625,329 +502,6 @@
     },
     "FullDataResponse": {
       "$ref": "#/definitions/SheetStatsExport"
-    },
-    "GearAcquisitionSource": {
-      "enum": [
-        "raid",
-        "tome",
-        "augtome",
-        "crafted",
-        "augcrafted",
-        "relic",
-        "dungeon",
-        "normraid",
-        "extrial",
-        "ultimate",
-        "artifact",
-        "alliance",
-        "criterion",
-        "deepdungeon",
-        "fieldoperation",
-        "other",
-        "custom"
-      ],
-      "type": "string"
-    },
-    "GearItem": {
-      "additionalProperties": false,
-      "properties": {
-        "acquisitionType": {
-          "$ref": "#/definitions/GearAcquisitionSource"
-        },
-        "activeSpecialStat": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/SpecialStatType"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "displayGearSlot": {
-          "$ref": "#/definitions/DisplayGearSlotInfo",
-          "description": "Which gear slot to populate in the UI"
-        },
-        "displayGearSlotName": {
-          "$ref": "#/definitions/DisplayGearSlotKey",
-          "description": "Which gear slot to populate in the UI"
-        },
-        "equipLvl": {
-          "description": "equip level",
-          "type": "number"
-        },
-        "iconUrl": {
-          "description": "Item icon URL",
-          "format": "uri",
-          "type": "string"
-        },
-        "id": {
-          "description": "Item ID",
-          "type": "number"
-        },
-        "ilvl": {
-          "description": "ilvl",
-          "type": "number"
-        },
-        "isCustomRelic": {
-          "description": "Whether this is a custom relic with editable stats",
-          "type": "boolean"
-        },
-        "isNqVersion": {
-          "type": "boolean"
-        },
-        "isSyncedDown": {
-          "type": "boolean"
-        },
-        "isUnique": {
-          "type": "boolean"
-        },
-        "materiaSlots": {
-          "description": "Materia slots on the item. When downsynced, this is replaced with an empty list.",
-          "items": {
-            "$ref": "#/definitions/MateriaSlot"
-          },
-          "type": "array"
-        },
-        "name": {
-          "description": "Item name",
-          "type": "string"
-        },
-        "nameTranslation": {
-          "$ref": "#/definitions/TranslatableString",
-          "description": "Item name, including translations"
-        },
-        "occGearSlotName": {
-          "$ref": "#/definitions/OccGearSlotKey",
-          "description": "Which gear slot the item occupies - different from the above, as 2H and 1H weapons are treated differently here"
-        },
-        "primarySubstat": {
-          "description": "The primary substat",
-          "enum": [
-            "hp",
-            "vitality",
-            "strength",
-            "dexterity",
-            "intelligence",
-            "mind",
-            "piety",
-            "crit",
-            "dhit",
-            "determination",
-            "tenacity",
-            "spellspeed",
-            "skillspeed",
-            "wdPhys",
-            "wdMag",
-            "weaponDelay",
-            "defenseMag",
-            "defensePhys",
-            "gearHaste",
-            "extraMainStat",
-            "extraSecondaryStat",
-            null
-          ],
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "rarity": {
-          "type": "number"
-        },
-        "relicStatModel": {
-          "$ref": "#/definitions/RelicStatModel"
-        },
-        "secondarySubstat": {
-          "description": "The secondary substat",
-          "enum": [
-            "hp",
-            "vitality",
-            "strength",
-            "dexterity",
-            "intelligence",
-            "mind",
-            "piety",
-            "crit",
-            "dhit",
-            "determination",
-            "tenacity",
-            "spellspeed",
-            "skillspeed",
-            "wdPhys",
-            "wdMag",
-            "weaponDelay",
-            "defenseMag",
-            "defensePhys",
-            "gearHaste",
-            "extraMainStat",
-            "extraSecondaryStat",
-            null
-          ],
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "slotMapping": {
-          "$ref": "#/definitions/EquipSlotMap"
-        },
-        "statCaps": {
-          "additionalProperties": false,
-          "properties": {
-            "crit": {
-              "type": "number"
-            },
-            "defenseMag": {
-              "type": "number"
-            },
-            "defensePhys": {
-              "type": "number"
-            },
-            "determination": {
-              "type": "number"
-            },
-            "dexterity": {
-              "type": "number"
-            },
-            "dhit": {
-              "type": "number"
-            },
-            "extraMainStat": {
-              "type": "number"
-            },
-            "extraSecondaryStat": {
-              "type": "number"
-            },
-            "gearHaste": {
-              "type": "number"
-            },
-            "hp": {
-              "type": "number"
-            },
-            "intelligence": {
-              "type": "number"
-            },
-            "mind": {
-              "type": "number"
-            },
-            "piety": {
-              "type": "number"
-            },
-            "skillspeed": {
-              "type": "number"
-            },
-            "spellspeed": {
-              "type": "number"
-            },
-            "strength": {
-              "type": "number"
-            },
-            "tenacity": {
-              "type": "number"
-            },
-            "vitality": {
-              "type": "number"
-            },
-            "wdMag": {
-              "type": "number"
-            },
-            "wdPhys": {
-              "type": "number"
-            },
-            "weaponDelay": {
-              "type": "number"
-            }
-          },
-          "type": "object"
-        },
-        "stats": {
-          "$ref": "#/definitions/RawStats",
-          "description": "The effective stats"
-        },
-        "syncedDownTo": {
-          "type": [
-            "number",
-            "null"
-          ]
-        },
-        "unsyncedVersion": {
-          "$ref": "#/definitions/GearItem",
-          "description": "If this item is synced down, keep the unsynced version here."
-        }
-      },
-      "required": [
-        "acquisitionType",
-        "activeSpecialStat",
-        "displayGearSlot",
-        "displayGearSlotName",
-        "equipLvl",
-        "iconUrl",
-        "id",
-        "ilvl",
-        "isCustomRelic",
-        "isNqVersion",
-        "isSyncedDown",
-        "isUnique",
-        "materiaSlots",
-        "name",
-        "nameTranslation",
-        "occGearSlotName",
-        "primarySubstat",
-        "rarity",
-        "secondarySubstat",
-        "slotMapping",
-        "statCaps",
-        "stats",
-        "syncedDownTo",
-        "unsyncedVersion"
-      ],
-      "type": "object"
-    },
-    "GearSetIssue": {
-      "additionalProperties": false,
-      "properties": {
-        "affectedSlots": {
-          "items": {
-            "$ref": "#/definitions/EquipSlotKey"
-          },
-          "type": "array"
-        },
-        "description": {
-          "type": "string"
-        },
-        "severity": {
-          "enum": [
-            "warning",
-            "error"
-          ],
-          "type": "string"
-        }
-      },
-      "required": [
-        "severity",
-        "description"
-      ],
-      "type": "object"
-    },
-    "HasteBonus": {
-      "$comment": "(attackType: AttackType) => number",
-      "description": "Function from an attack type to a haste amount. Haste amount is percentage, e.g. 20 haste = 20% faster.",
-      "properties": {
-        "namedArgs": {
-          "additionalProperties": false,
-          "properties": {
-            "attackType": {
-              "$ref": "#/definitions/AttackType"
-            }
-          },
-          "required": [
-            "attackType"
-          ],
-          "type": "object"
-        }
-      },
-      "type": "object"
     },
     "ImportExportSheetQuery": {
       "additionalProperties": false,
@@ -1114,163 +668,6 @@
       },
       "type": "object"
     },
-    "JobData": {
-      "additionalProperties": false,
-      "description": "JobData is the combination of  {@link  JobDataConst }  and other data pulled from Xivapi.",
-      "properties": {
-        "aaPotency": {
-          "description": "Auto-attack potency amount",
-          "type": "number"
-        },
-        "autoAttackStat": {
-          "$ref": "#/definitions/Mainstat",
-          "description": "The primary stat as used for auto-attack calculations specifically"
-        },
-        "excludedRelicSubstats": {
-          "description": "Substats which are NOT already in  {@link  irrelevantSubstats } , but which cannot be put onto custom relics.\n\ne.g. Healers and Tanks cannot put DHit on their custom relics.",
-          "items": {
-            "$ref": "#/definitions/Substat"
-          },
-          "type": "array"
-        },
-        "extraItemFilter": {
-          "$ref": "#/definitions/ClassItemFilter",
-          "description": "Optional override for item display filtering logic."
-        },
-        "gcdDisplayOverrides": {
-          "$comment": "(level: SupportedLevel) => (GcdDisplayOverride[]) | null",
-          "description": "Override the GCD columns to display in the main gear table.\n\nYou can specify multiple columns.\n\nCan return null to keep the defaults.",
-          "properties": {
-            "namedArgs": {
-              "additionalProperties": false,
-              "properties": {
-                "level": {
-                  "$ref": "#/definitions/SupportedLevel"
-                }
-              },
-              "required": [
-                "level"
-              ],
-              "type": "object"
-            }
-          },
-          "type": "object"
-        },
-        "irrelevantSubstats": {
-          "description": "Substats which are completely irrelevant to this class, e.g. TNC on non-tanks",
-          "items": {
-            "$ref": "#/definitions/Substat"
-          },
-          "type": "array"
-        },
-        "jobStatMultipliers": {
-          "$ref": "#/definitions/JobMultipliers"
-        },
-        "mainStat": {
-          "$ref": "#/definitions/Mainstat",
-          "description": "The primary stat"
-        },
-        "maxLevel": {
-          "$ref": "#/definitions/SupportedLevel",
-          "description": "The maximum level of the job."
-        },
-        "meldParamIndex": {
-          "description": "Which BaseParam.MeldParam index to use for calculating stat caps. Makes hardcoded itemStatCapMultipliers obsolete. Since these only have numeric indices with no indication of which is which, it is derived from looking at gear pieces of the same ilvl and comparing their stats across different jobs. However, there are many rows which are identical for",
-          "type": "number"
-        },
-        "minLevel": {
-          "$ref": "#/definitions/SupportedLevel",
-          "description": "The minimum level of the job."
-        },
-        "offhand": {
-          "description": "True if this class uses 1H+Offhand rather than 2H weapons",
-          "type": "boolean"
-        },
-        "role": {
-          "$ref": "#/definitions/RoleKey",
-          "description": "The role of the job"
-        },
-        "secondaryStat": {
-          "$ref": "#/definitions/Substat",
-          "description": "The secondary substat for the purposes of items such as pre-order earrings."
-        },
-        "traitMulti": {
-          "$comment": "(level: number, attackType: AttackType) => number",
-          "description": "Optional function to apply a damage multiplication trait.",
-          "properties": {
-            "namedArgs": {
-              "additionalProperties": false,
-              "properties": {
-                "attackType": {
-                  "$ref": "#/definitions/AttackType"
-                },
-                "level": {
-                  "type": "number"
-                }
-              },
-              "required": [
-                "level",
-                "attackType"
-              ],
-              "type": "object"
-            }
-          },
-          "type": "object"
-        },
-        "traits": {
-          "description": "Optional list of stat-modifying traits",
-          "items": {
-            "$ref": "#/definitions/JobTrait"
-          },
-          "type": "array"
-        }
-      },
-      "required": [
-        "aaPotency",
-        "autoAttackStat",
-        "excludedRelicSubstats",
-        "jobStatMultipliers",
-        "mainStat",
-        "maxLevel",
-        "meldParamIndex",
-        "minLevel",
-        "role",
-        "secondaryStat"
-      ],
-      "type": "object"
-    },
-    "JobMultipliers": {
-      "additionalProperties": false,
-      "properties": {
-        "dexterity": {
-          "type": "number"
-        },
-        "hp": {
-          "type": "number"
-        },
-        "intelligence": {
-          "type": "number"
-        },
-        "mind": {
-          "type": "number"
-        },
-        "strength": {
-          "type": "number"
-        },
-        "vitality": {
-          "type": "number"
-        }
-      },
-      "required": [
-        "dexterity",
-        "hp",
-        "intelligence",
-        "mind",
-        "strength",
-        "vitality"
-      ],
-      "type": "object"
-    },
     "JobName": {
       "description": "Supported Jobs.",
       "enum": [
@@ -1295,27 +692,20 @@
         "SMN",
         "RDM",
         "PCT",
-        "BLU"
+        "BLU",
+        "CRP",
+        "BSM",
+        "ARM",
+        "GSM",
+        "LTW",
+        "WVR",
+        "ALC",
+        "CUL",
+        "MIN",
+        "BTN",
+        "FSH"
       ],
       "type": "string"
-    },
-    "JobTrait": {
-      "additionalProperties": false,
-      "properties": {
-        "apply": {
-          "$ref": "#/definitions/TraitFunc"
-        },
-        "maxLevel": {
-          "type": "number"
-        },
-        "minLevel": {
-          "type": "number"
-        }
-      },
-      "required": [
-        "apply"
-      ],
-      "type": "object"
     },
     "LevelStats": {
       "additionalProperties": false,
@@ -1433,16 +823,6 @@
       ],
       "type": "object"
     },
-    "Mainstat": {
-      "enum": [
-        "strength",
-        "dexterity",
-        "intelligence",
-        "mind",
-        "vitality"
-      ],
-      "type": "string"
-    },
     "MateriaFillMode": {
       "enum": [
         "leave_empty",
@@ -1532,26 +912,6 @@
       },
       "type": "object"
     },
-    "MateriaSlot": {
-      "additionalProperties": false,
-      "properties": {
-        "allowsHighGrade": {
-          "type": "boolean"
-        },
-        "ilvl": {
-          "type": "number"
-        },
-        "maxGrade": {
-          "type": "number"
-        }
-      },
-      "required": [
-        "maxGrade",
-        "allowsHighGrade",
-        "ilvl"
-      ],
-      "type": "object"
-    },
     "MateriaSubstat": {
       "enum": [
         "determination",
@@ -1560,7 +920,13 @@
         "dhit",
         "spellspeed",
         "skillspeed",
-        "tenacity"
+        "tenacity",
+        "craftsmanship",
+        "control",
+        "cp",
+        "perception",
+        "gathering",
+        "gp"
       ],
       "type": "string"
     },
@@ -1578,29 +944,6 @@
         "Neck",
         "Wrist",
         "Ring"
-      ],
-      "type": "string"
-    },
-    "OccGearSlotKey": {
-      "enum": [
-        "Weapon2H",
-        "Weapon1H",
-        "OffHand",
-        "Head",
-        "Body",
-        "Hand",
-        "Legs",
-        "Feet",
-        "Ears",
-        "Neck",
-        "Wrist",
-        "Ring",
-        "ChestHead",
-        "ChestHeadLegsFeet",
-        "ChestLegsFeet",
-        "ChestLegsGloves",
-        "HeadChestHandsLegsFeet",
-        "LegsFeet"
       ],
       "type": "string"
     },
@@ -1726,145 +1069,18 @@
       ],
       "type": "string"
     },
-    "RawBonusStats": {
-      "additionalProperties": false,
-      "description": "Represents post-computation stat modifications.",
-      "properties": {
-        "crit": {
-          "type": "number"
-        },
-        "critChance": {
-          "type": "number"
-        },
-        "critDmg": {
-          "type": "number"
-        },
-        "defenseMag": {
-          "type": "number"
-        },
-        "defensePhys": {
-          "type": "number"
-        },
-        "detMulti": {
-          "type": "number"
-        },
-        "determination": {
-          "type": "number"
-        },
-        "dexterity": {
-          "type": "number"
-        },
-        "dhit": {
-          "type": "number"
-        },
-        "dhitChance": {
-          "type": "number"
-        },
-        "dhitDmg": {
-          "type": "number"
-        },
-        "extraMainStat": {
-          "description": "Represents direct main stat bonuses. Only applicable to item stats - not used in computed stats, as it should be converted to the actual concrete stat at that point.",
-          "type": "number"
-        },
-        "extraSecondaryStat": {
-          "description": "Represents direct secondary stat bonuses. Only applicable to item stats - not used in computed stats, as it should be converted to the actual concrete stat at that point.",
-          "type": "number"
-        },
-        "forceCrit": {
-          "type": "boolean"
-        },
-        "forceDh": {
-          "type": "boolean"
-        },
-        "gaugeHaste": {
-          "type": "number"
-        },
-        "gearHaste": {
-          "type": "number"
-        },
-        "hp": {
-          "description": "Raw HP provided by the item - does NOT include HP provided via vitality.",
-          "type": "number"
-        },
-        "intelligence": {
-          "type": "number"
-        },
-        "mind": {
-          "type": "number"
-        },
-        "piety": {
-          "type": "number"
-        },
-        "skillspeed": {
-          "type": "number"
-        },
-        "spellspeed": {
-          "type": "number"
-        },
-        "strength": {
-          "type": "number"
-        },
-        "tenacity": {
-          "type": "number"
-        },
-        "traitHaste": {
-          "items": {
-            "$ref": "#/definitions/HasteBonus"
-          },
-          "type": "array"
-        },
-        "vitality": {
-          "type": "number"
-        },
-        "wdMag": {
-          "type": "number"
-        },
-        "wdPhys": {
-          "type": "number"
-        },
-        "weaponDelay": {
-          "description": "weaponDelay expressed as seconds (i.e. 3.54 = 3.54 seconds)",
-          "type": "number"
-        }
-      },
-      "required": [
-        "crit",
-        "critChance",
-        "critDmg",
-        "defenseMag",
-        "defensePhys",
-        "detMulti",
-        "determination",
-        "dexterity",
-        "dhit",
-        "dhitChance",
-        "dhitDmg",
-        "extraMainStat",
-        "extraSecondaryStat",
-        "forceCrit",
-        "forceDh",
-        "gaugeHaste",
-        "gearHaste",
-        "hp",
-        "intelligence",
-        "mind",
-        "piety",
-        "skillspeed",
-        "spellspeed",
-        "strength",
-        "tenacity",
-        "traitHaste",
-        "vitality",
-        "wdMag",
-        "wdPhys",
-        "weaponDelay"
-      ],
-      "type": "object"
-    },
     "RawStats": {
       "additionalProperties": false,
       "properties": {
+        "control": {
+          "type": "number"
+        },
+        "cp": {
+          "type": "number"
+        },
+        "craftsmanship": {
+          "type": "number"
+        },
         "crit": {
           "type": "number"
         },
@@ -1891,7 +1107,13 @@
           "description": "Represents direct secondary stat bonuses. Only applicable to item stats - not used in computed stats, as it should be converted to the actual concrete stat at that point.",
           "type": "number"
         },
+        "gathering": {
+          "type": "number"
+        },
         "gearHaste": {
+          "type": "number"
+        },
+        "gp": {
           "type": "number"
         },
         "hp": {
@@ -1902,6 +1124,9 @@
           "type": "number"
         },
         "mind": {
+          "type": "number"
+        },
+        "perception": {
           "type": "number"
         },
         "piety": {
@@ -1954,7 +1179,13 @@
         "defensePhys",
         "gearHaste",
         "extraMainStat",
-        "extraSecondaryStat"
+        "extraSecondaryStat",
+        "craftsmanship",
+        "control",
+        "cp",
+        "perception",
+        "gathering",
+        "gp"
       ],
       "type": "object"
     },
@@ -1963,117 +1194,6 @@
         "$ref": "#/definitions/RelicStats"
       },
       "type": "object"
-    },
-    "RelicStatModel": {
-      "anyOf": [
-        {
-          "additionalProperties": false,
-          "properties": {
-            "excludedStats": {
-              "items": {
-                "$ref": "#/definitions/Substat"
-              },
-              "type": "array"
-            },
-            "largeValue": {
-              "description": "The stat value of the 'large' stats (typically the stat cap).",
-              "type": "number"
-            },
-            "numLarge": {
-              "description": "The maximum number of large stats.",
-              "type": "number"
-            },
-            "numSmall": {
-              "description": "The maximum number of small stats.",
-              "type": "number"
-            },
-            "smallValue": {
-              "description": "The stat value of the 'small' stats.",
-              "type": "number"
-            },
-            "type": {
-              "const": "ewrelic",
-              "type": "string"
-            },
-            "validate": {
-              "items": {
-                "$ref": "#/definitions/GearSetIssue"
-              },
-              "type": "array"
-            }
-          },
-          "required": [
-            "excludedStats",
-            "largeValue",
-            "numLarge",
-            "numSmall",
-            "smallValue",
-            "type",
-            "validate"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "excludedStats": {
-              "items": {
-                "$ref": "#/definitions/Substat"
-              },
-              "type": "array"
-            },
-            "totalCap": {
-              "description": "The cap for total stats.",
-              "type": "number"
-            },
-            "type": {
-              "const": "customrelic",
-              "type": "string"
-            },
-            "validate": {
-              "items": {
-                "$ref": "#/definitions/GearSetIssue"
-              },
-              "type": "array"
-            }
-          },
-          "required": [
-            "excludedStats",
-            "totalCap",
-            "type",
-            "validate"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "excludedStats": {
-              "items": {
-                "$ref": "#/definitions/Substat"
-              },
-              "type": "array"
-            },
-            "type": {
-              "const": "unknown",
-              "type": "string"
-            },
-            "validate": {
-              "items": {
-                "$ref": "#/definitions/GearSetIssue"
-              },
-              "type": "array"
-            }
-          },
-          "required": [
-            "excludedStats",
-            "type",
-            "validate"
-          ],
-          "type": "object"
-        }
-      ],
-      "description": "Final type for relic stat models."
     },
     "RelicStats": {
       "additionalProperties": false,
@@ -2128,16 +1248,6 @@
         }
       },
       "type": "object"
-    },
-    "RoleKey": {
-      "enum": [
-        "Healer",
-        "Melee",
-        "Ranged",
-        "Caster",
-        "Tank"
-      ],
-      "type": "string"
     },
     "SetExport": {
       "additionalProperties": false,
@@ -2295,7 +1405,7 @@
       "description": "Special version of  {@link  SetExport }  that comes from the /fulldata/ endpoint.",
       "properties": {
         "computedStats": {
-          "$ref": "#/definitions/ComputedSetStats"
+          "$ref": "#/definitions/ComputedSetStatsExport"
         },
         "description": {
           "description": "Description of the gear set. May be multi-line.",
@@ -2613,14 +1723,6 @@
       "minItems": 3,
       "type": "array"
     },
-    "SpecialStatType": {
-      "enum": [
-        "Eureka",
-        "Bozja",
-        "OccultCrescent"
-      ],
-      "type": "string"
-    },
     "StatsQueryParams": {
       "additionalProperties": false,
       "description": "Parameters used by the stats server.",
@@ -2759,48 +1861,6 @@
       "required": [
         "index",
         "embedUrl"
-      ],
-      "type": "object"
-    },
-    "TraitFunc": {
-      "$comment": "(stats: RawBonusStats) => void",
-      "properties": {
-        "namedArgs": {
-          "additionalProperties": false,
-          "properties": {
-            "stats": {
-              "$ref": "#/definitions/RawBonusStats"
-            }
-          },
-          "required": [
-            "stats"
-          ],
-          "type": "object"
-        }
-      },
-      "type": "object"
-    },
-    "TranslatableString": {
-      "additionalProperties": false,
-      "properties": {
-        "de": {
-          "type": "string"
-        },
-        "en": {
-          "type": "string"
-        },
-        "fr": {
-          "type": "string"
-        },
-        "ja": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "de",
-        "en",
-        "fr",
-        "ja"
       ],
       "type": "object"
     }

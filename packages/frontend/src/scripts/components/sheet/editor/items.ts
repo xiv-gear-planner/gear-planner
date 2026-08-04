@@ -31,7 +31,7 @@ import {
     TitleRow
 } from "@xivgear/common-ui/table/tables";
 import {
-    ALL_SUB_STATS,
+    ALL_COMBAT_SUB_STATS,
     formatAcquisitionSource,
     MateriaSubstat,
     MateriaSubstats,
@@ -450,7 +450,7 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                 if (!currentEquipment || currentEquipment.gearItem !== item) {
                     // If the relic has no stats configured, return a special marker value that causes all of the cells
                     // to display blank values rather than 0.
-                    if (!(ALL_SUB_STATS.find(stat => {
+                    if (!(ALL_COMBAT_SUB_STATS.find(stat => {
                         const statValue = preview.relicStats[stat];
                         return statValue !== undefined && statValue !== 0;
                     }))) {
@@ -669,6 +669,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
         const selectionTracker = new Map<keyof EquipmentSet, CustomRow<GearSlotItem> | GearSlotItem>();
         this.selectionTracker = selectionTracker;
         const refreshSingleItem = (item: CustomRow<GearSlotItem> | GearSlotItem) => this.refreshRowData(item);
+        const isCombat = sheet.classJobEarlyStats.type === 'Combat';
         for (const [name, slot] of Object.entries(EquipSlotInfo)) {
             if (handledSlots && !handledSlots.includes(name as EquipSlotKey)) {
                 continue;
@@ -901,7 +902,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                     }
                 },
                 initialWidth: 33,
-                condition: () => handledSlots === undefined || handledSlots.includes('Weapon'),
+                condition: () => isCombat && (handledSlots === undefined || handledSlots.includes('Weapon')),
                 titleSetter: (_, rowValue: GearSlotItem) => {
                     const statDetail = gearSet.getEquipStatDetail(gearSet.toEquippedItem(rowValue.item), rowValue.item.stats.wdPhys > rowValue.item.stats.wdMag ? 'wdPhys' : 'wdMag');
                     return statCellTitle(statDetail);
@@ -919,6 +920,12 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
             itemTableStatColumn(sheet, gearSet, 'skillspeed', true),
             itemTableStatColumn(sheet, gearSet, 'piety', true),
             itemTableStatColumn(sheet, gearSet, 'tenacity', true),
+            itemTableStatColumn(sheet, gearSet, 'gp', false),
+            itemTableStatColumn(sheet, gearSet, 'gathering', false),
+            itemTableStatColumn(sheet, gearSet, 'perception', false),
+            itemTableStatColumn(sheet, gearSet, 'cp', false),
+            itemTableStatColumn(sheet, gearSet, 'craftsmanship', false),
+            itemTableStatColumn(sheet, gearSet, 'control', false),
         ];
         this.data = data;
         this.updateShowHide();
@@ -1098,6 +1105,39 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
             };
         }
 
+        const statCols: ReturnType<typeof w>[] = [];
+
+        switch (gearSet.classJobStats.type) {
+            case 'Combat': {
+                statCols.push(
+                    w(itemTableStatColumn(sheet, gearSet, 'crit', true)),
+                    w(itemTableStatColumn(sheet, gearSet, 'dhit', true)),
+                    w(itemTableStatColumn(sheet, gearSet, 'determination', true)),
+                    w(itemTableStatColumn(sheet, gearSet, 'spellspeed', true)),
+                    w(itemTableStatColumn(sheet, gearSet, 'skillspeed', true)),
+                    w(itemTableStatColumn(sheet, gearSet, 'piety', true)),
+                    w(itemTableStatColumn(sheet, gearSet, 'tenacity', true))
+                );
+                break;
+            }
+            case "DoL": {
+                statCols.push(
+                    w(itemTableStatColumn(sheet, gearSet, 'gp', false)),
+                    w(itemTableStatColumn(sheet, gearSet, 'gathering', false)),
+                    w(itemTableStatColumn(sheet, gearSet, 'perception', false))
+                );
+                break;
+            }
+            case "DoH": {
+                statCols.push(
+                    w(itemTableStatColumn(sheet, gearSet, 'cp', false)),
+                    w(itemTableStatColumn(sheet, gearSet, 'craftsmanship', false)),
+                    w(itemTableStatColumn(sheet, gearSet, 'control', false))
+                );
+                break;
+            }
+        }
+
         super.columns = [
             col({
                 shortName: "icon",
@@ -1119,6 +1159,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
                 },
                 // initialWidth: 300,
             }),
+            ...statCols,
             // {
             //     shortName: "wd",
             //     displayName: "WD",
@@ -1142,13 +1183,6 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
             // itemTableStatColumn(sheet, gearSet, 'dexterity'),
             // itemTableStatColumn(sheet, gearSet, 'intelligence'),
             // itemTableStatColumn(sheet, gearSet, 'mind'),
-            w(itemTableStatColumn(sheet, gearSet, 'crit', true)),
-            w(itemTableStatColumn(sheet, gearSet, 'dhit', true)),
-            w(itemTableStatColumn(sheet, gearSet, 'determination', true)),
-            w(itemTableStatColumn(sheet, gearSet, 'spellspeed', true)),
-            w(itemTableStatColumn(sheet, gearSet, 'skillspeed', true)),
-            w(itemTableStatColumn(sheet, gearSet, 'piety', true)),
-            w(itemTableStatColumn(sheet, gearSet, 'tenacity', true)),
         ];
         this.data = data;
     }

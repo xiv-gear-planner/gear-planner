@@ -194,6 +194,10 @@ export function detDmg(levelStats: LevelStats, det: number) {
  * @param petAction Whether this is a pet action.
  */
 export function wdMulti(levelStats: LevelStats, jobStats: JobData, wd: number, petAction: boolean = false) {
+    // TODO: better way to handle this?
+    if (jobStats.type !== 'Combat') {
+        return 1;
+    }
     let mainStatJobMod = jobStats.jobStatMultipliers[jobStats.mainStat];
     if (petAction) {
         // All pet actions use a job mod of 100.
@@ -339,6 +343,10 @@ export function mpTick(levelStats: LevelStats, piety: number) {
  * @param weaponDamage weapon damage
  */
 export function autoAttackModifier(levelStats: LevelStats, jobStats: JobData, weaponDelay: number, weaponDamage: number) {
+    // TODO: better way to handle this?
+    if (jobStats.type !== 'Combat') {
+        return 1;
+    }
     return fl(fl(levelStats.baseMainStat * jobStats.jobStatMultipliers[jobStats.autoAttackStat] / 1000 + weaponDamage) * (weaponDelay / 3)) / 100;
 }
 
@@ -356,7 +364,7 @@ export function baseDamage(...args: Parameters<typeof baseDamageFull>): number {
  * @param attackType The type of attack.
  */
 function usesCasterDamageFormula(stats: ComputedSetStats, attackType: AttackType): boolean {
-    return (stats.jobStats.role === 'Caster' || stats.jobStats.role === 'Healer')
+    return (stats.jobStats.combatRole === 'Caster' || stats.jobStats.combatRole === 'Healer')
         && attackType !== 'Auto-attack';
 }
 
@@ -582,11 +590,15 @@ export function vitToHp(levelStats: LevelStats, jobStats: JobData, vitality: num
 
 export function hpScalar(levelStats: LevelStats, jobStats: JobDataConst) {
     // @ts-expect-error - can't figure out type def
-    return levelStats.hpScalar[jobStats.role] ?? levelStats.hpScalar.other;
+    return levelStats.hpScalar[jobStats.combatRole] ?? levelStats.hpScalar.other;
 }
 
 export function mainStatPowerMod(levelStats: LevelStats, jobStats: JobDataConst) {
-    return levelStats.mainStatPowerMod[jobStats.role] ?? levelStats.mainStatPowerMod.other;
+    // TODO: better way to handle this?
+    if (jobStats.type !== 'Combat') {
+        return 1;
+    }
+    return levelStats.mainStatPowerMod[jobStats.combatRole] ?? levelStats.mainStatPowerMod.other;
 }
 
 /**

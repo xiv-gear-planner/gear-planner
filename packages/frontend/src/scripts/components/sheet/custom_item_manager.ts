@@ -15,7 +15,7 @@ import {
     quickElement,
     randomId
 } from "@xivgear/common-ui/components/util";
-import {ALL_STATS, ALL_SUB_STATS, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "@xivgear/xivmath/xivconstants";
+import {ALL_COMBAT_STATS, ALL_COMBAT_SUB_STATS, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "@xivgear/xivmath/xivconstants";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {DropdownActionMenu} from "../general/dropdown_actions_menu";
 import {NormalOccGearSlots, RawStats, Substat} from "@xivgear/xivmath/geartypes";
@@ -161,7 +161,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 headerStyler: setTitle('Number of restricted materia slots'),
                 colStyler: setTitle('Number of restricted materia slots'),
             },
-            ...ALL_STATS.map(stat => {
+            ...ALL_COMBAT_STATS.map(stat => {
                 return col({
                     shortName: STAT_ABBREVIATIONS[stat],
                     displayName: STAT_ABBREVIATIONS[stat],
@@ -171,7 +171,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                         const cap = ilvlSyncInfo.substatCap(item.occGearSlotName, stat);
                         // Small stat is ceil(big stat * 70%)
                         const suggestions = [cap];
-                        if (ALL_SUB_STATS.includes(stat as Substat)) {
+                        if (ALL_COMBAT_SUB_STATS.includes(stat as Substat)) {
                             suggestions.push(Math.ceil(cap * 0.7));
                         }
                         suggestions.push(0);
@@ -435,7 +435,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 displayName: '1st Stat',
                 getter: item => item,
                 renderer: (item: CustomFood) => {
-                    return new FieldBoundDataSelect(item.customData, 'primaryStat', value => value ? STAT_FULL_NAMES[value] : 'None', [null, ...ALL_SUB_STATS]);
+                    return new FieldBoundDataSelect(item.customData, 'primaryStat', value => value ? STAT_FULL_NAMES[value] : 'None', [null, ...ALL_COMBAT_SUB_STATS]);
                 },
                 initialWidth: 120,
                 headerStyler: setTitle('The primary sub-stat'),
@@ -465,7 +465,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 displayName: '2nd Stat',
                 getter: item => item,
                 renderer: (item: CustomFood) => {
-                    return new FieldBoundDataSelect(item.customData, 'secondaryStat', value => value ? STAT_FULL_NAMES[value] : 'None', [null, ...ALL_SUB_STATS]);
+                    return new FieldBoundDataSelect(item.customData, 'secondaryStat', value => value ? STAT_FULL_NAMES[value] : 'None', [null, ...ALL_COMBAT_SUB_STATS]);
                 },
                 initialWidth: 120,
                 headerStyler: setTitle('The secondary sub-stat'),

@@ -77,6 +77,13 @@ describe('New Datamanager', () => {
 
             extraMainStat: 416,
             extraSecondaryStat: 306,
+
+            cp: 7,
+            craftsmanship: 1601,
+            control: 855,
+            gp: 9,
+            gathering: 1633,
+            perception: 933,
         });
         eq(codexOfAscension.materiaSlots.length, 2);
         eq(codexOfAscension.isCustomRelic, false);
@@ -141,6 +148,13 @@ describe('New Datamanager', () => {
             determination: 179,
             extraMainStat: 177,
             extraSecondaryStat: 179,
+
+            cp: 12,
+            craftsmanship: 465,
+            control: 273,
+            gp: 12,
+            gathering: 263,
+            perception: 375,
         }));
     });
     describe('syncs levels correctly', () => {

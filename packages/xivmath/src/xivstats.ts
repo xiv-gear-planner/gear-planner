@@ -35,7 +35,7 @@ import {
     vitToHp,
     wdMulti
 } from "./xivmath";
-import {JobName, SupportedLevel} from "./xivconstants";
+import {BASE_CP, BASE_GP, JobName, SupportedLevel} from "./xivconstants";
 import {sum} from "@xivgear/util/array_utils";
 
 /**
@@ -106,70 +106,6 @@ export class RawBonusStats extends RawStats {
 
 function clamp(min: number, max: number, value: number) {
     return Math.max(Math.min(value, max), min);
-}
-
-/**
- * Transform a ComputedSetStats into a form that serializes properly. That is, it serializes the getters rather
- * than only the backing data. This is realistically what you would want out of the fulldata API endpoint.
- *
- * @param stats
- */
-export function statsSerializationProxy(stats: ComputedSetStats): ComputedSetStats {
-    // The purpose of this is that the fullstats API won't correctly serialize the ComputedSetStatsImpl normally.
-    // We care about the
-    return new Proxy(stats, {
-        get(target, prop, receiver) {
-            // Check if the property is a getter on the prototype chain
-            let descriptor = Object.getOwnPropertyDescriptor(target, prop as string);
-            let proto = Object.getPrototypeOf(target);
-
-            while (!descriptor && proto) {
-                descriptor = Object.getOwnPropertyDescriptor(proto, prop as string);
-                proto = Object.getPrototypeOf(proto);
-            }
-
-            if (descriptor && typeof descriptor.get === 'function') {
-                return descriptor.get.call(target);
-            }
-
-            return Reflect.get(target, prop, receiver);
-        },
-        ownKeys(target) {
-            const keys = new Set<string | symbol>();
-
-            let obj: object = target;
-            while (obj) {
-                Reflect.ownKeys(obj).forEach((key) => {
-                    if (typeof key === 'string' && !key.startsWith('_')) {
-                        const descriptor = Object.getOwnPropertyDescriptor(obj, key);
-                        if (descriptor && typeof descriptor.get === 'function') {
-                            keys.add(key);
-                        }
-                    }
-                });
-                obj = Object.getPrototypeOf(obj);
-            }
-
-            return Array.from(keys);
-        },
-        getOwnPropertyDescriptor(target, prop) {
-            const descriptor = Object.getOwnPropertyDescriptor(target, prop)
-                || Object.getOwnPropertyDescriptor(Object.getPrototypeOf(target), prop);
-
-            if (
-                descriptor
-                && typeof descriptor.get === 'function'
-                && typeof prop === 'string'
-                && !prop.startsWith('_')
-            ) {
-                return {
-                    enumerable: true,
-                    configurable: true,
-                };
-            }
-            return undefined;
-        },
-    });
 }
 
 /**
@@ -354,6 +290,30 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
         return result;
     }
 
+    get craftsmanship(): number {
+        return this.currentStats.craftsmanship + this.finalBonusStats.craftsmanship;
+    }
+
+    get control(): number {
+        return this.currentStats.control + this.finalBonusStats.control;
+    }
+
+    get cp(): number {
+        return BASE_CP + this.currentStats.cp + this.finalBonusStats.cp;
+    }
+
+    get perception(): number {
+        return this.currentStats.perception + this.finalBonusStats.perception;
+    }
+
+    get gathering(): number {
+        return this.currentStats.gathering + this.finalBonusStats.gathering;
+    }
+
+    get gp(): number {
+        return BASE_GP + this.currentStats.gp + this.finalBonusStats.gp;
+    }
+
     get job(): JobName {
         return this.classJob;
     }
@@ -418,6 +378,9 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
     };
 
     get mainStatValue(): number {
+        if (!this.classJobStats.mainStat) {
+            return 0;
+        }
         return this[this.classJobStats.mainStat];
     }
 
@@ -426,11 +389,17 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
     };
 
     get baseMainStatPlusRace(): number {
+        if (!this.classJobStats.mainStat) {
+            return 0;
+        }
         const mainStat = this.classJobStats.mainStat;
         return getBaseMainStat(this.levelStats, this.classJobStats, this.classJobStats.mainStat) + this.racialStats[mainStat];
     }
 
     get aaStatMulti(): number {
+        if (!this.classJobStats.autoAttackStat) {
+            return 0;
+        }
         return mainStatMulti(this.levelStats, this.classJobStats, this[this.classJobStats.autoAttackStat]);
     };
 
@@ -516,14 +485,16 @@ export function finalizeStatsInt(
     effectiveFoodBonuses: RawStats
 } {
     const combinedStats: RawStats = {...gearStats};
-    const mainStatKey = classJobStats.mainStat;
-    const secondaryStatKey = classJobStats.secondaryStat;
-    const aaStatKey = classJobStats.autoAttackStat;
-    combinedStats[mainStatKey] += gearStats.extraMainStat;
-    combinedStats[secondaryStatKey] += gearStats.extraSecondaryStat;
-    combinedStats[mainStatKey] = fl(combinedStats[mainStatKey] * (1 + 0.01 * partyBonus));
-    if (mainStatKey !== aaStatKey) {
-        combinedStats[aaStatKey] = fl(combinedStats[aaStatKey] * (1 + 0.01 * partyBonus));
+    if (classJobStats.type === 'Combat') {
+        const mainStatKey = classJobStats.mainStat;
+        const secondaryStatKey = classJobStats.secondaryStat;
+        const aaStatKey = classJobStats.autoAttackStat;
+        combinedStats[mainStatKey] += gearStats.extraMainStat;
+        combinedStats[secondaryStatKey] += gearStats.extraSecondaryStat;
+        combinedStats[mainStatKey] = fl(combinedStats[mainStatKey] * (1 + 0.01 * partyBonus));
+        if (aaStatKey && mainStatKey !== aaStatKey) {
+            combinedStats[aaStatKey] = fl(combinedStats[aaStatKey] * (1 + 0.01 * partyBonus));
+        }
     }
     combinedStats.vitality = fl(combinedStats.vitality * (1 + 0.01 * partyBonus));
     const effectiveFoodBonuses = new RawStats();

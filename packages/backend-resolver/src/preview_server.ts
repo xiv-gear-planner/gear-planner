@@ -134,7 +134,7 @@ export class PreviewServer extends ServerBase {
                         const multiJob = await navResult.multiJob;
                         if (multiJob) {
                             const thisJob = JOB_DATA[job];
-                            const jobs = ALL_COMBAT_JOBS.filter(j => JOB_DATA[j]?.role === thisJob?.role).join(",");
+                            const jobs = ALL_COMBAT_JOBS.filter(j => JOB_DATA[j]?.combatRole === thisJob?.combatRole).join(",");
                             addFetchPreload(`https://data.xivgear.app/Items?job=${jobs}`);
                         }
                         else {

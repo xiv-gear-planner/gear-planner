@@ -50,6 +50,10 @@ export function getDefaultSims(job: JobName, level: SupportedLevel): AnySimSpec[
         // TODO: just have a flag for whether it registered or not
         console.warn('No simulations are registered - possible race condition');
     }
+    // Sims are only for combat jobs
+    if (JOB_DATA[job]?.type !== 'Combat') {
+        return [];
+    }
     let defaultSims = [...simSpecs.filter(spec => {
         if (spec.supportedJobs !== undefined && !spec.supportedJobs.includes(job)) {
             return false;

@@ -63,8 +63,8 @@ function fillSheetData(sheetPreloadUrl: URL | null, sheetData: Promise<ExportedD
         // DataManager around. Since the item icons have placeholder lookalikes anyway, it's not super important.
         imagePreloads: processed.then(p => {
             if (p.multiJob && p.job) {
-                const myRole = JOB_DATA[p.job].role;
-                return getJobIcons('frameless', thatJob => JOB_DATA[thatJob].role === myRole);
+                const myRole = JOB_DATA[p.job].combatRole;
+                return getJobIcons('frameless', thatJob => JOB_DATA[thatJob].combatRole === myRole);
             }
             else {
                 return [];

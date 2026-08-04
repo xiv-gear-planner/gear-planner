@@ -38,7 +38,7 @@ import {
     RACE_STATS,
     RaceName,
     SpecialStatKey,
-    STAT_ABBREVIATIONS,
+    STAT_ABBREVIATIONS, STAT_FULL_NAMES,
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
 import {processNav} from "../../nav_hash";
@@ -387,6 +387,21 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
         });
 
         const outer = this;
+        const isCombat = this.sheet.classJobEarlyStats.type === 'Combat';
+
+        function simpleStat(stat: RawStatKey, overrides: Partial<CustomColumnSpec<CharacterGearSet, unknown>> = {}): CustomColumn<CharacterGearSet, unknown, unknown> {
+            const sheet = outer.sheet;
+            return col({
+                shortName: stat,
+                displayName: STAT_FULL_NAMES[stat] ?? stat,
+                getter: gearSet => gearSet.computedStats[stat],
+                initialWidth: statColWidth,
+                condition: () => sheet.isStatRelevant(stat),
+                rowCondition: noSeparators,
+                extraClasses: ['stat-col'],
+                ...overrides,
+            });
+        }
 
         this.columns = [
             {
@@ -534,6 +549,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
                 renderer: multiplierStatTooltip,
                 extraClasses: ['stat-col', 'stat-col-less-important'],
                 rowCondition: noSeparators,
+                condition: () => isCombat,
             } as CustomColumnSpec<CharacterGearSet, MultiplierStat>,
             {
                 shortName: "hp",
@@ -541,6 +557,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
                 getter: gearSet => gearSet.computedStats.hp,
                 extraClasses: ['stat-col', 'stat-col-hp', 'stat-col-less-important'],
                 rowCondition: noSeparators,
+                condition: () => isCombat,
             },
             {
                 ...mainStatCol(this.sheet, 'dexterity'),
@@ -620,12 +637,19 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
                     stat: gearSet.computedStats.tenacity,
                     multiplier: gearSet.computedStats.tncMulti,
                     incomingMulti: gearSet.computedStats.tncIncomingMulti,
-                }) as MultiplierMitStat,
+                }) satisfies MultiplierMitStat,
                 renderer: multiplierMitStatDisplay,
                 condition: () => this.sheet.isStatRelevant('tenacity'),
                 extraClasses: ['stat-col', 'multiplier-mit-stat-col', 'stat-col-less-important'],
                 rowCondition: noSeparators,
             }),
+            simpleStat('cp', {displayName: 'CP'}),
+            simpleStat('control', {displayName: 'Ctrl.'}),
+            simpleStat('craftsmanship', {displayName: 'Cms.'}),
+
+            simpleStat('gp', {displayName: 'GP'}),
+            simpleStat('gathering', {initialWidth: 80}),
+            simpleStat('perception', {initialWidth: 80}),
         ];
     }
 

@@ -229,6 +229,12 @@ export type ItemBase = XivApiObject &
 export type ItemLevel = XivApiObject &
   XivApiBase & {
     /** @format int32 */
+    CP: number;
+    /** @format int32 */
+    control: number;
+    /** @format int32 */
+    craftsmanship: number;
+    /** @format int32 */
     criticalHit: number;
     /** @format int32 */
     defense: number;
@@ -241,6 +247,10 @@ export type ItemLevel = XivApiObject &
     /** @format int32 */
     directHitRate: number;
     /** @format int32 */
+    GP: number;
+    /** @format int32 */
+    gathering: number;
+    /** @format int32 */
     HP: number;
     /** @format int32 */
     intelligence: number;
@@ -250,6 +260,8 @@ export type ItemLevel = XivApiObject &
     magicalDamage: number;
     /** @format int32 */
     mind: number;
+    /** @format int32 */
+    perception: number;
     /** @format int32 */
     physicalDamage: number;
     /** @format int32 */

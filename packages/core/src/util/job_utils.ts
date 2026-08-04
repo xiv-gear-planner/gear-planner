@@ -1,4 +1,5 @@
 import {JOB_DATA, JobName, SupportedLevel, SupportedLevels} from "@xivgear/xivmath/xivconstants";
+import {AllRoleKey} from "@xivgear/xivmath/geartypes";
 
 export function levelsForJob(job: JobName | null | undefined): readonly SupportedLevel[] {
     if (!job) {
@@ -28,4 +29,9 @@ export function clampJobLevel(job: JobName | null | undefined, currentLevel: Sup
         return jobData.minLevel;
     }
     return currentLevel;
+}
+
+export function jobRole(job: JobName): AllRoleKey {
+    const jobdatum = JOB_DATA[job];
+    return jobdatum.type === 'Combat' ? jobdatum.combatRole : jobdatum.type;
 }
