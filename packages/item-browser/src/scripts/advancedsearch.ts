@@ -424,10 +424,11 @@ class AdvancedSearchBaseParamField extends AdvancedSearchFieldElement {
                 name: criterionName(index, 'withHqSpecial'),
             },
         });
+        // TODO: should be checked by default
         const withHqSpecial = el('input', {
             props: {
                 type: 'checkbox',
-                checked: values.withHqSpecial === null || values.withHqSpecial === 'on' || values.withHqSpecial === 'true' || values.withHqSpecial === '1',
+                checked: values.withHqSpecial === null || values.withHqSpecial === 'on' || values.withHqSpecial === 'true' || values.withHqSpecial === '1' || values.withHqSpecial === undefined || values.withHqSpecial === 'false' || values.withHqSpecial === 'on',
             },
             attributes: {
                 name: criterionName(index, 'withHqSpecial'),
@@ -1257,6 +1258,7 @@ class AdvancedSearchCriteriaGrid extends HTMLElement {
             },
             attributes: {name: 'sortWithHqSpecial'},
         });
+        // TODO: should be on by default
         const sortWithHqSpecial = el('input', {
             props: {
                 type: 'checkbox',

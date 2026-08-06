@@ -84,3 +84,10 @@ body:not(.light-mode) {
 .collapse-vertical {
   min-height: 50px !important;
 }
+
+// The "report ad" button as getting cut off, this should fix it
+div[data-ad-height] {
+  box-sizing: content-box;
+  margin-top: 20px;
+  overflow: visible;
+}

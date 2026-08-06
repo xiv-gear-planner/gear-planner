@@ -1,6 +1,12 @@
 import {makeCloseButton} from "@xivgear/common-ui/components/icons";
 import {el, makeActionButton} from "@xivgear/common-ui/components/util";
-import {CustomRow, CustomTable, SingleRowSelectionModel, SpecialRow, TableSelectionModel} from "@xivgear/common-ui/table/tables";
+import {
+    CustomRow,
+    CustomTable,
+    SingleRowSelectionModel,
+    SpecialRow,
+    TableSelectionModel
+} from "@xivgear/common-ui/table/tables";
 import {SearchOptionModal} from "./baseparamsearch";
 
 export interface ItemUICategoryOption {
@@ -10,10 +16,13 @@ export interface ItemUICategoryOption {
     orderMajor: number;
     orderMinor: number;
 }
+
 type CategorySelection = TableSelectionModel<ItemUICategoryOption, unknown, unknown, CustomRow<ItemUICategoryOption> | null>;
 
+// TODO: deduplication with BaseParamSearch
 export class ItemUICategorySearchTable extends CustomTable<ItemUICategoryOption, CategorySelection> {
     private readonly singleRowSelection = new SingleRowSelectionModel<ItemUICategoryOption>();
+    private searchBox: HTMLInputElement | null = null;
 
     constructor(options: ItemUICategoryOption[]) {
         super();
@@ -21,15 +30,40 @@ export class ItemUICategorySearchTable extends CustomTable<ItemUICategoryOption,
         this.classList.add('item-ui-category-search-table', 'gear-items-edit-table', 'hoverable');
         this.selectionModel = this.singleRowSelection as unknown as CategorySelection;
         this.columns = [
-            {shortName: 'icon', displayName: 'Icon', getter: option => option.icon, renderer: (url: string | undefined, option: ItemUICategoryOption) =>
-                url ? el('img', {props: {src: url, alt: option.name, width: 32, height: 32}}) : null},
-            {shortName: 'name', displayName: 'Name', getter: option => option.name},
+            {
+                shortName: 'icon',
+                displayName: 'Icon',
+                getter: option => option.icon,
+                renderer: (url: string | undefined, option: ItemUICategoryOption) =>
+                    url ? el('img', {
+                        props: {
+                            src: url,
+                            alt: option.name,
+                            width: 32,
+                            height: 32,
+                        },
+                    }) : null,
+            },
+            {
+                shortName: 'name',
+                displayName: 'Name',
+                getter: option => option.name,
+            },
         ];
         const searchRow = new SpecialRow(() => {
-            const searchBox = document.createElement('input');
-            searchBox.type = 'text'; searchBox.placeholder = 'Search';
+            // TODO: make escape clear the search box
+            const searchBox = el('input', {
+                props: {
+                    type: 'text',
+                    placeholder: 'Search',
+                },
+            });
+            this.searchBox = searchBox;
+            searchBox.type = 'text';
+            searchBox.placeholder = 'Search';
             const clearButton = makeActionButton([makeCloseButton()], () => {
-                searchBox.value = ''; searchBox.dispatchEvent(new Event('input'));
+                searchBox.value = '';
+                searchBox.dispatchEvent(new Event('input'));
             });
             clearButton.disabled = true;
             searchBox.addEventListener('input', () => {
@@ -42,9 +76,16 @@ export class ItemUICategorySearchTable extends CustomTable<ItemUICategoryOption,
         this.data = [searchRow, ...options];
     }
 
-    get selected(): CustomRow<ItemUICategoryOption> | null { return this.singleRowSelection.getSelection(); }
+    get selected(): CustomRow<ItemUICategoryOption> | null {
+        return this.singleRowSelection.getSelection();
+    }
+
     addSelectionListener(listener: (selection: CustomRow<ItemUICategoryOption> | null) => void): void {
         this.singleRowSelection.addListener({onNewSelection: listener});
+    }
+
+    focusSearchBar(): void {
+        this.searchBox?.focus();
     }
 }
 

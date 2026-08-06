@@ -6,7 +6,7 @@ import {
     CustomTable,
     SingleRowSelectionModel,
     SpecialRow,
-    TableSelectionModel,
+    TableSelectionModel
 } from "@xivgear/common-ui/table/tables";
 
 export interface BaseParamOption {
@@ -17,15 +17,32 @@ export interface BaseParamOption {
 
 type BaseParamSelection = TableSelectionModel<BaseParamOption, unknown, unknown, CustomRow<BaseParamOption> | null>;
 
-interface SearchOption { id: string; }
-interface SearchSelectionTable<Option extends SearchOption> extends HTMLElement {
-    selected: CustomRow<Option> | null;
-    addSelectionListener(listener: (selection: CustomRow<Option> | null) => void): void;
+// TOD: the generic stuff shouldn't be in this file
+interface SearchOption {
+    id: string;
 }
 
+/**
+ * Item selection table with search
+ */
+interface SearchSelectionTable<Option extends SearchOption> extends HTMLElement {
+    selected: CustomRow<Option> | null;
+
+    addSelectionListener(listener: (selection: CustomRow<Option> | null) => void): void;
+
+    focusSearchBar(): void;
+}
+
+/**
+ * Item selection modal with search
+ */
 export class SearchOptionModal<Option extends SearchOption> extends BaseModal {
+
+    private readonly table: SearchSelectionTable<Option>;
+
     constructor(header: string, table: SearchSelectionTable<Option>, onChoose: (id: string) => void) {
         super();
+        this.table = table;
         this.headerText = header;
         this.contentArea.appendChild(table);
         const chooseButton = this.addActionButton('Choose', () => {
@@ -39,10 +56,15 @@ export class SearchOptionModal<Option extends SearchOption> extends BaseModal {
         table.addSelectionListener(selection => chooseButton.disabled = selection === null);
         this.addCloseButton('Cancel');
     }
+
+    afterShow(): void {
+        this.table.focusSearchBar();
+    }
 }
 
-export class BaseParamSearchTable extends CustomTable<BaseParamOption, BaseParamSelection> {
+export class BaseParamSearchTable extends CustomTable<BaseParamOption, BaseParamSelection> implements SearchSelectionTable<BaseParamOption> {
     private readonly singleRowSelection = new SingleRowSelectionModel<BaseParamOption>();
+    private searchBox: HTMLInputElement | null = null;
 
     constructor(options: BaseParamOption[]) {
         super();
@@ -62,9 +84,13 @@ export class BaseParamSearchTable extends CustomTable<BaseParamOption, BaseParam
         ];
 
         const searchRow = new SpecialRow(() => {
-            const searchBox = document.createElement('input');
-            searchBox.type = 'text';
-            searchBox.placeholder = 'Search';
+            const searchBox = el('input', {
+                props: {
+                    type: 'text',
+                    placeholder: 'Search',
+                },
+            });
+            this.searchBox = searchBox;
             const clearButton = makeActionButton([makeCloseButton()], () => {
                 searchBox.value = '';
                 searchBox.dispatchEvent(new Event('input'));
@@ -91,6 +117,10 @@ export class BaseParamSearchTable extends CustomTable<BaseParamOption, BaseParam
 
     addSelectionListener(listener: (selection: CustomRow<BaseParamOption> | null) => void): void {
         this.singleRowSelection.addListener({onNewSelection: listener});
+    }
+
+    focusSearchBar(): void {
+        this.searchBox?.focus();
     }
 }
 

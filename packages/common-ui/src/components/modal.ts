@@ -87,12 +87,18 @@ export abstract class BaseModal extends HTMLElement {
 
     showExclusively() {
         MODAL_CONTROL.setModal(this.modalWrapper);
-        setTimeout(() => this.classList.add('backdrop-active'), 5);
+        setTimeout(() => {
+            this.classList.add('backdrop-active');
+            this.afterShow();
+        }, 5);
     }
 
     showTop() {
         MODAL_CONTROL.pushModal(this.modalWrapper);
-        setTimeout(() => this.classList.add('backdrop-active'), 5);
+        setTimeout(() => {
+            this.classList.add('backdrop-active');
+            this.afterShow();
+        }, 5);
     }
 
     close() {
@@ -100,6 +106,9 @@ export abstract class BaseModal extends HTMLElement {
     }
 
     protected onClose(): void {
+    }
+
+    protected afterShow(): void {
     }
 
     protected showLoadingBlocker() {

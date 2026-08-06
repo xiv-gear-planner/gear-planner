@@ -1,7 +1,7 @@
 // Sizes of the ads themselves (predetermined)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {recheckNow} from "./item-detail-layout";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const AdSizes = [
     [300, 600],
     [336, 280],
@@ -24,7 +24,13 @@ declare global {
                 demo?: boolean;
                 height: number;
                 delayLoading: boolean;
-                report: object
+                report: {
+                    enabled?: boolean,
+                    icon?: boolean,
+                    iconColor?: string,
+                    wording?: string,
+                    position?: string,
+                }
             }): void;
         };
     }
