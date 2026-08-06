@@ -1106,7 +1106,7 @@ const validationErrorClearHandler = (event: Event): void => {
     if (!(event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement)) {
         return;
     }
-    const row = event.target.closest<HTMLElement>('[data-advanced-search-row]');
+    const row = event.target.closest<HTMLElement>('[data-advanced-search-row], .advanced-search-sort-row');
     row?.querySelectorAll<HTMLInputElement | HTMLSelectElement>('[name]')
         .forEach(input => input.setCustomValidity(''));
 };
@@ -1217,7 +1217,7 @@ class AdvancedSearchCriteriaGrid extends HTMLElement {
             field: (params.get('sortField') as SortField) || 'ROW_ID',
             direction: (params.get('sortDirection') as SortDirection) || 'ASCENDING',
             baseParamId: params.get('sortBaseParamId') || '',
-            withHqSpecial: params.getAll('sortWithHqSpecial').some(value => ['on', 'true', '1'].includes(value.toLowerCase())),
+            withHqSpecial: !params.getAll('sortWithHqSpecial').some(value => ['off', 'false', '0'].includes(value.toLowerCase())),
         };
         const sortField = selectControl<SortField>('sortField', initialSort.field, SORT_FIELDS);
         const sortDirection = selectControl<SortDirection>('sortDirection', initialSort.direction, SORT_DIRECTIONS);
@@ -1258,11 +1258,10 @@ class AdvancedSearchCriteriaGrid extends HTMLElement {
             },
             attributes: {name: 'sortWithHqSpecial'},
         });
-        // TODO: should be on by default
         const sortWithHqSpecial = el('input', {
             props: {
                 type: 'checkbox',
-                checked: params.getAll('sortWithHqSpecial').some(value => ['on', 'true', '1'].includes(value.toLowerCase())),
+                checked: initialSort.withHqSpecial,
             },
             attributes: {name: 'sortWithHqSpecial'},
         });
@@ -1446,7 +1445,7 @@ class AdvancedSearchCriteriaGrid extends HTMLElement {
             sortField.value = 'ROW_ID';
             sortDirection.value = 'ASCENDING';
             sortBaseParam.value = '';
-            sortWithHqSpecial.checked = false;
+            sortWithHqSpecial.checked = true;
             updateSortBaseParamState();
             updateRevertState();
         });
