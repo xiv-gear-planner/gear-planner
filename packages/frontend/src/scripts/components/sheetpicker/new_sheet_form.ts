@@ -141,6 +141,11 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
         this.appendChild(this.ilvlSyncValue);
         this.appendChild(spacer());
 
+        // revalidateLevelSelect will overwrite this, so we need to re-set it.
+        if (settings.ilvlSyncEnabled && settings.ilvlSyncLevel) {
+            this.ilvlSync = settings.ilvlSyncLevel;
+            this.ilvlSyncEnabled = true;
+        }
         this.recheck();
     }
 
