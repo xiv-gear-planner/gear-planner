@@ -1,5 +1,5 @@
 import {CharacterGearSet, previewItemStatDetail} from "../gear";
-import {GearItem, RawStatKey, RawStats} from "@xivgear/xivmath/geartypes";
+import {EwRelicStatModel, GearItem, RawStatKey, RawStats} from "@xivgear/xivmath/geartypes";
 import {expect} from 'chai';
 import {NewApiDataManager} from "../datamanager_new";
 import {ALL_COMBAT_JOBS, MAIN_STATS} from "@xivgear/xivmath/xivconstants";
@@ -269,6 +269,32 @@ describe('Custom relic detection', () => {
         expect(bluSheet.itemById(41700).isCustomRelic).to.eq(false);
         // Should pick up the level 50 weapon
         expect(bluSheet.itemById(24551).isCustomRelic).to.eq(false);
+    });
+
+});
+
+describe('Custom relic issues', () => {
+    const pldSheet = HEADLESS_SHEET_PROVIDER.fromScratch(undefined, 'relic test PLD', 'PLD', 100, undefined, false);
+    before(async function () {
+        this.timeout(30_000);
+        await pldSheet.load();
+    });
+    it('has correct PLD 100 weapon stats', () => {
+        const phantomSword = pldSheet.itemById(51000);
+        expect(phantomSword.isCustomRelic).to.equal(true);
+        const relic = phantomSword.relicStatModel as EwRelicStatModel;
+        expect(relic.type).to.equal('ewrelic');
+        expect(relic.largeValue).to.equal(319);
+        expect(relic.smallValue).to.equal(76);
+    });
+    it('has correct PLD 100 shield stats', () => {
+        const phantomShield = pldSheet.itemById(51021);
+        expect(phantomShield.isCustomRelic).to.equal(true);
+        const relic = phantomShield.relicStatModel as EwRelicStatModel;
+        expect(relic.type).to.equal('ewrelic');
+        expect(relic.largeValue).to.equal(128);
+        expect(relic.smallValue).to.equal(32);
+
     });
 
 });
