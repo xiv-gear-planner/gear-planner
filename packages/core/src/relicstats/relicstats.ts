@@ -177,8 +177,18 @@ function getRelicStatModelForPartial(gearItem: GearItem, baseParams: BaseParamMa
     const slotModifier = baseParams.crit.slots[gearItem.occGearSlotName] / 140;
     const statCap = gearItem.unsyncedVersion.statCaps.crit;
     switch (gearItem.ilvl) {
-        case 795:
-            return ewRelic(statCap, Math.round(108 * slotModifier));
+        case 795: {
+            let small = Math.round(108 * slotModifier);
+            // I don't know why but the PLD sword/shield are off by one or two no matter how I do the rounding, so just
+            // do this.
+            if (gearItem.occGearSlotName === 'Weapon1H') {
+                small--;
+            }
+            else if (gearItem.occGearSlotName === 'OffHand') {
+                small++;
+            }
+            return ewRelic(statCap, small);
+        }
         // EW relics are 2 capped stats, and one 72
         case 665:
             return ewRelic(statCap, Math.round(72 * slotModifier));
