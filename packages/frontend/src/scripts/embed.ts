@@ -72,7 +72,7 @@ export async function openEmbed(sheet: GearPlanSheetGui) {
 
         openFullLink.addEventListener('click', () => {
             recordSheetEvent("openEmbedToFull", sheet, {
-                buttonText: buttonText,
+                buttonText: useDefault ? `${buttonText} (default)` : buttonText,
             });
         });
 
