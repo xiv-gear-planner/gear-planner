@@ -3,10 +3,18 @@
 <head>
     <link rel="stylesheet" href="./style.css"/>
     <script blocking="render">
-        if (localStorage.getItem('light-mode') === 'true') {
-            document.addEventListener('DOMContentLoaded', () => {
-                document.querySelector('body').classList.add('light-mode');
-            });
+        try {
+            if (localStorage.getItem('light-mode') === 'true') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    document.querySelector('body').classList.add('light-mode');
+                });
+            }
+        } catch (e) {
+            // If we are in a cross-site context, even referencing 'localStorage' will throw an error.
+            // If not in an iframe, just re-throw it. Otherwise, silently ignore it.
+            if (window.self === window.top) {
+                throw e
+            }
         }
     </script>
     <meta charset="UTF-8">
