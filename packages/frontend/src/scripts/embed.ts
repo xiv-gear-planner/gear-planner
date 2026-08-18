@@ -54,7 +54,10 @@ export async function openEmbed(sheet: GearPlanSheetGui) {
         console.log("openEmbed mid");
         const editorArea = sheet.editorArea;
 
-        const buttonText = OPEN_FULL_OPTIONS[Math.floor(Math.random() * OPEN_FULL_OPTIONS.length * 0.999)] ?? 'Open Full';
+        // 75% chance to get the default
+        const useDefault = Math.random() <= 0.75;
+
+        const buttonText = useDefault ? OPEN_FULL_OPTIONS[0] : (OPEN_FULL_OPTIONS[Math.floor(Math.random() * OPEN_FULL_OPTIONS.length * 0.999)] ?? 'Open Full');
         const hash = getCurrentHash();
         const linkUrl = makeUrl(new NavState(hash.slice(1), undefined, getCurrentState().onlySetIndex));
         linkUrl.searchParams.delete(ONLY_SET_QUERY_PARAM);
@@ -69,7 +72,7 @@ export async function openEmbed(sheet: GearPlanSheetGui) {
 
         openFullLink.addEventListener('click', () => {
             recordSheetEvent("openEmbedToFull", sheet, {
-                buttonText: buttonText,
+                buttonText: useDefault ? `${buttonText} (default)` : buttonText,
             });
         });
 
