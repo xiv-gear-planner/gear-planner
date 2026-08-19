@@ -105,7 +105,14 @@ else {
     flushQueue(window.umami);
 }
 
+let events: number = 0;
+const MAX_EVENTS = 10_000;
+
 export function recordEvent(name: string, data?: ExtraData) {
+    if (++events > MAX_EVENTS) {
+        console.warn(`Ignoring request to record event ${name} because too many events have been recorded (${events} > ${MAX_EVENTS})`, name, data);
+        return;
+    }
     try {
         getEffectiveUmami().track(name, data);
     }
@@ -114,7 +121,14 @@ export function recordEvent(name: string, data?: ExtraData) {
     }
 }
 
+let errors: number = 0;
+const MAX_ERRORS = 100;
+
 export function recordError(where: string, error: unknown, extraProps: object = {}) {
+    if (++errors > MAX_ERRORS) {
+        console.warn(`Ignoring request to record error because too many errors have been recorded (${errors} > ${MAX_ERRORS})`, where, error);
+        return;
+    }
     const umami = getEffectiveUmami();
     try {
         if (error instanceof Error) {
