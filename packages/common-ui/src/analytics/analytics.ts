@@ -155,7 +155,16 @@ export function recordError(where: string, error: unknown, extraProps: object = 
 
 try {
     window.addEventListener('unhandledrejection', e => {
-        recordError("unhandledRejection", String(e.reason));
+        if (e.reason instanceof Error) {
+            recordError('unhandledrejection', {
+                errorName: e.reason.name,
+                errorMessage: e.reason.message,
+                errorStack: e.reason.stack,
+            });
+        }
+        else {
+            recordError("unhandledRejection", String(e.reason));
+        }
     });
 }
 catch (e) {
