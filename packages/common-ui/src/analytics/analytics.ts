@@ -105,10 +105,24 @@ else {
     flushQueue(window.umami);
 }
 
+let suppressAll: boolean = false;
+
+/**
+ * In the event that a new version is available, kill analytics entirely so that we aren't spammed with errors and such
+ * that have already been fixed.
+ */
+export function killAnalytics() {
+    suppressAll = true;
+}
+
 let events: number = 0;
 const MAX_EVENTS = 10_000;
 
 export function recordEvent(name: string, data?: ExtraData) {
+    if (suppressAll) {
+        console.info(`Analytics suppressed (${name}`);
+        return;
+    }
     if (++events > MAX_EVENTS) {
         console.warn(`Ignoring request to record event ${name} because too many events have been recorded (${events} > ${MAX_EVENTS})`, name, data);
         return;
@@ -129,9 +143,17 @@ export function recordError(where: string, error: unknown, extraProps: object = 
         console.warn(`Ignoring request to record error because too many errors have been recorded (${errors} > ${MAX_ERRORS})`, where, error);
         return;
     }
+    if (suppressAll) {
+        console.info(`Analytics suppressed (${where}`);
+        return;
+    }
     const umami = getEffectiveUmami();
     try {
         if (error instanceof Error) {
+            // Weird errors from some buggy browser addon
+            if (error.message?.includes("M_ID")) {
+                return;
+            }
             const eventData = {
                 ...{
                     stack: error.stack,
@@ -141,22 +163,32 @@ export function recordError(where: string, error: unknown, extraProps: object = 
                 ...toSerializableForm(error),
                 ...extraProps,
                 where: where,
+                serializationType: "error",
             };
             umami.track("error", eventData);
         }
         else if (error instanceof Object) {
+            if (JSON.stringify(error).includes("M_ID")) {
+                return;
+            }
             const eventData = {
                 ...error,
                 ...extraProps,
                 where: where,
+                serializationType: "object",
             };
             umami.track("error", eventData);
         }
         else {
+            const stringData = `${where}: ${String(error)}`;
+            if (stringData.includes("M_ID")) {
+                return;
+            }
             const eventData = {
-                stringData: `${where}: ${String(error)}`,
+                stringData: stringData,
                 ...extraProps,
                 where: where,
+                serializationType: "unknown",
             };
             umami.track("error", eventData);
         }
