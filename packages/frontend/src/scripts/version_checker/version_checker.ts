@@ -1,6 +1,7 @@
 // Helpers to offer to refresh the site when a new version is detected.
 
 import {showNewVersionModal} from "./new_version_modal";
+import {killAnalytics} from "@xivgear/common-ui/analytics/analytics";
 
 export interface VersionPollerConfig {
     intervalMs: number;
@@ -178,6 +179,9 @@ export class VersionChecker {
 
 export function setupVersionChecker() {
     new VersionChecker({
-        onDetected: () => showNewVersionModal(),
+        onDetected: () => {
+            killAnalytics();
+            showNewVersionModal();
+        },
     }).start();
 }
