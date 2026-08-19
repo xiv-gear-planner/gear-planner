@@ -119,6 +119,11 @@ export function recordError(where: string, error: unknown, extraProps: object = 
     try {
         if (error instanceof Error) {
             const eventData = {
+                ...{
+                    stack: error.stack,
+                    name: error.name,
+                    message: error.message,
+                },
                 ...toSerializableForm(error),
                 ...extraProps,
                 where: where,
@@ -155,7 +160,7 @@ export function recordError(where: string, error: unknown, extraProps: object = 
 
 try {
     window.addEventListener('unhandledrejection', e => {
-        recordError("unhandledRejection", String(e.reason));
+        recordError('unhandledrejection', e.reason);
     });
 }
 catch (e) {
