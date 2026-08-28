@@ -7,8 +7,17 @@ import {
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {
-    EMBED_HASH, HASH_QUERY_PARAM,
-    makeUrl, makeUrlSimple, NavState, ONLY_SET_QUERY_PARAM, LEGACY_PATH_SEPARATOR, SELECTION_INDEX_QUERY_PARAM, VIEW_SET_HASH,
+    EMBED_HASH,
+    HASH_QUERY_PARAM,
+    makeUrl,
+    makeUrlPath,
+    makeUrlSimple,
+    NavState,
+    ONLY_SET_QUERY_PARAM,
+    SELECTION_INDEX_QUERY_PARAM,
+    splitPath,
+    splitUrlPath,
+    VIEW_SET_HASH,
     VIEW_SHEET_HASH
 } from "@xivgear/core/nav/common_nav";
 import {ExportTypes, GearPlanSheet} from "@xivgear/core/sheet";
@@ -78,7 +87,7 @@ const sheetShortlink = {
 } as const as SheetExportMethod;
 
 function urlToString(url: URL): string {
-    return url.toString().replaceAll('%7C', '|');
+    return url.toString().replaceAll('%7C', '|').replace(/\?$/, '');
 }
 
 /**
@@ -87,7 +96,7 @@ function urlToString(url: URL): string {
 const linkPerSet = {
     name: "One Link for Each Set",
     exportInstantly: false,
-    async doExport(sheet: GearPlanSheet, viewOnly:boolean ): Promise<string> {
+    async doExport(sheet: GearPlanSheet, viewOnly: boolean): Promise<string> {
         const sets = sheet.sets;
         if (sets.filter(set => !set.isSeparator).length === 0) {
             return "This sheet does not have any sets!";
@@ -165,10 +174,11 @@ const embedLinkPerSet = {
             linkToSet.searchParams.delete(SELECTION_INDEX_QUERY_PARAM);
 
             const pageLink = linkToSet.searchParams.get(HASH_QUERY_PARAM);
-            if (pageLink !== null && !pageLink.startsWith(EMBED_HASH)) {
-                const embed = EMBED_HASH + LEGACY_PATH_SEPARATOR;
-                linkToSet.searchParams.set(HASH_QUERY_PARAM, embed + pageLink);
+            const path = pageLink === null ? splitUrlPath(linkToSet.pathname) : splitPath(pageLink);
+            if (path.length > 0 && path[0] !== EMBED_HASH) {
+                linkToSet.pathname = makeUrlPath([EMBED_HASH, ...path]);
             }
+            linkToSet.searchParams.delete(HASH_QUERY_PARAM);
             out += urlToString(linkToSet);
             out += '\n';
         }

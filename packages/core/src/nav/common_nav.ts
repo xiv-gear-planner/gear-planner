@@ -340,10 +340,12 @@ export function makeUrl(navState: NavState): URL {
             .map(pp => '/' + pp)
             .join('');
         params.delete(HASH_QUERY_PARAM);
-        return new URL(`/?${params.toString()}#${oldStyleHash}`, baseUrl);
+        const query = params.toString();
+        return new URL(`/${query ? `?${query}` : ''}#${oldStyleHash}`, baseUrl);
     }
     params.delete(HASH_QUERY_PARAM);
-    return new URL(`${makeUrlPath(navState.path)}?${params.toString()}`, baseUrl);
+    const query = params.toString();
+    return new URL(`${makeUrlPath(navState.path)}${query ? `?${query}` : ''}`, baseUrl);
 }
 
 /**

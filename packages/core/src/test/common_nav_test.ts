@@ -1,4 +1,15 @@
-import {getUrlNavigationPath, joinPath, makeUrl, makeUrlPath, NavPath, NavState, parsePath, splitHashLegacy, splitPath, splitUrlPath} from "../nav/common_nav";
+import {
+    getUrlNavigationPath,
+    joinPath,
+    makeUrl,
+    makeUrlPath,
+    NavPath,
+    NavState,
+    parsePath,
+    splitHashLegacy,
+    splitPath,
+    splitUrlPath
+} from "../nav/common_nav";
 import {expect} from "chai";
 
 describe('path splitting and joining', () => {
@@ -39,6 +50,27 @@ describe('path splitting and joining', () => {
             expect(url.searchParams.get('page')).to.be.null;
             expect(url.searchParams.get('keep')).to.equal('value');
             expect(url.searchParams.get('onlySetIndex')).to.equal('2');
+            expect(url.toString()).to.not.match(/\?$/);
+        }
+        finally {
+            Object.defineProperty(globalThis, 'document', {
+                configurable: true,
+                value: originalDocument,
+            });
+        }
+    });
+
+    it('does not append an empty query marker to canonical URLs', () => {
+        const originalDocument = globalThis.document;
+        Object.defineProperty(globalThis, 'document', {
+            configurable: true,
+            value: {location: new URL('https://xivgear.app/')},
+        });
+        try {
+            const url = makeUrl(new NavState(['sl', 'uuid']));
+            expect(url.pathname).to.equal('/sl/uuid');
+            expect(url.search).to.equal('');
+            expect(url.toString()).to.not.match(/\?$/);
         }
         finally {
             Object.defineProperty(globalThis, 'document', {
