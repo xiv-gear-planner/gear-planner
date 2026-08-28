@@ -630,7 +630,8 @@ function makeShowHideRow(label: string, initiallyHidden: boolean = false, setter
 
 /**
  * Table for displaying gear options for all slots
- aa*/
+ aa
+ */
 export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionModel<GearSlotItem, never, never, EquipmentSet>> {
     private readonly materiaManagers: AllSlotMateriaManager[];
     private selectionTracker: Map<keyof EquipmentSet, CustomRow<GearSlotItem> | GearSlotItem>;

@@ -5,16 +5,24 @@ interface MchSpecificFields {
     updateGauge?: (gauge: MchGauge) => void
 }
 
-/** Represents a MCH-specific action */
+/**
+ * Represents a MCH-specific action
+ */
 export type MchAbility = Ability & MchSpecificFields;
 
-/** Represents a MCH-specific GCD action */
+/**
+ * Represents a MCH-specific GCD action
+ */
 export type MchGcdAbility = GcdAbility & MchAbility;
 
-/** Represents a MCH-specific oGCD action */
+/**
+ * Represents a MCH-specific oGCD action
+ */
 export type MchOgcdAbility = OgcdAbility & MchAbility;
 
-/** Used ability definition with added extra data. Used in the GUI. */
+/**
+ * Used ability definition with added extra data. Used in the GUI.
+ */
 export interface MchPreDmgUsedAbility extends PreDmgUsedAbility {
     extraData: {
         gauge: {

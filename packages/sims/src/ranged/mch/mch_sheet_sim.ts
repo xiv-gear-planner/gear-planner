@@ -26,13 +26,19 @@ interface ActionQueueItem {
     removeCritDhit?: boolean,
 }
 
-/** Array of the 1/2/3 combo actions */
+/**
+ * Array of the 1/2/3 combo actions
+ */
 const COMBO_ACTIONS = [HeatedSplitShot, HeatedSlugShot, HeatedCleanShot];
 
-/** Tracked actions for which warnings will be printed if they cap/drift */
+/**
+ * Tracked actions for which warnings will be printed if they cap/drift
+ */
 const DRIFT_WARNING_ABILITY = [Drill, AirAnchor, Chainsaw, DoubleCheck, Checkmate];
 
-/** Constants for the rotation, per job level */
+/**
+ * Constants for the rotation, per job level
+ */
 const ROTATION_CONSTANTS: Record<'100' /* | '90' | '80' | '70' */, RotationConstants> = {
     '100': {
         toolGcds: 6 + 3 + 2 + 2 + 1 + 3, // 17 (6 Drill, 3 AA, 2+2 CS/Ex, 1 FMF, 3 BS from Hypercharged)
@@ -80,11 +86,17 @@ export class MchCycleProcessor extends CycleProcessor {
     ogcdsRemaining = 0;
     potAbility: MchOgcdAbility;
     constants: RotationConstants;
-    /** How many times Hypercharge can be used before next burst */
+    /**
+     * How many times Hypercharge can be used before next burst
+     */
     hyperchargeUses = 0;
-    /** How much battery we would have on next burst as of right now */
+    /**
+     * How much battery we would have on next burst as of right now
+     */
     batteryOnNextBurst = 0;
-    /** Queue of non-locking actions to execute (Wildfire's detonation and Automaton Queen actions) */
+    /**
+     * Queue of non-locking actions to execute (Wildfire's detonation and Automaton Queen actions)
+     */
     additionalActionsQueue: ActionQueueItem[] = [];
 
     constructor(settings: MultiCycleSettings, private simSettings: MchSimSettings) {

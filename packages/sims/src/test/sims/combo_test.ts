@@ -194,7 +194,8 @@ const gnbGnash3 = {
     }],
 } as const satisfies Ability;
 
-/** TODO: test cases
+/**
+ * TODO: test cases
  * - combo interrupted by GCD by default
  * - combo not interrupted by GCD which is explicitly not a combo breaker
  * - GNB-style multiple combos

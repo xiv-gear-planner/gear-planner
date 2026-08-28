@@ -8,9 +8,13 @@ export enum BlmElement {
     Unaspected = 'Unaspected'
 };
 
-/** A BLM-specific ability. */
+/**
+ * A BLM-specific ability.
+ */
 export type BlmAbility = Ability & Readonly<{
-    /** The element (fire, ice, thunder, unaspected). Not all abilities have an element. */
+    /**
+     * The element (fire, ice, thunder, unaspected). Not all abilities have an element.
+     */
     element?: BlmElement;
 }>;
 
@@ -18,7 +22,9 @@ export type BlmGcdAbility = GcdAbility & BlmAbility & HasGaugeUpdate<BlmGaugeMan
 
 export type BlmOgcdAbility = OgcdAbility & BlmAbility;
 
-/** Represents the BLM gauge state */
+/**
+ * Represents the BLM gauge state
+ */
 export type BlmGaugeState = {
     level: number,
     element: BlmElement,
