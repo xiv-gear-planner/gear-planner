@@ -2,11 +2,17 @@ import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
 import {JobName} from "@xivgear/xivmath/xivconstants";
 import {arrayEq} from "@xivgear/util/array_utils";
 
-/** For loading saved sheets via UUID */
+/**
+ * For loading saved sheets via UUID
+ */
 export const SHORTLINK_HASH = 'sl';
-/** Obsolete */
+/**
+ * Obsolete
+ */
 export const SHARE_LINK = 'https://share.xivgear.app/share/';
-/** For loading bis sheets */
+/**
+ * For loading bis sheets
+ */
 export const BIS_HASH = 'bis';
 
 /**
@@ -14,11 +20,17 @@ export const BIS_HASH = 'bis';
  */
 export const BIS_BROWSER_HASH = 'bisbrowser';
 
-/** For viewing a sheet via json blob */
+/**
+ * For viewing a sheet via json blob
+ */
 export const VIEW_SHEET_HASH = 'viewsheet';
-/** For viewing an individual set via json blob */
+/**
+ * For viewing an individual set via json blob
+ */
 export const VIEW_SET_HASH = 'viewset';
-/** Prefix for embeds */
+/**
+ * Prefix for embeds
+ */
 export const EMBED_HASH = 'embed';
 
 /**
@@ -26,11 +38,17 @@ export const EMBED_HASH = 'embed';
  */
 export const POPUP_HASH = 'popup';
 
-/** Prefix for formula pages */
+/**
+ * Prefix for formula pages
+ */
 export const CALC_HASH = 'math';
-/** Path separator */
+/**
+ * Path separator
+ */
 export const PATH_SEPARATOR = '|';
-/** The query param used to represent the path */
+/**
+ * The query param used to represent the path
+ */
 export const HASH_QUERY_PARAM = 'page';
 
 /**
@@ -46,7 +64,9 @@ export const EXPORT_AS_SHEET_PARAM = 'exportAsSheet';
  * to the new style query parameter.
  */
 export const NO_REDIR_HASH = 'nore';
-/** Max length before switching to fallback hash method (see {@link NO_REDIR_HASH} */
+/**
+ * Max length before switching to fallback hash method (see {@link NO_REDIR_HASH}
+ */
 export const QUERY_PATH_MAX_LENGTH = 1000;
 /**
  * Default name, used for social media previews. Used as the sheet name if the sheet has no name, otherwise
