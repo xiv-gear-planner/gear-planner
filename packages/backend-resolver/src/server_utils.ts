@@ -4,7 +4,7 @@ import {FastifyRequest} from "fastify";
 import {SetExport, SetExportExternalSingle, SheetExport, TopLevelExport} from "@xivgear/xivmath/geartypes";
 import {BisService} from "@xivgear/core/external/static_bis";
 import {JOB_DATA, JobName} from "@xivgear/xivmath/xivconstants";
-import {EMBED_HASH, getUrlNavigationPath, HASH_QUERY_PARAM, joinPath, LEGACY_PATH_SEPARATOR, NavPath, NavState, parsePath, splitHashLegacy} from "@xivgear/core/nav/common_nav";
+import {EMBED_HASH, HASH_QUERY_PARAM, NavPath, PATH_SEPARATOR, splitHashLegacy} from "@xivgear/core/nav/common_nav";
 import {getJobIcons} from "./preload_helpers";
 import {ShortlinkService} from "@xivgear/core/external/shortlink_server";
 
@@ -116,18 +116,25 @@ export type SheetRequest<Q = Record<string, string | undefined>> = FastifyReques
     Params: Record<string, string>;
 }>;
 
+export type GeneralParams = {
+    url?: string;
+    page?: string;
+    selectedIndex?: number;
+    onlySetIndex?: number;
+    exportAsSheet?: boolean;
+}
+
 export type ParamParser<P> = {
     [K in keyof P]: (raw: string) => P[K];
 }
 
 /**
  * getMergedQueryParams combines the normal query parameters with whatever is present on the URL provided via the ?url=
- * query parameter specifically. If no legacy `page` parameter is present, a valid navigation pathname from the
- * request URL is folded into the result as a page value. The normal query parameters take precedence.
+ * query parameter specifically. The normal query parameters take precedence.
  * @param request
  * @param paramParser
  */
-export function getMergedQueryParams<P extends object>(request: { query?: Record<string, unknown>; url?: string }, paramParser: ParamParser<P>): P {
+export function getMergedQueryParams<P extends object>(request: { query?: Record<string, unknown> }, paramParser: ParamParser<P>): P {
     const rawResult: Record<string, unknown> = {...(request.query ?? {})};
     // Try to pull from the full URL provided via ?url=
     const urlRaw = request.query?.['url'];
@@ -152,26 +159,12 @@ export function getMergedQueryParams<P extends object>(request: { query?: Record
             if (rawResult[HASH_QUERY_PARAM] === undefined && u.hash) {
                 const hashParts = splitHashLegacy(u.hash);
                 if (hashParts.length > 0) {
-                    rawResult[HASH_QUERY_PARAM] = hashParts.join(LEGACY_PATH_SEPARATOR);
+                    rawResult[HASH_QUERY_PARAM] = hashParts.join(PATH_SEPARATOR);
                 }
             }
         }
         catch (e) {
             // If URL parsing fails entirely, keep existing result
-        }
-    }
-    if (rawResult[HASH_QUERY_PARAM] === undefined && request.url !== undefined) {
-        try {
-            const pathname = new URL(request.url, 'https://dummy.invalid/').pathname;
-            const navigationPath = getUrlNavigationPath(pathname, undefined);
-            // Resolver endpoints also have paths; only treat a path as navigation
-            // when it is non-trivial and recognized by the navigation parser.
-            if (navigationPath.length > 0 && parsePath(new NavState(navigationPath)) !== null) {
-                rawResult[HASH_QUERY_PARAM] = joinPath(navigationPath);
-            }
-        }
-        catch (e) {
-            // Invalid path names (or malformed embedded JSON) are not navigation.
         }
     }
     const finalResult: Partial<P> = {};
@@ -205,10 +198,10 @@ export function toEmbedUrl(normalUrl: URL): URL {
     const out = new URL(normalUrl.toString());
     const cur = out.searchParams.get(HASH_QUERY_PARAM) || '';
     // If it's already embedded, ignore
-    if (cur.startsWith(EMBED_HASH + LEGACY_PATH_SEPARATOR)) {
+    if (cur.startsWith(EMBED_HASH + PATH_SEPARATOR)) {
         return out;
     }
-    out.searchParams.set(HASH_QUERY_PARAM, `${EMBED_HASH}${LEGACY_PATH_SEPARATOR}${cur}`);
+    out.searchParams.set(HASH_QUERY_PARAM, `${EMBED_HASH}${PATH_SEPARATOR}${cur}`);
     return out;
 }
 
@@ -233,3 +226,4 @@ type SheetSummaryData = {
     job: JobName | undefined,
     multiJob: boolean,
 }
+
