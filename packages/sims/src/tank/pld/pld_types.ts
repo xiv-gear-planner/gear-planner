@@ -6,7 +6,9 @@ export function subtractStackSelf(controller: BuffController): void {
     controller.subtractStacksSelf(1);
 }
 
-/** A PLD-specific ability. */
+/**
+ * A PLD-specific ability.
+ */
 export type PldAbility = Ability & Readonly<{
     // Whether or not this ability consumes a stack of Requiescat.
     consumesRequiescat?: boolean
@@ -16,7 +18,9 @@ export type PldGcdAbility = GcdAbility & PldAbility;
 
 export type PldOgcdAbility = OgcdAbility & PldAbility;
 
-/** Represents the extra data for UsedAbility, primarily for consumption in the UI */
+/**
+ * Represents the extra data for UsedAbility, primarily for consumption in the UI
+ */
 export type PldExtraData = {
     fightOrFlightDuration: number,
     requiescatStacks: number,

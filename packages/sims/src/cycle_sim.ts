@@ -702,7 +702,9 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
      * @param delay The delay after which to apply the buff
      */
     activateBuffWithDelay(buff: Buff, delay: number) {
-        /** If the buff can stack duration /and/ it's already up, we can just extend it and return. */
+        /**
+         * If the buff can stack duration /and/ it's already up, we can just extend it and return.
+         */
         if (buff.maxStackingDuration) {
             const activeBuff = this.getActiveBuffsData().find(bd => bd.buff === buff);
 
@@ -722,7 +724,9 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
      * @param duration The duration to extend it.
      */
     extendBuffByDuration(buff: Buff, duration: number) {
-        /** If the buff can stack duration /and/ it's already up, we can just extend it and return. */
+        /**
+         * If the buff can stack duration /and/ it's already up, we can just extend it and return.
+         */
         if (buff.maxStackingDuration) {
             const activeBuff = this.getActiveBuffsData().find(bd => bd.buff === buff);
 

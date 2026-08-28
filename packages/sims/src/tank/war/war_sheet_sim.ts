@@ -82,7 +82,8 @@ class WarCycleProcessor extends CycleProcessor {
         this.onslaughtAction = this.applyLevelModifiers(Actions.Onslaught) as WarOgcdAbility;
     }
 
-    /** Advances to as late as possible.
+    /**
+     * Advances to as late as possible.
      * NOTE: I'm adding an extra 20ms to each animation lock to make sure we don't hit anything that's impossible to achieve ingame.
      */
     advanceForLateWeave(weaves: OgcdAbility[]) {

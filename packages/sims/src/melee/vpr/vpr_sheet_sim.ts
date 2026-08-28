@@ -118,12 +118,16 @@ export class VprCycleProcessor extends CycleProcessor {
 
         if (vprAbility.updateGaugeLegacy) {
 
-            /** prevent weird gauge update if an auto lands between now and nextGcdTime */
+            /**
+             * prevent weird gauge update if an auto lands between now and nextGcdTime
+             */
             if (ability.type === 'gcd' && this.nextGcdTime > this.currentTime) {
                 this.advanceTo(this.nextGcdTime);
             }
 
-            /** Don't update gauge if we are awakening and ready to reawaken */
+            /**
+             * Don't update gauge if we are awakening and ready to reawaken
+             */
             if (!(vprAbility.id === Actions.Reawaken.id && this.getBuffIfActive(ReadyToReawaken))) {
                 vprAbility.updateGaugeLegacy(this.gauge);
             }
@@ -142,7 +146,8 @@ export class VprCycleProcessor extends CycleProcessor {
 
     override useOgcd(ability: OgcdAbility): AbilityUseResult {
 
-        /** If the ogcd can be used without clipping, do so.
+        /**
+         * If the ogcd can be used without clipping, do so.
          * NOTE: You still need to check if you can use without clipping when making rotation decisions.
          * This just forces the ogcd through if you already know you can use it.
          */
@@ -156,7 +161,8 @@ export class VprCycleProcessor extends CycleProcessor {
         return this.cdTracker.canUse(ability) ? super.useOgcd(ability) : null;
     }
 
-    /** Advances to as late as possible.
+    /**
+     * Advances to as late as possible.
      * NOTE: I'm adding an extra 20ms to each animation lock to make sure we don't hit anything that's impossible to achieve ingame.
      */
     advanceForLateWeave(weaves: OgcdAbility[]) {
@@ -226,7 +232,9 @@ export class VprCycleProcessor extends CycleProcessor {
                 this.useGcd(this.secondComboGcds[this.rotationState.nextSecondStep++]);
                 break;
             case 2:
-                /** Use finisher based on buff */
+                /**
+                 * Use finisher based on buff
+                 */
                 if (this.getBuffIfActive(HindsbaneVenom)) {
                     this.useGcd(Actions.HindsbaneFang);
                 }
@@ -240,7 +248,9 @@ export class VprCycleProcessor extends CycleProcessor {
                     this.useGcd(Actions.FlankstingStrike);
                 }
                 else { // No buff running; Pick arbitrarily based on previous 2nd combo
-                    /** If we just used Hunter's sting */
+                    /**
+                     * If we just used Hunter's sting
+                     */
                     if (this.rotationState.nextSecondStep === 0) {
                         this.useGcd(Actions.HindsbaneFang); // Chosen arbitrarily from the flank options
                     }
@@ -275,7 +285,8 @@ export class VprCycleProcessor extends CycleProcessor {
         this.useReawaken();
         this.useReawaken();
 
-        /** Requirements for using UF:
+        /**
+         * Requirements for using UF:
          * - need to not break combo
          * - need to use combo finisher before buff wears off
          */
@@ -288,8 +299,10 @@ export class VprCycleProcessor extends CycleProcessor {
             this.useUncoiledFury();
         }
 
-        /** Use combo till we're good with finisher
-         * Note: always iterates at least once*/
+        /**
+         * Use combo till we're good with finisher
+         * Note: always iterates at least once
+         */
         while (numCombosNeeded > 0) {
             this.useDualWieldCombo();
             numCombosNeeded--;
@@ -339,7 +352,9 @@ export class VprCycleProcessor extends CycleProcessor {
             gcdAfterSerpentsIre += gcdTime;
         }
 
-        /** If ire gets pushed back due to clipping, push back one gcd */
+        /**
+         * If ire gets pushed back due to clipping, push back one gcd
+         */
         if (serpentsIreReady + (Actions.SerpentsIre.animationLock ?? STANDARD_ANIMATION_LOCK) > gcdAfterSerpentsIre) {
             gcdAfterSerpentsIre += 1;
         }
@@ -358,7 +373,8 @@ export class VprCycleProcessor extends CycleProcessor {
 
     getGaugeAtTime(start: number = this.nextGcdTime, targetTime: number, startingGuage: number = this.gauge.serpentOfferings) {
 
-        /** We are going to shift the GCDs around to make math easier.
+        /**
+         * We are going to shift the GCDs around to make math easier.
          * Pretend we are starting after all of (hypothetical reawaken, UFs, Twinblade Combos) have been used, immediately.
          * That means the rest of the gcds before 2min reawaken are *all* dual wield combos.
          */
@@ -375,7 +391,9 @@ export class VprCycleProcessor extends CycleProcessor {
 
         let numFinishersBeforeTarget = 0;
 
-        /** Advance to our next combo-neutral spot, to make counting easier. */
+        /**
+         * Advance to our next combo-neutral spot, to make counting easier.
+         */
         let combo = this.rotationState.comboStep;
         if (combo !== 0) {
             while (combo !== 0) {
@@ -420,7 +438,9 @@ export class VprCycleProcessor extends CycleProcessor {
             return;
         }
 
-        /** Pre-burst logic */
+        /**
+         * Pre-burst logic
+         */
         if (this.cdTracker.statusOf(Actions.SerpentsIre).readyAt.absolute - this.nextGcdTime < 10) {
 
             if (this.gauge.serpentOfferings === 100 && this.gauge.rattlingCoils > 0 && this.rotationState.comboStep === 2) {

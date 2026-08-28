@@ -3,12 +3,14 @@ import {MNKGauge} from "./mnk_gauge";
 import {FuryAbility, MnkGcdAbility, MnkOgcdAbility} from "./mnk_types";
 import {noStatusId} from "@xivgear/core/sims/buff_helpers";
 
-/** This buff timing is extended by 0.7 to allow for the 1.94 GCD sim to hit a "4am Brotherhood" timing,
+/**
+     This buff timing is extended by 0.7 to allow for the 1.94 GCD sim to hit a "4am Brotherhood" timing,
     also known as an 11/11 Brotherhood. In game the buff is only 20 seconds long, unlike the 20.7 that is
     used on RiddleOfFireBuff which is _actually_ 20.7 seconds in game.
 
     The reason for this is so that 1.94 sets show up in their "theoretical maximum" when comparing to 2.00 which is
-    very difficult for a human to execute, but the simulation executes at its "theoretical maximum" as well. */
+    very difficult for a human to execute, but the simulation executes at its "theoretical maximum" as well.
+    */
 const BROTHERHOOD_BUFF_DURATION = 20 + 0.7;
 
 export const OpoForm: PersonalBuff = {
@@ -242,7 +244,8 @@ export const BrotherhoodBuff: PartyBuff = {
     },
 };
 
-/** Look at mnk_sim to see how this is shimmed.
+/**
+  * Look at mnk_sim to see how this is shimmed.
   * Hint recommended that we should assume 2.5 GCD for the 7 other party members since chakra is probabilistic right now.
   */
 export const MeditativeBrotherhood: PartyBuff = {
@@ -740,6 +743,8 @@ export const BOOTSHINE_ABILITIES: number[] = [Bootshine.id, LeapingOpo.id];
 const RAPTOR_ABILITIES: number[] = [TrueStrike.id, TwinSnakes.id, RisingRaptor.id];
 const COUERL_ABILITIES: number[] = [SnapPunch.id, Demolish.id, PouncingCoeurl.id];
 const FORM_ABILITIES: number[] = [Bootshine.id, DragonKick.id, LeapingOpo.id, TrueStrike.id, TwinSnakes.id, RisingRaptor.id, SnapPunch.id, Demolish.id, PouncingCoeurl.id];
-/** The priority of gcds to execute when building a solar blitz to push the highest potency sequence under RoF */
+/**
+ * The priority of gcds to execute when building a solar blitz to push the highest potency sequence under RoF
+ */
 export const SOLAR_WEAKEST_STRONGEST: FuryAbility[] = [DragonKick, Demolish, TwinSnakes, SnapPunch, TrueStrike, Bootshine];
 export const OGCD_PRIORITY: OgcdAbility[] = [Brotherhood, RiddleOfFire, RiddleOfWind, TheForbiddenChakra];

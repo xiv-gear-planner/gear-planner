@@ -2,12 +2,18 @@ import {Ability, GcdAbility, OgcdAbility, Buff, BuffController} from "@xivgear/c
 import {GnbGauge} from "./gnb_gauge";
 import {PersonalBuff} from "@xivgear/core/sims/sim_types";
 
-/** A GNB-specific ability. */
+/**
+ * A GNB-specific ability.
+ */
 export type GnbAbility = Ability & Readonly<{
-    /** Run if an ability needs to update cartridges */
+    /**
+     * Run if an ability needs to update cartridges
+     */
     updateCartridges?(gauge: GnbGauge): void;
 
-    /** The Cartridge Gauge cost of the ability */
+    /**
+     * The Cartridge Gauge cost of the ability
+     */
     cartridgeCost?: number;
 }>
 
@@ -15,20 +21,28 @@ export type GnbGcdAbility = GcdAbility & GnbAbility;
 
 export type GnbOgcdAbility = OgcdAbility & GnbAbility;
 
-/** GNB ability that costs cartridges */
+/**
+ * GNB ability that costs cartridges
+ */
 export type CartridgeAbility = GnbAbility & Readonly<{
     cartridgeCost: number;
 }>
 
-/** Represents the GNB gauge state */
+/**
+ * Represents the GNB gauge state
+ */
 export type GnbGaugeState = {
     maxCartridges: number,
     cartridges: number,
 }
 
-/** Represents the extra data for UsedAbility, primarily for consumption in the UI */
+/**
+ * Represents the extra data for UsedAbility, primarily for consumption in the UI
+ */
 export type GnbExtraData = {
-    /** The GNB gauge data */
+    /**
+     * The GNB gauge data
+     */
     gauge: GnbGaugeState,
     noMercyDuration: number,
 };

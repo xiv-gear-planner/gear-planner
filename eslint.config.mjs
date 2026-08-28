@@ -5,6 +5,7 @@ import tseslint from 'typescript-eslint';
 import stylisticJs from '@stylistic/eslint-plugin-js'
 import pluginChaiFriendly from 'eslint-plugin-chai-friendly';
 import namedImportSpacing from 'eslint-plugin-named-import-spacing';
+import jsdoc from "eslint-plugin-jsdoc";
 
 export default [
     eslint.configs.recommended,
@@ -14,6 +15,7 @@ export default [
             '@stylistic/js': stylisticJs,
             'chai-friendly': pluginChaiFriendly,
             'named-import-spacing': namedImportSpacing,
+            'jsdoc': jsdoc,
         },
         ignores: ['**/build/', '**/dist/', '**/*.d.ts'],
         languageOptions: {
@@ -113,6 +115,9 @@ export default [
                 "patterns": [
                     "node:*"
                 ]
+            }],
+            "jsdoc/multiline-blocks": ['error', {
+                noSingleLineBlocks: true,
             }]
         }
     },
