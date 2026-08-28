@@ -552,6 +552,20 @@ describe('stats server', () => {
 
     describe("toEmbed endpoint", () => {
         const fastify = makeStatsServer().setupForTest();
+        it('transforms a canonical BiS URL', async () => {
+            const canonicalUrl = encodeURIComponent('https://xivgear.app/bis/sge/archive/anabaseios?onlySetIndex=2');
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/toEmbed?url=${canonicalUrl}`,
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as ToEmbedResponse;
+            isSetResponse(json);
+            const embedUrl = new URL(json.embedUrl);
+            expect(embedUrl.pathname).to.equal('/embed/bis/sge/archive/anabaseios');
+            expect(embedUrl.searchParams.get('onlySetIndex')).to.equal('2');
+        }).timeout(30_000);
+
         it('transforms BiS with onlySetIndex', async () => {
             const response = await fastify.inject({
                 method: 'GET',
@@ -560,8 +574,9 @@ describe('stats server', () => {
             expect(response.statusCode).to.equal(200);
             const json = response.json() as ToEmbedResponse;
             isSetResponse(json);
-            expect(json.embedUrl).to.contain('page=embed%7Cbis%7Csge%7Carchive%7Canabaseios');
-            expect(json.embedUrl).to.contain('onlySetIndex=2');
+            const embedUrl = new URL(json.embedUrl);
+            expect(embedUrl.pathname).to.equal('/embed/bis/sge/archive/anabaseios');
+            expect(embedUrl.searchParams.get('onlySetIndex')).to.equal('2');
         }).timeout(30_000);
 
         it('transforms full BiS sheet', async () => {
@@ -573,8 +588,9 @@ describe('stats server', () => {
             const json = response.json() as ToEmbedResponse;
             isSheetResponse(json);
             expect(json.sets).to.have.length.greaterThan(0);
-            expect(json.sets[0].embedUrl).to.contain('page=embed%7Cbis%7Csge%7Carchive%7Canabaseios');
-            expect(json.sets[0].embedUrl).to.contain('onlySetIndex=');
+            const embedUrl = new URL(json.sets[0].embedUrl);
+            expect(embedUrl.pathname).to.equal('/embed/bis/sge/archive/anabaseios');
+            expect(embedUrl.searchParams.get('onlySetIndex')).to.not.be.null;
         }).timeout(30_000);
 
         it('transforms single-set shortlink', async () => {
@@ -585,7 +601,8 @@ describe('stats server', () => {
             expect(response.statusCode).to.equal(200);
             const json = response.json() as ToEmbedResponse;
             isSetResponse(json);
-            expect(json.embedUrl).to.contain('page=embed%7Csl%7C0cd5874c-6322-4396-99be-2089d6222d9c');
+            const embedUrl = new URL(json.embedUrl);
+            expect(embedUrl.pathname).to.equal('/embed/sl/0cd5874c-6322-4396-99be-2089d6222d9c');
         }).timeout(30_000);
 
         it("returns error for missing path", async () => {

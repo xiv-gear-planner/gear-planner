@@ -4,7 +4,7 @@ import {FastifyRequest} from "fastify";
 import {SetExport, SetExportExternalSingle, SheetExport, TopLevelExport} from "@xivgear/xivmath/geartypes";
 import {BisService} from "@xivgear/core/external/static_bis";
 import {JOB_DATA, JobName} from "@xivgear/xivmath/xivconstants";
-import {EMBED_HASH, getUrlNavigationPath, HASH_QUERY_PARAM, joinPath, LEGACY_PATH_SEPARATOR, NavPath, NavState, parsePath, splitHashLegacy} from "@xivgear/core/nav/common_nav";
+import {EMBED_HASH, getUrlNavigationPath, HASH_QUERY_PARAM, joinPath, LEGACY_PATH_SEPARATOR, makeUrlPath, NavPath, NavState, parsePath, splitHashLegacy} from "@xivgear/core/nav/common_nav";
 import {getJobIcons} from "./preload_helpers";
 import {ShortlinkService} from "@xivgear/core/external/shortlink_server";
 
@@ -155,6 +155,15 @@ export function getMergedQueryParams<P extends object>(request: { query?: Record
                     rawResult[HASH_QUERY_PARAM] = hashParts.join(LEGACY_PATH_SEPARATOR);
                 }
             }
+            // A complete modern URL carries its navigation state in the
+            // pathname rather than in a query parameter. Convert it to the
+            // internal legacy representation used by resolver endpoints.
+            if (rawResult[HASH_QUERY_PARAM] === undefined) {
+                const navigationPath = getUrlNavigationPath(u.pathname, undefined);
+                if (navigationPath.length > 0 && parsePath(new NavState(navigationPath)) !== null) {
+                    rawResult[HASH_QUERY_PARAM] = joinPath(navigationPath);
+                }
+            }
         }
         catch (e) {
             // If URL parsing fails entirely, keep existing result
@@ -203,12 +212,17 @@ export const boolParam = (raw: string | boolean) => {
 
 export function toEmbedUrl(normalUrl: URL): URL {
     const out = new URL(normalUrl.toString());
-    const cur = out.searchParams.get(HASH_QUERY_PARAM) || '';
-    // If it's already embedded, ignore
-    if (cur.startsWith(EMBED_HASH + LEGACY_PATH_SEPARATOR)) {
+    const navigationPath = getUrlNavigationPath(out.pathname, out.searchParams.get(HASH_QUERY_PARAM));
+    // Avoid altering non-navigation URLs. All resolver callers provide a
+    // recognized navigation URL, but this keeps the helper safe to reuse.
+    if (navigationPath.length === 0 || parsePath(new NavState(navigationPath)) === null) {
         return out;
     }
-    out.searchParams.set(HASH_QUERY_PARAM, `${EMBED_HASH}${LEGACY_PATH_SEPARATOR}${cur}`);
+    if (navigationPath[0] !== EMBED_HASH) {
+        navigationPath.unshift(EMBED_HASH);
+    }
+    out.pathname = makeUrlPath(navigationPath);
+    out.searchParams.delete(HASH_QUERY_PARAM);
     return out;
 }
 

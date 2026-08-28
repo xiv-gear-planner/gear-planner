@@ -9,7 +9,7 @@ import {
     LEGACY_PATH_SEPARATOR,
     SELECTION_INDEX_QUERY_PARAM
 } from "@xivgear/core/nav/common_nav";
-import {boolParam, getMergedQueryParams, intParam, stringParam} from "../server_utils";
+import {boolParam, getMergedQueryParams, intParam, stringParam, toEmbedUrl} from "../server_utils";
 
 describe('misc helpers', () => {
     describe("getJobIcons", () => {
@@ -43,6 +43,19 @@ describe('misc helpers', () => {
             });
             expect(result).to.deep.equal({
                 [HASH_QUERY_PARAM]: `sl${LEGACY_PATH_SEPARATOR}legacy-id`,
+            });
+        });
+
+        it("should derive page from a canonical navigation URL passed through url", () => {
+            const result = getMergedQueryParams({
+                query: {url: encodeURIComponent('https://xivgear.app/bis/sge/archive/anabaseios?onlySetIndex=2')},
+            }, {
+                [HASH_QUERY_PARAM]: stringParam,
+                [ONLY_SET_QUERY_PARAM]: intParam,
+            });
+            expect(result).to.deep.equal({
+                [HASH_QUERY_PARAM]: `bis${LEGACY_PATH_SEPARATOR}sge${LEGACY_PATH_SEPARATOR}archive${LEGACY_PATH_SEPARATOR}anabaseios`,
+                [ONLY_SET_QUERY_PARAM]: 2,
             });
         });
 
@@ -308,6 +321,19 @@ describe('misc helpers', () => {
                 exportAsSheet: boolParam,
             });
             expect(result.exportAsSheet).to.be.false;
+        });
+    });
+
+    describe('toEmbedUrl', () => {
+        it('creates canonical embed URLs from canonical and legacy navigation URLs', () => {
+            const canonical = toEmbedUrl(new URL('https://xivgear.app/sl/test-id?onlySetIndex=2'));
+            expect(canonical.pathname).to.equal('/embed/sl/test-id');
+            expect(canonical.searchParams.get('onlySetIndex')).to.equal('2');
+            expect(canonical.searchParams.get(HASH_QUERY_PARAM)).to.be.null;
+
+            const legacy = toEmbedUrl(new URL('https://xivgear.app/?page=sl%7Ctest-id'));
+            expect(legacy.pathname).to.equal('/embed/sl/test-id');
+            expect(legacy.searchParams.get(HASH_QUERY_PARAM)).to.be.null;
         });
     });
 });

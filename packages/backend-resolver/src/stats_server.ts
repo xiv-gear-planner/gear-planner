@@ -73,9 +73,9 @@ export class StatsServer extends ServerBase {
                         + 'Most of these endpoints expect you to provide a reference to a particular sheet/set in one form or another.\n\n'
                         + 'Except for deprecated legacy endpoints, you can supply them in various forms (see StatsQueryParams schema).\n\n'
                         + 'Generally, you can either:\n'
-                        + '- Provide a complete URL (encoded) in the `url` parameter, e.g. `/basedata?url=encode(https://xivgear.app/?page=sl|0d84fb82-f4b0-4352-bfc7-ff2eb1dfabf8)`.\n'
-                        + '- Provide a partial URL (encoded) in the `url` parameter, e.g. `/basedata?url=encode(?page=sl|0d84fb82-f4b0-4352-bfc7-ff2eb1dfabf8)` but properly encoded.\n'
-                        + '- Transplant individual URL parameters from the desired URL onto this endpoint, e.g. `https://xivgear.app/?page=sl|0d84fb82-f4b0-4352-bfc7-ff2eb1dfabf8` becomes `/basedata?page=sl|0d84fb82-f4b0-4352-bfc7-ff2eb1dfabf8`.\n',
+                        + '- Provide a complete canonical URL (encoded) in the `url` parameter, e.g. `/basedata?url=encode(https://xivgear.app/sl/0d84fb82-f4b0-4352-bfc7-ff2eb1dfabf8)`.\n'
+                        + '- Provide a relative canonical URL (encoded) in the `url` parameter, e.g. `/basedata?url=encode(/sl/0d84fb82-f4b0-4352-bfc7-ff2eb1dfabf8)`.\n'
+                        + '- Legacy `page=sl|<uuid>` query parameters and `#/sl/<uuid>` hash URLs remain supported.\n',
                 },
             },
         });
