@@ -22,7 +22,7 @@ import {
     NavState,
     ONLY_SET_QUERY_PARAM,
     parsePath,
-    PATH_SEPARATOR,
+    LEGACY_PATH_SEPARATOR,
     SELECTION_INDEX_QUERY_PARAM,
     tryParseOptionalIntParam
 } from "@xivgear/core/nav/common_nav";
@@ -106,7 +106,7 @@ export class StatsServer extends ServerBase {
                 const path = merged[HASH_QUERY_PARAM] ?? '';
                 const osIndex = merged[ONLY_SET_QUERY_PARAM];
                 const selIndex = merged[SELECTION_INDEX_QUERY_PARAM];
-                const pathPaths = path.split(PATH_SEPARATOR);
+                const pathPaths = path.split(LEGACY_PATH_SEPARATOR);
                 const state = new NavState(pathPaths, osIndex, selIndex);
                 const nav = parsePath(state);
                 request.log.info(pathPaths, 'Path');
@@ -162,7 +162,7 @@ export class StatsServer extends ServerBase {
                 const path = merged[HASH_QUERY_PARAM] ?? '';
                 const osIndex = merged[ONLY_SET_QUERY_PARAM];
                 const selIndex = merged[SELECTION_INDEX_QUERY_PARAM];
-                const pathPaths = path.split(PATH_SEPARATOR);
+                const pathPaths = path.split(LEGACY_PATH_SEPARATOR);
                 const state = new NavState(pathPaths, osIndex, selIndex);
                 const nav = parsePath(state);
                 request.log.info(pathPaths, 'Path');
@@ -236,7 +236,7 @@ export class StatsServer extends ServerBase {
                 const selIndex = merged[SELECTION_INDEX_QUERY_PARAM];
                 // This flag indicates that if the result would be a single set, that we instead want a full sheet.
                 const exportAsSheet = merged[EXPORT_AS_SHEET_PARAM];
-                const pathPaths = path.split(PATH_SEPARATOR);
+                const pathPaths = path.split(LEGACY_PATH_SEPARATOR);
                 const state = new NavState(pathPaths, osIndex, selIndex);
                 const nav = parsePath(state);
                 request.log.info(pathPaths, 'Path');
@@ -294,7 +294,7 @@ export class StatsServer extends ServerBase {
                     const path = merged[HASH_QUERY_PARAM] ?? '';
                     const osIndex = merged[ONLY_SET_QUERY_PARAM];
                     const selIndex = merged[SELECTION_INDEX_QUERY_PARAM];
-                    const pathPaths = path.split(PATH_SEPARATOR);
+                    const pathPaths = path.split(LEGACY_PATH_SEPARATOR);
                     const state = new NavState(pathPaths, osIndex, selIndex);
                     const nav = parsePath(state);
                     request.log.info(pathPaths, 'Path');

@@ -7,7 +7,7 @@ import {getEmbedDiv, openEmbed} from "./embed";
 import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 import {SheetPickerTable} from "./components/sheetpicker/saved_sheet_picker";
 import {GearPlanSheetGui} from "./components/sheet/sheet_gui";
-import {makeUrl, NavState, splitPath} from "@xivgear/core/nav/common_nav";
+import {makeUrl, NavState, splitPath, splitUrlPath} from "@xivgear/core/nav/common_nav";
 import {applyCommonTopMenuFormatting} from "@xivgear/common-ui/components/top_menu";
 import {WORKER_POOL} from "./workers/worker_pool";
 import {showSettingsModal} from "@xivgear/common-ui/settings/settings_modal";
@@ -132,6 +132,12 @@ export function initTopMenu() {
                 goPath(...splitPath(href.slice(6)));
             });
         }
+        else if (href?.startsWith('/')) {
+            link.addEventListener('click', e => {
+                e.preventDefault();
+                goPath(...splitUrlPath(href));
+            });
+        }
     });
 }
 
@@ -140,8 +146,8 @@ export function formatTopMenu(nav: NavState) {
     topMenuArea.querySelectorAll('a').forEach(link => {
         const href = link.getAttribute('href');
         applyCommonTopMenuFormatting(link);
-        if (href?.startsWith('?page=')) {
-            const expected = splitPath(href.slice(6));
+        if (href?.startsWith('?page=') || href?.startsWith('/')) {
+            const expected = href.startsWith('?page=') ? splitPath(href.slice(6)) : splitUrlPath(href);
             console.debug(`Expected: ${expected}, actual: ${hash}`);
             link.classList.toggle('current-page', arrayEq(expected, hash));
         }

@@ -6,7 +6,7 @@ import {ALL_COMBAT_JOBS, JOB_DATA} from "@xivgear/xivmath/xivconstants";
 import {
     HASH_QUERY_PARAM,
     ONLY_SET_QUERY_PARAM,
-    PATH_SEPARATOR,
+    LEGACY_PATH_SEPARATOR,
     SELECTION_INDEX_QUERY_PARAM
 } from "@xivgear/core/nav/common_nav";
 import {boolParam, getMergedQueryParams, intParam, stringParam} from "../server_utils";
@@ -25,6 +25,34 @@ describe('misc helpers', () => {
     });
 
     describe("getMergedQueryParams", () => {
+        it("should derive page from a canonical navigation URL", () => {
+            const result = getMergedQueryParams({query: {}, url: '/bis/sge/archive/anabaseios'}, {
+                [HASH_QUERY_PARAM]: stringParam,
+            });
+            expect(result).to.deep.equal({
+                [HASH_QUERY_PARAM]: `bis${LEGACY_PATH_SEPARATOR}sge${LEGACY_PATH_SEPARATOR}archive${LEGACY_PATH_SEPARATOR}anabaseios`,
+            });
+        });
+
+        it("should prefer a legacy page parameter over a canonical navigation URL", () => {
+            const result = getMergedQueryParams({
+                query: {[HASH_QUERY_PARAM]: `sl${LEGACY_PATH_SEPARATOR}legacy-id`},
+                url: '/bis/sge/archive/anabaseios',
+            }, {
+                [HASH_QUERY_PARAM]: stringParam,
+            });
+            expect(result).to.deep.equal({
+                [HASH_QUERY_PARAM]: `sl${LEGACY_PATH_SEPARATOR}legacy-id`,
+            });
+        });
+
+        it("should ignore non-navigation request paths", () => {
+            const result = getMergedQueryParams({query: {}, url: '/baseData'}, {
+                [HASH_QUERY_PARAM]: stringParam,
+            });
+            expect(result).to.deep.equal({});
+        });
+
         it("should return direct query params when no url is present", () => {
             const params = {
                 [HASH_QUERY_PARAM]: 'some-path',
@@ -170,7 +198,7 @@ describe('misc helpers', () => {
                 [HASH_QUERY_PARAM]: stringParam,
             });
             expect(result).to.deep.include({
-                [HASH_QUERY_PARAM]: `sl${PATH_SEPARATOR}1234`,
+                [HASH_QUERY_PARAM]: `sl${LEGACY_PATH_SEPARATOR}1234`,
             });
         });
 
@@ -202,7 +230,7 @@ describe('misc helpers', () => {
                 [HASH_QUERY_PARAM]: stringParam,
             });
             expect(result).to.deep.include({
-                [HASH_QUERY_PARAM]: `part1${PATH_SEPARATOR}part2${PATH_SEPARATOR}part3`,
+                [HASH_QUERY_PARAM]: `part1${LEGACY_PATH_SEPARATOR}part2${LEGACY_PATH_SEPARATOR}part3`,
             });
         });
 

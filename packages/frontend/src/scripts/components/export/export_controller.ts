@@ -8,7 +8,7 @@ import {CharacterGearSet} from "@xivgear/core/gear";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {
     EMBED_HASH, HASH_QUERY_PARAM,
-    makeUrl, makeUrlSimple, NavState, ONLY_SET_QUERY_PARAM, PATH_SEPARATOR, SELECTION_INDEX_QUERY_PARAM, VIEW_SET_HASH,
+    makeUrl, makeUrlSimple, NavState, ONLY_SET_QUERY_PARAM, LEGACY_PATH_SEPARATOR, SELECTION_INDEX_QUERY_PARAM, VIEW_SET_HASH,
     VIEW_SHEET_HASH
 } from "@xivgear/core/nav/common_nav";
 import {ExportTypes, GearPlanSheet} from "@xivgear/core/sheet";
@@ -166,7 +166,7 @@ const embedLinkPerSet = {
 
             const pageLink = linkToSet.searchParams.get(HASH_QUERY_PARAM);
             if (pageLink !== null && !pageLink.startsWith(EMBED_HASH)) {
-                const embed = EMBED_HASH + PATH_SEPARATOR;
+                const embed = EMBED_HASH + LEGACY_PATH_SEPARATOR;
                 linkToSet.searchParams.set(HASH_QUERY_PARAM, embed + pageLink);
             }
             out += urlToString(linkToSet);

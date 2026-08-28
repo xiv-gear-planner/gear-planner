@@ -1,4 +1,4 @@
-import {CALC_HASH, HASH_QUERY_PARAM, PATH_SEPARATOR, splitPath} from "@xivgear/core/nav/common_nav";
+import {CALC_HASH, HASH_QUERY_PARAM, LEGACY_PATH_SEPARATOR, splitPath} from "@xivgear/core/nav/common_nav";
 
 import {formatTopMenu} from "./base_ui";
 import {openMath} from "./mathpage/math_ui";
@@ -90,7 +90,7 @@ export function setHash(...hashParts: string[]) {
     }
     expectedHash = [...hashParts];
     console.log("New hash parts", hashParts);
-    const hash = hashParts.map(part => encodeURIComponent(part)).join(PATH_SEPARATOR);
+    const hash = hashParts.map(part => encodeURIComponent(part)).join(LEGACY_PATH_SEPARATOR);
     manipulateUrlParams(params => params.set(HASH_QUERY_PARAM, hash));
     formatTopMenu(expectedHash);
 }
@@ -112,7 +112,7 @@ export function goHash(...hashParts: string[]) {
             return;
         }
     }
-    const hash = hashParts.map(part => encodeURIComponent(part)).join(PATH_SEPARATOR);
+    const hash = hashParts.map(part => encodeURIComponent(part)).join(LEGACY_PATH_SEPARATOR);
     manipulateUrlParams(params => params.set(HASH_QUERY_PARAM, hash));
     processNav();
 }

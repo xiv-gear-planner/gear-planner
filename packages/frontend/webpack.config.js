@@ -74,6 +74,14 @@ module.exports = (env, argv) => {
             port: 8076,
             client: {
                 overlay: false
+            },
+            historyApiFallback: {
+                rewrites: [
+                    {
+                        from: /.*/,
+                        to: '/index.html'
+                    }
+                ]
             }
         }
     }
