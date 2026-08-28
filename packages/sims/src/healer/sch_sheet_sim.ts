@@ -6,7 +6,9 @@ import {rangeInc} from "@xivgear/util/array_utils";
 import {BaseMultiCycleSim} from "@xivgear/sims/processors/sim_processors";
 
 type SchAbility = Ability & Readonly<LevelModifiable<{
-    /** Run if an ability needs to update the aetherflow gauge */
+    /**
+     * Run if an ability needs to update the aetherflow gauge
+     */
     updateGauge?(gauge: SchGauge): void;
 }>>
 

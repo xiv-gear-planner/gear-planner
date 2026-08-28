@@ -2,18 +2,28 @@ import {Ability, GcdAbility, OgcdAbility, Buff, BuffController, AlternativeScali
 import {DrkGauge} from "./drk_gauge";
 import {removeSelf} from "@xivgear/sims/common/utils";
 
-/** A DRK-specific ability. */
+/**
+ * A DRK-specific ability.
+ */
 export type DrkAbility = Ability & Readonly<{
-    /** Run if an ability needs to update the Blood gauge */
+    /**
+     * Run if an ability needs to update the Blood gauge
+     */
     updateBloodGauge?(gauge: DrkGauge): void;
 
-    /** The Blood cost of the ability */
+    /**
+     * The Blood cost of the ability
+     */
     bloodCost?: number;
 
-    /** Run if an ability needs to update MP */
+    /**
+     * Run if an ability needs to update MP
+     */
     updateMP?(gauge: DrkGauge): void;
 
-    /** The MP cost of the ability */
+    /**
+     * The MP cost of the ability
+     */
     mp?: number;
 }>
 
@@ -26,21 +36,29 @@ export type DrkOgcdAbility = OgcdAbility & DrkAbility;
 // - Pet action weapon damage scaling (100 instead of the usual)
 export const livingShadowScalings: AlternativeScaling[] = ["Living Shadow Strength Scaling", "Pet Action Weapon Damage"];
 
-/** DRK ability that costs blood */
+/**
+ * DRK ability that costs blood
+ */
 export type BloodAbility = DrkAbility & Readonly<{
     bloodCost: number;
 }>
 
-/** Represents the DRK gauge state */
+/**
+ * Represents the DRK gauge state
+ */
 export type DrkGaugeState = {
     blood: number,
     mp: number,
     darkArts: boolean,
 }
 
-/** Represents the extra data for UsedAbility, primarily for consumption in the UI */
+/**
+ * Represents the extra data for UsedAbility, primarily for consumption in the UI
+ */
 export type DrkExtraData = {
-    /** The DRK gauge data */
+    /**
+     * The DRK gauge data
+     */
     gauge: DrkGaugeState,
     darksideDuration: number,
 };

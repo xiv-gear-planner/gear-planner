@@ -68,19 +68,24 @@ class RotationState {
         this._sodNumber = newSodNumber;
     }
 
-    /** Alternate gibbet/gallows */
+    /**
+     * Alternate gibbet/gallows
+     */
     nextGibGal = Actions.Gallows.id;
     gibGalSwap() {
         this.nextGibGal = (this.nextGibGal === Actions.Gallows.id) ? Actions.Gibbet.id : Actions.Gallows.id;
     }
 
-    /** Alternates between 50 and 100.
+    /**
+     * Alternates between 50 and 100.
      * Before odd gluttony, we want to save up 50 gauge at all times (meaning spend only at 100)
      * After odd gluttony, we want to get our shroud ASAP so our burst isn't delayed (meaning spend at 50)
      */
     spendSoulThreshold = 100;
 
-    /** Keep track so we don't drop combo */
+    /**
+     * Keep track so we don't drop combo
+     */
     lastComboTime: number;
 }
 
@@ -100,7 +105,8 @@ class RprCycleProcessor extends CycleProcessor {
         return this.getActiveBuffs().find(b => b.statusId === buff.statusId);
     }
 
-    /** Advances to as late as possible.
+    /**
+     * Advances to as late as possible.
      * NOTE: I'm adding an extra 20ms to each animation lock to make sure we don't hit anything that's impossible to achieve ingame.
      */
     advanceForLateWeave(weaves: OgcdAbility[]) {
@@ -120,7 +126,9 @@ class RprCycleProcessor extends CycleProcessor {
 
         if (rprAbility.updateSoulGauge !== undefined || rprAbility.updateShroudGauge !== undefined) {
 
-            /** prevent weird gauge update if an auto lands between now and nextGcdTime */
+            /**
+             * prevent weird gauge update if an auto lands between now and nextGcdTime
+             */
             if (ability.type === 'gcd' &&  this.nextGcdTime > this.currentTime) {
                 this.advanceTo(this.nextGcdTime);
             }
@@ -129,7 +137,9 @@ class RprCycleProcessor extends CycleProcessor {
                 rprAbility.updateSoulGauge(this.gauge);
             }
 
-            /** If the ability updates shroud gauge and also is not our free enshroud from Ideal Host, update the gauge */
+            /**
+             * If the ability updates shroud gauge and also is not our free enshroud from Ideal Host, update the gauge
+             */
             if (rprAbility.updateShroudGauge !== undefined
                 && !(this.getBuffIfActive(IdealHost) && ability.id === Actions.Enshroud.id)) {
 
@@ -204,7 +214,9 @@ class RprCycleProcessor extends CycleProcessor {
         this.rotationState.lastComboTime = this.currentTime;
     }
 
-    /** Use a basic enshroud */
+    /**
+     * Use a basic enshroud
+     */
     useEnshroud() {
         this.useOgcd(Actions.Enshroud);
 
@@ -258,7 +270,9 @@ class RprCycleProcessor extends CycleProcessor {
         this.useGcd(Actions.ShadowOfDeath);
         this.useGcd(Actions.VoidReapingUnbuffed);
 
-        /** If we cannot weave AC here, there's a logic error in when to enshroud */
+        /**
+         * If we cannot weave AC here, there's a logic error in when to enshroud
+         */
         let acTime = Math.max(this.cdTracker.statusOf(Actions.ArcaneCircle).readyAt.absolute, this.currentTime);
         const nextReaping = this.nextGcdTime + this.gcdTime(Actions.ShadowOfDeath);
 
@@ -269,20 +283,26 @@ class RprCycleProcessor extends CycleProcessor {
 
         if (this.cdTracker.canUse(potionMaxStr)) {
 
-            /** If we can weave potion between AC and next gcd */
+            /**
+             * If we can weave potion between AC and next gcd
+             */
             if (nextReaping - acTime >= animationLock(potionMaxStr)) {
                 this.useGcd(Actions.ShadowOfDeath);
                 this.useOgcd(Actions.ArcaneCircle);
                 this.useOgcd(potionMaxStr);
             }
             else {
-                /** If we can weave potion before AC */
+                /**
+                 * If we can weave potion before AC
+                 */
                 if (acTime - (this.nextGcdTime + animationLock(Actions.ShadowOfDeath)) >= animationLock(potionMaxStr)) {
                     this.useGcd(Actions.ShadowOfDeath);
                     this.useOgcd(potionMaxStr);
                     this.useOgcd(Actions.ArcaneCircle);
                 }
-                else {  /** We cannot fit both pot and AC, move pot back */
+                else {  /**
+                         * We cannot fit both pot and AC, move pot back
+                         */
                     this.useOgcd(potionMaxStr);
                     this.useGcd(Actions.ShadowOfDeath);
                     this.useOgcd(Actions.ArcaneCircle);
@@ -313,7 +333,9 @@ class RprCycleProcessor extends CycleProcessor {
 
         this.useEnshroud();
 
-        /** if combo is gonna break we need to continue it */
+        /**
+         * if combo is gonna break we need to continue it
+         */
         if (this.rotationState.lastComboTime + 30 < this.nextGcdTime + this.stats.gcdPhys(2.5) && this.rotationState.combo !== 0) {
             this.useCombo();
             this.useGcd(Actions.Perfectio);
@@ -326,7 +348,9 @@ class RprCycleProcessor extends CycleProcessor {
             }
         }
 
-        /** Use combos and soulslice until gluttony is possible */
+        /**
+         * Use combos and soulslice until gluttony is possible
+         */
         while (this.remainingGcdTime > 0 && (this.gauge.soulGauge < 50 || !this.canUseWithoutClipping(Actions.Gluttony))) {
             if (this.cdTracker.canUse(Actions.SoulSlice, this.nextGcdTime) && this.gauge.soulGauge <= 50) {
 
@@ -342,7 +366,9 @@ class RprCycleProcessor extends CycleProcessor {
         }
         this.useGluttonyAndExecutioners();
 
-        /** set rotation state to pre-odd-shroud-and-gluttony */
+        /**
+         * set rotation state to pre-odd-shroud-and-gluttony
+         */
         this.rotationState.spendSoulThreshold = 100;
         this.rotationState.oddShroudUsed = false;
 
@@ -350,7 +376,8 @@ class RprCycleProcessor extends CycleProcessor {
 
     useFiller() {
 
-        /** Use gluttony
+        /**
+        * Use gluttony
         * This assumes that if we can weave gluttony, it can be the only weave.
         * If that's not the case then this needs to be revisited
         */
@@ -358,7 +385,9 @@ class RprCycleProcessor extends CycleProcessor {
         && this.gauge.soulGauge >= 50) {
             this.useGluttonyAndExecutioners();
 
-            /** Alternate spend soul threshold between 50 and 100 each gluttony usage. */
+            /**
+             * Alternate spend soul threshold between 50 and 100 each gluttony usage.
+             */
             this.rotationState.spendSoulThreshold = 50;
             return;
         }
@@ -375,7 +404,9 @@ class RprCycleProcessor extends CycleProcessor {
             return;
         }
 
-        /** If SS is available the gcd after next one, use unveiled > gibgal to not overcap */
+        /**
+         * If SS is available the gcd after next one, use unveiled > gibgal to not overcap
+         */
         if (this.cdTracker.statusOf(Actions.SoulSlice).readyAt.absolute <= this.nextGcdTime + this.stats.gcdPhys(this.gcdBase)
             && this.gauge.soulGauge >= 50
             && this.cdTracker.statusOf(Actions.Gluttony).readyAt.absolute > this.nextGcdTime + 2 * this.stats.gcdPhys(this.gcdBase)) {
@@ -384,7 +415,9 @@ class RprCycleProcessor extends CycleProcessor {
             return;
         }
 
-        /** Use SS if its off cd and won't overcap */
+        /**
+         * Use SS if its off cd and won't overcap
+         */
         if (this.cdTracker.canUse(Actions.SoulSlice, this.nextGcdTime)
             && this.gauge.soulGauge <= 50) {
 
@@ -392,7 +425,9 @@ class RprCycleProcessor extends CycleProcessor {
             return;
         }
 
-        /** Use SoD if it wont overcap and we're not heading into burst */
+        /**
+         * Use SoD if it wont overcap and we're not heading into burst
+         */
         if (
             (!ddStatus || (ddStatus.end - this.currentTime + DeathsDesign.duration < DeathsDesign.maxStackingDuration
             && this.rotationState.sodNumber <= 3))
@@ -401,7 +436,9 @@ class RprCycleProcessor extends CycleProcessor {
             return;
         }
 
-        /** Spend soul if we're at the threshold */
+        /**
+         * Spend soul if we're at the threshold
+         */
         if (this.gauge.soulGauge >= this.rotationState.spendSoulThreshold
             && (this.gauge.shroudGauge < 50 || this.gauge.soulGauge === 100) //Only spend up to 50 shroud, unless we're going to overcap
         ) {

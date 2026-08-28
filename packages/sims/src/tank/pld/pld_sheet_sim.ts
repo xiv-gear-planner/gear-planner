@@ -103,7 +103,8 @@ class PldCycleProcessor extends CycleProcessor {
         }
     }
 
-    /** Advances to as late as possible.
+    /**
+     * Advances to as late as possible.
      * NOTE: I'm adding an extra 20ms to each animation lock to make sure we don't hit anything that's impossible to achieve ingame.
      */
     advanceForLateWeave(weaves: OgcdAbility[]) {

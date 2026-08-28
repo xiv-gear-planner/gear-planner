@@ -222,7 +222,9 @@ class MNKCycleProcessor extends CycleProcessor {
         this.doStep(Bootshine);
     }
 
-    /** gcd may be supplied by openers that want to have ogcd + buff handling done automatically */
+    /**
+     * gcd may be supplied by openers that want to have ogcd + buff handling done automatically
+     */
     doStep(gcd?: MnkGcdAbility) {
         const form = this.getCurrentForm();
         gcd ??= this.chooseGcd();
@@ -413,7 +415,9 @@ class MNKCycleProcessor extends CycleProcessor {
         });
     }
 
-    /** Any time perfect balance is used these buffs also need to be removed after every GCD */
+    /**
+     * Any time perfect balance is used these buffs also need to be removed after every GCD
+     */
     cleanupForms() {
         this.removeBuff(FormlessFist);
         this.removeBuff(OpoForm);
@@ -467,7 +471,8 @@ class MNKCycleProcessor extends CycleProcessor {
         return this.gcdTime(DragonKick) * n;
     }
 
-    /** Advances to as late as possible.
+    /**
+     * Advances to as late as possible.
      * NOTE: I'm adding an extra 20ms to each animation lock to make sure we don't hit anything that's impossible to achieve ingame.
      * Stolen from drk/rpr/vpr sim
      */

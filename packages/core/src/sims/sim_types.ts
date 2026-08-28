@@ -616,28 +616,48 @@ export type BuffEffects = {
 export type BuffController = {
     removeStatus(buff: Buff): void;
     removeSelf(): void;
-    /** Modify the number of stacks of a `buff` by `stacksDelta` amount. e.g. -1 = remove 1 stack. */
+    /**
+     * Modify the number of stacks of a `buff` by `stacksDelta` amount. e.g. -1 = remove 1 stack.
+     */
     modifyStacks(buff: Buff, stacksDelta: number): void;
-    /** Modify the number of stacks of this buff by `stacksDelta` amount. e.g. -1 = remove 1 stack. */
+    /**
+     * Modify the number of stacks of this buff by `stacksDelta` amount. e.g. -1 = remove 1 stack.
+     */
     modifyStacksSelf(stacksDelta: number): void;
-    /** Increase the number of stacks of a `buff` by `stacks` amount.*/
+    /**
+     * Increase the number of stacks of a `buff` by `stacks` amount.
+     */
     addStacks(buff: Buff, stacks: number): void;
-    /** Increase the number of stacks of this buff by `stacks` amount.*/
+    /**
+     * Increase the number of stacks of this buff by `stacks` amount.
+     */
     addStacksSelf(stacks: number): void;
-    /** Decrease the number of stacks of a `buff` by `stacks` amount.*/
+    /**
+     * Decrease the number of stacks of a `buff` by `stacks` amount.
+     */
     subtractStacks(buff: Buff, stacks: number): void;
-    /** Decrease the number of stacks of this buff by `stacks` amount.*/
+    /**
+     * Decrease the number of stacks of this buff by `stacks` amount.
+     */
     subtractStacksSelf(stacks: number): void;
 };
 
 export type BaseBuff = Readonly<{
-    /** Name of buff */
+    /**
+     * Name of buff
+     */
     name: string,
-    /** Can only apply to self - not a party/targeted buff */
+    /**
+     * Can only apply to self - not a party/targeted buff
+     */
     selfOnly?: boolean,
-    /** The effect(s) of the buff */
+    /**
+     * The effect(s) of the buff
+     */
     effects: BuffEffects,
-    /** For buffs whose duration can stack*/
+    /**
+     * For buffs whose duration can stack
+     */
     maxStackingDuration?: number;
     /**
      * Filter what abilities this buff applies to
@@ -716,12 +736,18 @@ export type BaseBuff = Readonly<{
 })>;
 
 export type PartyBuff = BaseBuff & Readonly<{
-    /** Job of buff */
+    /**
+     * Job of buff
+     */
     job: JobName,
-    /** Cooldown */
+    /**
+     * Cooldown
+     */
     cooldown: number,
-    /** "Optional" would be things like DNC partner buffs, where merely having the job
-     // in your comp does not mean you would necessarily get the buff. */
+    /**
+      "Optional" would be things like DNC partner buffs, where merely having the job
+     // in your comp does not mean you would necessarily get the buff.
+     */
     optional?: boolean,
 
     selfOnly: false,

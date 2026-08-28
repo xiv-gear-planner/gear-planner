@@ -3,12 +3,18 @@ import {WarGauge} from "./war_gauge";
 import {removeSelf} from "@xivgear/sims/common/utils";
 import {PersonalBuff} from "@xivgear/core/sims/sim_types";
 
-/** A WAR-specific ability. */
+/**
+ * A WAR-specific ability.
+ */
 export type WarAbility = Ability & Readonly<{
-    /** Run if an ability needs to update the Beast gauge */
+    /**
+     * Run if an ability needs to update the Beast gauge
+     */
     updateBeastGauge?(gauge: WarGauge): void;
 
-    /** The Beast Gauge cost of the ability */
+    /**
+     * The Beast Gauge cost of the ability
+     */
     beastGaugeCost?: number;
 }>
 
@@ -16,19 +22,27 @@ export type WarGcdAbility = GcdAbility & WarAbility;
 
 export type WarOgcdAbility = OgcdAbility & WarAbility;
 
-/** WAR ability that costs gauge */
+/**
+ * WAR ability that costs gauge
+ */
 export type BeastGaugeAbility = WarAbility & Readonly<{
     beastGaugeCost: number;
 }>
 
-/** Represents the WAR gauge state */
+/**
+ * Represents the WAR gauge state
+ */
 export type WarGaugeState = {
     beastGauge: number,
 }
 
-/** Represents the extra data for UsedAbility, primarily for consumption in the UI */
+/**
+ * Represents the extra data for UsedAbility, primarily for consumption in the UI
+ */
 export type WarExtraData = {
-    /** The WAR gauge data */
+    /**
+     * The WAR gauge data
+     */
     gauge: WarGaugeState,
     surgingTempest: number,
 };

@@ -22,7 +22,9 @@ import {BaseMultiCycleSim} from "@xivgear/sims/processors/sim_processors";
 //import {potionMaxMind} from "@xivgear/sims/common/potion";
 
 type AstAbility = Ability & Readonly<LevelModifiable<{
-    /** Run if an ability needs to update the aetherflow gauge */
+    /**
+     * Run if an ability needs to update the aetherflow gauge
+     */
     updateGaugeLegacy?(gauge: AstGauge): void;
 }>>
 
