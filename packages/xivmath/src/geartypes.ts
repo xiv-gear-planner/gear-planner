@@ -745,6 +745,27 @@ export type JobData = JobDataConst & {
     jobStatMultipliers: JobMultipliers,
 }
 
+/**
+ * Serialized form of {@link JobData}. Function-bearing fields and traits are omitted because they cannot be usefully
+ * represented in an export. The useful values from a trait are applied during stat calculation rather than stored in
+ * the trait definition.
+ */
+export type JobDataExport = Pick<JobData,
+    | 'type'
+    | 'combatRole'
+    | 'mainStat'
+    | 'secondaryStat'
+    | 'autoAttackStat'
+    | 'irrelevantSubstats'
+    | 'offhand'
+    | 'meldParamIndex'
+    | 'aaPotency'
+    | 'excludedRelicSubstats'
+    | 'minLevel'
+    | 'maxLevel'
+    | 'jobStatMultipliers'
+>;
+
 export interface JobTrait {
     minLevel?: number,
     maxLevel?: number,
@@ -1099,9 +1120,11 @@ export type SetExportExternalSingle = SetExport & {
 }
 
 /**
- * Serialized form of ComputedSetStats. Removes jobStats because it doesn't serialize well.
+ * Serialized form of ComputedSetStats. Includes the serializable portion of jobStats.
  */
-export type ComputedSetStatsExport = Omit<ComputedSetStats, "jobStats">;
+export type ComputedSetStatsExport = Omit<ComputedSetStats, "jobStats"> & {
+    readonly jobStats: JobDataExport,
+};
 
 /**
  * Special version of {@link SetExport} that comes from the /fulldata/ endpoint.
@@ -1497,4 +1520,3 @@ export type IlvlSyncInfo = {
     readonly ilvl: number;
     substatCap(slot: OccGearSlotKey, statsKey: RawStatKey): number;
 }
-
