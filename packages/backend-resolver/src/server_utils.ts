@@ -34,6 +34,8 @@ export class NavDataServiceImpl implements NavDataService {
             case "newsheet":
             case "importform":
             case "saved":
+            case "mysheets":
+            case "popup":
                 return null;
             case "shortlink":
                 // TODO: combine these into one call
@@ -50,6 +52,7 @@ export class NavDataServiceImpl implements NavDataService {
             case "bisbrowser":
                 return fillBisBrowserData(nav.path, this.bisService);
         }
+        // @ts-expect-error - just in case
         throw Error(`Unable to resolve nav result: ${nav.type}`);
     }
 }
