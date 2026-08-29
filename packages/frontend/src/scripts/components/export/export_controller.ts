@@ -87,7 +87,11 @@ const sheetShortlink = {
 } as const as SheetExportMethod;
 
 function urlToString(url: URL): string {
-    return url.toString().replaceAll('%7C', '|').replace(/\?$/, '');
+    // Since the URL may be mutated, copy it
+    const modified = new URL(url);
+    // There's no reason to include cacheBust parameter in an export url.
+    modified.searchParams.delete('_cacheBust');
+    return modified.toString().replaceAll('%7C', '|').replace(/\?$/, '');
 }
 
 /**

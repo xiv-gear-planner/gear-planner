@@ -126,13 +126,13 @@ export function showFatalError(errorText: string, errorElementContents?: Paramet
 export function initTopMenu() {
     topMenuArea.querySelectorAll('a').forEach(link => {
         const href = link.getAttribute('href');
-        if (href?.startsWith('?page=')) {
-            link.addEventListener('click', e => {
-                e.preventDefault();
-                goPath(...splitPath(href.slice(6)));
-            });
-        }
-        else if (href?.startsWith('/')) {
+        // if (href?.startsWith('?page=')) {
+        //     link.addEventListener('click', e => {
+        //         e.preventDefault();
+        //         goPath(...splitPath(href.slice(6)));
+        //     });
+        // }
+        if (href?.startsWith('/')) {
             link.addEventListener('click', e => {
                 e.preventDefault();
                 goPath(...splitUrlPath(href));
@@ -146,8 +146,9 @@ export function formatTopMenu(nav: NavState) {
     topMenuArea.querySelectorAll('a').forEach(link => {
         const href = link.getAttribute('href');
         applyCommonTopMenuFormatting(link);
-        if (href?.startsWith('?page=') || href?.startsWith('/')) {
-            const expected = href.startsWith('?page=') ? splitPath(href.slice(6)) : splitUrlPath(href);
+        // if (href?.startsWith('?page=') || href?.startsWith('/')) {
+        if (href?.startsWith('/')) {
+            const expected = splitUrlPath(href);
             console.debug(`Expected: ${expected}, actual: ${hash}`);
             link.classList.toggle('current-page', arrayEq(expected, hash));
         }

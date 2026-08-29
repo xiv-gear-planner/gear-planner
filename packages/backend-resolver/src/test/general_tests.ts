@@ -9,7 +9,7 @@ import {
     LEGACY_PATH_SEPARATOR,
     SELECTION_INDEX_QUERY_PARAM
 } from "@xivgear/core/nav/common_nav";
-import {boolParam, getMergedQueryParams, intParam, stringParam, toEmbedUrl} from "../server_utils";
+import {boolParam, getMergedQueryParams, intParam, navPathParam, stringParam, toEmbedUrl} from "../server_utils";
 
 describe('misc helpers', () => {
     describe("getJobIcons", () => {
@@ -27,10 +27,10 @@ describe('misc helpers', () => {
     describe("getMergedQueryParams", () => {
         it("should derive page from a canonical navigation URL", () => {
             const result = getMergedQueryParams({query: {}, url: '/bis/sge/archive/anabaseios'}, {
-                [HASH_QUERY_PARAM]: stringParam,
+                [HASH_QUERY_PARAM]: navPathParam,
             });
             expect(result).to.deep.equal({
-                [HASH_QUERY_PARAM]: `bis${LEGACY_PATH_SEPARATOR}sge${LEGACY_PATH_SEPARATOR}archive${LEGACY_PATH_SEPARATOR}anabaseios`,
+                [HASH_QUERY_PARAM]: ['bis', 'sge', 'archive', 'anabaseios'],
             });
         });
 
@@ -39,10 +39,10 @@ describe('misc helpers', () => {
                 query: {[HASH_QUERY_PARAM]: `sl${LEGACY_PATH_SEPARATOR}legacy-id`},
                 url: '/bis/sge/archive/anabaseios',
             }, {
-                [HASH_QUERY_PARAM]: stringParam,
+                [HASH_QUERY_PARAM]: navPathParam,
             });
             expect(result).to.deep.equal({
-                [HASH_QUERY_PARAM]: `sl${LEGACY_PATH_SEPARATOR}legacy-id`,
+                [HASH_QUERY_PARAM]: ['sl', 'legacy-id'],
             });
         });
 
@@ -50,18 +50,18 @@ describe('misc helpers', () => {
             const result = getMergedQueryParams({
                 query: {url: encodeURIComponent('https://xivgear.app/bis/sge/archive/anabaseios?onlySetIndex=2')},
             }, {
-                [HASH_QUERY_PARAM]: stringParam,
+                [HASH_QUERY_PARAM]: navPathParam,
                 [ONLY_SET_QUERY_PARAM]: intParam,
             });
             expect(result).to.deep.equal({
-                [HASH_QUERY_PARAM]: `bis${LEGACY_PATH_SEPARATOR}sge${LEGACY_PATH_SEPARATOR}archive${LEGACY_PATH_SEPARATOR}anabaseios`,
+                [HASH_QUERY_PARAM]: ['bis', 'sge', 'archive', 'anabaseios'],
                 [ONLY_SET_QUERY_PARAM]: 2,
             });
         });
 
         it("should ignore non-navigation request paths", () => {
             const result = getMergedQueryParams({query: {}, url: '/baseData'}, {
-                [HASH_QUERY_PARAM]: stringParam,
+                [HASH_QUERY_PARAM]: navPathParam,
             });
             expect(result).to.deep.equal({});
         });
@@ -77,12 +77,12 @@ describe('misc helpers', () => {
             };
 
             const result = getMergedQueryParams(request, {
-                [HASH_QUERY_PARAM]: stringParam,
+                [HASH_QUERY_PARAM]: navPathParam,
                 [ONLY_SET_QUERY_PARAM]: intParam,
                 [SELECTION_INDEX_QUERY_PARAM]: intParam,
             });
             expect(result).to.deep.equal({
-                [HASH_QUERY_PARAM]: 'some-path',
+                [HASH_QUERY_PARAM]: ['some-path'],
                 [ONLY_SET_QUERY_PARAM]: 1,
                 [SELECTION_INDEX_QUERY_PARAM]: 2,
             });
@@ -98,11 +98,11 @@ describe('misc helpers', () => {
             };
 
             const result = getMergedQueryParams(request, {
-                [HASH_QUERY_PARAM]: stringParam,
+                [HASH_QUERY_PARAM]: navPathParam,
                 otherParam: stringParam,
             });
             expect(result).to.deep.include({
-                [HASH_QUERY_PARAM]: 'hash-in-url',
+                [HASH_QUERY_PARAM]: ['hash-in-url'],
                 otherParam: 'val2',
             });
         });
@@ -135,11 +135,11 @@ describe('misc helpers', () => {
             };
 
             const result = getMergedQueryParams(request, {
-                [HASH_QUERY_PARAM]: stringParam,
+                [HASH_QUERY_PARAM]: navPathParam,
                 otherParam: stringParam,
             });
             expect(result).to.deep.include({
-                [HASH_QUERY_PARAM]: 'directVal',
+                [HASH_QUERY_PARAM]: ['directVal'],
                 otherParam: 'val2',
             });
         });
@@ -169,10 +169,10 @@ describe('misc helpers', () => {
             };
 
             const result = getMergedQueryParams(request, {
-                [HASH_QUERY_PARAM]: stringParam,
+                [HASH_QUERY_PARAM]: navPathParam,
             });
             expect(result).to.deep.include({
-                [HASH_QUERY_PARAM]: 'bareVal',
+                [HASH_QUERY_PARAM]: ['bareVal'],
             });
         });
 
@@ -208,10 +208,10 @@ describe('misc helpers', () => {
             };
 
             const result = getMergedQueryParams(request, {
-                [HASH_QUERY_PARAM]: stringParam,
+                [HASH_QUERY_PARAM]: navPathParam,
             });
             expect(result).to.deep.include({
-                [HASH_QUERY_PARAM]: `sl${LEGACY_PATH_SEPARATOR}1234`,
+                [HASH_QUERY_PARAM]: ['sl', '1234'],
             });
         });
 
@@ -224,10 +224,10 @@ describe('misc helpers', () => {
             };
 
             const result = getMergedQueryParams(request, {
-                [HASH_QUERY_PARAM]: stringParam,
+                [HASH_QUERY_PARAM]: navPathParam,
             });
             expect(result).to.deep.include({
-                [HASH_QUERY_PARAM]: 'direct-page',
+                [HASH_QUERY_PARAM]: ['direct-page'],
             });
         });
 
@@ -240,10 +240,10 @@ describe('misc helpers', () => {
             };
 
             const result = getMergedQueryParams(request, {
-                [HASH_QUERY_PARAM]: stringParam,
+                [HASH_QUERY_PARAM]: navPathParam,
             });
             expect(result).to.deep.include({
-                [HASH_QUERY_PARAM]: `part1${LEGACY_PATH_SEPARATOR}part2${LEGACY_PATH_SEPARATOR}part3`,
+                [HASH_QUERY_PARAM]: ['part1', 'part2', 'part3'],
             });
         });
 

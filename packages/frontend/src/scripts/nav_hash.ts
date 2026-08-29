@@ -4,6 +4,7 @@ import {
     NavState,
     NO_REDIR_HASH,
     ONLY_SET_QUERY_PARAM,
+    QUERY_PATH_MAX_LENGTH,
     makeUrlPath,
     parsePath,
     SELECTION_INDEX_QUERY_PARAM,
@@ -102,6 +103,18 @@ export async function processNav() {
     // Slash-delimited pathnames are canonical. The old pipe-delimited `page`
     // parameter remains supported for every existing link.
     const pathParts = getUrlNavigationPath(location.pathname, legacyPath);
+    // Pipe-delimited page parameters are legacy links. Migrate them to the
+    // canonical pathname in-place, just like hash links, while retaining the
+    // query/hash fallback for paths too large to fit in a normal URL.
+    if (legacyPath !== null && pathParts.length > 0
+        && pathParts[0] !== NO_REDIR_HASH
+        && makeUrlPath(pathParts).length <= QUERY_PATH_MAX_LENGTH) {
+        const canonicalUrl = new URL(location.href);
+        canonicalUrl.pathname = makeUrlPath(pathParts);
+        canonicalUrl.searchParams.delete(HASH_QUERY_PARAM);
+        canonicalUrl.hash = '';
+        window.history.replaceState(null, '', canonicalUrl);
+    }
     const newNav = new NavState(pathParts, osIndex, selIndex);
     formatTopMenu(newNav);
     console.info("processQuery", newNav);
@@ -116,6 +129,19 @@ export async function processNav() {
     await doNav(newNav);
 }
 
+function enableScripts() {
+    setTimeout(() => {
+        document.querySelectorAll('script-disabled').forEach(script => {
+            const newScript = document.createElement('script');
+            for (const attr of script.attributes) {
+                newScript.setAttribute(attr.name, attr.value);
+            }
+            newScript.textContent = script.textContent;
+            script.replaceWith(newScript);
+        });
+    });
+}
+
 /**
  * doNav takes a desired NavState and renders the new "page".
  *
@@ -124,6 +150,9 @@ export async function processNav() {
 async function doNav(navState: NavState) {
     try {
         const nav = parsePath(navState);
+        if ('isEmbed' in nav && !nav.isEmbed) {
+            enableScripts();
+        }
         if (nav === null) {
             console.error('unknown nav', navState);
             showSheetPickerMenu();

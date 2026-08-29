@@ -12,25 +12,21 @@ import {
     parsePath,
     PREVIEW_MAX_DESC_LENGTH,
     PREVIEW_MAX_NAME_LENGTH,
-    SELECTION_INDEX_QUERY_PARAM,
-    splitPath
+    SELECTION_INDEX_QUERY_PARAM
 } from "@xivgear/core/nav/common_nav";
 import 'global-jsdom/register';
 import './polyfills';
 import {ALL_COMBAT_JOBS, JOB_DATA} from "@xivgear/xivmath/xivconstants";
 import process from "process";
-import {getMergedQueryParams, intParam, NavDataService, SheetRequest, stringParam} from "./server_utils";
+import {getMergedQueryParams, intParam, NavDataService, navPathParam, SheetRequest} from "./server_utils";
 import {PreviewQueryParams} from "./stats_server_schema_types";
 
 export class PreviewServer extends ServerBase {
     private readonly parser = new DOMParser();
-    private extraScripts: string[] = [];
+    private readonly extraScripts: readonly string[] = [];
 
     constructor(private readonly frontendPaths: FrontendFileServerProvider, private readonly navDataService: NavDataService) {
         super();
-    }
-
-    setup(fastifyInstance: FastifyInstance): void {
         const extraScriptsRaw = process.env.EXTRA_SCRIPTS;
         if (extraScriptsRaw) {
             this.extraScripts = extraScriptsRaw.split(';');
@@ -40,6 +36,9 @@ export class PreviewServer extends ServerBase {
             console.log('no extra scripts');
             this.extraScripts = [];
         }
+    }
+
+    setup(fastifyInstance: FastifyInstance): void {
 
         fastifyInstance.register(fastifyWebResponse);
         // This endpoint acts as a proxy. If it detects that you are trying to load something that looks like a sheet,
@@ -55,20 +54,23 @@ export class PreviewServer extends ServerBase {
         const clientUrl = this.frontendPaths.frontendClientPath;
         // Fetch original index.html
         const responsePromise = nonCachedFetch(serverUrl + '/index.html', undefined);
+        const url: URL = new URL(request.url, clientUrl);
+        const text: string = await (await responsePromise).text();
         try {
             const merged = getMergedQueryParams(request, {
-                [HASH_QUERY_PARAM]: stringParam,
+                [HASH_QUERY_PARAM]: navPathParam,
                 [ONLY_SET_QUERY_PARAM]: intParam,
                 [SELECTION_INDEX_QUERY_PARAM]: intParam,
             });
             const osIndex = merged[ONLY_SET_QUERY_PARAM];
             const selIndex = merged[SELECTION_INDEX_QUERY_PARAM];
-            const path = merged[HASH_QUERY_PARAM] ?? '';
-            const pathPaths = splitPath(path);
+            const pathPaths = merged[HASH_QUERY_PARAM] ?? [];
             const state = new NavState(pathPaths, osIndex, selIndex);
             const nav = parsePath(state);
             request.log.info(pathPaths, 'Path');
             const navResult = this.navDataService.resolveNavData(nav);
+            const doc = this.parser.parseFromString(text, 'text/html');
+            const head = doc.head;
             if (navResult !== null) {
                 let name = await navResult.name || "";
                 let desc = await navResult.description || "";
@@ -81,16 +83,12 @@ export class PreviewServer extends ServerBase {
                 name = name ? (name + " - " + DEFAULT_NAME) : DEFAULT_NAME;
                 desc = desc ? (desc + '\n\n' + DEFAULT_DESC) : DEFAULT_DESC;
 
-                const url: string = new URL(request.url, clientUrl).toString();
-                const text: string = await (await responsePromise).text();
-                const doc = this.parser.parseFromString(text, 'text/html');
-                const head = doc.head;
                 const propertyMap: Record<string, string> = {
                     'og:site_name': 'XivGear',
                     'og:type': 'website',
                     'og:title': name,
                     'og:description': desc,
-                    'og:url': url,
+                    'og:url': url.toString(),
                 } as const;
                 for (const entry of Object.entries(propertyMap)) {
                     const meta = doc.createElement('meta');
@@ -184,6 +182,57 @@ export class PreviewServer extends ServerBase {
                     headers: headers,
                 });
             }
+            else if (url.pathname === '/') {
+                // If the path we get is / which is the home page, someone might be using a hash-based URL.
+                // The server doesn't get the hash at all.
+                // So instead, inject disabled scripts and let the client sort it out.
+                // However, do not inject OG tags - they will not preserve the hash
+                // TODO revisit thaat later
+                // const propertyMap: Record<string, string> = {
+                //     'og:site_name': 'XivGear',
+                //     'og:type': 'website',
+                //     'og:title': 'XivGear',
+                //     'og:description': DEFAULT_DESC,
+                //     'og:url': url.toString(),
+                // } as const;
+                // for (const entry of Object.entries(propertyMap)) {
+                //     const meta = doc.createElement('meta');
+                //     meta.setAttribute('property', entry[0]);
+                //     meta.setAttribute('content', entry[1]);
+                //     head.append(meta);
+                // }
+                if (this.extraScripts) {
+                    function addDisabledScript(url: string, extraProps: object = {}) {
+                        const script = doc.createElement('script-disabled');
+                        script.setAttribute('src', url);
+                        Object.entries(extraProps).forEach(([k, v]) => {
+                            script.setAttribute(k, v);
+                        });
+                        head.appendChild(script);
+                    }
+
+                    this.extraScripts.forEach(scriptUrl => {
+                        addDisabledScript(scriptUrl, {'async': ''});
+                    });
+
+                    doc.documentElement.setAttribute('scripts-injected', 'disabled');
+                }
+                const headers: HeadersInit = {
+                    'content-type': 'text/html',
+                    // use a longer cache duration for success
+                    'cache-control': 'max-age=7200, public',
+                };
+                // If the client is trying to cache bust, then send Clear-Site-Data header to try to clear client
+                // cache entirely, and also override cache-control.
+                if (request.query['_cacheBust']) {
+                    headers['Clear-Site-Data'] = '"cache", "prefetchCache", "prerenderCache"';
+                    headers['cache-control'] = 'max-age=0, no-cache';
+                }
+                return new Response('<!DOCTYPE html>\n' + doc.documentElement.outerHTML, {
+                    status: 200,
+                    headers: headers,
+                });
+            }
         }
         catch (e) {
             request.log.error(e, 'Error injecting preview');
@@ -204,7 +253,7 @@ export class PreviewServer extends ServerBase {
         // //     headers['cache-control'] = response.headers.get('cache-control') || '';
         // // }
 
-        return new Response((await responsePromise).body, {
+        return new Response(text, {
             status: 200,
             headers: headers,
         });

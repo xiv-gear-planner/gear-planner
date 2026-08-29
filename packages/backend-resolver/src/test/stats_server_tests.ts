@@ -281,6 +281,18 @@ describe('stats server', () => {
                 expect(json.sets[0].name).to.equal('6.4 Week 1 2.43 a');
             }).timeout(30_000);
 
+            it("resolves a canonical URL from the url parameter", async () => {
+                const encoded = encodeURIComponent('https://foo.bar/sl/f9b260a9-650c-445a-b3eb-c56d8d968501?onlySetIndex=1');
+                const response = await fastify.inject({
+                    method: 'GET',
+                    url: `/fulldata?url=${encoded}`,
+                });
+                expect(response.statusCode).to.equal(200);
+                const json = response.json() as SheetStatsExport;
+                expect(json.name).to.equal('6.4 Week 1 2.43 a');
+                expect(json.sets).to.have.length(1);
+            }).timeout(30_000);
+
             it("should resolve data from a legacy hash in the url parameter", async () => {
                 // f9b260a9-650c-445a-b3eb-c56d8d968501 is a known valid shortlink in tests
                 const urlWithHash = "https://xivgear.app/#/sl/f9b260a9-650c-445a-b3eb-c56d8d968501";
@@ -370,6 +382,18 @@ describe('stats server', () => {
             // It should take onlySetIndex=2 since direct URL params take priority over anything packed into the encoded url
             expect(json.name).to.equal("WHM 6.4 copy");
             expect(json.sets[0].name).to.equal('6.4 Week 1 2.38');
+        }).timeout(30_000);
+
+        it("resolves a canonical URL from the url parameter", async () => {
+            const encoded = encodeURIComponent('https://foo.bar/sl/f9b260a9-650c-445a-b3eb-c56d8d968501');
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/basedata?url=${encoded}`,
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as SheetExport;
+            expect(json.name).to.equal('WHM 6.4 copy');
+            expect(json.sets).to.have.length(13);
         }).timeout(30_000);
 
         it("should resolve data from a legacy hash in the url parameter", async () => {
@@ -524,6 +548,17 @@ describe('stats server', () => {
 
         it("uses params from encoded url", async () => {
             const encoded = encodeURIComponent('https://foo.bar/?page=embed|sl|f9b260a9-650c-445a-b3eb-c56d8d968501&onlySetIndex=1');
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/validateEmbed?url=${encoded}`,
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as EmbedCheckResponse;
+            expect(json.isValid).to.be.true;
+        }).timeout(30_000);
+
+        it("validates a canonical URL from the url parameter", async () => {
+            const encoded = encodeURIComponent('https://foo.bar/embed/sl/0cd5874c-6322-4396-99be-2089d6222d9c');
             const response = await fastify.inject({
                 method: 'GET',
                 url: `/validateEmbed?url=${encoded}`,
