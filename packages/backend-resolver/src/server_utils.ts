@@ -4,7 +4,17 @@ import {FastifyRequest} from "fastify";
 import {SetExport, SetExportExternalSingle, SheetExport, TopLevelExport} from "@xivgear/xivmath/geartypes";
 import {BisService} from "@xivgear/core/external/static_bis";
 import {JOB_DATA, JobName} from "@xivgear/xivmath/xivconstants";
-import {EMBED_HASH, HASH_QUERY_PARAM, NavPath, PATH_SEPARATOR, splitHashLegacy} from "@xivgear/core/nav/common_nav";
+import {
+    EMBED_HASH,
+    getUrlNavigationPath,
+    HASH_QUERY_PARAM,
+    makeUrlPath,
+    NavPath,
+    NavState,
+    parsePath,
+    splitHashLegacy,
+    splitLegacyPipePath
+} from "@xivgear/core/nav/common_nav";
 import {getJobIcons} from "./preload_helpers";
 import {ShortlinkService} from "@xivgear/core/external/shortlink_server";
 
@@ -24,6 +34,8 @@ export class NavDataServiceImpl implements NavDataService {
             case "newsheet":
             case "importform":
             case "saved":
+            case "mysheets":
+            case "popup":
                 return null;
             case "shortlink":
                 // TODO: combine these into one call
@@ -40,6 +52,7 @@ export class NavDataServiceImpl implements NavDataService {
             case "bisbrowser":
                 return fillBisBrowserData(nav.path, this.bisService);
         }
+        // @ts-expect-error - just in case
         throw Error(`Unable to resolve nav result: ${nav.type}`);
     }
 }
@@ -116,27 +129,24 @@ export type SheetRequest<Q = Record<string, string | undefined>> = FastifyReques
     Params: Record<string, string>;
 }>;
 
-export type GeneralParams = {
-    url?: string;
-    page?: string;
-    selectedIndex?: number;
-    onlySetIndex?: number;
-    exportAsSheet?: boolean;
-}
-
 export type ParamParser<P> = {
-    [K in keyof P]: (raw: string) => P[K];
+    [K in keyof P]: (raw: string | undefined, url: string | undefined) => P[K];
 }
 
 /**
  * getMergedQueryParams combines the normal query parameters with whatever is present on the URL provided via the ?url=
- * query parameter specifically. The normal query parameters take precedence.
+ * query parameter specifically. If no legacy `page` parameter is present, a valid navigation pathname from the
+ * request URL is provided to parsers. The normal query parameters take precedence.
  * @param request
  * @param paramParser
  */
-export function getMergedQueryParams<P extends object>(request: { query?: Record<string, unknown> }, paramParser: ParamParser<P>): P {
+export function getMergedQueryParams<P extends object>(request: {
+    query?: Record<string, unknown>;
+    url?: string
+}, paramParser: ParamParser<P>): P {
     const rawResult: Record<string, unknown> = {...(request.query ?? {})};
-    // Try to pull from the full URL provided via ?url=
+    let parserUrl = request.url;
+    // Try to pull parameters from the full URL provided via ?url=
     const urlRaw = request.query?.['url'];
     if (typeof urlRaw === 'string') {
         let decoded = urlRaw;
@@ -155,13 +165,7 @@ export function getMergedQueryParams<P extends object>(request: { query?: Record
                     rawResult[key] = value;
                 }
             });
-            // Also parse paths for hash-based URLs
-            if (rawResult[HASH_QUERY_PARAM] === undefined && u.hash) {
-                const hashParts = splitHashLegacy(u.hash);
-                if (hashParts.length > 0) {
-                    rawResult[HASH_QUERY_PARAM] = hashParts.join(PATH_SEPARATOR);
-                }
-            }
+            parserUrl = decoded;
         }
         catch (e) {
             // If URL parsing fails entirely, keep existing result
@@ -170,38 +174,67 @@ export function getMergedQueryParams<P extends object>(request: { query?: Record
     const finalResult: Partial<P> = {};
     for (const key in paramParser) {
         const rawValue = rawResult[key];
-        if (rawValue !== undefined) {
-            // We know paramParser[key] expects a string because of how ParamParser is defined,
-            // but we use any here to bridge to the actual implementation.
-            // Since our parsers (stringParam, intParam, boolParam) handle their inputs robustly,
-            // this is safe.
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            finalResult[key] = paramParser[key](rawValue as any);
+        const parser = paramParser[key];
+        const parsed = parser(rawValue === undefined ? undefined : String(rawValue), parserUrl);
+        if (parsed !== undefined) {
+            finalResult[key] = parsed;
         }
     }
     return finalResult as P;
 }
 
-export const stringParam = (raw: string) => raw;
-export const intParam = (raw: string) => {
+export const stringParam = (raw: string | undefined) => raw;
+export const intParam = (raw: string | undefined) => {
+    if (raw === undefined) {
+        return undefined;
+    }
     const parsed = parseInt(raw);
     return isNaN(parsed) ? undefined : parsed;
 };
-export const boolParam = (raw: string | boolean) => {
-    if (typeof raw === 'boolean') {
-        return raw;
+export const boolParam = (raw: string | undefined) => {
+    if (raw === undefined) {
+        return undefined;
     }
     return raw === 'true';
 };
 
+/**
+ * Resolve a legacy page value or canonical/hash URL into navigation path parts.
+ */
+export const navPathParam = (raw: string | undefined, url: string | undefined): string[] | undefined => {
+    if (raw !== undefined) {
+        return splitLegacyPipePath(raw);
+    }
+    if (url === undefined) {
+        return undefined;
+    }
+    try {
+        const parsed = new URL(decodeURIComponent(url), 'https://dummy.invalid/');
+        const hashPath = parsed.hash ? splitHashLegacy(parsed.hash) : undefined;
+        if (hashPath && hashPath.length > 0) {
+            return hashPath;
+        }
+        const navigationPath = getUrlNavigationPath(parsed.pathname, undefined);
+        return navigationPath.length > 0 && parsePath(new NavState(navigationPath)) !== null ? navigationPath : undefined;
+    }
+    catch (e) {
+        return undefined;
+    }
+};
+
 export function toEmbedUrl(normalUrl: URL): URL {
     const out = new URL(normalUrl.toString());
-    const cur = out.searchParams.get(HASH_QUERY_PARAM) || '';
-    // If it's already embedded, ignore
-    if (cur.startsWith(EMBED_HASH + PATH_SEPARATOR)) {
+    const navigationPath = getUrlNavigationPath(out.pathname, out.searchParams.get(HASH_QUERY_PARAM));
+    // Avoid altering non-navigation URLs. All resolver callers provide a
+    // recognized navigation URL, but this keeps the helper safe to reuse.
+    if (navigationPath.length === 0 || parsePath(new NavState(navigationPath)) === null) {
         return out;
     }
-    out.searchParams.set(HASH_QUERY_PARAM, `${EMBED_HASH}${PATH_SEPARATOR}${cur}`);
+    if (navigationPath[0] !== EMBED_HASH) {
+        navigationPath.unshift(EMBED_HASH);
+    }
+    out.pathname = makeUrlPath(navigationPath);
+    out.searchParams.delete(HASH_QUERY_PARAM);
     return out;
 }
 
@@ -226,4 +259,3 @@ type SheetSummaryData = {
     job: JobName | undefined,
     multiJob: boolean,
 }
-

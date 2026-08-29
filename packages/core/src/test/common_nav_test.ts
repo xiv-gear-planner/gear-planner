@@ -1,4 +1,15 @@
-import {NavPath, NavState, parsePath, splitHashLegacy, splitPath} from "../nav/common_nav";
+import {
+    getUrlNavigationPath,
+    joinLegacyPipePath,
+    makeUrl,
+    makeUrlPath,
+    NavPath,
+    NavState,
+    parsePath,
+    splitHashLegacy,
+    splitLegacyPipePath,
+    splitUrlPath
+} from "../nav/common_nav";
 import {expect} from "chai";
 
 describe('path splitting and joining', () => {
@@ -9,8 +20,86 @@ describe('path splitting and joining', () => {
     });
     it('splitting splits properly', () => {
         const pathOriginal = 'foo/bar|asdf/zxcv';
-        const newSplit = splitPath(pathOriginal);
+        const newSplit = splitLegacyPipePath(pathOriginal);
         expect(newSplit).to.deep.equals(['foo/bar', 'asdf/zxcv']);
+    });
+    it('splits canonical slash paths and decodes each path segment', () => {
+        expect(splitUrlPath('/bis/sge/archive/anabaseios')).to.deep.equals(['bis', 'sge', 'archive', 'anabaseios']);
+        expect(splitUrlPath('/viewset/a%2Fb%20c')).to.deep.equals(['viewset', 'a/b c']);
+    });
+    it('treats the application root and index.html as empty paths', () => {
+        expect(splitUrlPath('/')).to.deep.equals([]);
+        expect(splitUrlPath('/index.html')).to.deep.equals([]);
+    });
+    it('creates canonical slash paths and preserves path-part boundaries', () => {
+        const parts = ['viewset', 'a/b c', 'x|y'];
+        expect(makeUrlPath(parts)).to.equal('/viewset/a%2Fb%20c/x%7Cy');
+        expect(splitUrlPath(makeUrlPath(parts))).to.deep.equal(parts);
+        expect(splitLegacyPipePath(joinLegacyPipePath(parts))).to.deep.equal(parts);
+        expect(new NavState(parts).encodedPath).to.equal('/viewset/a%2Fb%20c/x%7Cy');
+    });
+    it('creates canonical URLs while retaining non-navigation query parameters', () => {
+        const originalDocument = globalThis.document;
+        Object.defineProperty(globalThis, 'document', {
+            configurable: true,
+            value: {location: new URL('https://xivgear.app/index.html?page=sl%7Clegacy&keep=value')},
+        });
+        try {
+            const url = makeUrl(new NavState(['bis', 'sge', 'archive', 'anabaseios'], 2));
+            expect(url.pathname).to.equal('/bis/sge/archive/anabaseios');
+            expect(url.searchParams.get('page')).to.be.null;
+            expect(url.searchParams.get('keep')).to.equal('value');
+            expect(url.searchParams.get('onlySetIndex')).to.equal('2');
+            expect(url.toString()).to.not.match(/\?$/);
+        }
+        finally {
+            Object.defineProperty(globalThis, 'document', {
+                configurable: true,
+                value: originalDocument,
+            });
+        }
+    });
+
+    it('does not append an empty query marker to canonical URLs', () => {
+        const originalDocument = globalThis.document;
+        Object.defineProperty(globalThis, 'document', {
+            configurable: true,
+            value: {location: new URL('https://xivgear.app/')},
+        });
+        try {
+            const url = makeUrl(new NavState(['sl', 'uuid']));
+            expect(url.pathname).to.equal('/sl/uuid');
+            expect(url.search).to.equal('');
+            expect(url.toString()).to.not.match(/\?$/);
+        }
+        finally {
+            Object.defineProperty(globalThis, 'document', {
+                configurable: true,
+                value: originalDocument,
+            });
+        }
+    });
+    it('uses the legacy hash fallback when a canonical URL would be too long', () => {
+        const originalDocument = globalThis.document;
+        Object.defineProperty(globalThis, 'document', {
+            configurable: true,
+            value: {location: new URL('https://xivgear.app/bis/sge')},
+        });
+        try {
+            const url = makeUrl(new NavState(['viewset', 'x'.repeat(1_000)]));
+            expect(url.pathname).to.equal('/');
+            expect(url.hash).to.equal(`#/nore/viewset/${'x'.repeat(1_000)}`);
+        }
+        finally {
+            Object.defineProperty(globalThis, 'document', {
+                configurable: true,
+                value: originalDocument,
+            });
+        }
+    });
+    it('gives the legacy pipe parameter precedence over the canonical pathname', () => {
+        expect(getUrlNavigationPath('/bis/sge/archive/anabaseios', 'sl|legacy-id')).to.deep.equal(['sl', 'legacy-id']);
+        expect(getUrlNavigationPath('/bis/sge/archive/anabaseios', null)).to.deep.equal(['bis', 'sge', 'archive', 'anabaseios']);
     });
 });
 

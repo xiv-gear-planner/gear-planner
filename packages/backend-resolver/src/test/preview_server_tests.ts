@@ -34,6 +34,17 @@ describe('preview server', () => {
         const fastify = makePreviewServer();
         const parser = new DOMParser();
         const slTitle = 'WHM 6.4 copy - XivGear - FFXIV Gear Planner';
+        const shortlinkUuid = 'f9b260a9-650c-445a-b3eb-c56d8d968501';
+        it("resolves canonical slash-delimited shortlink paths", async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/${SHORTLINK_HASH}/${shortlinkUuid}`,
+            });
+            expect(response.statusCode).to.equal(200);
+            const parsed = parser.parseFromString(response.body, 'text/html');
+            expect(parsed.querySelector('title')?.textContent).to.equal(slTitle);
+            expect(readPreviewProps(parsed)['og:url']).to.equal(`https://xivgear.app/${SHORTLINK_HASH}/${shortlinkUuid}`);
+        }).timeout(30_000);
         it("resolves shortlink", async () => {
             const uuid = 'f9b260a9-650c-445a-b3eb-c56d8d968501';
             const response = await fastify.inject({
@@ -64,6 +75,16 @@ describe('preview server', () => {
             expect(props['og:site_name']).to.equal('XivGear');
             expect(props['og:type']).to.equal('website');
             expect(props['og:title']).to.equal(slTitle);
+        }).timeout(30_000);
+        it("continues to resolve legacy hash paths passed through the url parameter", async () => {
+            const legacyUrl = `https://xivgear.app/#/${SHORTLINK_HASH}/${shortlinkUuid}`;
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/?url=${encodeURIComponent(legacyUrl)}`,
+            });
+            expect(response.statusCode).to.equal(200);
+            const parsed = parser.parseFromString(response.body, 'text/html');
+            expect(parsed.querySelector('title')?.textContent).to.equal(slTitle);
         }).timeout(30_000);
         it("resolves shortlink with trailing slash", async () => {
             const response = await fastify.inject({
@@ -139,6 +160,15 @@ describe('preview server', () => {
             expect(props['og:title']).to.equal(setTitle);
         }).timeout(30_000);
         const bisTitle = '6.55 Savage SGE BiS - XivGear - FFXIV Gear Planner';
+        it("resolves canonical slash-delimited bis paths with query options", async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/${BIS_HASH}/sge/archive/anabaseios?onlySetIndex=2`,
+            });
+            expect(response.statusCode).to.equal(200);
+            const parsed = parser.parseFromString(response.body, 'text/html');
+            expect(parsed.querySelector('title')?.textContent).to.equal('2.45 Non-Relic - XivGear - FFXIV Gear Planner');
+        }).timeout(30_000);
         it("resolves bis link", async () => {
             const response = await fastify.inject({
                 method: 'GET',

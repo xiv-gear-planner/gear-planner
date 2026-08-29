@@ -7,7 +7,7 @@ import {getEmbedDiv, openEmbed} from "./embed";
 import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 import {SheetPickerTable} from "./components/sheetpicker/saved_sheet_picker";
 import {GearPlanSheetGui} from "./components/sheet/sheet_gui";
-import {makeUrl, NavState, splitPath} from "@xivgear/core/nav/common_nav";
+import {makeUrl, NavState, splitUrlPath} from "@xivgear/core/nav/common_nav";
 import {applyCommonTopMenuFormatting} from "@xivgear/common-ui/components/top_menu";
 import {WORKER_POOL} from "./workers/worker_pool";
 import {showSettingsModal} from "@xivgear/common-ui/settings/settings_modal";
@@ -126,10 +126,16 @@ export function showFatalError(errorText: string, errorElementContents?: Paramet
 export function initTopMenu() {
     topMenuArea.querySelectorAll('a').forEach(link => {
         const href = link.getAttribute('href');
-        if (href?.startsWith('?page=')) {
+        // if (href?.startsWith('?page=')) {
+        //     link.addEventListener('click', e => {
+        //         e.preventDefault();
+        //         goPath(...splitPath(href.slice(6)));
+        //     });
+        // }
+        if (href?.startsWith('/')) {
             link.addEventListener('click', e => {
                 e.preventDefault();
-                goPath(...splitPath(href.slice(6)));
+                goPath(...splitUrlPath(href));
             });
         }
     });
@@ -140,8 +146,9 @@ export function formatTopMenu(nav: NavState) {
     topMenuArea.querySelectorAll('a').forEach(link => {
         const href = link.getAttribute('href');
         applyCommonTopMenuFormatting(link);
-        if (href?.startsWith('?page=')) {
-            const expected = splitPath(href.slice(6));
+        // if (href?.startsWith('?page=') || href?.startsWith('/')) {
+        if (href?.startsWith('/')) {
+            const expected = splitUrlPath(href);
             console.debug(`Expected: ${expected}, actual: ${hash}`);
             link.classList.toggle('current-page', arrayEq(expected, hash));
         }

@@ -18,11 +18,11 @@ import {JobName, MAX_PARTY_BONUS} from "@xivgear/xivmath/xivconstants";
 import {
     EXPORT_AS_SHEET_PARAM,
     HASH_QUERY_PARAM,
+    LEGACY_PATH_SEPARATOR,
     NavPath,
     NavState,
     ONLY_SET_QUERY_PARAM,
     parsePath,
-    PATH_SEPARATOR,
     SELECTION_INDEX_QUERY_PARAM,
     tryParseOptionalIntParam
 } from "@xivgear/core/nav/common_nav";
@@ -34,8 +34,8 @@ import {
     intParam,
     isRecord,
     NavDataService,
+    navPathParam,
     SheetRequest,
-    stringParam,
     toEmbedUrl
 } from "./server_utils";
 import {
@@ -73,9 +73,9 @@ export class StatsServer extends ServerBase {
                         + 'Most of these endpoints expect you to provide a reference to a particular sheet/set in one form or another.\n\n'
                         + 'Except for deprecated legacy endpoints, you can supply them in various forms (see StatsQueryParams schema).\n\n'
                         + 'Generally, you can either:\n'
-                        + '- Provide a complete URL (encoded) in the `url` parameter, e.g. `/basedata?url=encode(https://xivgear.app/?page=sl|0d84fb82-f4b0-4352-bfc7-ff2eb1dfabf8)`.\n'
-                        + '- Provide a partial URL (encoded) in the `url` parameter, e.g. `/basedata?url=encode(?page=sl|0d84fb82-f4b0-4352-bfc7-ff2eb1dfabf8)` but properly encoded.\n'
-                        + '- Transplant individual URL parameters from the desired URL onto this endpoint, e.g. `https://xivgear.app/?page=sl|0d84fb82-f4b0-4352-bfc7-ff2eb1dfabf8` becomes `/basedata?page=sl|0d84fb82-f4b0-4352-bfc7-ff2eb1dfabf8`.\n',
+                        + '- Provide a complete canonical URL (encoded) in the `url` parameter, e.g. `/basedata?url=encode(https://xivgear.app/sl/0d84fb82-f4b0-4352-bfc7-ff2eb1dfabf8)`.\n'
+                        + '- Provide a relative canonical URL (encoded) in the `url` parameter, e.g. `/basedata?url=encode(/sl/0d84fb82-f4b0-4352-bfc7-ff2eb1dfabf8)`.\n'
+                        + '- Legacy `page=sl|<uuid>` query parameters and `#/sl/<uuid>` hash URLs remain supported.\n',
                 },
             },
         });
@@ -99,14 +99,14 @@ export class StatsServer extends ServerBase {
                 },
             }, async (request: SheetRequest<EmbedCheckQuery>, reply) => {
                 const merged = getMergedQueryParams(request, {
-                    [HASH_QUERY_PARAM]: stringParam,
+                    [HASH_QUERY_PARAM]: navPathParam,
                     [ONLY_SET_QUERY_PARAM]: intParam,
                     [SELECTION_INDEX_QUERY_PARAM]: intParam,
                 });
-                const path = merged[HASH_QUERY_PARAM] ?? '';
+                const path = merged[HASH_QUERY_PARAM] ?? [''];
                 const osIndex = merged[ONLY_SET_QUERY_PARAM];
                 const selIndex = merged[SELECTION_INDEX_QUERY_PARAM];
-                const pathPaths = path.split(PATH_SEPARATOR);
+                const pathPaths = path;
                 const state = new NavState(pathPaths, osIndex, selIndex);
                 const nav = parsePath(state);
                 request.log.info(pathPaths, 'Path');
@@ -155,14 +155,14 @@ export class StatsServer extends ServerBase {
                 },
             }, async (request: SheetRequest<ToEmbedQuery>, reply) => {
                 const merged = getMergedQueryParams(request, {
-                    [HASH_QUERY_PARAM]: stringParam,
+                    [HASH_QUERY_PARAM]: navPathParam,
                     [ONLY_SET_QUERY_PARAM]: intParam,
                     [SELECTION_INDEX_QUERY_PARAM]: intParam,
                 });
-                const path = merged[HASH_QUERY_PARAM] ?? '';
+                const path = merged[HASH_QUERY_PARAM] ?? [''];
                 const osIndex = merged[ONLY_SET_QUERY_PARAM];
                 const selIndex = merged[SELECTION_INDEX_QUERY_PARAM];
-                const pathPaths = path.split(PATH_SEPARATOR);
+                const pathPaths = path;
                 const state = new NavState(pathPaths, osIndex, selIndex);
                 const nav = parsePath(state);
                 request.log.info(pathPaths, 'Path');
@@ -173,7 +173,7 @@ export class StatsServer extends ServerBase {
                     if ('sets' in exported && osIndex === undefined) {
                         // It's a full sheet
                         const baseUrl = new URL('https://xivgear.app/');
-                        baseUrl.searchParams.set(HASH_QUERY_PARAM, path);
+                        baseUrl.searchParams.set(HASH_QUERY_PARAM, path.join(LEGACY_PATH_SEPARATOR));
                         const sets: ToEmbedSheetSet[] = [];
                         for (let i = 0; i < exported.sets.length; i++) {
                             const set = exported.sets[i];
@@ -194,7 +194,7 @@ export class StatsServer extends ServerBase {
                     else {
                         // It's a single set (either directly or via osIndex)
                         const baseUrl = new URL('https://xivgear.app/');
-                        baseUrl.searchParams.set(HASH_QUERY_PARAM, path);
+                        baseUrl.searchParams.set(HASH_QUERY_PARAM, path.join(LEGACY_PATH_SEPARATOR));
                         if (osIndex !== undefined) {
                             baseUrl.searchParams.set(ONLY_SET_QUERY_PARAM, osIndex.toString());
                         }
@@ -226,17 +226,17 @@ export class StatsServer extends ServerBase {
                 },
             }, async (request: SheetRequest<BaseDataQuery>, reply) => {
                 const merged = getMergedQueryParams(request, {
-                    [HASH_QUERY_PARAM]: stringParam,
+                    [HASH_QUERY_PARAM]: navPathParam,
                     [ONLY_SET_QUERY_PARAM]: intParam,
                     [SELECTION_INDEX_QUERY_PARAM]: intParam,
                     [EXPORT_AS_SHEET_PARAM]: boolParam,
                 });
-                const path = merged[HASH_QUERY_PARAM] ?? '';
+                const path = merged[HASH_QUERY_PARAM] ?? [''];
                 const osIndex = merged[ONLY_SET_QUERY_PARAM];
                 const selIndex = merged[SELECTION_INDEX_QUERY_PARAM];
                 // This flag indicates that if the result would be a single set, that we instead want a full sheet.
                 const exportAsSheet = merged[EXPORT_AS_SHEET_PARAM];
-                const pathPaths = path.split(PATH_SEPARATOR);
+                const pathPaths = path;
                 const state = new NavState(pathPaths, osIndex, selIndex);
                 const nav = parsePath(state);
                 request.log.info(pathPaths, 'Path');
@@ -287,14 +287,14 @@ export class StatsServer extends ServerBase {
                 },
                 async (request: SheetRequest<FullDataQuery>, reply) => {
                     const merged = getMergedQueryParams(request, {
-                        [HASH_QUERY_PARAM]: stringParam,
+                        [HASH_QUERY_PARAM]: navPathParam,
                         [ONLY_SET_QUERY_PARAM]: intParam,
                         [SELECTION_INDEX_QUERY_PARAM]: intParam,
                     });
-                    const path = merged[HASH_QUERY_PARAM] ?? '';
+                    const path = merged[HASH_QUERY_PARAM] ?? [''];
                     const osIndex = merged[ONLY_SET_QUERY_PARAM];
                     const selIndex = merged[SELECTION_INDEX_QUERY_PARAM];
-                    const pathPaths = path.split(PATH_SEPARATOR);
+                    const pathPaths = path;
                     const state = new NavState(pathPaths, osIndex, selIndex);
                     const nav = parsePath(state);
                     request.log.info(pathPaths, 'Path');

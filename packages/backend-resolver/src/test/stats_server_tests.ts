@@ -281,6 +281,18 @@ describe('stats server', () => {
                 expect(json.sets[0].name).to.equal('6.4 Week 1 2.43 a');
             }).timeout(30_000);
 
+            it("resolves a canonical URL from the url parameter", async () => {
+                const encoded = encodeURIComponent('https://foo.bar/sl/f9b260a9-650c-445a-b3eb-c56d8d968501?onlySetIndex=1');
+                const response = await fastify.inject({
+                    method: 'GET',
+                    url: `/fulldata?url=${encoded}`,
+                });
+                expect(response.statusCode).to.equal(200);
+                const json = response.json() as SheetStatsExport;
+                expect(json.name).to.equal('6.4 Week 1 2.43 a');
+                expect(json.sets).to.have.length(1);
+            }).timeout(30_000);
+
             it("should resolve data from a legacy hash in the url parameter", async () => {
                 // f9b260a9-650c-445a-b3eb-c56d8d968501 is a known valid shortlink in tests
                 const urlWithHash = "https://xivgear.app/#/sl/f9b260a9-650c-445a-b3eb-c56d8d968501";
@@ -370,6 +382,18 @@ describe('stats server', () => {
             // It should take onlySetIndex=2 since direct URL params take priority over anything packed into the encoded url
             expect(json.name).to.equal("WHM 6.4 copy");
             expect(json.sets[0].name).to.equal('6.4 Week 1 2.38');
+        }).timeout(30_000);
+
+        it("resolves a canonical URL from the url parameter", async () => {
+            const encoded = encodeURIComponent('https://foo.bar/sl/f9b260a9-650c-445a-b3eb-c56d8d968501');
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/basedata?url=${encoded}`,
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as SheetExport;
+            expect(json.name).to.equal('WHM 6.4 copy');
+            expect(json.sets).to.have.length(13);
         }).timeout(30_000);
 
         it("should resolve data from a legacy hash in the url parameter", async () => {
@@ -533,6 +557,17 @@ describe('stats server', () => {
             expect(json.isValid).to.be.true;
         }).timeout(30_000);
 
+        it("validates a canonical URL from the url parameter", async () => {
+            const encoded = encodeURIComponent('https://foo.bar/embed/sl/0cd5874c-6322-4396-99be-2089d6222d9c');
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/validateEmbed?url=${encoded}`,
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as EmbedCheckResponse;
+            expect(json.isValid).to.be.true;
+        }).timeout(30_000);
+
         it("should validate an embed from a legacy hash in the url parameter", async () => {
             // Need a valid single set shortlink for embedding
             // From stats_server_tests.ts: 0cd5874c-6322-4396-99be-2089d6222d9c is a single-set shortlink
@@ -552,6 +587,20 @@ describe('stats server', () => {
 
     describe("toEmbed endpoint", () => {
         const fastify = makeStatsServer().setupForTest();
+        it('transforms a canonical BiS URL', async () => {
+            const canonicalUrl = encodeURIComponent('https://xivgear.app/bis/sge/archive/anabaseios?onlySetIndex=2');
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/toEmbed?url=${canonicalUrl}`,
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as ToEmbedResponse;
+            isSetResponse(json);
+            const embedUrl = new URL(json.embedUrl);
+            expect(embedUrl.pathname).to.equal('/embed/bis/sge/archive/anabaseios');
+            expect(embedUrl.searchParams.get('onlySetIndex')).to.equal('2');
+        }).timeout(30_000);
+
         it('transforms BiS with onlySetIndex', async () => {
             const response = await fastify.inject({
                 method: 'GET',
@@ -560,8 +609,9 @@ describe('stats server', () => {
             expect(response.statusCode).to.equal(200);
             const json = response.json() as ToEmbedResponse;
             isSetResponse(json);
-            expect(json.embedUrl).to.contain('page=embed%7Cbis%7Csge%7Carchive%7Canabaseios');
-            expect(json.embedUrl).to.contain('onlySetIndex=2');
+            const embedUrl = new URL(json.embedUrl);
+            expect(embedUrl.pathname).to.equal('/embed/bis/sge/archive/anabaseios');
+            expect(embedUrl.searchParams.get('onlySetIndex')).to.equal('2');
         }).timeout(30_000);
 
         it('transforms full BiS sheet', async () => {
@@ -573,8 +623,9 @@ describe('stats server', () => {
             const json = response.json() as ToEmbedResponse;
             isSheetResponse(json);
             expect(json.sets).to.have.length.greaterThan(0);
-            expect(json.sets[0].embedUrl).to.contain('page=embed%7Cbis%7Csge%7Carchive%7Canabaseios');
-            expect(json.sets[0].embedUrl).to.contain('onlySetIndex=');
+            const embedUrl = new URL(json.sets[0].embedUrl);
+            expect(embedUrl.pathname).to.equal('/embed/bis/sge/archive/anabaseios');
+            expect(embedUrl.searchParams.get('onlySetIndex')).to.not.be.null;
         }).timeout(30_000);
 
         it('transforms single-set shortlink', async () => {
@@ -585,7 +636,8 @@ describe('stats server', () => {
             expect(response.statusCode).to.equal(200);
             const json = response.json() as ToEmbedResponse;
             isSetResponse(json);
-            expect(json.embedUrl).to.contain('page=embed%7Csl%7C0cd5874c-6322-4396-99be-2089d6222d9c');
+            const embedUrl = new URL(json.embedUrl);
+            expect(embedUrl.pathname).to.equal('/embed/sl/0cd5874c-6322-4396-99be-2089d6222d9c');
         }).timeout(30_000);
 
         it("returns error for missing path", async () => {

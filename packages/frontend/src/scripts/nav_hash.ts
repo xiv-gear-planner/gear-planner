@@ -1,18 +1,19 @@
 import {
+    getUrlNavigationPath,
     HASH_QUERY_PARAM,
+    makeUrlPath,
     NavState,
     NO_REDIR_HASH,
     ONLY_SET_QUERY_PARAM,
     parsePath,
-    PATH_SEPARATOR,
+    QUERY_PATH_MAX_LENGTH,
     SELECTION_INDEX_QUERY_PARAM,
     splitHashLegacy,
-    splitPath,
     tryParseOptionalIntParam
 } from "@xivgear/core/nav/common_nav";
 import {earlyEmbedInit} from "./embed";
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
-import {DEFAULT_BIS_SERVICE} from "./services/default_services";
+import {DEFAULT_BIS_SERVICE, DEFAULT_SHORTLINK_SERVICE} from "./services/default_services";
 
 import {
     formatTopMenu,
@@ -26,12 +27,11 @@ import {
     showNewSheetForm,
     showSheetPickerMenu
 } from "./base_ui";
-import {recordError} from "@xivgear/common-ui/analytics/analytics";
+import {recordError, recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {BisBrowser} from "./components/bisbrowser/bis_browser";
-import {cleanUrlParams, getQueryParams, manipulateUrlParams} from "@xivgear/common-ui/nav/common_frontend_nav";
+import {cleanUrlParams, getQueryParams} from "@xivgear/common-ui/nav/common_frontend_nav";
 import {PopoutEditor} from "./components/sheet/editor/popout_editor";
 import {openPopout} from "./popout";
-import {DEFAULT_SHORTLINK_SERVICE} from "./services/default_services";
 
 // let expectedHash: string[] | undefined = undefined;
 
@@ -75,6 +75,7 @@ export async function processHashLegacy() {
         else {
             // Otherwise, redirect to a new-style hash
             // TODO: this doesn't respect other params
+            recordEvent("redirectHashToSlash", {legacyHash: newHash});
             goPath(...split);
             location.hash = "";
         }
@@ -96,10 +97,25 @@ export async function processNav() {
     // Remove the literal #
     // let hash = splitHash(location.hash);
     const qp = getQueryParams();
-    const path = qp.get(HASH_QUERY_PARAM) ?? '';
+    const legacyPath = qp.get(HASH_QUERY_PARAM);
     const osIndex = tryParseOptionalIntParam(qp.get(ONLY_SET_QUERY_PARAM));
     const selIndex = tryParseOptionalIntParam(qp.get(SELECTION_INDEX_QUERY_PARAM));
-    const pathParts = splitPath(path);
+    // Slash-delimited pathnames are canonical. The old pipe-delimited `page`
+    // parameter remains supported for every existing link.
+    const pathParts = getUrlNavigationPath(location.pathname, legacyPath);
+    // Pipe-delimited page parameters are legacy links. Migrate them to the
+    // canonical pathname in-place, just like hash links, while retaining the
+    // query/hash fallback for paths too large to fit in a normal URL.
+    if (legacyPath !== null && pathParts.length > 0
+        && pathParts[0] !== NO_REDIR_HASH
+        && makeUrlPath(pathParts).length <= QUERY_PATH_MAX_LENGTH) {
+        recordEvent("redirectPipeToSlash", {legacyPath: legacyPath});
+        const canonicalUrl = new URL(location.href);
+        canonicalUrl.pathname = makeUrlPath(pathParts);
+        canonicalUrl.searchParams.delete(HASH_QUERY_PARAM);
+        canonicalUrl.hash = '';
+        window.history.replaceState(null, '', canonicalUrl);
+    }
     const newNav = new NavState(pathParts, osIndex, selIndex);
     formatTopMenu(newNav);
     console.info("processQuery", newNav);
@@ -114,6 +130,20 @@ export async function processNav() {
     await doNav(newNav);
 }
 
+function enableScripts() {
+    console.log("Enabling disabled scripts");
+    setTimeout(() => {
+        document.querySelectorAll('script-disabled').forEach(script => {
+            const newScript = document.createElement('script');
+            for (const attr of script.attributes) {
+                newScript.setAttribute(attr.name, attr.value);
+            }
+            newScript.textContent = script.textContent;
+            script.replaceWith(newScript);
+        });
+    });
+}
+
 /**
  * doNav takes a desired NavState and renders the new "page".
  *
@@ -122,6 +152,9 @@ export async function processNav() {
 async function doNav(navState: NavState) {
     try {
         const nav = parsePath(navState);
+        if ('embed' in nav && !nav.embed) {
+            enableScripts();
+        }
         if (nav === null) {
             console.error('unknown nav', navState);
             showSheetPickerMenu();
@@ -249,9 +282,9 @@ async function doNav(navState: NavState) {
 
 
 /**
- * Like {@link setNav}, but takes only the ?page path parts.
+ * Like {@link setNav}, but takes only the URL path parts.
  *
- * @param pathParts The parts of the ?path parameter.
+ * @param pathParts The parts of the URL pathname.
  */
 export function setPath(...pathParts: string[]) {
     setNav(new NavState(pathParts, undefined, undefined));
@@ -278,8 +311,7 @@ export function setNav(newState: NavState) {
     }
     expectedState = newState;
     console.log("New hash parts", hashParts);
-    const hash = hashParts.map(part => encodeURIComponent(part)).join(PATH_SEPARATOR);
-    manipulateUrlParams(params => params.set(HASH_QUERY_PARAM, hash));
+    setUrlPath(hashParts);
     // TODO: there are redundant calls to this
     formatTopMenu(newState);
     if (hashParts.length > 0) {
@@ -288,21 +320,20 @@ export function setNav(newState: NavState) {
 }
 
 /**
- * Get the current nav, but only the ?page path parts. Or undefined if it cannot be determined.
+ * Get the current navigation path. Or undefined if it cannot be determined.
  */
 export function getHash(): string[] {
     return getCurrentState().path;
 }
 
 /**
- * Navigate to a new URL. This is like {@link goNav}, but takes just the "page" parameter as a list instead of a
- * delimited string. This does perform navigation - you should not attempt to perform navigation yourself if you are
- * using this method.
+ * Navigate to a new URL. This is like {@link goNav}, but takes the URL path as a list.
+ * This does perform navigation - you should not attempt to perform navigation yourself if you are using this method.
  *
  * This method is useful for when the entire page state can be determined from the path alone, and you don't need to
  * override any behavior.
  *
- * @param hashParts The path parts, e.g. for 'foo|bar', use ['foo', 'bar'] as the argument.
+ * @param hashParts The path parts, e.g. for '/foo/bar', use ['foo', 'bar'] as the argument.
  */
 export function goPath(...hashParts: string[]) {
     for (const hashPart of hashParts) {
@@ -321,9 +352,7 @@ export function goPath(...hashParts: string[]) {
  * @param nav
  */
 export function goNav(nav: NavState) {
-    const encodedPath = nav.encodedPath;
-    manipulateUrlParams(params => {
-        params.set(HASH_QUERY_PARAM, encodedPath);
+    setUrlPath(nav.path, params => {
         if (nav.onlySetIndex === undefined) {
             params.delete(ONLY_SET_QUERY_PARAM);
         }
@@ -338,6 +367,19 @@ export function goNav(nav: NavState) {
         }
     });
     processNav();
+}
+
+/**
+ * Update the current browser URL to the canonical path while preserving unrelated query parameters.
+ */
+function setUrlPath(pathParts: string[], updateParams?: (params: URLSearchParams) => void) {
+    const url = new URL(location.href);
+    url.pathname = makeUrlPath(pathParts);
+    url.searchParams.delete(HASH_QUERY_PARAM);
+    updateParams?.(url.searchParams);
+    // A legacy hash must not survive a navigation to the canonical form.
+    url.hash = '';
+    history.pushState(null, '', url);
 }
 
 /**
