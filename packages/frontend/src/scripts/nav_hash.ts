@@ -1,19 +1,19 @@
 import {
-    HASH_QUERY_PARAM,
     getUrlNavigationPath,
+    HASH_QUERY_PARAM,
+    makeUrlPath,
     NavState,
     NO_REDIR_HASH,
     ONLY_SET_QUERY_PARAM,
-    QUERY_PATH_MAX_LENGTH,
-    makeUrlPath,
     parsePath,
+    QUERY_PATH_MAX_LENGTH,
     SELECTION_INDEX_QUERY_PARAM,
     splitHashLegacy,
     tryParseOptionalIntParam
 } from "@xivgear/core/nav/common_nav";
 import {earlyEmbedInit} from "./embed";
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
-import {DEFAULT_BIS_SERVICE} from "./services/default_services";
+import {DEFAULT_BIS_SERVICE, DEFAULT_SHORTLINK_SERVICE} from "./services/default_services";
 
 import {
     formatTopMenu,
@@ -27,12 +27,11 @@ import {
     showNewSheetForm,
     showSheetPickerMenu
 } from "./base_ui";
-import {recordError} from "@xivgear/common-ui/analytics/analytics";
+import {recordError, recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {BisBrowser} from "./components/bisbrowser/bis_browser";
 import {cleanUrlParams, getQueryParams} from "@xivgear/common-ui/nav/common_frontend_nav";
 import {PopoutEditor} from "./components/sheet/editor/popout_editor";
 import {openPopout} from "./popout";
-import {DEFAULT_SHORTLINK_SERVICE} from "./services/default_services";
 
 // let expectedHash: string[] | undefined = undefined;
 
@@ -76,6 +75,7 @@ export async function processHashLegacy() {
         else {
             // Otherwise, redirect to a new-style hash
             // TODO: this doesn't respect other params
+            recordEvent("redirectHashToSlash", {legacyHash: newHash});
             goPath(...split);
             location.hash = "";
         }
@@ -109,6 +109,7 @@ export async function processNav() {
     if (legacyPath !== null && pathParts.length > 0
         && pathParts[0] !== NO_REDIR_HASH
         && makeUrlPath(pathParts).length <= QUERY_PATH_MAX_LENGTH) {
+        recordEvent("redirectPipeToSlash", {legacyPath: legacyPath});
         const canonicalUrl = new URL(location.href);
         canonicalUrl.pathname = makeUrlPath(pathParts);
         canonicalUrl.searchParams.delete(HASH_QUERY_PARAM);
