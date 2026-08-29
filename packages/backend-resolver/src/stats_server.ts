@@ -18,11 +18,11 @@ import {JobName, MAX_PARTY_BONUS} from "@xivgear/xivmath/xivconstants";
 import {
     EXPORT_AS_SHEET_PARAM,
     HASH_QUERY_PARAM,
+    LEGACY_PATH_SEPARATOR,
     NavPath,
     NavState,
     ONLY_SET_QUERY_PARAM,
     parsePath,
-    LEGACY_PATH_SEPARATOR,
     SELECTION_INDEX_QUERY_PARAM,
     tryParseOptionalIntParam
 } from "@xivgear/core/nav/common_nav";
@@ -33,8 +33,8 @@ import {
     getMergedQueryParams,
     intParam,
     isRecord,
-    navPathParam,
     NavDataService,
+    navPathParam,
     SheetRequest,
     toEmbedUrl
 } from "./server_utils";
@@ -287,7 +287,7 @@ export class StatsServer extends ServerBase {
                 },
                 async (request: SheetRequest<FullDataQuery>, reply) => {
                     const merged = getMergedQueryParams(request, {
-                    [HASH_QUERY_PARAM]: navPathParam,
+                        [HASH_QUERY_PARAM]: navPathParam,
                         [ONLY_SET_QUERY_PARAM]: intParam,
                         [SELECTION_INDEX_QUERY_PARAM]: intParam,
                     });
