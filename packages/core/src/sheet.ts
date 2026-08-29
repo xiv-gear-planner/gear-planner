@@ -37,6 +37,7 @@ import {
     ItemSlotExport,
     JobData,
     JobDataConst,
+    JobDataExport,
     Materia,
     MateriaAutoFillController,
     MateriaAutoFillPrio,
@@ -1809,6 +1810,24 @@ export const ExportTypes = {
     FullStatsExport,
 } as const;
 
+function jobDataSerializationProxy(jobStats: JobData): JobDataExport {
+    return {
+        type: jobStats.type,
+        combatRole: jobStats.combatRole,
+        mainStat: jobStats.mainStat,
+        secondaryStat: jobStats.secondaryStat,
+        autoAttackStat: jobStats.autoAttackStat,
+        irrelevantSubstats: jobStats.irrelevantSubstats,
+        offhand: jobStats.offhand,
+        meldParamIndex: jobStats.meldParamIndex,
+        aaPotency: jobStats.aaPotency,
+        excludedRelicSubstats: jobStats.excludedRelicSubstats,
+        minLevel: jobStats.minLevel,
+        maxLevel: jobStats.maxLevel,
+        jobStatMultipliers: jobStats.jobStatMultipliers,
+    } satisfies JobDataExport;
+}
+
 /**
  * Transform a ComputedSetStats into a form that serializes properly. That is, it serializes the getters rather
  * than only the backing data. This is realistically what you would want out of the fulldata API endpoint.
@@ -1817,12 +1836,10 @@ export const ExportTypes = {
  */
 export function statsSerializationProxy(stats: ComputedSetStats): ComputedSetStatsExport {
     // The purpose of this is that the fullstats API won't correctly serialize the ComputedSetStatsImpl normally.
-    // We care about the
     return new Proxy(stats, {
         get(target, prop, receiver) {
-            // Remove this field, it doesn't serialize well anyway
             if (prop === 'jobStats') {
-                return undefined;
+                return jobDataSerializationProxy(target.jobStats);
             }
             // Check if the property is a getter on the prototype chain
             let descriptor = Object.getOwnPropertyDescriptor(target, prop as string);
@@ -1845,9 +1862,6 @@ export function statsSerializationProxy(stats: ComputedSetStats): ComputedSetSta
             let obj: object = target;
             while (obj) {
                 Reflect.ownKeys(obj).forEach((key) => {
-                    if (key === 'jobStats') {
-                        return;
-                    }
                     if (typeof key === 'string' && !key.startsWith('_')) {
                         const descriptor = Object.getOwnPropertyDescriptor(obj, key);
                         if (descriptor && typeof descriptor.get === 'function') {
@@ -1861,9 +1875,6 @@ export function statsSerializationProxy(stats: ComputedSetStats): ComputedSetSta
             return Array.from(keys);
         },
         getOwnPropertyDescriptor(target, prop) {
-            if (prop === 'jobStats') {
-                return undefined;
-            }
             const descriptor = Object.getOwnPropertyDescriptor(target, prop)
                 || Object.getOwnPropertyDescriptor(Object.getPrototypeOf(target), prop);
 

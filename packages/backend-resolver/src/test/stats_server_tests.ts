@@ -51,6 +51,22 @@ describe('stats server', () => {
                 const stats = firstSet.computedStats;
                 expect(stats.hp).to.equal(74421);
                 expect(stats.mind).to.equal(3374);
+                expect(stats.jobStats).to.include({
+                    type: 'Combat',
+                    combatRole: 'Healer',
+                    mainStat: 'mind',
+                    secondaryStat: 'piety',
+                    autoAttackStat: 'strength',
+                    meldParamIndex: 6,
+                    aaPotency: 90,
+                });
+                expect(stats.jobStats.jobStatMultipliers).to.be.an('object');
+                expect(stats.jobStats).to.not.have.any.keys(
+                    'traitMulti',
+                    'traits',
+                    'gcdDisplayOverrides',
+                    'extraItemFilter'
+                );
             }).timeout(30_000);
             it("can serve correct data with party size 0", async () => {
                 const response = await fastify.inject({

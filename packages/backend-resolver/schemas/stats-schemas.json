@@ -56,9 +56,19 @@
       },
       "type": "object"
     },
+    "CombatRoleKey": {
+      "enum": [
+        "Healer",
+        "Melee",
+        "Ranged",
+        "Caster",
+        "Tank"
+      ],
+      "type": "string"
+    },
     "ComputedSetStatsExport": {
       "additionalProperties": false,
-      "description": "Serialized form of ComputedSetStats. Removes jobStats because it doesn't serialize well.",
+      "description": "Serialized form of ComputedSetStats. Includes the serializable portion of jobStats.",
       "properties": {
         "aaDelay": {
           "description": "Auto-attack delay",
@@ -174,6 +184,9 @@
           "$ref": "#/definitions/JobName",
           "description": "Current class/job"
         },
+        "jobStats": {
+          "$ref": "#/definitions/JobDataExport"
+        },
         "level": {
           "$ref": "#/definitions/SupportedLevel",
           "description": "Current level"
@@ -254,60 +267,61 @@
         }
       },
       "required": [
-        "level",
-        "levelStats",
-        "job",
-        "critChance",
-        "critMulti",
-        "dhitChance",
-        "dhitMulti",
-        "detMulti",
-        "spsDotMulti",
-        "sksDotMulti",
-        "tncMulti",
-        "tncIncomingMulti",
-        "wdMulti",
-        "wdMultiPetAction",
-        "mainStatMulti",
-        "aaStatMulti",
-        "gearStats",
-        "baseMainStatPlusRace",
-        "autoDhBonus",
-        "autoCritBuffMulti",
-        "autoDhitBuffMulti",
-        "mpPerTick",
-        "aaMulti",
         "aaDelay",
-        "defenseDamageTaken",
-        "magicDefenseDamageTaken",
-        "effectiveFoodBonuses",
-        "hp",
-        "vitality",
-        "strength",
-        "dexterity",
-        "intelligence",
-        "mind",
-        "piety",
-        "crit",
-        "dhit",
-        "determination",
-        "tenacity",
-        "spellspeed",
-        "skillspeed",
-        "wdPhys",
-        "wdMag",
-        "weaponDelay",
-        "defenseMag",
-        "defensePhys",
-        "gearHaste",
-        "extraMainStat",
-        "extraSecondaryStat",
-        "craftsmanship",
+        "aaMulti",
+        "aaStatMulti",
+        "autoCritBuffMulti",
+        "autoDhBonus",
+        "autoDhitBuffMulti",
+        "baseMainStatPlusRace",
         "control",
         "cp",
-        "perception",
+        "craftsmanship",
+        "crit",
+        "critChance",
+        "critMulti",
+        "defenseDamageTaken",
+        "defenseMag",
+        "defensePhys",
+        "detMulti",
+        "determination",
+        "dexterity",
+        "dhit",
+        "dhitChance",
+        "dhitMulti",
+        "effectiveFoodBonuses",
+        "extraMainStat",
+        "extraSecondaryStat",
         "gathering",
-        "gp"
+        "gearHaste",
+        "gearStats",
+        "gp",
+        "hp",
+        "intelligence",
+        "job",
+        "jobStats",
+        "level",
+        "levelStats",
+        "magicDefenseDamageTaken",
+        "mainStatMulti",
+        "mind",
+        "mpPerTick",
+        "perception",
+        "piety",
+        "skillspeed",
+        "sksDotMulti",
+        "spellspeed",
+        "spsDotMulti",
+        "strength",
+        "tenacity",
+        "tncIncomingMulti",
+        "tncMulti",
+        "vitality",
+        "wdMag",
+        "wdMulti",
+        "wdMultiPetAction",
+        "wdPhys",
+        "weaponDelay"
       ],
       "type": "object"
     },
@@ -668,6 +682,151 @@
       },
       "type": "object"
     },
+    "JobDataExport": {
+      "additionalProperties": false,
+      "description": "Serialized form of  {@link  JobData } . Function-bearing fields and traits are omitted because they cannot be usefully represented in an export. The useful values from a trait are applied during stat calculation rather than stored in the trait definition.",
+      "properties": {
+        "aaPotency": {
+          "description": "Auto-attack potency amount",
+          "type": "number"
+        },
+        "autoAttackStat": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Mainstat",
+              "description": "The primary stat as used for auto-attack calculations specifically"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The primary stat as used for auto-attack calculations specifically"
+        },
+        "combatRole": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/CombatRoleKey",
+              "description": "The role of the job"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The role of the job"
+        },
+        "excludedRelicSubstats": {
+          "description": "Substats which are NOT already in  {@link  irrelevantSubstats  } , but which cannot be put onto custom relics.\n\ne.g. Healers and Tanks cannot put DHit on their custom relics.",
+          "items": {
+            "$ref": "#/definitions/Substat"
+          },
+          "type": "array"
+        },
+        "irrelevantSubstats": {
+          "description": "Substats which are completely irrelevant to this class, e.g. TNC on non-tanks",
+          "items": {
+            "$ref": "#/definitions/Substat"
+          },
+          "type": "array"
+        },
+        "jobStatMultipliers": {
+          "$ref": "#/definitions/JobMultipliers"
+        },
+        "mainStat": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Mainstat",
+              "description": "The primary stat"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The primary stat"
+        },
+        "maxLevel": {
+          "$ref": "#/definitions/SupportedLevel",
+          "description": "The maximum level of the job."
+        },
+        "meldParamIndex": {
+          "description": "Which BaseParam.MeldParam index to use for calculating stat caps. Makes hardcoded itemStatCapMultipliers obsolete. Since these only have numeric indices with no indication of which is which, it is derived from looking at gear pieces of the same ilvl and comparing their stats across different jobs. However, there are many rows which are identical for",
+          "type": "number"
+        },
+        "minLevel": {
+          "$ref": "#/definitions/SupportedLevel",
+          "description": "The minimum level of the job."
+        },
+        "offhand": {
+          "description": "True if this class uses 1H+Offhand rather than 2H weapons",
+          "type": "boolean"
+        },
+        "secondaryStat": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Substat",
+              "description": "The secondary substat for the purposes of items such as pre-order earrings."
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The secondary substat for the purposes of items such as pre-order earrings."
+        },
+        "type": {
+          "enum": [
+            "Combat",
+            "DoH",
+            "DoL"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "combatRole",
+        "mainStat",
+        "secondaryStat",
+        "autoAttackStat",
+        "meldParamIndex",
+        "aaPotency",
+        "excludedRelicSubstats",
+        "minLevel",
+        "maxLevel",
+        "jobStatMultipliers"
+      ],
+      "type": "object"
+    },
+    "JobMultipliers": {
+      "additionalProperties": false,
+      "properties": {
+        "dexterity": {
+          "type": "number"
+        },
+        "hp": {
+          "type": "number"
+        },
+        "intelligence": {
+          "type": "number"
+        },
+        "mind": {
+          "type": "number"
+        },
+        "strength": {
+          "type": "number"
+        },
+        "vitality": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "dexterity",
+        "hp",
+        "intelligence",
+        "mind",
+        "strength",
+        "vitality"
+      ],
+      "type": "object"
+    },
     "JobName": {
       "description": "Supported Jobs.",
       "enum": [
@@ -822,6 +981,16 @@
         "mainStatPowerMod"
       ],
       "type": "object"
+    },
+    "Mainstat": {
+      "enum": [
+        "strength",
+        "dexterity",
+        "intelligence",
+        "mind",
+        "vitality"
+      ],
+      "type": "string"
     },
     "MateriaFillMode": {
       "enum": [
