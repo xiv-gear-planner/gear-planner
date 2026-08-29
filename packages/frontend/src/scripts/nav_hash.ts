@@ -68,6 +68,7 @@ export async function processHashLegacy() {
         // This path allows certain things such as /viewset/<json> to continue to use the old-style hash, since the
         // URL query param method causes the whole thing to be too long of a URL for the server to handle.
         if (split[0] === NO_REDIR_HASH) {
+            recordEvent("noRedirHash");
             // The actual list is prefixed with the NO_REDIR_HASH, indicating that it should be stripped and not redirected.
             const trueState = new NavState(split.splice(1), osIndex, selIndex);
             await doNav(trueState);
@@ -107,8 +108,7 @@ export async function processNav() {
     // canonical pathname in-place, just like hash links, while retaining the
     // query/hash fallback for paths too large to fit in a normal URL.
     if (legacyPath !== null && pathParts.length > 0
-        && pathParts[0] !== NO_REDIR_HASH
-        && makeUrlPath(pathParts).length <= QUERY_PATH_MAX_LENGTH) {
+        && pathParts[0] !== NO_REDIR_HASH) {
         recordEvent("redirectPipeToSlash", {legacyPath: legacyPath});
         const canonicalUrl = new URL(location.href);
         canonicalUrl.pathname = makeUrlPath(pathParts);
