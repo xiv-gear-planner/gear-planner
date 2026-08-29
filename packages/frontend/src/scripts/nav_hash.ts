@@ -130,6 +130,7 @@ export async function processNav() {
 }
 
 function enableScripts() {
+    console.log("Enabling disabled scripts");
     setTimeout(() => {
         document.querySelectorAll('script-disabled').forEach(script => {
             const newScript = document.createElement('script');
@@ -150,7 +151,7 @@ function enableScripts() {
 async function doNav(navState: NavState) {
     try {
         const nav = parsePath(navState);
-        if ('isEmbed' in nav && !nav.isEmbed) {
+        if ('embed' in nav && !nav.embed) {
             enableScripts();
         }
         if (nav === null) {

@@ -71,6 +71,7 @@ export class PreviewServer extends ServerBase {
             const navResult = this.navDataService.resolveNavData(nav);
             const doc = this.parser.parseFromString(text, 'text/html');
             const head = doc.head;
+            const body = doc.body;
             if (navResult !== null) {
                 let name = await navResult.name || "";
                 let desc = await navResult.description || "";
@@ -208,7 +209,8 @@ export class PreviewServer extends ServerBase {
                         Object.entries(extraProps).forEach(([k, v]) => {
                             script.setAttribute(k, v);
                         });
-                        head.appendChild(script);
+                        // Not valid to put custom tags in head, put them in body intead.
+                        body.appendChild(script);
                     }
 
                     this.extraScripts.forEach(scriptUrl => {
