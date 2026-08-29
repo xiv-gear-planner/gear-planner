@@ -7,7 +7,7 @@ import {getEmbedDiv, openEmbed} from "./embed";
 import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 import {SheetPickerTable} from "./components/sheetpicker/saved_sheet_picker";
 import {GearPlanSheetGui} from "./components/sheet/sheet_gui";
-import {makeUrl, NavState, splitPath, splitUrlPath} from "@xivgear/core/nav/common_nav";
+import {makeUrl, NavState, splitUrlPath} from "@xivgear/core/nav/common_nav";
 import {applyCommonTopMenuFormatting} from "@xivgear/common-ui/components/top_menu";
 import {WORKER_POOL} from "./workers/worker_pool";
 import {showSettingsModal} from "@xivgear/common-ui/settings/settings_modal";
