@@ -13,7 +13,7 @@ import {
     NavState,
     parsePath,
     splitHashLegacy,
-    splitPath
+    splitLegacyPipePath
 } from "@xivgear/core/nav/common_nav";
 import {getJobIcons} from "./preload_helpers";
 import {ShortlinkService} from "@xivgear/core/external/shortlink_server";
@@ -203,7 +203,7 @@ export const boolParam = (raw: string | undefined) => {
  */
 export const navPathParam = (raw: string | undefined, url: string | undefined): string[] | undefined => {
     if (raw !== undefined) {
-        return splitPath(raw);
+        return splitLegacyPipePath(raw);
     }
     if (url === undefined) {
         return undefined;

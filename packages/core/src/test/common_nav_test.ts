@@ -1,13 +1,13 @@
 import {
     getUrlNavigationPath,
-    joinPath,
+    joinLegacyPipePath,
     makeUrl,
     makeUrlPath,
     NavPath,
     NavState,
     parsePath,
     splitHashLegacy,
-    splitPath,
+    splitLegacyPipePath,
     splitUrlPath
 } from "../nav/common_nav";
 import {expect} from "chai";
@@ -20,7 +20,7 @@ describe('path splitting and joining', () => {
     });
     it('splitting splits properly', () => {
         const pathOriginal = 'foo/bar|asdf/zxcv';
-        const newSplit = splitPath(pathOriginal);
+        const newSplit = splitLegacyPipePath(pathOriginal);
         expect(newSplit).to.deep.equals(['foo/bar', 'asdf/zxcv']);
     });
     it('splits canonical slash paths and decodes each path segment', () => {
@@ -35,7 +35,7 @@ describe('path splitting and joining', () => {
         const parts = ['viewset', 'a/b c', 'x|y'];
         expect(makeUrlPath(parts)).to.equal('/viewset/a%2Fb%20c/x%7Cy');
         expect(splitUrlPath(makeUrlPath(parts))).to.deep.equal(parts);
-        expect(splitPath(joinPath(parts))).to.deep.equal(parts);
+        expect(splitLegacyPipePath(joinLegacyPipePath(parts))).to.deep.equal(parts);
         expect(new NavState(parts).encodedPath).to.equal('/viewset/a%2Fb%20c/x%7Cy');
     });
     it('creates canonical URLs while retaining non-navigation query parameters', () => {

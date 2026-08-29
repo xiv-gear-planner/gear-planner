@@ -1,4 +1,4 @@
-import {CALC_HASH, HASH_QUERY_PARAM, LEGACY_PATH_SEPARATOR, splitPath} from "@xivgear/core/nav/common_nav";
+import {CALC_HASH, HASH_QUERY_PARAM, LEGACY_PATH_SEPARATOR, splitLegacyPipePath} from "@xivgear/core/nav/common_nav";
 
 import {formatTopMenu} from "./base_ui";
 import {openMath} from "./mathpage/math_ui";
@@ -20,7 +20,7 @@ export async function processNav() {
     // Remove the literal #
     // let hash = splitHash(location.hash);
     const path = getQueryParams().get(HASH_QUERY_PARAM) ?? '';
-    const pathParts = splitPath(path);
+    const pathParts = splitLegacyPipePath(path);
     formatTopMenu(pathParts);
     console.info("processQuery", pathParts);
     if (arrayEq(pathParts, expectedHash)) {

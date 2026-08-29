@@ -370,7 +370,7 @@ export function splitHashLegacy(input: string) {
  *
  * @param input The path, not including ?page=
  */
-export function splitPath(input: string) {
+export function splitLegacyPipePath(input: string) {
     return (input.startsWith(LEGACY_PATH_SEPARATOR) ? input.substring(1) : input)
         .split(LEGACY_PATH_SEPARATOR)
         .filter(item => item)
@@ -381,7 +381,7 @@ export function splitPath(input: string) {
 /**
  * Join navigation parts into the legacy pipe-delimited representation.
  */
-export function joinPath(path: string[]): string {
+export function joinLegacyPipePath(path: string[]): string {
     return path
         .map(part => encodeURIComponent(part))
         .map(part => part.replaceAll(LEGACY_PATH_SEPARATOR, VERTICAL_BAR_REPLACEMENT))
@@ -411,7 +411,7 @@ export function splitUrlPath(input: string) {
  * meaning even if they happen to be opened below a non-root pathname.
  */
 export function getUrlNavigationPath(pathname: string, legacyPage: string | null | undefined): string[] {
-    return legacyPage === null || legacyPage === undefined ? splitUrlPath(pathname) : splitPath(legacyPage);
+    return legacyPage === null || legacyPage === undefined ? splitUrlPath(pathname) : splitLegacyPipePath(legacyPage);
 }
 
 export function tryParseOptionalIntParam(input: string | number | undefined): number | undefined {

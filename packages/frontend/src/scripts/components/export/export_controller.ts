@@ -1,4 +1,5 @@
 import {
+    el,
     FieldBoundCheckBox,
     labeledCheckbox,
     labeledRadioButton,
@@ -8,14 +9,16 @@ import {CharacterGearSet} from "@xivgear/core/gear";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {
     EMBED_HASH,
+    getUrlNavigationPath,
     HASH_QUERY_PARAM,
+    joinLegacyPipePath,
     makeUrl,
     makeUrlPath,
     makeUrlSimple,
     NavState,
     ONLY_SET_QUERY_PARAM,
     SELECTION_INDEX_QUERY_PARAM,
-    splitPath,
+    splitLegacyPipePath,
     splitUrlPath,
     VIEW_SET_HASH,
     VIEW_SHEET_HASH
@@ -37,29 +40,41 @@ type ExportMethod<X> = {
      */
     readonly exportInstantly: boolean;
     /**
-     * Perform the export. Should return whatever should display in the text box (typically one or more links)
-     *
-     * @param item The item to export.
-     */
-    doExport(item: X, isViewonly?: boolean): Promise<string>;
-    /**
      * Whether the export should offer to open the link rather than copy it.
      */
     readonly openInsteadOfCopy?: boolean;
+
+    readonly showLinkFormatToggle: boolean;
+    /**
+     * Perform the export. Should return whatever should display in the text box (typically one or more links)
+     *
+     * @param item The item to export.
+     * @param isViewonly
+     */
+    doExport(item: X, isViewonly: boolean): Promise<ExportLine[]>;
 };
 
 type SheetExportMethod = ExportMethod<GearPlanSheet>;
 
 type SetExportMethod = ExportMethod<CharacterGearSet>;
 
+type ExportLinkFormat = 'slash' | 'pipe';
+export type ExportLine = string | URL;
+
+type ExportResult<X> = {
+    readonly exportType: ExportMethod<X>;
+    readonly lines: ExportLine[];
+};
+
 /**
  * JSON for an entire sheet
  */
-const sheetJson = {
+export const sheetJson = {
     name: "JSON for Whole Sheet",
     exportInstantly: true,
-    async doExport(sheet: GearPlanSheet): Promise<string> {
-        return JSON.stringify(sheet.exportSheet(ExportTypes.ExternalExport));
+    showLinkFormatToggle: false,
+    async doExport(sheet: GearPlanSheet): Promise<ExportLine[]> {
+        return [JSON.stringify(sheet.exportSheet(ExportTypes.ExternalExport))];
     },
 } as const as SheetExportMethod;
 
@@ -69,7 +84,8 @@ const sheetJson = {
 const sheetShortlink = {
     name: "Link to Whole Sheet",
     exportInstantly: false,
-    async doExport(sheet: GearPlanSheet, viewOnly: boolean): Promise<string> {
+    showLinkFormatToggle: true,
+    async doExport(sheet: GearPlanSheet, viewOnly: boolean): Promise<ExportLine[]> {
         // If we're viewOnly, we can use the URL we have. Otherwise,
         // we need to make a new one.
         let linkToSheet: URL;
@@ -82,16 +98,36 @@ const sheetShortlink = {
             linkToSheet = await DEFAULT_SHORTLINK_SERVICE.putShortLink(exportedSheet);
         }
 
-        return urlToString(linkToSheet);
+        return [finalizeXivgearUrl(linkToSheet)];
     },
 } as const as SheetExportMethod;
 
-function urlToString(url: URL): string {
+export function finalizeXivgearUrl(url: URL, linkFormat: ExportLinkFormat = 'slash'): URL {
     // Since the URL may be mutated, copy it
     const modified = new URL(url);
     // There's no reason to include cacheBust parameter in an export url.
     modified.searchParams.delete('_cacheBust');
-    return modified.toString().replaceAll('%7C', '|').replace(/\?$/, '');
+    const path = getUrlNavigationPath(modified.pathname, modified.searchParams.get(HASH_QUERY_PARAM));
+    if (path.length > 0 && linkFormat === 'pipe') {
+        modified.pathname = '/';
+        modified.searchParams.set(HASH_QUERY_PARAM, joinLegacyPipePath(path));
+    }
+    else if (path.length > 0) {
+        modified.pathname = makeUrlPath(path);
+        modified.searchParams.delete(HASH_QUERY_PARAM);
+    }
+    return modified;
+}
+
+export function formatExportLines(lines: ExportLine[], legacyLinkFormat: boolean): string[] {
+    return lines.map(line => {
+        if (!(line instanceof URL)) {
+            return line;
+        }
+        const formatted = legacyLinkFormat ? finalizeXivgearUrl(line, 'pipe') : line;
+        const text = formatted.toString();
+        return legacyLinkFormat ? text.replaceAll('%7C', '|') : text;
+    });
 }
 
 /**
@@ -100,12 +136,13 @@ function urlToString(url: URL): string {
 const linkPerSet = {
     name: "One Link for Each Set",
     exportInstantly: false,
-    async doExport(sheet: GearPlanSheet, viewOnly: boolean): Promise<string> {
+    showLinkFormatToggle: true,
+    async doExport(sheet: GearPlanSheet, viewOnly: boolean): Promise<ExportLine[]> {
         const sets = sheet.sets;
         if (sets.filter(set => !set.isSeparator).length === 0) {
-            return "This sheet does not have any sets!";
+            return ["This sheet does not have any sets!"];
         }
-        let out = '';
+        const out: ExportLine[] = [];
 
         // If we're viewOnly, we can use the URL we have. Otherwise,
         // we need to make a new one.
@@ -131,8 +168,7 @@ const linkPerSet = {
                 linkToSet.searchParams.set(ONLY_SET_QUERY_PARAM, i);
             }
             linkToSet.searchParams.delete(SELECTION_INDEX_QUERY_PARAM);
-            out += urlToString(linkToSet);
-            out += '\n';
+            out.push(finalizeXivgearUrl(linkToSet));
         }
         return out;
     },
@@ -144,12 +180,13 @@ const linkPerSet = {
 const embedLinkPerSet = {
     name: "Embed URL for Each Set",
     exportInstantly: false,
-    async doExport(sheet: GearPlanSheet, viewOnly: boolean): Promise<string> {
+    showLinkFormatToggle: true,
+    async doExport(sheet: GearPlanSheet, viewOnly: boolean): Promise<ExportLine[]> {
         const sets = sheet.sets;
         if (sets.filter(set => !set.isSeparator).length === 0) {
-            return "This sheet does not have any sets!";
+            return ["This sheet does not have any sets!"];
         }
-        let out = '';
+        const out: ExportLine[] = [];
 
         // If we're viewOnly, we can use the URL we have. Otherwise,
         // we need to make a new one.
@@ -178,13 +215,12 @@ const embedLinkPerSet = {
             linkToSet.searchParams.delete(SELECTION_INDEX_QUERY_PARAM);
 
             const pageLink = linkToSet.searchParams.get(HASH_QUERY_PARAM);
-            const path = pageLink === null ? splitUrlPath(linkToSet.pathname) : splitPath(pageLink);
+            const path = pageLink === null ? splitUrlPath(linkToSet.pathname) : splitLegacyPipePath(pageLink);
             if (path.length > 0 && path[0] !== EMBED_HASH) {
                 linkToSet.pathname = makeUrlPath([EMBED_HASH, ...path]);
             }
             linkToSet.searchParams.delete(HASH_QUERY_PARAM);
-            out += urlToString(linkToSet);
-            out += '\n';
+            out.push(finalizeXivgearUrl(linkToSet));
         }
         return out;
     },
@@ -193,11 +229,12 @@ const embedLinkPerSet = {
 /**
  * JSON for an individual set
  */
-const setJson = {
+export const setJson = {
     name: "JSON for This Set",
     exportInstantly: true,
-    async doExport(set: CharacterGearSet): Promise<string> {
-        return JSON.stringify(set.sheet.exportGearSet(set, true));
+    showLinkFormatToggle: false,
+    async doExport(set: CharacterGearSet): Promise<ExportLine[]> {
+        return [JSON.stringify(set.sheet.exportGearSet(set, true))];
     },
 } as const as SetExportMethod;
 
@@ -207,10 +244,11 @@ const setJson = {
 const setShortlink = {
     name: "Link to This Set",
     exportInstantly: false,
-    async doExport(set: CharacterGearSet, viewOnly: boolean): Promise<string> {
+    showLinkFormatToggle: true,
+    async doExport(set: CharacterGearSet, viewOnly: boolean): Promise<ExportLine[]> {
         const exportedSheet = JSON.stringify(set.sheet.exportGearSet(set, true));
         const linkToSheet = await DEFAULT_SHORTLINK_SERVICE.putShortLink(exportedSheet);
-        return urlToString(linkToSheet);
+        return [finalizeXivgearUrl(linkToSheet)];
     },
 } as const as SetExportMethod;
 
@@ -220,10 +258,11 @@ const setShortlink = {
 const setEmbedShortLink = {
     name: "Embed URL for This Set",
     exportInstantly: false,
-    async doExport(set: CharacterGearSet, viewOnly: boolean): Promise<string> {
+    showLinkFormatToggle: true,
+    async doExport(set: CharacterGearSet, viewOnly: boolean): Promise<ExportLine[]> {
         const exportedSheet = JSON.stringify(set.sheet.exportGearSet(set, true));
         const linkToSheet = await DEFAULT_SHORTLINK_SERVICE.putShortLink(exportedSheet, true);
-        return urlToString(linkToSheet);
+        return [finalizeXivgearUrl(linkToSheet)];
     },
 } as const as SetExportMethod;
 
@@ -232,11 +271,12 @@ type TeamcraftItem = {
     quantity: number
 }
 
-const exportSetToTeamcraft = {
+export const exportSetToTeamcraft = {
     name: 'Export to Teamcraft',
     exportInstantly: true,
     openInsteadOfCopy: true,
-    async doExport(set: CharacterGearSet): Promise<string> {
+    showLinkFormatToggle: false,
+    async doExport(set: CharacterGearSet): Promise<ExportLine[]> {
         const items: TeamcraftItem[] = [];
         const allItems: XivItem[] = [];
         const allMateria: Materia[] = [];
@@ -273,7 +313,7 @@ const exportSetToTeamcraft = {
         const joinedItems = items
             .map(item => `${item.itemId},null,${item.quantity}`)
             .join(';');
-        return `https://ffxivteamcraft.com/import/${btoa(joinedItems)}`;
+        return [`https://ffxivteamcraft.com/import/${btoa(joinedItems)}`];
     },
 } as const as SetExportMethod;
 
@@ -283,14 +323,14 @@ const SET_EXPORT_OPTIONS = [setShortlink, setEmbedShortLink, setJson, exportSetT
 
 // TODO: warning for when you export a single set as a sheet
 export function startExport(sheet: GearPlanSheet | CharacterGearSet) {
-    let modal: ExportModal<unknown>;
     if (sheet instanceof GearPlanSheet) {
-        modal = new SheetExportModal(sheet);
+        const modal = new SheetExportModal(sheet);
+        modal.attachAndShowExclusively();
     }
     else {
-        modal = new SetExportModal(sheet);
+        const modal = new SetExportModal(sheet);
+        modal.attachAndShowExclusively();
     }
-    modal.attachAndShowExclusively();
 }
 
 declare global {
@@ -330,6 +370,10 @@ abstract class ExportModal<X> extends BaseModal {
         console.error("This should not happen!");
     };
     private _selectedOption: ExportMethod<X>;
+    private readonly linkFormatToggle: HTMLDivElement;
+    private readonly linkFormatCheckbox: FieldBoundCheckBox<ExportModal<X>>;
+    private exportResult: ExportResult<X> | undefined;
+    legacyLinkFormat: boolean = false;
 
     protected constructor(title: string, exportOptions: readonly ExportMethod<X>[], protected sheet: GearPlanSheet, protected item: X) {
         super();
@@ -339,21 +383,31 @@ abstract class ExportModal<X> extends BaseModal {
         const fieldset = document.createElement('fieldset');
 
         exportOptions.forEach((opt, index) => {
-            const htmlInputElement = document.createElement('input');
-            htmlInputElement.type = 'radio';
-            if (index === 0) {
-                htmlInputElement.checked = true;
-            }
-            htmlInputElement.value = opt.name;
-            htmlInputElement.name = 'exporttype';
+            const htmlInputElement = el('input', {
+                props: {
+                    type: 'radio',
+                    checked: index === 0,
+                    value: opt.name,
+                    name: 'exporttype',
+                },
+            });
+
             const labeled = labeledRadioButton(opt.name, htmlInputElement);
             fieldset.appendChild(labeled);
             htmlInputElement.addEventListener('change', ev => {
                 this.selectedOption = opt;
             });
+
         });
+        const legacyLinkFormatCb = new FieldBoundCheckBox<ExportModal<X>>(this, 'legacyLinkFormat');
+        const labeled = labeledCheckbox('Use legacy link format', legacyLinkFormatCb);
+        labeled.title = 'Use this if you are exporting for use on a third party tool or website which expects an older link format.';
+        this.linkFormatToggle = labeled;
+        this.linkFormatCheckbox = legacyLinkFormatCb;
+        legacyLinkFormatCb.addListener(() => this.rewriteTextArea());
 
         this.contentArea.appendChild(fieldset);
+        this.contentArea.appendChild(labeled);
 
         const previewButton = makeActionButton('Preview', () => this.doPreview());
 
@@ -378,10 +432,12 @@ abstract class ExportModal<X> extends BaseModal {
 
     private set selectedOption(value: ExportMethod<X>) {
         this._selectedOption = value;
+        this.linkFormatCheckbox.disabled = !value.showLinkFormatToggle;
+        this.linkFormatToggle.style.opacity = value.showLinkFormatToggle ? '1' : '0';
         this.refreshSelection();
     }
 
-    doExport(selectedType: ExportMethod<X>): Promise<string> {
+    doExport(selectedType: ExportMethod<X>): Promise<ExportLine[]> {
         recordSheetEvent("doExport", this.sheet, {
             'exportType': selectedType.name,
         });
@@ -397,7 +453,8 @@ abstract class ExportModal<X> extends BaseModal {
 
     async refreshSelection() {
         const selectedType = this.selectedOption;
-        this.textValue = '';
+        this.exportResult = undefined;
+        this.textBox.value = '';
         let isSingleSetExport = false;
         SET_EXPORT_OPTIONS.forEach(x => {
             if (selectedType === x) {
@@ -413,41 +470,49 @@ abstract class ExportModal<X> extends BaseModal {
         }
         else {
             this.variableButton.textContent = 'Generate';
-            this.textValue = DEFAULT_EXPORT_TEXT;
+            this.textBox.value = DEFAULT_EXPORT_TEXT;
             this.varButtonAction = () => {
                 // TODO: loading blocker
                 this.variableButton.textContent = 'Wait...';
-                this.textValue = 'Wait...';
+                this.textBox.value = 'Wait...';
                 this.doExport(selectedType).then(value => {
                     this.setResultData(selectedType, value);
                 }, err => {
                     console.error(err);
-                    this.setResultData(selectedType, "Error!");
+                    this.setResultData(selectedType, ["Error!"]);
                 });
             };
         }
 
     }
 
-    set textValue(value: string) {
-        this.textBox.value = value;
-    }
-
-    get textValue() {
-        return this.textBox.value;
-    }
-
     // TODO: some kind of concurrency check
-    setResultData(exportType: ExportMethod<X>, data: string): void {
-        this.textValue = data;
+    setResultData(exportType: ExportMethod<X>, data: ExportLine[]): void {
+        this.exportResult = {
+            exportType,
+            lines: data,
+        };
+        this.rewriteTextArea();
+        const text = data.map(line => line.toString()).join('\n');
         if (exportType.openInsteadOfCopy) {
             this.variableButton.textContent = 'Go';
-            this.varButtonAction = () => window.open(data, '_blank');
+            this.varButtonAction = () => window.open(text, '_blank');
         }
         else {
             this.variableButton.textContent = 'Copy';
-            this.varButtonAction = () => navigator.clipboard.writeText(data);
+            this.varButtonAction = () => navigator.clipboard.writeText(this.textBox.value);
         }
+    }
+
+    private rewriteTextArea(): void {
+        const result = this.exportResult;
+        if (result === undefined) {
+            return;
+        }
+        const lines = result.exportType.showLinkFormatToggle
+            ? formatExportLines(result.lines, this.legacyLinkFormat)
+            : result.lines.map(line => line.toString());
+        this.textBox.value = lines.join('\n');
     }
 }
 
