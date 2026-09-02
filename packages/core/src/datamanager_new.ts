@@ -5,7 +5,8 @@ import {
     LEVEL_ITEMS,
     MATERIA_LEVEL_MAX_NORMAL,
     MATERIA_LEVEL_MAX_OVERMELD,
-    MATERIA_SLOTS_MAX, MateriaSubstat,
+    MATERIA_SLOTS_MAX,
+    MateriaSubstat,
     statById,
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
@@ -352,7 +353,7 @@ export class NewApiDataManager implements DataManager {
                             if (i.displayGearSlotName === 'Weapon') {
                                 return true;
                             }
-                            if (i.displayGearSlotName === 'OffHand' && i.usableByJob('FSH'))  {
+                            if (i.displayGearSlotName === 'OffHand' && i.usableByJob('FSH')) {
                                 // Include FSH offhand
                                 console.log(`Including FSH offhand ${i.id}`);
                                 return true;

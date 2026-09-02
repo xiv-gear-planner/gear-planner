@@ -6,7 +6,6 @@ import {
     NO_REDIR_HASH,
     ONLY_SET_QUERY_PARAM,
     parsePath,
-    QUERY_PATH_MAX_LENGTH,
     SELECTION_INDEX_QUERY_PARAM,
     splitHashLegacy,
     tryParseOptionalIntParam
