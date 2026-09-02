@@ -8,3 +8,4 @@
 **/.nyc_output/
 **/.DS_Store
 /.idea/queries/
+/.idea/dataSources/

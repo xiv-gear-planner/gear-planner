@@ -5,7 +5,7 @@ import {
     LEVEL_ITEMS,
     MATERIA_LEVEL_MAX_NORMAL,
     MATERIA_LEVEL_MAX_OVERMELD,
-    MATERIA_SLOTS_MAX,
+    MATERIA_SLOTS_MAX, MateriaSubstat,
     statById,
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
@@ -1018,7 +1018,7 @@ export function processRawMateriaInfo(data: ApiMateriaData): Materia[] {
             id: itemId,
             iconUrl: new URL(itemData.icon.url),
             stats: stats,
-            primaryStat: stat,
+            primaryStat: stat as MateriaSubstat,
             primaryStatValue: stats[stat],
             materiaGrade: grade,
             isHighGrade: (grade % 2) === 0 && grade >= 6,

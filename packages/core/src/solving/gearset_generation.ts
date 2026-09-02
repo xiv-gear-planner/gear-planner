@@ -12,7 +12,7 @@ import {
 } from "@xivgear/xivmath/geartypes";
 import {
     ALL_COMBAT_SUB_STATS,
-    MATERIA_ACCEPTABLE_OVERCAP_LOSS,
+    DEFAULT_MATERIA_ACCEPTABLE_OVERCAP_LOSS,
     MateriaSubstat,
     NORMAL_GCD
 } from "@xivgear/xivmath/xivconstants";
@@ -375,8 +375,9 @@ export class GearsetGenerator {
                     const lostToOvercap = Math.max(0, materia.primaryStatValue - (newStatAmount - oldStatAmount));
                     const newStatsKey = this.statsToKey(newStats);
 
+                    // TODO: this uses DEFAULT_MATERIA_ACCEPTABLE_OVERCAP_LOSS rather than
                     // Ignore anything that will cause large amounts of overcap, any skip any non-unique stat totals
-                    if (lostToOvercap <= MATERIA_ACCEPTABLE_OVERCAP_LOSS && !itemsToAdd.has(newStatsKey)) {
+                    if (lostToOvercap <= DEFAULT_MATERIA_ACCEPTABLE_OVERCAP_LOSS && !itemsToAdd.has(newStatsKey)) {
                         const newMelds: MeldableMateriaSlot[] = this.cloneMelds(existingCombination.item.melds);
                         newMelds[slotNum].equippedMateria = materia;
                         itemsToAdd.set(newStatsKey, new ItemWithStats(new EquippedItem(equippedItem.gearItem, newMelds), newStats));

@@ -267,7 +267,7 @@ export interface Materia extends XivCombatItem {
     /**
      * The stat given by the materia
      */
-    primaryStat: RawStatKey,
+    primaryStat: MateriaSubstat,
     /**
      * The value of the stat given by the materia
      */
@@ -886,6 +886,10 @@ export interface SheetExport {
      */
     mfMinGcd?: number,
     /**
+     * The maximum stat waste allowed by materia auto-fill, by stat.
+     */
+    mfMaxWaste?: MateriaWasteLimits,
+    /**
      * If ilvl sync is enabled, this represents what level the sheet should be synced to
      */
     ilvlSync?: number,
@@ -1221,9 +1225,12 @@ export type MateriaAutoFillController = {
     unequipUnlocked(): void;
 }
 
+export type MateriaWasteLimits = Partial<Record<MateriaSubstat, number>>;
+
 export interface MateriaAutoFillPrio {
     statPrio: (MateriaSubstat)[];
     minGcd: number;
+    maxWaste: MateriaWasteLimits;
 }
 
 export const MATERIA_FILL_MODES = ['leave_empty', 'autofill', 'retain_slot_else_prio', 'retain_item_else_prio', 'retain_slot', 'retain_item'] as const;
