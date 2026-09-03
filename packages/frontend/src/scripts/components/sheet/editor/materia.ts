@@ -6,17 +6,27 @@ import {
     Materia,
     MATERIA_FILL_MODES,
     MateriaAutoFillController,
+    MateriaAutoFillPrio,
     MateriaFillMode,
     MeldableMateriaSlot,
     RawStatKey
 } from "@xivgear/xivmath/geartypes";
-import {MateriaSubstat, MAX_GCD, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "@xivgear/xivmath/xivconstants";
+import {
+    DEFAULT_MATERIA_ACCEPTABLE_OVERCAP_LOSS,
+    MateriaSubstat,
+    MateriaSubstats,
+    MAX_GCD,
+    STAT_ABBREVIATIONS,
+    STAT_FULL_NAMES
+} from "@xivgear/xivmath/xivconstants";
 import {
     el,
     FieldBoundDataSelect,
     FieldBoundFloatField,
+    FieldBoundIntOrUndefField,
     labelFor,
     makeActionButton,
+    nonNegative,
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {GearPlanSheet} from "@xivgear/core/sheet";
@@ -24,8 +34,17 @@ import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {GearPlanSheetGui} from "../sheet_gui";
 import {recordCurrentSheetEvent} from "../../../analytics/analytics";
 import {MODAL_CONTROL} from "@xivgear/common-ui/modalcontrol";
-import {makeLockIcon, makeNewSheetIcon, makePlusIcon, makeTrashIcon} from "@xivgear/common-ui/components/icons";
+import {
+    makeLockIcon,
+    makeNewSheetIcon,
+    makePlusIcon,
+    makeTrashIcon,
+    settingsIcon
+} from "@xivgear/common-ui/components/icons";
 import {getMateriaFillModeName, materiaShortLabel} from "@xivgear/core/materia/materia_utils";
+import {BaseModal} from "@xivgear/common-ui/components/modal";
+import {writeProxy} from "@xivgear/util/proxies";
+import {elt} from "@xivgear/common-ui/components/templates";
 
 /**
  * Component for managing all materia slots on an item
@@ -477,12 +496,20 @@ export class MateriaPriorityPicker extends HTMLElement {
             prioController.fillEmpty();
             recordEvent("fillEmpty");
         }, 'Fill all empty materia slots according to the chosen priority.');
-        fillEmptyNow.classList.add('materia-fill-button');
+        fillEmptyNow.classList.add('materia-fill-button', 'icon-text-button');
+
         const fillAllNow = makeActionButton([makeNewSheetIcon(), 'Fill All'], () => {
             prioController.fillAll();
             recordEvent("fillAll");
         }, 'Empty out and re-fill all materia slots according to the chosen priority.');
-        fillAllNow.classList.add('materia-fill-button');
+        fillAllNow.classList.add('materia-fill-button', 'icon-text-button');
+
+        const maxWasteSettings = makeActionButton([settingsIcon()], () => {
+            new MateriaAutoFillSettingsModal(prioController, sheet).attachAndShowTop();
+            recordEvent("openMateriaAutoFillSettings");
+        }, 'Configure the maximum stat waste allowed by materia auto-fill.');
+        maxWasteSettings.classList.add('materia-fill-button');
+        maxWasteSettings.setAttribute('aria-label', 'Configure materia auto-fill settings');
 
         const lockAllEquipped = makeActionButton('Lock Filled', () => {
             prioController.lockFilled();
@@ -541,12 +568,43 @@ export class MateriaPriorityPicker extends HTMLElement {
             ...(isCombat ? [minGcdText, minGcdInput, document.createElement('br')] : []),
             fillModeLabel, fillModeDropdown,
             document.createElement('br'),
-            fillEmptyNow, fillAllNow,
+            fillEmptyNow, fillAllNow, maxWasteSettings,
             document.createElement('br'),
             lockAllEquipped, lockAllEmpty, unlockAll, unequipAll,
             document.createElement('br'),
             tips
         );
+    }
+}
+
+export class MateriaAutoFillSettingsModal extends BaseModal {
+    constructor(prioController: MateriaAutoFillController, sheet: GearPlanSheetGui) {
+        super();
+        this.headerText = 'Materia Auto-Fill Settings';
+
+        const explanation = elt('p')`Configure the maximum overcap loss for each stat. The materia autofiller will not consider a particular materia if it would lose more than the given value.`;
+        const settings = quickElement('div', ['materia-max-waste-settings']);
+        const prio: MateriaAutoFillPrio = prioController.prio;
+        const maxWaste = writeProxy(prio.maxWaste, () => prioController.callback());
+        const mats = sheet.relevantMateria;
+        const stats = MateriaSubstats.filter(stat => mats.some(materia => materia.primaryStat === stat));
+
+        for (const stat of stats) {
+            const input = new FieldBoundIntOrUndefField(maxWaste, stat, {
+                postValidators: [nonNegative],
+            });
+            input.classList.add('materia-max-waste-input');
+            input.placeholder = String(DEFAULT_MATERIA_ACCEPTABLE_OVERCAP_LOSS);
+            input.title = `Maximum ${STAT_FULL_NAMES[stat]} points allowed to be wasted.`;
+            const row = quickElement('div', ['materia-max-waste-row'], [
+                labelFor(`${STAT_FULL_NAMES[stat]}:`, input),
+                input,
+            ]);
+            settings.appendChild(row);
+        }
+
+        this.contentArea.append(explanation, settings);
+        this.addCloseButton();
     }
 }
 
@@ -756,3 +814,4 @@ customElements.define("slot-materia-popup", SlotMateriaManagerPopup);
 customElements.define("materia-priority-picker", MateriaPriorityPicker);
 customElements.define("materia-drag-order", MateriaDragList);
 customElements.define("materia-dragger", MateriaDragger);
+customElements.define("materia-autofill-settings-modal", MateriaAutoFillSettingsModal);

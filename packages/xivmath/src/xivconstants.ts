@@ -60,7 +60,7 @@ export const MAX_ILVL = 999;
  * considered an overcap. e.g. if we have a +36 materia, and we only have 34 points
  * until the cap, consider that okay.
  */
-export const MATERIA_ACCEPTABLE_OVERCAP_LOSS = 2;
+export const DEFAULT_MATERIA_ACCEPTABLE_OVERCAP_LOSS = 2;
 
 export const STANDARD_ANIMATION_LOCK = 0.6;
 

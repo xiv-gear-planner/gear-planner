@@ -16,6 +16,7 @@ import {
     JobName,
     LEVEL_ITEMS,
     MAIN_STATS,
+    DEFAULT_MATERIA_ACCEPTABLE_OVERCAP_LOSS,
     MateriaSubstat,
     RaceName,
     SPECIAL_STAT_KEYS,
@@ -43,6 +44,7 @@ import {
     MateriaAutoFillPrio,
     MateriaFillMode,
     MateriaSlot,
+    MateriaWasteLimits,
     MeldableMateriaSlot,
     NormalOccGearSlotKey,
     OccGearSlotKey,
@@ -271,10 +273,12 @@ export class GearPlanSheet {
             // if the import does not include hidden item info, reset this to the default.
             this._itemDisplaySettings.showHidden = defaults.showHidden;
         }
+        const maxWaste: MateriaWasteLimits = {...(importedData.mfMaxWaste ?? {})};
         this.materiaAutoFillPrio = {
             statPrio: importedData.mfp ?? [...DefaultMateriaFillPrio.filter(stat => this.isStatRelevant(stat))],
             // Just picking a bogus value so the user understands what it is
             minGcd: importedData.mfMinGcd ?? 2.05,
+            maxWaste: maxWaste,
         };
         this.materiaFillMode = importedData.mfm ?? 'retain_item';
 
@@ -419,6 +423,13 @@ export class GearPlanSheet {
             return mat.materiaGrade <= lvlItemInfo.maxMateria
                 // && mat.materiaGrade >= lvlItemInfo.minMateria
                 && this.isStatRelevant(mat.primaryStat);
+        });
+        this._relevantMateria.forEach(mat => {
+            const stat = mat.primaryStat;
+            if (stat in this.materiaAutoFillPrio.maxWaste) {
+                return;
+            }
+            this.materiaAutoFillPrio.maxWaste[stat] = DEFAULT_MATERIA_ACCEPTABLE_OVERCAP_LOSS;
         });
         this.recheckCustomItems();
         for (const importedSet of saved.sets) {
@@ -592,6 +603,7 @@ export class GearPlanSheet {
             mfm: this.materiaFillMode,
             mfp: this.materiaAutoFillPrio.statPrio,
             mfMinGcd: this.materiaAutoFillPrio.minGcd,
+            mfMaxWaste: this.materiaAutoFillPrio.maxWaste,
             ilvlSync: this.ilvlSync,
             description: this.description,
             customItems: this._customItems.map(ci => ci.export()),

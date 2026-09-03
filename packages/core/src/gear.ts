@@ -7,7 +7,7 @@ import {
     getRaceStats,
     JobName,
     MAIN_STATS,
-    MATERIA_ACCEPTABLE_OVERCAP_LOSS,
+    DEFAULT_MATERIA_ACCEPTABLE_OVERCAP_LOSS,
     MateriaSubstat,
     NORMAL_GCD,
     RaceName,
@@ -911,6 +911,7 @@ export class CharacterGearSet {
                     // TODO: we also have gearItem.substatCap we can use to make it more direct
                     const override = this.sheet.classJobStats.gcdDisplayOverrides?.(this.sheet.level) ?? [];
                     for (const stat of statPrio) {
+                        const maxWaste = prio.maxWaste[stat] ?? DEFAULT_MATERIA_ACCEPTABLE_OVERCAP_LOSS;
                         if (stat === 'skillspeed') {
                             const over = override.find(over => over.basis === 'sks' && over.isPrimary);
                             const attackType = over ? over.attackType : 'Weaponskill';
@@ -947,7 +948,7 @@ export class CharacterGearSet {
                             console.error(`Failed to calculate substat cap for ${stat} on ${gearItem.id} (${gearItem.id})`);
                             return 1000;
                         })();
-                        if (newMateria.primaryStatValue + slotStats[stat] - MATERIA_ACCEPTABLE_OVERCAP_LOSS < cap) {
+                        if (newMateria.primaryStatValue + slotStats[stat] - maxWaste <= cap) {
                             meldSlot.equippedMateria = newMateria;
                             continue materiaLoop;
                         }

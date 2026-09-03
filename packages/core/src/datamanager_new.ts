@@ -6,6 +6,7 @@ import {
     MATERIA_LEVEL_MAX_NORMAL,
     MATERIA_LEVEL_MAX_OVERMELD,
     MATERIA_SLOTS_MAX,
+    MateriaSubstat,
     statById,
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
@@ -352,7 +353,7 @@ export class NewApiDataManager implements DataManager {
                             if (i.displayGearSlotName === 'Weapon') {
                                 return true;
                             }
-                            if (i.displayGearSlotName === 'OffHand' && i.usableByJob('FSH'))  {
+                            if (i.displayGearSlotName === 'OffHand' && i.usableByJob('FSH')) {
                                 // Include FSH offhand
                                 console.log(`Including FSH offhand ${i.id}`);
                                 return true;
@@ -1018,7 +1019,7 @@ export function processRawMateriaInfo(data: ApiMateriaData): Materia[] {
             id: itemId,
             iconUrl: new URL(itemData.icon.url),
             stats: stats,
-            primaryStat: stat,
+            primaryStat: stat as MateriaSubstat,
             primaryStatValue: stats[stat],
             materiaGrade: grade,
             isHighGrade: (grade % 2) === 0 && grade >= 6,
