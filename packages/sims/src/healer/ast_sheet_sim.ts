@@ -42,41 +42,69 @@ export type AstExtraData = {
 }
 
 const filler: AstGcdAbility = {
-    id: 25871,
+    id: 7442,
     type: 'gcd',
-    name: "Fall Malefic",
-    potency: 250,
+    name: "Malefic III",
+    potency: 190,
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5,
     levelModifiers: [
         {
+            minLevel: 72,
+            id: 16555,
+            name: "Malefic IV",
+            potency: 230,
+        },
+        {
+            minLevel: 82,
+            id: 25871,
+            name: "Fall Malefic",
+            potency: 250,
+        },
+        {
             minLevel: 94,
+            id: 25871,
+            name: "Fall Malefic",
             potency: 270,
         },
     ],
 };
 
 const combust: AstGcdAbility = {
-    id: 16554,
+    id: 3608,
     type: 'gcd',
-    name: "Combust III",
+    name: "Combust II",
     potency: 0,
     dot: {
-        id: 2041,
-        tickPotency: 55,
+        id: 843,
+        tickPotency: 60,
         duration: 30,
     },
     attackType: "Spell",
     gcd: 2.5,
-    levelModifiers: [{
-        minLevel: 94,
-        dot: {
-            id: 2041,
-            tickPotency: 70,
-            duration: 30,
+    levelModifiers: [
+        {
+            minLevel: 72,
+            id: 16554,
+            name: "Combust III",
+            dot: {
+                id: 2041,
+                tickPotency: 65,
+                duration: 30,
+            },
         },
-    }],
+        {
+            minLevel: 94,
+            id: 16554,
+            name: "Combust III",
+            dot: {
+                id: 2041,
+                tickPotency: 70,
+                duration: 30,
+            },
+        },
+    ],
 };
 
 const star: AstOgcdAbility = {
@@ -299,6 +327,7 @@ export const astNewSheetSpec: SimSpec<AstSim, AstSettingsExternal> = {
     },
     stub: "ast-sheet-sim",
     supportedJobs: ['AST'],
+    supportedLevels: [70, 80, 90, 100],
     isDefaultSim: true,
 };
 
