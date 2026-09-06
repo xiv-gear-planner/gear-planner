@@ -108,6 +108,9 @@ export class CustomItem implements GearItem {
             // respectCaps is false for existing items to not cause changes to sheets
             respectCaps: false,
             ...exportedData,
+            // Pre DoH/DoL exports won't have the full set of stats.
+            // Reconstruct RawStats so those fields receive their zero defaults.
+            stats: new RawStats(exportedData.stats),
         }, sheet);
     }
 
