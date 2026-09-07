@@ -340,6 +340,19 @@ describe('stats server', () => {
                 expect(json.name).to.equal("WHM 6.4 copy");
             }).timeout(30_000);
 
+            it('bug repro - control is required', async () => {
+                /*
+                The issue here is that if you have a custom item from before when doh/dol was added, then it will lack
+                the new stats and cause a validation error on the fulldata endpoint.
+                 */
+                const response = await fastify.inject({
+                    method: 'GET',
+                    url: '/fulldata?url=https%3A%2F%2Fxivgear.app%2Fsl%2Fe059f0c9-6f36-402d-97d3-0409ee5b9c44',
+                });
+                expect(response.statusCode).to.equal(200);
+                const json = response.json() as SheetStatsExport;
+                expect(json.name).to.equal("7.5 SAM");
+            });
         });
     });
 
