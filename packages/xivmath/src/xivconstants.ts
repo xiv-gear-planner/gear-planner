@@ -227,6 +227,7 @@ const NON_COMBAT = {
     aaPotency: 0,
     excludedRelicSubstats: [],
     offhand: true,
+    minLevel: 50,
     // Don't display any GCDs
     gcdDisplayOverrides: () => [],
 } as const satisfies Partial<JobDataConst>;
