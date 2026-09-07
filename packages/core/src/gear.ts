@@ -28,6 +28,7 @@ import {
     GearSetResult,
     JobData,
     Materia,
+    MedicineItem,
     MateriaAutoFillController,
     MateriaAutoFillPrio,
     MateriaMemoryExport,
@@ -237,6 +238,7 @@ export function previewItemStatDetail(item: GearItem, stat: RawStatKey): ItemSin
 type GearSetCheckpoint = {
     equipment: EquipmentSet;
     food: FoodItem | undefined;
+    medicine: MedicineItem | undefined;
     jobOverride: JobName | null;
     name: string;
     description: string | undefined;
@@ -262,6 +264,7 @@ export class CharacterGearSet {
     private _jobOverride: JobName | null = null;
     private _raceOverride: RaceName | null = null;
     private _food: FoodItem | undefined;
+    private _medicine: MedicineItem | undefined;
     private readonly _sheet: GearPlanSheet;
     private readonly refresher = new Inactivitytimer(0, () => {
         this._notifyListeners();
@@ -320,6 +323,13 @@ export class CharacterGearSet {
     }
 
     /**
+     * The medicine item currently selected, else undefined if no medicine is selected.
+     */
+    get medicine(): MedicineItem | undefined {
+        return this._medicine;
+    }
+
+    /**
      * The sheet of which this set is a member.
      */
     get sheet(): GearPlanSheet {
@@ -334,6 +344,11 @@ export class CharacterGearSet {
         this._food = food;
         this.invalidate();
         this.notifyListeners();
+    }
+
+    set medicine(medicine: MedicineItem | undefined) {
+        this._medicine = medicine;
+        this.forceRecalc();
     }
 
     get jobOverride(): JobName | null {
@@ -632,7 +647,17 @@ export class CharacterGearSet {
         this._dirtyComp = false;
         // Add BLU weapon damage modifier
         combinedStats.wdMag += classJob === "BLU" ? bluWdfromInt(gearIntStat) : 0;
-        const computedStats = finalizeStats(combinedStats, this._food?.bonuses ?? {}, level, levelStats, classJob, classJobStats, this._sheet.partyBonus, raceStats);
+        const computedStats = finalizeStats(
+            combinedStats,
+            this._food?.bonuses ?? {},
+            level,
+            levelStats,
+            classJob,
+            classJobStats,
+            this._sheet.partyBonus,
+            raceStats,
+            this._medicine?.bonuses ?? {}
+        );
         const leftRing = this.getItemInSlot('RingLeft');
         const rightRing = this.getItemInSlot('RingRight');
         if (leftRing && leftRing.isUnique && rightRing && rightRing.isUnique) {
@@ -1015,6 +1040,7 @@ export class CharacterGearSet {
         const checkpoint: GearSetCheckpoint = {
             equipment: cloneEquipmentSet(this.equipment),
             food: this._food,
+            medicine: this._medicine,
             jobOverride: this._jobOverride,
             name: this._name,
             description: this._description,
@@ -1079,6 +1105,7 @@ export class CharacterGearSet {
         const newEquipment = cloneEquipmentSet(checkpoint.equipment);
         Object.assign(this.equipment, newEquipment);
         this._food = checkpoint.food;
+        this._medicine = checkpoint.medicine;
         this._name = checkpoint.name;
         this._description = checkpoint.description;
         if (checkpoint.jobOverride !== this._jobOverride) {

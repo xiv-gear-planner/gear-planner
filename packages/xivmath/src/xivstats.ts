@@ -131,7 +131,8 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
         private readonly classJob: JobName,
         private readonly classJobStats: JobData,
         readonly partyBonus: PartyBonusAmount,
-        readonly racialStats: RawStats
+        readonly racialStats: RawStats,
+        private readonly medicineStats: FoodBonuses = {}
     ) {
         this.finalBonusStats = new RawBonusStats();
         // TODO: order of operations here
@@ -146,6 +147,11 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
                 }
                 trait.apply(this.finalBonusStats);
             });
+        }
+        for (const key in this.medicineStats) {
+            const stat = key as RawStatKey;
+            const bonus = this.medicineStats[stat]!;
+            this.finalBonusStats[stat] += Math.min(fl(this[stat] * (bonus.percentage / 100)), bonus.max);
         }
     }
 
@@ -180,7 +186,8 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
             this.classJob,
             this.classJobStats,
             this.partyBonus,
-            this.racialStats
+            this.racialStats,
+            this.medicineStats
         );
         Object.assign(out.finalBonusStats, this.finalBonusStats);
         modifications(out, out.finalBonusStats);
@@ -463,10 +470,11 @@ export function finalizeStats(
     classJob: JobName,
     classJobStats: JobData,
     partyBonus: PartyBonusAmount,
-    racialStats: RawStats
+    racialStats: RawStats,
+    medicineStats: FoodBonuses = {}
 ) {
     return new ComputedSetStatsImpl(
-        gearStats, foodStats, level, levelStats, classJob, classJobStats, partyBonus, racialStats
+        gearStats, foodStats, level, levelStats, classJob, classJobStats, partyBonus, racialStats, medicineStats
     );
 
 }

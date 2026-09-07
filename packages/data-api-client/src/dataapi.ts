@@ -311,6 +311,10 @@ export type MateriaItem = XivApiObject &
     ilvl: number;
   };
 
+export interface MedicineEndpointResponse {
+  items: Food[];
+}
+
 export interface SchemaVersionEndpointResponse {
   schemaVersion: string;
 }
@@ -708,6 +712,22 @@ export class DataApiClient<
     materia: (params: RequestParams = {}) =>
       this.request<MateriaEndpointResponse, any>({
         path: `/Materia`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+  };
+  medicine = {
+    /**
+     * No description
+     *
+     * @name FoodItems1
+     * @summary Get medicine items
+     * @request GET:/Medicine
+     */
+    foodItems1: (params: RequestParams = {}) =>
+      this.request<MedicineEndpointResponse, any>({
+        path: `/Medicine`,
         method: "GET",
         format: "json",
         ...params,

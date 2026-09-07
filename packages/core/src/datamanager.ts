@@ -5,6 +5,7 @@ import {
     IlvlSyncInfo,
     JobMultipliers,
     Materia,
+    MedicineItem,
     OccGearSlotKey,
     RawStatKey
 } from "@xivgear/xivmath/geartypes";
@@ -34,6 +35,7 @@ export interface DataManager {
     readonly primaryClassJob: JobName;
     readonly allItems: GearItem[];
     readonly allFoodItems: FoodItem[];
+    readonly allMedicineItems: MedicineItem[];
     readonly allMateria: Materia[];
     readonly baseParams: BaseParamMap;
     readonly minIlvl: number;
@@ -65,6 +67,13 @@ export interface DataManager {
      * @param id
      */
     foodById(id: number): FoodItem | undefined;
+
+    /**
+     * Retrieve a medicine item by item ID. Returns undefined if the item cannot be found.
+     *
+     * @param id
+     */
+    medicineById(id: number): MedicineItem | undefined;
 
     /**
      * Asynchronously load the data.

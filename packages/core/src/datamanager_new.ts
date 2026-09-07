@@ -24,6 +24,7 @@ import {
     IlvlSyncInfo,
     JobMultipliers,
     Materia,
+    MedicineItem,
     MateriaSlot,
     OccGearSlotKey,
     RawStatKey,
@@ -42,7 +43,7 @@ import {
 import {BaseParamMap, DataManager, DmJobs} from "./datamanager";
 import {applyStatCaps} from "./gear";
 import {toTranslatable, TranslatableString} from "@xivgear/i18n/translation";
-import {ApiFoodData, ApiItemData, ApiMateriaData, checkResponse, DATA_API_CLIENT} from "./data_api_client";
+import {ApiFoodData, ApiItemData, ApiMateriaData, ApiMedicineData, checkResponse, DATA_API_CLIENT} from "./data_api_client";
 import {addStats} from "@xivgear/xivmath/xivstats";
 import {arrayEqTyped} from "@xivgear/util/array_utils";
 import {xivApiIconUrl} from "./external/xivapi";
@@ -78,6 +79,7 @@ export class NewApiDataManager implements DataManager {
     private _allItems: DataApiGearInfo[] | undefined;
     private _allMateria: Materia[] | undefined;
     private _allFoodItems: DataApiFoodInfo[] | undefined;
+    private _allMedicineItems: DataApiMedicineInfo[] | undefined;
     private _jobMultipliers: Map<JobName, JobMultipliers> | undefined;
     /**
      * _baseParams maps stat keys to BaseParamInfo. BaseParamInfo is a map from slot to percentages and meld params.
@@ -273,6 +275,11 @@ export class NewApiDataManager implements DataManager {
         return this._allFoodItems.find(food => food.id === id);
     }
 
+    medicineById(id: number) {
+        // @x-ts-expect-error - assumed that DataManager is not meaningfully used prior to loading data
+        return this._allMedicineItems.find(medicine => medicine.id === id);
+    }
+
 
     async loadData() {
         const baseParamPromise = this.queryBaseParams().then(response => {
@@ -438,6 +445,17 @@ export class NewApiDataManager implements DataManager {
             })
             .then((processedFoods) => processedFoods.filter(food => Object.keys(food.bonuses).length > 1))
             .then((foods) => this._allFoodItems = foods);
+        const hasNonCombatJob = this._allJobs.some(job => JOB_DATA[job].type !== 'Combat');
+        const medicinePromise = hasNonCombatJob
+            ? this.apiClient.medicine.foodItems1()
+                .then((response) => {
+                    checkResponse(response);
+                    console.log(`Got ${response.data.items.length} Medicine Items`);
+                    return response.data.items;
+                })
+                .then(rawMedicine => rawMedicine.map(item => new DataApiMedicineInfo(item)))
+                .then(medicine => this._allMedicineItems = medicine)
+            : Promise.resolve(this._allMedicineItems = []);
         console.log("Loading jobs");
         const jobsPromise = this.apiClient.jobs.jobs()
             .then(response => {
@@ -460,7 +478,7 @@ export class NewApiDataManager implements DataManager {
             });
         // These will all resolve at the same time, so it doesn't matter which one we await
         const ilvlPromise = this.getIlvlSyncData(baseParamPromise, 710);
-        await Promise.all([baseParamPromise, itemsPromise, statsPromise, materiaPromise, foodPromise, jobsPromise, ilvlPromise]);
+        await Promise.all([baseParamPromise, itemsPromise, statsPromise, materiaPromise, foodPromise, medicinePromise, jobsPromise, ilvlPromise]);
         await Promise.all(extraPromises);
     }
 
@@ -481,6 +499,10 @@ export class NewApiDataManager implements DataManager {
 
     get allFoodItems(): DataApiFoodInfo[] {
         return this._allFoodItems;
+    }
+
+    get allMedicineItems(): DataApiMedicineInfo[] {
+        return this._allMedicineItems;
     }
 
     get allMateria(): Materia[] {
@@ -977,6 +999,44 @@ export class DataApiFoodInfo implements FoodItem {
     secondarySubStat: RawStatKey | undefined;
 
     constructor(data: ApiFoodData) {
+        this.id = requireNumber(data.rowId);
+        this.name = requireString(data.name);
+        this.iconUrl = new URL(data.icon.url);
+        this.ilvl = requireNumber(data.levelItem);
+        this.nameTranslation = toTranslatable(this.name, data.nameTranslations);
+        for (const rawKey in data.bonusesHQ) {
+            if (rawKey === '0') {
+                continue;
+            }
+            const actualKey = statById(parseInt(rawKey));
+            this.bonuses[actualKey] = data.bonusesHQ[rawKey];
+        }
+        const sortedStats = Object.entries(this.bonuses).sort((entryA, entryB) => entryB[1].max - entryA[1].max).map(entry => entry[0] as RawStatKey).filter(stat => stat !== 'vitality');
+        if (sortedStats.length >= 1) {
+            this.primarySubStat = sortedStats[0];
+        }
+        if (sortedStats.length >= 2) {
+            this.secondarySubStat = sortedStats[1];
+        }
+    }
+}
+
+export class DataApiMedicineInfo implements MedicineItem {
+    bonuses: {
+        [K in RawStatKey]?: {
+            percentage: number;
+            max: number
+        }
+    } = {};
+    iconUrl: URL;
+    id: number;
+    name: string;
+    readonly nameTranslation: TranslatableString;
+    ilvl: number;
+    primarySubStat: RawStatKey | undefined;
+    secondarySubStat: RawStatKey | undefined;
+
+    constructor(data: ApiMedicineData) {
         this.id = requireNumber(data.rowId);
         this.name = requireString(data.name);
         this.iconUrl = new URL(data.icon.url);

@@ -40,6 +40,7 @@ import {
     JobDataConst,
     JobDataExport,
     Materia,
+    MedicineItem,
     MateriaAutoFillController,
     MateriaAutoFillPrio,
     MateriaFillMode,
@@ -748,6 +749,7 @@ export class GearPlanSheet {
             name: set.name,
             items: items,
             food: set.food ? set.food.id : undefined,
+            medicine: set.medicine ? set.medicine.id : undefined,
             description: set.description,
             isSeparator: set.isSeparator,
         };
@@ -807,6 +809,15 @@ export class GearPlanSheet {
         else {
             return this.dataManager.foodById(id);
         }
+    }
+
+    /**
+     * Return a medicine item from the DataManager by its ID. Returns undefined if the item could not be found.
+     *
+     * @param id
+     */
+    medicineById(id: number): MedicineItem | undefined {
+        return this.dataManager.medicineById(id);
     }
 
     /**
@@ -1026,6 +1037,9 @@ export class GearPlanSheet {
             }
             if (importedSet.food) {
                 set.food = this.foodById(importedSet.food);
+            }
+            if (importedSet.medicine) {
+                set.medicine = this.medicineById(importedSet.medicine);
             }
             if (importedSet.relicStatMemory) {
                 set.relicStatMemory.import(importedSet.relicStatMemory);
@@ -1433,6 +1447,25 @@ export class GearPlanSheet {
         return this.dataManager.allFoodItems;
     }
 
+    /**
+     * Medicine items which are relevant to the current job and pass the item-level filter.
+     */
+    get medicineItemsForDisplay(): MedicineItem[] {
+        const settings = this._itemDisplaySettings;
+        return this.dataManager.allMedicineItems.filter(item =>
+            item.ilvl >= settings.minILvlFood
+            && item.ilvl <= settings.maxILvlFood
+            && (this.isStatRelevant(item.primarySubStat) || this.isStatRelevant(item.secondarySubStat))
+        );
+    }
+
+    /**
+     * All medicine items.
+     */
+    get allMedicineItems(): MedicineItem[] {
+        return this.dataManager.allMedicineItems;
+    }
+
     get allMateria(): Materia[] {
         return this.dataManager.allMateria;
     }
@@ -1610,11 +1643,11 @@ export class GearPlanSheet {
         return null;
     }
 
-    isItemHidden(item: GearItem | FoodItem): boolean {
+    isItemHidden(item: GearItem | FoodItem | MedicineItem): boolean {
         return this.hiddenItems.has(item.id);
     }
 
-    setItemHidden(item: GearItem | FoodItem, isHidden: boolean) {
+    setItemHidden(item: GearItem | FoodItem | MedicineItem, isHidden: boolean) {
         if (isHidden) {
             this.hiddenItems.add(item.id);
         }
