@@ -492,9 +492,6 @@ export class MedicineItemsTable extends CustomTable<MedicineItem, TableSelection
                     hideButton.replaceChildren(sheet.isItemHidden(rowValue) ? showIcon() : hideIcon());
                     hideButton.addEventListener('click', () => {
                         sheet.setItemHidden(rowValue, !sheet.isItemHidden(rowValue));
-                        if (sheet.itemDisplaySettings.showHidden) {
-                            this.updateHiddenState();
-                        }
                     });
                     const buttonsArea = el('div', {class: 'item-hover-buttons-area'}, [trashButton, hideButton]);
                     return quickElement('div', ['food-name-holder-editable'], [quickElement('span', [], [name]), buttonsArea]);
@@ -544,7 +541,6 @@ export class MedicineItemsTable extends CustomTable<MedicineItem, TableSelection
             ? [showHideRow.row, new HeaderRow(), ...displayItems]
             : [showHideRow.row, new HeaderRow(), new TitleRow('No items available - please check your filters')];
         this.updateShowHide();
-        this.updateHiddenState();
     }
 
     private updateShowHide() {
@@ -553,9 +549,6 @@ export class MedicineItemsTable extends CustomTable<MedicineItem, TableSelection
         });
     }
 
-    private updateHiddenState() {
-        this.dataRowMap.forEach((row, value) => row.classList.toggle('hidden-item', this.gearSet.sheet.isItemHidden(value)));
-    }
 }
 
 export class MedicineItemViewTable extends CustomTable<MedicineItem> {

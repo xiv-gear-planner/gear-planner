@@ -1456,6 +1456,7 @@ export class GearPlanSheet {
             item.ilvl >= settings.minILvlFood
             && item.ilvl <= settings.maxILvlFood
             && (this.isStatRelevant(item.primarySubStat) || this.isStatRelevant(item.secondarySubStat))
+            && (settings.showHidden || !this.isItemHidden(item))
         );
     }
 
