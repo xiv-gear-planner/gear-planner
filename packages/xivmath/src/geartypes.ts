@@ -440,6 +440,7 @@ export interface ComputedSetStats extends RawStats {
     readonly magicDefenseDamageTaken: number;
 
     readonly effectiveFoodBonuses: RawStats;
+    readonly effectiveMedicineBonuses: RawStats;
 
     withModifications(modifications: StatModification, pre?: StatPreModifications): ComputedSetStats;
 }

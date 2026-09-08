@@ -20,7 +20,7 @@ body.modern {
     padding: var(--table-extra-padding);
     background-color: var(--table-bg-color);
 
-    &.gear-items-view-table, &.food-items-view-table {
+    &.gear-items-view-table, &.food-items-view-table, &.medicine-items-view-table {
       padding: 5px;
 
       .custom-table-header-row {
@@ -97,58 +97,63 @@ body.modern {
       }
     }
 
-    &.gear-items-table > tbody, &.food-items-table > tbody {
-      > tr:first-child > th {
-        border-top-left-radius: var(--standard-border-radius);
-        border-top-right-radius: var(--standard-border-radius);
-      }
-
-      > tr > th[col-id] {
-        font-size: small;
-        text-align: center;
-
-        &[col-id='itemname'] {
-          text-align: left;
-        }
-      }
-
-      > tr > * {
-        padding-left: 5px;
-        padding-right: 5px;
-      }
-
-      // Make the header row sticky
-      > tr:nth-child(2) {
-        position: sticky;
-        z-index: 99;
-        // Offsets the padding of the scrollable area
-        top: -8px;
-        background-color: transparent;
-
-        // this isn't supported on firefox and didn't seem to work on chrome
-        @container gear-sheet-editor-area scroll-state(stuck: top) {
-          //color: red;
-        }
-
-        > th {
-          --blended-bg: rgb(from var(--table-bg-color) r g b / 0);
-          background: linear-gradient(to top, var(--blended-bg) 0%, var(--table-bg-color) 6px);
-
-          &:first-child::before {
-            content: '';
+    &.gear-items-table, &.food-items-table, &.medicine-items-table {
+      > tbody {
+        > tr {
+          &:first-child > th {
+            border-top-left-radius: var(--standard-border-radius);
+            border-top-right-radius: var(--standard-border-radius);
           }
 
+          > th[col-id] {
+            font-size: small;
+            text-align: center;
+
+            &[col-id='itemname'] {
+              text-align: left;
+            }
+          }
+
+          > * {
+            padding-left: 5px;
+            padding-right: 5px;
+          }
+          // Make the header row sticky
+          &:nth-child(2) {
+            position: sticky;
+            z-index: 99;
+            // Offsets the padding of the scrollable area
+            top: -8px;
+            background-color: transparent;
+
+            // this isn't supported on firefox and didn't seem to work on chrome
+            @container gear-sheet-editor-area scroll-state(stuck: top) {
+              //color: red;
+            }
+
+            > th {
+              --blended-bg: rgb(from var(--table-bg-color) r g b / 0);
+              background: linear-gradient(to top, var(--blended-bg) 0%, var(--table-bg-color) 6px);
+
+              &:first-child::before {
+                content: '';
+              }
+
+            }
+          }
         }
+
+
       }
+
+      //Center wide stat columns
+      //th.stat-col {
+      //  &.chance-stat-col, &.multiplier-stat-col {
+      //    text-align: center;
+      //  }
+      //}
+
     }
-
-    //Center wide stat columns
-    //th.stat-col {
-    //  &.chance-stat-col, &.multiplier-stat-col {
-    //    text-align: center;
-    //  }
-    //}
-
   }
 
   --border-color-input: #0000;
@@ -201,6 +206,7 @@ body.modern {
       display: initial;
       max-height: 0;
       margin-bottom: 0;
+
       div#main-menu-area-inner {
         bottom: var(--top-nav-size);
       }

@@ -1508,177 +1508,178 @@ gear-plan {
   container-type: scroll-state;
 }
 
-table.gear-items-edit-table, table.food-items-edit-table {
-  width: 100%;
-
-  > tbody {
-    // Exclude header
-    > tr:has(> td) {
-      // Don't show text selection cursor on item tables since the text doesn't
-      // allow selection.
-      cursor: pointer;
+table {
+  &.gear-items-edit-table, &.food-items-edit-table, &.medicine-items-edit-table {
+    > tbody {
+      // Exclude header
+      > tr:has(> td) {
+        // Don't show text selection cursor on item tables since the text doesn't
+        // allow selection.
+        cursor: pointer;
+      }
     }
   }
 }
 
-table.gear-items-table, table.food-items-table {
-  margin-left: auto;
-  margin-right: auto;
-  .shadow();
+table {
+  &.gear-items-table, &.food-items-table, &.medicine-items-table {
+    margin-left: auto;
+    margin-right: auto;
+    .shadow();
 
-  show-hide-button {
-    margin-left: 15px;
-  }
-
-
-  // Match direct children only
-  > tbody {
-
-    > tr.hidden-item {
-      > td {
-        filter: saturate(5%);
-        color: color-mix(in srgb, var(--fg-color) 30%, transparent);
-      }
+    show-hide-button {
+      margin-left: 15px;
     }
 
-    > tr, td {
-      height: 25px;
-      box-sizing: border-box;
 
-      > td {
+    // Match direct children only
+    > tbody {
+
+      > tr.hidden-item {
+        > td {
+          filter: saturate(5%);
+          color: color-mix(in srgb, var(--fg-color) 30%, transparent);
+        }
+      }
+
+      > tr, td {
         height: 25px;
         box-sizing: border-box;
+
+        > td {
+          height: 25px;
+          box-sizing: border-box;
+        }
+      }
+
+      th.hoverable {
+        cursor: pointer;
+      }
+
+      > * > td > img {
+        height: 100%;
       }
     }
 
-    th.hoverable {
-      cursor: pointer;
+
+    max-width: var(--item-table-max-width);
+
+    [col-id='itemname'] {
+      width: var(--item-name-col-width);
+      max-width: var(--item-name-col-max-width);
+      min-width: 100px;
     }
 
-    > * > td > img {
-      height: 100%;
+    [col-id='ilvl'] {
+      overflow: visible;
+      text-align: center;
     }
-  }
 
-
-  max-width: var(--item-table-max-width);
-
-  [col-id='itemname'] {
-    width: var(--item-name-col-width);
-    max-width: var(--item-name-col-max-width);
-    min-width: 100px;
-  }
-
-  [col-id='ilvl'] {
-    overflow: visible;
-    text-align: center;
-  }
-
-  [col-id='icon'] {
-    box-sizing: content-box;
-    width: 23px;
-    max-width: 23px;
-    min-width: 23px;
-  }
-
-  th[col-id='itemname'] {
-    min-width: max-content;
-    position: relative;
-  }
-
-  td[col-id='mats'], td[col-id='wd'], td[col-id='haste'] {
-    text-align: center;
-  }
-
-  tr:last-child {
-    td, th {
-      border-top: none;
+    [col-id='icon'] {
+      box-sizing: content-box;
+      width: 23px;
+      max-width: 23px;
+      min-width: 23px;
     }
-  }
 
-  input[type='number'] {
-    -moz-appearance: textfield;
-
-    &::-webkit-inner-spin-button, &::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
+    th[col-id='itemname'] {
+      min-width: max-content;
+      position: relative;
     }
-  }
 
-  &.gear-items-edit-table, &.food-items-edit-table {
-    tr {
-      .item-name-holder-editable, .food-name-holder-editable {
-        display: flex;
-        flex-direction: row;
+    td[col-id='mats'], td[col-id='wd'], td[col-id='haste'] {
+      text-align: center;
+    }
 
-        span {
-          flex-basis: 1px;
-          flex-grow: 99;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          width: 1px;
-        }
+    tr:last-child {
+      td, th {
+        border-top: none;
+      }
+    }
 
-        // The button area should only show when hovering
-        .item-hover-buttons-area {
-          display: contents;
+    input[type='number'] {
+      -moz-appearance: textfield;
 
-          button {
-            cursor: pointer;
-            background: none;
-            .borderless-button();
+      &::-webkit-inner-spin-button, &::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+      }
+    }
 
-            padding: 0 0 0 3px;
-            margin: 0;
+    &.gear-items-edit-table, &.food-items-edit-table, &.medicine-items-edit-table {
+      tr {
+        .item-name-holder-editable, .food-name-holder-editable {
+          display: flex;
+          flex-direction: row;
 
-            height: min-content;
-            width: min-content;
-
-            svg {
-              fill: var(--fg-color);
-            }
-
-            &:hover {
-              fill: var(--action-input-hover-background-color);
-
-              svg {
-                fill: var(--action-input-hover-background-color);
-              }
-            }
+          span {
+            flex-basis: 1px;
+            flex-grow: 99;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 1px;
           }
 
-          // The remove item button should also be hidden unless the item is selected
-          .remove-item-button {
+          // The button area should only show when hovering
+          .item-hover-buttons-area {
+            display: contents;
+
+            button {
+              cursor: pointer;
+              background: none;
+              .borderless-button();
+
+              padding: 0 0 0 3px;
+              margin: 0;
+
+              height: min-content;
+              width: min-content;
+
+              svg {
+                fill: var(--fg-color);
+              }
+
+              &:hover {
+                fill: var(--action-input-hover-background-color);
+
+                svg {
+                  fill: var(--action-input-hover-background-color);
+                }
+              }
+            }
+
+            // The remove item button should also be hidden unless the item is selected
+            .remove-item-button {
+              display: none;
+            }
+          }
+        }
+
+        &[is-selected="true"] {
+          // When the item is selected, don't hide the remove-item-button
+          .item-hover-buttons-area {
+            .remove-item-button {
+              display: block;
+            }
+          }
+        }
+
+        &:not(:hover) {
+          .item-hover-buttons-area {
             display: none;
           }
         }
-      }
 
-      &[is-selected="true"] {
-        // When the item is selected, don't hide the remove-item-button
-        .item-hover-buttons-area {
-          .remove-item-button {
-            display: block;
+        &:hover {
+          .item-hover-buttons-area {
+            // When hovering, unhide the button area
+            //display: contents;
           }
-        }
-      }
-
-      &:not(:hover) {
-        .item-hover-buttons-area {
-          display: none;
-        }
-      }
-
-      &:hover {
-        .item-hover-buttons-area {
-          // When hovering, unhide the button area
-          //display: contents;
         }
       }
     }
   }
-
 }
 
 .left-side-gear-table, .right-side-gear-table {
@@ -2813,7 +2814,7 @@ food-stat-bonus {
 
 }
 
-table.food-items-table {
+table.food-items-table, table.medicine-items-table {
 
   .food-stat-col {
     --food-stat-col-width: 80px;
@@ -3058,7 +3059,7 @@ gear-set-viewer {
         }
       }
 
-      .gear-items-view-item-header, .food-items-view-item-header {
+      .gear-items-view-item-header, .food-items-view-item-header, .medicine-items-view-item-table {
         display: flex;
         flex-direction: row;
         gap: 3px;

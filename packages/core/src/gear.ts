@@ -713,6 +713,20 @@ export class CharacterGearSet {
         return finalized.effectiveFoodBonuses;
     }
 
+    getEffectiveMedicineBonuses(medicineItem: MedicineItem): RawStats {
+        const stats = this.computedStats;
+        const effective = new RawStats();
+        for (const key in medicineItem.bonuses) {
+            const stat = key as RawStatKey;
+            const bonus = medicineItem.bonuses[stat];
+            if (bonus !== undefined) {
+                const base = stats[stat] - stats.effectiveMedicineBonuses[stat];
+                effective[stat] = Math.min(bonus.max, Math.floor(base * (bonus.percentage / 100)));
+            }
+        }
+        return effective;
+    }
+
     /**
      * Get the effective stats and issues pertaining to a specific slot.
      *

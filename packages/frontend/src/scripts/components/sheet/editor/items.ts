@@ -237,12 +237,15 @@ function foodTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
 
 }
 
-function medicineTableStatColumn(sheet: GearPlanSheet, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<MedicineItem, unknown, unknown> {
+function medicineTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<MedicineItem, unknown, unknown> {
     return col({
         shortName: stat,
         displayName: STAT_ABBREVIATIONS[stat],
-        getter: item => item.bonuses[stat],
-        renderer: (value: FoodStatBonus | undefined) => value ? makeSpan(`+${value.percentage}% / ${value.max}`) : document.createTextNode(""),
+        getter: item => {
+            const bonus = item.bonuses[stat];
+            return bonus ? {...bonus, effective: set.getEffectiveMedicineBonuses(item)[stat]} satisfies FoodStatBonusWithEffective : undefined;
+        },
+        renderer: (value: FoodStatBonusWithEffective | undefined) => value ? statBonusDisplay(value) : document.createTextNode(""),
         condition: () => sheet.isStatRelevant(stat),
         colStyler: (value, cell) => {
             cell.classList.add('food-stat-col');
@@ -250,14 +253,14 @@ function medicineTableStatColumn(sheet: GearPlanSheet, stat: RawStatKey, highlig
                 foodStatCellStyler(cell, stat);
             }
             if (value) {
-                cell.title = `Bonus: ${value.percentage}%\nMax: ${value.max}`;
+                addFoodCellTooltip(value, cell);
             }
         },
     });
 }
 
-function medicineTableStatViewColumn(sheet: GearPlanSheet, item: MedicineItem, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<MedicineItem, unknown, unknown> {
-    const wrapped = medicineTableStatColumn(sheet, stat, highlightPrimarySecondary);
+function medicineTableStatViewColumn(sheet: GearPlanSheet, set: CharacterGearSet, item: MedicineItem, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<MedicineItem, unknown, unknown> {
+    const wrapped = medicineTableStatColumn(sheet, set, stat, highlightPrimarySecondary);
     return {...wrapped, condition: () => item.primarySubStat === stat || item.secondarySubStat === stat};
 }
 
@@ -457,7 +460,7 @@ export class FoodItemViewTable extends CustomTable<FoodItem> {
 export class MedicineItemsTable extends CustomTable<MedicineItem, TableSelectionModel<MedicineItem, never, never, MedicineItem | undefined>> {
     constructor(sheet: GearPlanSheet, private readonly gearSet: CharacterGearSet) {
         super();
-        this.classList.add("food-items-table", "medicine-items-table", "medicine-items-edit-table", "hoverable");
+        this.classList.add("medicine-items-table", "medicine-items-edit-table", "hoverable");
         this.rowTitleSetter = (rowValue: MedicineItem) => {
             const name = rowValue.nameTranslation.asCurrentLang;
             return `${name} (${rowValue.id})`;
@@ -497,12 +500,12 @@ export class MedicineItemsTable extends CustomTable<MedicineItem, TableSelection
                     return quickElement('div', ['food-name-holder-editable'], [quickElement('span', [], [name]), buttonsArea]);
                 },
             },
-            medicineTableStatColumn(sheet, 'craftsmanship'),
-            medicineTableStatColumn(sheet, 'control', true),
-            medicineTableStatColumn(sheet, 'cp'),
-            medicineTableStatColumn(sheet, 'gathering'),
-            medicineTableStatColumn(sheet, 'perception', true),
-            medicineTableStatColumn(sheet, 'gp'),
+            medicineTableStatColumn(sheet, gearSet, 'craftsmanship'),
+            medicineTableStatColumn(sheet, gearSet, 'control', true),
+            medicineTableStatColumn(sheet, gearSet, 'cp'),
+            medicineTableStatColumn(sheet, gearSet, 'gathering'),
+            medicineTableStatColumn(sheet, gearSet, 'perception', true),
+            medicineTableStatColumn(sheet, gearSet, 'gp'),
         ];
         this.selectionModel = {
             clickCell(cell: CustomCell<MedicineItem, MedicineItem>) {
@@ -558,7 +561,7 @@ export class MedicineItemsTable extends CustomTable<MedicineItem, TableSelection
 export class MedicineItemViewTable extends CustomTable<MedicineItem> {
     constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet, item: MedicineItem) {
         super();
-        this.classList.add("food-items-table", "medicine-items-table", "food-items-view-table");
+        this.classList.add("medicine-items-table");
         super.columns = [
             col({
                 shortName: "icon",
@@ -579,12 +582,12 @@ export class MedicineItemViewTable extends CustomTable<MedicineItem> {
                     node.style.display = 'none';
                 },
             }),
-            medicineTableStatViewColumn(sheet, item, 'craftsmanship'),
-            medicineTableStatViewColumn(sheet, item, 'control', true),
-            medicineTableStatViewColumn(sheet, item, 'cp'),
-            medicineTableStatViewColumn(sheet, item, 'gathering'),
-            medicineTableStatViewColumn(sheet, item, 'perception', true),
-            medicineTableStatViewColumn(sheet, item, 'gp'),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'craftsmanship'),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'control', true),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'cp'),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'gathering'),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'perception', true),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'gp'),
         ];
         super.data = [new HeaderRow(), item];
     }

@@ -122,6 +122,7 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
     // This is initialized when the ctor calls this.recalc()
     private currentStats!: RawStats;
     private _effectiveFoodBonuses!: RawStats;
+    private _effectiveMedicineBonuses!: RawStats;
 
     constructor(
         readonly gearStats: RawStats,
@@ -135,6 +136,7 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
         private readonly medicineStats: FoodBonuses = {}
     ) {
         this.finalBonusStats = new RawBonusStats();
+        this._effectiveMedicineBonuses = new RawStats();
         // TODO: order of operations here
         this.recalc();
         if (classJobStats.traits) {
@@ -151,7 +153,9 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
         for (const key in this.medicineStats) {
             const stat = key as RawStatKey;
             const bonus = this.medicineStats[stat]!;
-            this.finalBonusStats[stat] += Math.min(fl(this[stat] * (bonus.percentage / 100)), bonus.max);
+            const effective = Math.min(fl(this[stat] * (bonus.percentage / 100)), bonus.max);
+            this.finalBonusStats[stat] += effective;
+            this._effectiveMedicineBonuses[stat] += effective;
         }
     }
 
@@ -451,6 +455,10 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
         return this._effectiveFoodBonuses;
     }
 
+    get effectiveMedicineBonuses(): RawStats {
+        return this._effectiveMedicineBonuses;
+    }
+
     get extraMainStat(): 0 {
         // Always 0 at this point because the extra main stat is already factored into the actual main stat.
         return 0;
@@ -487,10 +495,12 @@ export function finalizeStatsInt(
     levelStats: LevelStats,
     classJob: JobName,
     classJobStats: JobData,
-    partyBonus: PartyBonusAmount
+    partyBonus: PartyBonusAmount,
+    medicineStats: FoodBonuses = {}
 ): {
     raw: RawStats,
-    effectiveFoodBonuses: RawStats
+    effectiveFoodBonuses: RawStats,
+    effectiveMedicineBonuses: RawStats
 } {
     const combinedStats: RawStats = {...gearStats};
     if (classJobStats.type === 'Combat') {
@@ -506,6 +516,7 @@ export function finalizeStatsInt(
     }
     combinedStats.vitality = fl(combinedStats.vitality * (1 + 0.01 * partyBonus));
     const effectiveFoodBonuses = new RawStats();
+    const effectiveMedicineBonuses = new RawStats();
     // Food stats
     for (const key in foodStats) {
         const stat = key as RawStatKey;
@@ -518,8 +529,18 @@ export function finalizeStatsInt(
             effectiveFoodBonuses[stat] += extraValue;
         }
     }
+    for (const key in medicineStats) {
+        const stat = key as RawStatKey;
+        const bonus = medicineStats[stat];
+        if (bonus !== undefined) {
+            const extraValue = Math.min(bonus.max, fl(combinedStats[stat] * (bonus.percentage / 100)));
+            combinedStats[stat] += extraValue;
+            effectiveMedicineBonuses[stat] += extraValue;
+        }
+    }
     return {
         raw: combinedStats,
         effectiveFoodBonuses: effectiveFoodBonuses,
+        effectiveMedicineBonuses: effectiveMedicineBonuses,
     };
 }
