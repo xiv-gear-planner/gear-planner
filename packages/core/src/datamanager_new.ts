@@ -59,6 +59,7 @@ export class NewApiDataManager implements DataManager {
     private readonly _ilvlSync: number | undefined;
     private readonly apiClient: DataApiClient<never>;
     private readonly minEquipIlvl: number;
+    private readonly minEquipLvl: SupportedLevel;
 
     public constructor(classJobs: DmJobs, level: SupportedLevel, ilvlSync?: number | undefined) {
         this._classJob = classJobs[0];
@@ -71,8 +72,8 @@ export class NewApiDataManager implements DataManager {
         this._maxIlvlFood = lvlData.maxILvlFood;
         this._ilvlSync = ilvlSync;
         this.apiClient = DATA_API_CLIENT;
-        const minLevel = Math.min(...classJobs.map(job => JOB_DATA[job].minLevel)) as SupportedLevel;
-        this.minEquipIlvl = LEVEL_ITEMS[minLevel].minILvl;
+        this.minEquipLvl = Math.min(...classJobs.map(job => JOB_DATA[job].minLevel)) as SupportedLevel;
+        this.minEquipIlvl = LEVEL_ITEMS[this.minEquipLvl].minILvl;
     }
 
     private _allItems: DataApiGearInfo[] | undefined;
@@ -348,7 +349,7 @@ export class NewApiDataManager implements DataManager {
                         if (i.isCustomRelic) {
                             return true;
                         }
-                        if (i.equipLvl < 70) {
+                        if (i.equipLvl < this.minEquipLvl) {
                             // Always include weapons.
                             if (i.displayGearSlotName === 'Weapon') {
                                 return true;
