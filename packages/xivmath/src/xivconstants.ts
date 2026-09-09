@@ -385,7 +385,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
         minLevel: 50,
         maxLevel: 50,
         // TODO: centralize this since we need it for BLU too
-        extraItemFilter: item => item.equipLvl <= 50,
+        extraItemFilter: item => item.equipLvl <= 50 && item.stats.strength > 0 || item.stats.extraMainStat > 0,
     },
     // Ranged
     BRD: STANDARD_RANGED,
