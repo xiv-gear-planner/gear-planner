@@ -685,6 +685,11 @@ export type JobDataConst = ({
      * Optional override for item display filtering logic.
      */
     readonly extraItemFilter?: ClassItemFilter;
+
+    /**
+     * Default party size override
+     */
+    readonly defaultPartyBonus?: PartyBonusAmount;
 }
 
 export type ClassItemFilter = (item: GearItem) => boolean;

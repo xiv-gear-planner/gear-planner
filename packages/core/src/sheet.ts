@@ -131,11 +131,12 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
      * @param multiJob Whether to create a multi-job sheet.
      */
     fromScratch(sheetKey: string, sheetName: string, classJob: JobName, level: SupportedLevel, ilvlSync: number | undefined, multiJob: boolean): SheetType {
+        const defaultPartyBonus: PartyBonusAmount = JOB_DATA[classJob]?.defaultPartyBonus ?? 5;
         const fakeExport: SheetExport = {
             job: classJob,
             level: level,
             name: sheetName,
-            partyBonus: classJob === 'BLU' ? 1 : 5,
+            partyBonus: defaultPartyBonus,
             race: undefined,
             saveKey: sheetKey,
             sets: [{
