@@ -386,6 +386,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
         maxLevel: 50,
         // TODO: centralize this since we need it for BLU too
         extraItemFilter: item => item.equipLvl <= 50 && item.stats.strength > 0 || item.stats.extraMainStat > 0,
+        defaultPartyBonus: 1,
     },
     // Ranged
     BRD: STANDARD_RANGED,
@@ -408,6 +409,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
         traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.5, // Maim and Mend V
         // BLU having 50/60 support means a ton of junk would be included. BLU's WD is based on Int, so just filter out anything without Int except weapons.
         extraItemFilter: (item) => item.stats.intelligence > 0 || item.stats.extraMainStat > 0 || item.displayGearSlotName === 'Weapon',
+        defaultPartyBonus: 1,
     },
     PCT: STANDARD_CASTER,
 
