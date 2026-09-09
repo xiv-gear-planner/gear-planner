@@ -1135,7 +1135,7 @@ export const defaultItemDisplaySettings: Readonly<ItemDisplaySettings> = {
 
 export const MAX_PARTY_BONUS: PartyBonusAmount = 5;
 
-export const SPECIAL_STAT_KEYS = ['OccultCrescent', 'Bozja', 'Eureka'] as const;
+export const SPECIAL_STAT_KEYS = ['OccultCrescent', 'Bozja', 'Eureka', 'Crucible'] as const;
 
 export type SpecialStatKey = typeof SPECIAL_STAT_KEYS[number];
 
@@ -1159,6 +1159,11 @@ export const SPECIAL_STATS_MAPPING: Record<SpecialStatKey, SpecialStatInfo> = {
     OccultCrescent: {
         level: 100,
         ilvls: [700],
+        showHaste: false,
+    },
+    Crucible: {
+        level: 50,
+        ilvls: [135],
         showHaste: false,
     },
 };
