@@ -74,7 +74,7 @@ export const AUTOATTACK_APPLICATION_DELAY = 0.6;
 export const ALL_COMBAT_JOBS = [
     'PLD', 'WAR', 'DRK', 'GNB',
     'WHM', 'SCH', 'AST', 'SGE',
-    'MNK', 'DRG', 'NIN', 'SAM', 'RPR', 'VPR',
+    'MNK', 'DRG', 'NIN', 'SAM', 'RPR', 'VPR', 'BST',
     'BRD', 'MCH', 'DNC',
     'BLM', 'SMN', 'RDM', 'PCT', 'BLU',
 ] as const;
@@ -379,6 +379,14 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
             }];
         },
     },
+    BST: {
+        ...MELEE_STRIKING,
+        offhand: true,
+        minLevel: 50,
+        maxLevel: 50,
+        // TODO: centralize this since we need it for BLU too
+        extraItemFilter: item => item.equipLvl <= 50 && item.stats.strength > 0 || item.stats.extraMainStat > 0,
+    },
     // Ranged
     BRD: STANDARD_RANGED,
     MCH: STANDARD_RANGED,
@@ -453,7 +461,7 @@ export const JOB_IDS: Record<JobName, number> = {
     SGE: 40,
     VPR: 41,
     PCT: 42,
-    // BST: 43,
+    BST: 43,
 };
 
 /**
