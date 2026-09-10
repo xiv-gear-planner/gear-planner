@@ -58,6 +58,7 @@ export class NewApiDataManager implements DataManager {
     private readonly _level: SupportedLevel;
     private readonly _ilvlSync: number | undefined;
     private readonly apiClient: DataApiClient<never>;
+    private readonly minEquipLvl: SupportedLevel;
     private readonly minEquipIlvl: number;
     private readonly minEquipLvl: SupportedLevel;
 

@@ -5,6 +5,7 @@ import {
     ALL_COMBAT_SUB_STATS,
     ALL_JOBS,
     CURRENT_MAX_LEVEL,
+    DEFAULT_MATERIA_ACCEPTABLE_OVERCAP_LOSS,
     defaultItemDisplaySettings,
     DefaultMateriaFillPrio,
     DOH_STATS,
@@ -16,7 +17,6 @@ import {
     JobName,
     LEVEL_ITEMS,
     MAIN_STATS,
-    DEFAULT_MATERIA_ACCEPTABLE_OVERCAP_LOSS,
     MateriaSubstat,
     RaceName,
     SPECIAL_STAT_KEYS,
@@ -392,6 +392,10 @@ export class GearPlanSheet {
 
     get allJobs(): DmJobs {
         return [this.classJobName, ...this.altJobs];
+    }
+
+    get allJobDatum(): JobData[] {
+        return this.allJobs.map(jobName => this.statsForJob(jobName));
     }
 
     /**
@@ -1139,6 +1143,7 @@ export class GearPlanSheet {
                     const specialStat = this.activeSpecialStat;
                     return SPECIAL_STATS_MAPPING[specialStat]?.showHaste ?? false;
                 }
+                // TODO: technically, this is wrong because a sheet could be multi-job.
                 if (this.classJobEarlyStats.irrelevantSubstats) {
                     return !this.classJobEarlyStats.irrelevantSubstats.includes(stat as Substat);
                 }
@@ -1323,6 +1328,29 @@ export class GearPlanSheet {
             // TODO: setting to allow showing of hidden items
             return settings.showHidden || !this.isItemHidden(item);
         });
+        // TODO: this seems to not be particularly relevant, given that the low-level items that fit both DoH and DoL
+        // tend to have both DoH- and DoL-relevant stats.
+        //     .filter(item => {
+        //     // Additional filtering for doh/dol.
+        //     // We don't need this for BLU because it's already filtered server-side.
+        //     if (item.equipLvl >= 70 || this.classJobEarlyStats.type === 'Combat') {
+        //         return true;
+        //     }
+        //     const stats = item.stats;
+        //     for (const statsKeyRaw in stats) {
+        //         const statsKey = statsKeyRaw as RawStatKey;
+        //         if (statsKey === 'vitality') {
+        //             continue;
+        //         }
+        //         const statValue = stats[statsKey as RawStatKey];
+        //         if (statValue !== undefined && statValue !== null && statValue !== 0
+        //             && this.isStatRelevant(statsKey)) {
+        //             return true;
+        //         }
+        //     }
+        //     return false;
+        //     return true;
+        // });
     }
 
     /**

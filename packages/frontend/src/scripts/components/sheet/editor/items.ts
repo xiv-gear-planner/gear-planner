@@ -55,7 +55,7 @@ import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {recordSheetEvent} from "../../../analytics/analytics";
 import {hideIcon, makeTrashIcon, showIcon} from "@xivgear/common-ui/components/icons";
 import {sortItemsInPlace} from "../../items/item_utils";
-import {bold, p} from "@xivgear/common-ui/components/templates";
+import {bold, cht, elt, p} from "@xivgear/common-ui/components/templates";
 
 function removeStatCellStyles(cell: CustomCell<GearSlotItem, unknown>) {
     cell.classList.remove("secondary");
@@ -1283,12 +1283,6 @@ export class ILvlRangePicker<ObjType extends {}> extends HTMLElement {
         super();
         this.classList.add('ilvl-range-picker');
 
-        if (label) {
-            const labelElement = document.createElement('span');
-            labelElement.textContent = label;
-            this.appendChild(labelElement);
-        }
-
         this.tempValues = {
             min: obj[minField] as number,
             max: obj[maxField] as number,
@@ -1318,11 +1312,7 @@ export class ILvlRangePicker<ObjType extends {}> extends HTMLElement {
 
         lowerBoundControl.addListener(() => this.runListeners());
         upperBoundControl.addListener(() => this.runListeners());
-        const hyphen = document.createElement('span');
-        hyphen.textContent = '-';
-        this.appendChild(lowerBoundControl);
-        this.appendChild(hyphen);
-        this.appendChild(upperBoundControl);
+        this.replaceChildren(...cht`${label ? elt('span')`${label}` : ''}${lowerBoundControl} - ${upperBoundControl}`);
         this.runListeners();
     }
 
