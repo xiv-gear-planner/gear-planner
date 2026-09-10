@@ -1,5 +1,5 @@
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {FoodItemsTable, GearItemsTable} from "./items";
+import {FoodItemsTable, GearItemsTable, MedicineItemsTable} from "./items";
 import {ExpandableText} from "@xivgear/common-ui/components/expandy_text";
 import {stringToParagraphs} from "../../../util/text_utils";
 import {iconForIssues, SetIssuesModal} from "../gear_set_issues";
@@ -24,6 +24,7 @@ export class GearSetEditor extends HTMLElement {
     private desc: ExpandableText;
     private issuesButtonContent: HTMLSpanElement;
     private foodTable: FoodItemsTable;
+    private medicineTable: MedicineItemsTable | undefined;
 
     constructor(sheet: GearPlanSheetGui, gearSet: CharacterGearSet) {
         super();
@@ -169,6 +170,11 @@ export class GearSetEditor extends HTMLElement {
         this.foodTable.classList.add('food-table');
         // foodTable.id = "food-items-table";
         this.appendChild(this.foodTable);
+        if (this.gearSet.classJobStats.type !== 'Combat') {
+            this.medicineTable = new MedicineItemsTable(this.sheet, this.gearSet);
+            this.medicineTable.classList.add('medicine-table');
+            this.appendChild(this.medicineTable);
+        }
         this.checkIssues();
     }
 
@@ -184,6 +190,7 @@ export class GearSetEditor extends HTMLElement {
     refresh() {
         this.checkIssues();
         this.foodTable.refreshFull();
+        this.medicineTable?.refreshFull();
     }
 
     private undoRedoHotkeyHandler = (ev: KeyboardEvent) => {

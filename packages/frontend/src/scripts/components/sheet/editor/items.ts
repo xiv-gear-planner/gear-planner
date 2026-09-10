@@ -11,6 +11,7 @@ import {
     FoodStatBonus,
     GearItem,
     GearSlotItem,
+    MedicineItem,
     RawStatKey,
     RawStats,
     Substat,
@@ -236,6 +237,33 @@ function foodTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
 
 }
 
+function medicineTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<MedicineItem, unknown, unknown> {
+    return col({
+        shortName: stat,
+        displayName: STAT_ABBREVIATIONS[stat],
+        getter: item => {
+            const bonus = item.bonuses[stat];
+            return bonus ? {...bonus, effective: set.getEffectiveMedicineBonuses(item)[stat]} satisfies FoodStatBonusWithEffective : undefined;
+        },
+        renderer: (value: FoodStatBonusWithEffective | undefined) => value ? statBonusDisplay(value) : document.createTextNode(""),
+        condition: () => sheet.isStatRelevant(stat),
+        colStyler: (value, cell) => {
+            cell.classList.add('food-stat-col');
+            if (highlightPrimarySecondary) {
+                foodStatCellStyler(cell, stat);
+            }
+            if (value) {
+                addFoodCellTooltip(value, cell);
+            }
+        },
+    });
+}
+
+function medicineTableStatViewColumn(sheet: GearPlanSheet, set: CharacterGearSet, item: MedicineItem, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<MedicineItem, unknown, unknown> {
+    const wrapped = medicineTableStatColumn(sheet, set, stat, highlightPrimarySecondary);
+    return {...wrapped, condition: () => item.primarySubStat === stat || item.secondarySubStat === stat};
+}
+
 
 export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<FoodItem, never, never, FoodItem | undefined>> {
     constructor(sheet: GearPlanSheet, private readonly gearSet: CharacterGearSet) {
@@ -302,6 +330,12 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
             foodTableStatColumn(sheet, gearSet, 'skillspeed', true),
             foodTableStatColumn(sheet, gearSet, 'piety', true),
             foodTableStatColumn(sheet, gearSet, 'tenacity', true),
+            foodTableStatColumn(sheet, gearSet, 'gp', false),
+            foodTableStatColumn(sheet, gearSet, 'gathering', false),
+            foodTableStatColumn(sheet, gearSet, 'perception', false),
+            foodTableStatColumn(sheet, gearSet, 'cp', false),
+            foodTableStatColumn(sheet, gearSet, 'craftsmanship', false),
+            foodTableStatColumn(sheet, gearSet, 'control', false),
         ];
         // TODO: write a dedicated selection model for this
         this.selectionModel = {
@@ -418,6 +452,142 @@ export class FoodItemViewTable extends CustomTable<FoodItem> {
             foodTableStatViewColumn(sheet, gearSet, item, 'skillspeed', true),
             foodTableStatViewColumn(sheet, gearSet, item, 'piety', true),
             foodTableStatViewColumn(sheet, gearSet, item, 'tenacity', true),
+        ];
+        super.data = [new HeaderRow(), item];
+    }
+}
+
+export class MedicineItemsTable extends CustomTable<MedicineItem, TableSelectionModel<MedicineItem, never, never, MedicineItem | undefined>> {
+    constructor(sheet: GearPlanSheet, private readonly gearSet: CharacterGearSet) {
+        super();
+        this.classList.add("medicine-items-table", "medicine-items-edit-table", "hoverable");
+        this.rowTitleSetter = (rowValue: MedicineItem) => {
+            const name = rowValue.nameTranslation.asCurrentLang;
+            return `${name} (${rowValue.id})`;
+        };
+        super.columns = [
+            {
+                shortName: "ilvl",
+                displayName: "iLvl",
+                getter: item => item.ilvl,
+            },
+            col({
+                shortName: "icon",
+                displayName: "",
+                getter: item => item,
+                renderer: itemIconRenderer(),
+                fixedData: true,
+            }),
+            {
+                shortName: "itemname",
+                displayName: "Name",
+                getter: item => item.nameTranslation.asCurrentLang,
+                renderer: (name: string, rowValue: MedicineItem) => {
+                    const trashButton = quickElement('button', ['remove-food-button'], [makeTrashIcon()]);
+                    trashButton.addEventListener('click', () => {
+                        gearSet.medicine = undefined;
+                        this.refreshSelection();
+                    });
+                    const hideButton = quickElement('button', ['hide-food-button'], ['Hide']);
+                    hideButton.replaceChildren(sheet.isItemHidden(rowValue) ? showIcon() : hideIcon());
+                    hideButton.addEventListener('click', () => {
+                        sheet.setItemHidden(rowValue, !sheet.isItemHidden(rowValue));
+                        if (sheet.itemDisplaySettings.showHidden) {
+                            this.updateHiddenState();
+                        }
+                    });
+                    const buttonsArea = el('div', {class: 'item-hover-buttons-area'}, [trashButton, hideButton]);
+                    return quickElement('div', ['food-name-holder-editable'], [quickElement('span', [], [name]), buttonsArea]);
+                },
+            },
+            medicineTableStatColumn(sheet, gearSet, 'craftsmanship'),
+            medicineTableStatColumn(sheet, gearSet, 'control', true),
+            medicineTableStatColumn(sheet, gearSet, 'cp'),
+            medicineTableStatColumn(sheet, gearSet, 'gathering'),
+            medicineTableStatColumn(sheet, gearSet, 'perception', true),
+            medicineTableStatColumn(sheet, gearSet, 'gp'),
+        ];
+        this.selectionModel = {
+            clickCell(cell: CustomCell<MedicineItem, MedicineItem>) {
+
+            },
+            clickColumnHeader(col: CustomColumn<MedicineItem>) {
+
+            },
+            clickRow(row: CustomRow<MedicineItem>) {
+                gearSet.medicine = row.dataItem;
+            },
+            getSelection(): MedicineItem | undefined {
+                return gearSet.medicine;
+            },
+            isCellSelectedDirectly(cell: CustomCell<MedicineItem, MedicineItem>) {
+                return false;
+            },
+            isColumnHeaderSelected(col: CustomColumn<MedicineItem>) {
+                return false;
+            },
+            isRowSelected(row: CustomRow<MedicineItem>) {
+                return gearSet.medicine === row.dataItem;
+            },
+            clearSelection(): void {
+
+            },
+        };
+        const showHideRow = makeShowHideRow('Medicine', gearSet.isSlotCollapsed('medicine'), (val) => {
+            gearSet.setSlotCollapsed('medicine', val);
+            recordSheetEvent('hideMedicine', sheet, {hidden: val});
+            this.updateShowHide();
+        });
+        const displayItems = [...sheet.medicineItemsForDisplay];
+        sortItemsInPlace(displayItems);
+        super.data = displayItems.length > 0
+            ? [showHideRow.row, new HeaderRow(), ...displayItems]
+            : [showHideRow.row, new HeaderRow(), new TitleRow('No items available - please check your filters')];
+        this.updateShowHide();
+        this.updateHiddenState();
+    }
+
+    private updateShowHide() {
+        this.dataRowMap.forEach((row) => {
+            row.style.display = this.gearSet.isSlotCollapsed('medicine') && !this.selectionModel.isRowSelected(row) ? 'none' : '';
+        });
+    }
+
+    private updateHiddenState() {
+        this.dataRowMap.forEach((row, value) => row.classList.toggle('hidden-item', this.gearSet.sheet.isItemHidden(value)));
+    }
+}
+
+export class MedicineItemViewTable extends CustomTable<MedicineItem> {
+    constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet, item: MedicineItem) {
+        super();
+        this.classList.add("medicine-items-table");
+        super.columns = [
+            col({
+                shortName: "icon",
+                displayName: `Medicine: ${item.ilvl}`,
+                getter: medicine => medicine,
+                renderer: itemIconRenderer(),
+                fixedData: true,
+                headerStyler: (cell, node) => {
+                    node.colSpan = 2;
+                    node.querySelector('div')?.classList.add('gear-items-view-item-header');
+                },
+            }),
+            col({
+                shortName: "itemname",
+                displayName: '',
+                getter: medicine => medicine.nameTranslation.asCurrentLang,
+                headerStyler: (cell, node) => {
+                    node.style.display = 'none';
+                },
+            }),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'craftsmanship'),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'control', true),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'cp'),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'gathering'),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'perception', true),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'gp'),
         ];
         super.data = [new HeaderRow(), item];
     }
@@ -1384,6 +1554,8 @@ customElements.define("gear-items-table", GearItemsTable, {extends: "table"});
 customElements.define("gear-items-view-table", GearItemsViewTable, {extends: "table"});
 customElements.define("food-items-table", FoodItemsTable, {extends: "table"});
 customElements.define("food-items-view-table", FoodItemViewTable, {extends: "table"});
+customElements.define("medicine-items-table", MedicineItemsTable, {extends: "table"});
+customElements.define("medicine-items-view-table", MedicineItemViewTable, {extends: "table"});
 customElements.define("ilvl-range-picker", ILvlRangePicker);
 customElements.define("food-stat-bonus", FoodStatBonusDisplay);
 customElements.define("alt-items-modal", AltItemsModal);

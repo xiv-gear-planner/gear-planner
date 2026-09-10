@@ -5,7 +5,7 @@ import {makeUrl, NavState, ONLY_SET_QUERY_PARAM} from "@xivgear/core/nav/common_
 import {recordSheetEvent} from "../../../analytics/analytics";
 import {MateriaTotalsDisplay} from "./materia";
 import {EquipSlotKey, EquipSlots, GearItem} from "@xivgear/xivmath/geartypes";
-import {FoodItemViewTable, GearItemsViewTable} from "./items";
+import {FoodItemViewTable, GearItemsViewTable, MedicineItemViewTable} from "./items";
 import {SetViewToolbar} from "../toolbar/totals_display";
 import {ExpandableText} from "@xivgear/common-ui/components/expandy_text";
 import {stringToParagraphs} from "../../../util/text_utils";
@@ -125,6 +125,13 @@ export class GearSetViewer extends HTMLElement {
             foodTable.classList.add('food-view-table');
             // foodTable.id = "food-items-table";
             this.appendChild(foodTable);
+        }
+
+        const medicine = this.gearSet.medicine;
+        if (medicine && this.gearSet.classJobStats.type !== 'Combat') {
+            const medicineTable = new MedicineItemViewTable(this.sheet, this.gearSet, medicine);
+            medicineTable.classList.add('food-view-table');
+            this.appendChild(medicineTable);
         }
     }
 

@@ -8,6 +8,7 @@ export type ApiClientRawType<X extends keyof DataApiClient<never>, Y extends key
 export type ApiItemData = NonNullable<Awaited<ReturnType<ApiClientRawType<'items', 'items'>>>['data']['items']>[number];
 export type ApiMateriaData = NonNullable<Awaited<ReturnType<ApiClientRawType<'materia', 'materia'>>>['data']['items']>[number];
 export type ApiFoodData = NonNullable<Awaited<ReturnType<ApiClientRawType<'food', 'foodItems'>>>['data']['items']>[number];
+export type ApiMedicineData = NonNullable<Awaited<ReturnType<ApiClientRawType<'medicine', 'foodItems1'>>>['data']['items']>[number];
 // type BaseParamType = Awaited<ReturnType<ApiClientRawType<'baseParams', 'baseParams'>>>['data']['items'][number]
 export type ApiJobType = NonNullable<Awaited<ReturnType<ApiClientRawType<'jobs', 'jobs'>>>['data']['items']>[number];
 // type ItemLevelType = Awaited<ReturnType<ApiClientRawType<'itemLevel', 'itemLevels'>>>['data']['items'][number]
@@ -55,9 +56,9 @@ async function retryFetch(...params: Parameters<typeof fetch>): Promise<Response
 }
 
 export const DATA_API_CLIENT = new DataApiClient<never>({
-    baseUrl: "https://data.xivgear.app",
+    // baseUrl: "https://data.xivgear.app",
     // baseUrl: "https://betadata.xivgear.app",
-    // baseUrl: "http://localhost:8085",
+    baseUrl: "http://localhost:8085",
     customFetch: retryFetch,
 });
 
