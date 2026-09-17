@@ -74,7 +74,7 @@ export const AUTOATTACK_APPLICATION_DELAY = 0.6;
 export const ALL_COMBAT_JOBS = [
     'PLD', 'WAR', 'DRK', 'GNB',
     'WHM', 'SCH', 'AST', 'SGE',
-    'MNK', 'DRG', 'NIN', 'SAM', 'RPR', 'VPR',
+    'MNK', 'DRG', 'NIN', 'SAM', 'RPR', 'VPR', 'BST',
     'BRD', 'MCH', 'DNC',
     'BLM', 'SMN', 'RDM', 'PCT', 'BLU',
 ] as const;
@@ -379,6 +379,15 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
             }];
         },
     },
+    BST: {
+        ...MELEE_STRIKING,
+        offhand: true,
+        minLevel: 50,
+        maxLevel: 50,
+        // TODO: centralize this since we need it for BLU too
+        extraItemFilter: item => item.equipLvl <= 50 && item.stats.strength > 0 || item.stats.extraMainStat > 0,
+        defaultPartyBonus: 1,
+    },
     // Ranged
     BRD: STANDARD_RANGED,
     MCH: STANDARD_RANGED,
@@ -400,6 +409,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
         traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.5, // Maim and Mend V
         // BLU having 50/60 support means a ton of junk would be included. BLU's WD is based on Int, so just filter out anything without Int except weapons.
         extraItemFilter: (item) => item.stats.intelligence > 0 || item.stats.extraMainStat > 0 || item.displayGearSlotName === 'Weapon',
+        defaultPartyBonus: 1,
     },
     PCT: STANDARD_CASTER,
 
@@ -453,7 +463,7 @@ export const JOB_IDS: Record<JobName, number> = {
     SGE: 40,
     VPR: 41,
     PCT: 42,
-    // BST: 43,
+    BST: 43,
 };
 
 /**
@@ -1127,7 +1137,7 @@ export const defaultItemDisplaySettings: Readonly<ItemDisplaySettings> = {
 
 export const MAX_PARTY_BONUS: PartyBonusAmount = 5;
 
-export const SPECIAL_STAT_KEYS = ['OccultCrescent', 'Bozja', 'Eureka'] as const;
+export const SPECIAL_STAT_KEYS = ['OccultCrescent', 'Bozja', 'Eureka', 'Crucible'] as const;
 
 export type SpecialStatKey = typeof SPECIAL_STAT_KEYS[number];
 
@@ -1151,6 +1161,11 @@ export const SPECIAL_STATS_MAPPING: Record<SpecialStatKey, SpecialStatInfo> = {
     OccultCrescent: {
         level: 100,
         ilvls: [700],
+        showHaste: false,
+    },
+    Crucible: {
+        level: 50,
+        ilvls: [135],
         showHaste: false,
     },
 };
