@@ -715,16 +715,17 @@ export class CharacterGearSet {
 
     getEffectiveMedicineBonuses(medicineItem: MedicineItem): RawStats {
         const stats = this.computedStats;
-        const effective = new RawStats();
-        for (const key in medicineItem.bonuses) {
-            const stat = key as RawStatKey;
-            const bonus = medicineItem.bonuses[stat];
-            if (bonus !== undefined) {
-                const base = stats[stat] - stats.effectiveMedicineBonuses[stat];
-                effective[stat] = Math.min(bonus.max, Math.floor(base * (bonus.percentage / 100)));
-            }
-        }
-        return effective;
+        const finalized = finalizeStatsInt(
+            stats.gearStats,
+            this.food?.bonuses,
+            stats.level,
+            stats.levelStats,
+            stats.job,
+            stats.jobStats,
+            this.sheet.partyBonus,
+            medicineItem.bonuses
+        );
+        return finalized.effectiveMedicineBonuses;
     }
 
     /**

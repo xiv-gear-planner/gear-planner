@@ -172,7 +172,6 @@ export class GearSetEditor extends HTMLElement {
         this.appendChild(this.foodTable);
         if (this.gearSet.classJobStats.type !== 'Combat') {
             this.medicineTable = new MedicineItemsTable(this.sheet, this.gearSet);
-            this.medicineTable.classList.add('medicine-table');
             this.appendChild(this.medicineTable);
         }
         this.checkIssues();

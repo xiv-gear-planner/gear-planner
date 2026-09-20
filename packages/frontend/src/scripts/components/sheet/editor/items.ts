@@ -275,6 +275,10 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
             const name = rowValue.nameTranslation.asCurrentLang;
             return `${name} (${rowValue.id})`;
         };
+
+        // It seems to work well enough though is a bit odd due to CP/GP scaling differently.
+        const highlightDohDol = true;
+
         super.columns = [
             {
                 shortName: "ilvl",
@@ -330,12 +334,12 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
             foodTableStatColumn(sheet, gearSet, 'skillspeed', true),
             foodTableStatColumn(sheet, gearSet, 'piety', true),
             foodTableStatColumn(sheet, gearSet, 'tenacity', true),
-            foodTableStatColumn(sheet, gearSet, 'gp', false),
-            foodTableStatColumn(sheet, gearSet, 'gathering', false),
-            foodTableStatColumn(sheet, gearSet, 'perception', false),
-            foodTableStatColumn(sheet, gearSet, 'cp', false),
-            foodTableStatColumn(sheet, gearSet, 'craftsmanship', false),
-            foodTableStatColumn(sheet, gearSet, 'control', false),
+            foodTableStatColumn(sheet, gearSet, 'gathering', highlightDohDol),
+            foodTableStatColumn(sheet, gearSet, 'perception', highlightDohDol),
+            foodTableStatColumn(sheet, gearSet, 'gp', highlightDohDol),
+            foodTableStatColumn(sheet, gearSet, 'craftsmanship', highlightDohDol),
+            foodTableStatColumn(sheet, gearSet, 'control', highlightDohDol),
+            foodTableStatColumn(sheet, gearSet, 'cp', highlightDohDol),
         ];
         // TODO: write a dedicated selection model for this
         this.selectionModel = {
@@ -415,6 +419,10 @@ export class FoodItemViewTable extends CustomTable<FoodItem> {
         super();
         this.classList.add("food-items-table");
         this.classList.add("food-items-view-table");
+
+        // It seems to work well enough though is a bit odd due to CP/GP scaling differently.
+        const highlightDohDol = true;
+
         super.columns = [
             // {
             //     shortName: "ilvl",
@@ -452,6 +460,12 @@ export class FoodItemViewTable extends CustomTable<FoodItem> {
             foodTableStatViewColumn(sheet, gearSet, item, 'skillspeed', true),
             foodTableStatViewColumn(sheet, gearSet, item, 'piety', true),
             foodTableStatViewColumn(sheet, gearSet, item, 'tenacity', true),
+            foodTableStatViewColumn(sheet, gearSet, item, 'gathering', highlightDohDol),
+            foodTableStatViewColumn(sheet, gearSet, item, 'perception', highlightDohDol),
+            foodTableStatViewColumn(sheet, gearSet, item, 'gp', highlightDohDol),
+            foodTableStatViewColumn(sheet, gearSet, item, 'craftsmanship', highlightDohDol),
+            foodTableStatViewColumn(sheet, gearSet, item, 'control', highlightDohDol),
+            foodTableStatViewColumn(sheet, gearSet, item, 'cp', highlightDohDol),
         ];
         super.data = [new HeaderRow(), item];
     }
@@ -497,12 +511,12 @@ export class MedicineItemsTable extends CustomTable<MedicineItem, TableSelection
                     return quickElement('div', ['food-name-holder-editable'], [quickElement('span', [], [name]), buttonsArea]);
                 },
             },
-            medicineTableStatColumn(sheet, gearSet, 'craftsmanship'),
+            medicineTableStatColumn(sheet, gearSet, 'craftsmanship', true),
             medicineTableStatColumn(sheet, gearSet, 'control', true),
-            medicineTableStatColumn(sheet, gearSet, 'cp'),
-            medicineTableStatColumn(sheet, gearSet, 'gathering'),
+            medicineTableStatColumn(sheet, gearSet, 'cp', true),
+            medicineTableStatColumn(sheet, gearSet, 'gathering', true),
             medicineTableStatColumn(sheet, gearSet, 'perception', true),
-            medicineTableStatColumn(sheet, gearSet, 'gp'),
+            medicineTableStatColumn(sheet, gearSet, 'gp', true),
         ];
         this.selectionModel = {
             clickCell(cell: CustomCell<MedicineItem, MedicineItem>) {
@@ -554,7 +568,8 @@ export class MedicineItemsTable extends CustomTable<MedicineItem, TableSelection
 export class MedicineItemViewTable extends CustomTable<MedicineItem> {
     constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet, item: MedicineItem) {
         super();
-        this.classList.add("medicine-items-table");
+        this.classList.add("medicine-items-table", "medicine-items-view-table");
+        const highlight = true;
         super.columns = [
             col({
                 shortName: "icon",
@@ -575,12 +590,12 @@ export class MedicineItemViewTable extends CustomTable<MedicineItem> {
                     node.style.display = 'none';
                 },
             }),
-            medicineTableStatViewColumn(sheet, gearSet, item, 'craftsmanship'),
-            medicineTableStatViewColumn(sheet, gearSet, item, 'control', true),
-            medicineTableStatViewColumn(sheet, gearSet, item, 'cp'),
-            medicineTableStatViewColumn(sheet, gearSet, item, 'gathering'),
-            medicineTableStatViewColumn(sheet, gearSet, item, 'perception', true),
-            medicineTableStatViewColumn(sheet, gearSet, item, 'gp'),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'craftsmanship', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'control', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'cp', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'gathering', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'perception', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'gp', highlight),
         ];
         super.data = [new HeaderRow(), item];
     }
