@@ -431,7 +431,7 @@ export class FoodItemViewTable extends CustomTable<FoodItem> {
             // },
             col({
                 shortName: "icon",
-                displayName: `Food: ${item.ilvl}`,
+                displayName: `Food: i${item.ilvl}`,
                 getter: item => {
                     return item;
                 },
@@ -573,7 +573,7 @@ export class MedicineItemViewTable extends CustomTable<MedicineItem> {
         super.columns = [
             col({
                 shortName: "icon",
-                displayName: `Medicine: ${item.ilvl}`,
+                displayName: `Medicine: i${item.ilvl}`,
                 getter: medicine => medicine,
                 renderer: itemIconRenderer(),
                 fixedData: true,
