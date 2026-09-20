@@ -1509,19 +1509,7 @@ gear-plan {
 }
 
 table {
-  &.gear-items-edit-table, &.food-items-edit-table, &.medicine-items-edit-table {
-    > tbody {
-      // Exclude header
-      > tr:has(> td) {
-        // Don't show text selection cursor on item tables since the text doesn't
-        // allow selection.
-        cursor: pointer;
-      }
-    }
-  }
-}
 
-table {
   &.gear-items-table, &.food-items-table, &.medicine-items-table {
     margin-left: auto;
     margin-right: auto;
@@ -1608,6 +1596,15 @@ table {
     }
 
     &.gear-items-edit-table, &.food-items-edit-table, &.medicine-items-edit-table {
+      > tbody {
+        // Exclude header
+        > tr:has(> td) {
+          // Don't show text selection cursor on item tables since the text doesn't
+          // allow selection.
+          cursor: pointer;
+        }
+      }
+
       tr {
         .item-name-holder-editable, .food-name-holder-editable {
           display: flex;
