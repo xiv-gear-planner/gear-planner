@@ -263,6 +263,13 @@ export interface FoodItem extends XivItem {
     secondarySubStat: RawStatKey | undefined
 }
 
+export interface MedicineItem extends XivItem {
+    ilvl: number,
+    bonuses: FoodBonuses,
+    primarySubStat: RawStatKey | undefined,
+    secondarySubStat: RawStatKey | undefined
+}
+
 export interface Materia extends XivCombatItem {
     /**
      * The stat given by the materia
@@ -433,6 +440,7 @@ export interface ComputedSetStats extends RawStats {
     readonly magicDefenseDamageTaken: number;
 
     readonly effectiveFoodBonuses: RawStats;
+    readonly effectiveMedicineBonuses: RawStats;
 
     withModifications(modifications: StatModification, pre?: StatPreModifications): ComputedSetStats;
 }
@@ -1052,6 +1060,10 @@ export interface SetExport {
      */
     food?: number,
     /**
+     * Equipped medicine (by item ID)
+     */
+    medicine?: number,
+    /**
      * When a relic is de-selected, its former stats are remembered here so that they can be recalled if the
      * relic is selected again. They keys are item IDs, and the values are {@link RelicStats}.
      */
@@ -1358,7 +1370,7 @@ export type GearSetResult = {
     readonly issues: readonly GearSetIssue[]
 }
 
-export type CollapsibleSlot = EquipSlotKey | 'food';
+export type CollapsibleSlot = EquipSlotKey | 'food' | 'medicine';
 
 export type SetDisplaySettingsExport = {
     hiddenSlots: CollapsibleSlot[]

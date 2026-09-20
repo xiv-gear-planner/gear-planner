@@ -1,6 +1,40 @@
 import {GearPlanSheet, HEADLESS_SHEET_PROVIDER} from "../../sheet";
 import {CharacterGearSet} from "../../gear";
+import {DATA_API_CLIENT} from "../../data_api_client";
 import {expect} from "chai";
+
+const testMedicine = {
+    rowId: 99_999,
+    name: 'Test Craftsman\'s Draught',
+    nameTranslations: {
+        en: 'Test Craftsman\'s Draught',
+        de: 'Test Craftsman\'s Draught',
+        fr: 'Test Craftsman\'s Draught',
+        ja: 'Test Craftsman\'s Draught',
+    },
+    icon: {url: 'https://example.com/medicine.png'},
+    levelItem: 999,
+    bonusesHQ: {
+        70: {percentage: 10, max: 100},
+        71: {percentage: 10, max: 100},
+    },
+};
+let medicineRequestCount = 0;
+const originalMedicineItems = DATA_API_CLIENT.medicine.foodItems1;
+
+before(() => {
+    DATA_API_CLIENT.medicine.foodItems1 = async () => {
+        medicineRequestCount++;
+        return {
+            ok: true,
+            data: {items: [testMedicine]},
+        } as never;
+    };
+});
+
+after(() => {
+    DATA_API_CLIENT.medicine.foodItems1 = originalMedicineItems;
+});
 
 describe('DoH stats tests', () => {
     let sheet: GearPlanSheet;
@@ -77,6 +111,44 @@ describe('DoH stats tests', () => {
             expect(computed.craftsmanship).to.eq(2485);
             expect(computed.cp).to.eq(264 + 7);
         }
+    });
+
+    it('loads medicine that can be selected', () => {
+        const medicine = sheet.medicineItemsForDisplay[0];
+
+        expect(medicineRequestCount).to.be.greaterThan(0);
+        expect(medicine).to.not.be.undefined;
+        expect(medicine.id).to.equal(testMedicine.rowId);
+        expect(sheet.medicineById(medicine.id)).to.equal(medicine);
+    });
+
+    it('applies selected medicine as a final stat bonus', () => {
+        const medicine = sheet.medicineItemsForDisplay[0];
+        const set = new CharacterGearSet(sheet);
+        set.setEquip('Weapon', sheet.itemById(39826));
+        const statsWithoutMedicine = set.computedStats;
+
+        set.medicine = medicine;
+
+        expect(set.computedStats.craftsmanship).to.equal(statsWithoutMedicine.craftsmanship + 100);
+        expect(set.computedStats.control).to.equal(statsWithoutMedicine.control + 63);
+    });
+
+    it('exports and imports selected medicine, including legacy set exports', () => {
+        const medicine = sheet.medicineItemsForDisplay[0];
+        const set = new CharacterGearSet(sheet);
+        set.medicine = medicine;
+
+        const exported = sheet.exportGearSet(set);
+        expect(exported.medicine).to.equal(medicine.id);
+
+        const imported = sheet.importGearSet(exported);
+        expect(imported.medicine).to.equal(medicine);
+
+        const legacyExport = {...exported};
+        delete legacyExport.medicine;
+        const legacyImported = sheet.importGearSet(legacyExport);
+        expect(legacyImported.medicine).to.be.undefined;
     });
 });
 

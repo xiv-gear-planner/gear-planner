@@ -809,7 +809,8 @@ const BLU_ITEM_DISPLAY = {
 const DOH_DOL_ITEM_DISPLAY = {
     ...LEVEL_ITEMS[100].defaultDisplaySettings,
     minILvl: 700,
-    minILvlFood: 700,
+    // This controls potions as well, so needs to currently be 665
+    minILvlFood: 660,
 } as const satisfies ItemDisplaySettings;
 
 export function getDefaultDisplaySettings(level: SupportedLevel, job: JobName, isync: number | undefined): Readonly<ItemDisplaySettings> {
