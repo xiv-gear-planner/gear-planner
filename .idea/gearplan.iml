@@ -6,6 +6,7 @@
       <sourceFolder url="file://$MODULE_DIR$/packages/core/src/test" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/packages/frontend/src/scripts/test" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/packages/xivmath/src/test" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/packages/sims/src/test" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/.tmp" />
       <excludeFolder url="file://$MODULE_DIR$/temp" />
       <excludeFolder url="file://$MODULE_DIR$/tmp" />

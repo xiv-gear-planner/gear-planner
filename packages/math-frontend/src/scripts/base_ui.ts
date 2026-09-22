@@ -1,7 +1,7 @@
 import {goHash, processNav, setHash} from "./nav_hash";
 import {DISPLAY_SETTINGS} from "@xivgear/common-ui/settings/display_settings";
 import {showSettingsModal} from "@xivgear/common-ui/settings/settings_modal";
-import {splitPath} from "@xivgear/core/nav/common_nav";
+import {splitLegacyPipePath} from "@xivgear/core/nav/common_nav";
 import {applyCommonTopMenuFormatting} from "@xivgear/common-ui/components/top_menu";
 import {arrayEq} from "@xivgear/util/array_utils";
 
@@ -37,7 +37,7 @@ export function initTopMenu() {
         if (href?.startsWith('?page=')) {
             link.addEventListener('click', e => {
                 e.preventDefault();
-                goHash(...splitPath(href.slice(6)));
+                goHash(...splitLegacyPipePath(href.slice(6)));
             });
         }
     });
@@ -48,7 +48,7 @@ export function formatTopMenu(hash: string[]) {
         const href = link.getAttribute('href');
         applyCommonTopMenuFormatting(link);
         if (href?.startsWith('?page=')) {
-            const expected = splitPath(href.slice(6));
+            const expected = splitLegacyPipePath(href.slice(6));
             console.debug(`Expected: ${expected}, actual: ${hash}`);
             if (arrayEq(expected, hash)) {
                 link.classList.add('current-page');

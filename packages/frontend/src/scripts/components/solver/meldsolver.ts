@@ -1,7 +1,7 @@
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {MicroSetExport, SetExport, SimExport} from "@xivgear/xivmath/geartypes";
 import {SimResult, SimSettings, Simulation} from "@xivgear/core/sims/sim_types";
-import {GearPlanSheet} from "@xivgear/core/sheet";
+import {ExportTypes, GearPlanSheet} from "@xivgear/core/sheet";
 import {GearsetGenerationSettings} from "@xivgear/core/solving/gearset_generation";
 import {SolverSimulationSettings} from "@xivgear/core/solving/sim_runner";
 import {WORKER_POOL} from "../../workers/worker_pool";
@@ -60,8 +60,9 @@ export class MeldSolver {
     public async solveMelds(
         gearsetGenSettings: GearsetGenerationSettings,
         simSettings: SolverSimulationSettings,
-        update: (update: GearsetGenerationStatusUpdate | MeldSolvingStatusUpdate) => void
-    ): Promise<[CharacterGearSet, number]> {
+        update: (update: GearsetGenerationStatusUpdate | MeldSolvingStatusUpdate) => void,
+        confirmLargeSim: (count: number) => Promise<boolean>
+    ): Promise<[CharacterGearSet, number] | 'cancelled'> {
 
         if (!simSettings) {
             return null;
@@ -69,7 +70,7 @@ export class MeldSolver {
 
         const gearsetGenRequest: GearsetGenerationRequest = {
             jobType: 'generateGearset',
-            sheet: this._sheet.exportSheet(),
+            sheet: this._sheet.exportSheet(ExportTypes.SolverExport),
             data: GearsetGenerationSettings.export(gearsetGenSettings, this._sheet),
         };
 
@@ -100,6 +101,12 @@ export class MeldSolver {
 
         const maxWorkers = WORKER_POOL.maxWorkers;
         const numSets = sets.length;
+
+        const shouldContinue = await confirmLargeSim(numSets);
+
+        if (!shouldContinue) {
+            return 'cancelled';
+        }
         // Split up very large chunks of work, so that we don't get a "long tail" issue where one worker
         // has lagged behind but the other workers have no way of picking up the slack.
         // Cap at 5000 sets per sub-job
@@ -136,7 +143,7 @@ export class MeldSolver {
             }
             const simRequest: SolverSimulationRequest = {
                 jobType: 'solverSimulation',
-                sheet: this._sheet.exportSheet(),
+                sheet: this._sheet.exportSheet(ExportTypes.SolverExport),
                 data: {
                     ...solverSimulationSettingsExport,
                     sets: jobSets,

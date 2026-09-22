@@ -1,9 +1,9 @@
-import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/sims/cycle_sim";
 import {BaseMultiCycleSimGui} from "../../multicyclesim_ui";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {CustomColumnSpec} from "@xivgear/common-ui/table/tables";
-import {NinSettings, NinSimResult} from "@xivgear/core/sims/melee/nin/nin_lv100_sim";
-import {NINExtraData} from "@xivgear/core/sims/melee/nin/nin_types";
+import {NinSettings, NinSimResult} from "@xivgear/sims/melee/nin/nin_lv100_sim";
+import {NINExtraData} from "@xivgear/sims/melee/nin/nin_types";
 import {GaugeWithText} from "@xivgear/common-ui/components/gauges";
 
 export class NinSheetSimGui extends BaseMultiCycleSimGui<NinSimResult, NinSettings> {

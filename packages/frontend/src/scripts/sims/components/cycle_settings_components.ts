@@ -1,4 +1,3 @@
-import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
 import {
     clampValues,
     FieldBoundCheckBox,
@@ -8,6 +7,7 @@ import {
 } from "@xivgear/common-ui/components/util";
 import {NamedSection} from "../../components/general/section";
 import {SimSettingsUpdateCallback} from "../simulation_gui";
+import {CycleSettings} from "@xivgear/sims/cycle_settings";
 
 export function cycleSettingsGui(cycleSettings: CycleSettings, updateCallback: SimSettingsUpdateCallback) {
     const out = new NamedSection('Cycle Settings');

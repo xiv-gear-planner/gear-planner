@@ -4,14 +4,15 @@ import {
     EquippedItem,
     EquipSlotKey,
     EquipSlots,
+    FoodItem,
     MeldableMateriaSlot,
     MicroSetExport,
     RawStats,
     SetExport
 } from "@xivgear/xivmath/geartypes";
 import {
-    ALL_SUB_STATS,
-    MATERIA_ACCEPTABLE_OVERCAP_LOSS,
+    ALL_COMBAT_SUB_STATS,
+    DEFAULT_MATERIA_ACCEPTABLE_OVERCAP_LOSS,
     MateriaSubstat,
     NORMAL_GCD
 } from "@xivgear/xivmath/xivconstants";
@@ -28,29 +29,36 @@ export class GearsetGenerationSettings {
     useTargetGcd: boolean;
     targetGcd: number;
     overwriteFood: boolean;
+    filterFood: boolean;
 
-    constructor(gearset: CharacterGearSet, overwrite: boolean, useTargetGcd: boolean, targetGcd: number, solveFood?: boolean) {
+    constructor(gearset: CharacterGearSet, overwrite: boolean, useTargetGcd: boolean, targetGcd: number, solveFood: boolean = false, filterFood: boolean = false) {
         this.gearset = gearset;
         this.overwriteExistingMateria = overwrite;
         this.useTargetGcd = useTargetGcd;
         this.targetGcd = targetGcd;
         this.overwriteFood = solveFood;
+        this.filterFood = filterFood;
     }
 
     static export(settings: GearsetGenerationSettings, sheet: GearPlanSheet): GearsetGenerationSettingsExport {
         return {
-            ...settings,
             gearset: sheet.exportGearSet(settings.gearset),
+            overwriteExistingMateria: settings.overwriteExistingMateria,
+            useTargetGcd: settings.useTargetGcd,
+            targetGcd: settings.targetGcd,
+            overwriteFood: settings.overwriteFood,
+            allowedFoodIds: settings.filterFood ? sheet.foodItemsForDisplay.map(f => f.id) : undefined,
         };
     }
 }
 
-export class GearsetGenerationSettingsExport {
+export type GearsetGenerationSettingsExport = {
     gearset: SetExport;
     overwriteExistingMateria: boolean;
     useTargetGcd: boolean;
     targetGcd: number;
     overwriteFood: boolean;
+    allowedFoodIds?: number[];
 }
 
 class ItemWithStats {
@@ -92,30 +100,27 @@ type RotationCacheKey = number;
 export class GearsetGenerator {
 
     readonly _sheet: GearPlanSheet;
-    readonly _settings: GearsetGenerationSettings;
+    readonly relevantStats: MateriaSubstat[];
 
-    relevantStats: MateriaSubstat[]; //= ALL_SUB_STATS.filter(stat => this._sheet.isStatRelevant(stat) && stat != 'piety');
-
-    public constructor(sheet: GearPlanSheet, settings: GearsetGenerationSettings) {
+    public constructor(sheet: GearPlanSheet) {
         this._sheet = sheet;
-        this._settings = settings;
-        this.relevantStats = ALL_SUB_STATS.filter(stat => this._sheet.isStatRelevant(stat) && stat !== 'piety');
+        this.relevantStats = ALL_COMBAT_SUB_STATS.filter(stat => this._sheet.isStatRelevant(stat) && stat !== 'piety');
     }
 
-    async getMeldPossibilitiesForGearset(settings: GearsetGenerationSettings, genCallback: (sets: MicroSetExport[]) => void, statusCallback: (update: Omit<GearsetGenerationStatusUpdate, "type">) => void): Promise<void> {
+    async getMeldPossibilitiesForGearset(gearset: CharacterGearSet, settings: GearsetGenerationSettingsExport, genCallback: (sets: MicroSetExport[]) => void, statusCallback: (update: Omit<GearsetGenerationStatusUpdate, "type">) => void): Promise<void> {
         console.log("Meld generator: Init");
         statusCallback({
             phase: 0,
             count: 0,
         });
-        const levelStats = settings.gearset.computedStats.levelStats;
+        const levelStats = gearset.computedStats.levelStats;
         const override = this._sheet.classJobStats.gcdDisplayOverrides?.(this._sheet.level) ?? [];
-        const useSks = settings.gearset.isStatRelevant('skillspeed');
+        const useSks = gearset.isStatRelevant('skillspeed');
         const over = override.find(over => over.basis === (useSks ? 'sks' : 'sps'));
         const attackType = over ? over.attackType : useSks ? 'Weaponskill' : 'Spell';
-        const haste = settings.gearset.computedStats.haste(attackType, over?.buffHaste ?? 0, over?.gaugeHaste ?? 0);
+        const haste = gearset.computedStats.haste(attackType, over?.buffHaste ?? 0, over?.gaugeHaste ?? 0);
 
-        const equipment = this.cloneEquipmentset(settings.gearset.equipment);
+        const equipment = this.cloneEquipmentset(gearset.equipment);
 
         if (settings.overwriteExistingMateria) {
             for (const slotKey of EquipSlots) {
@@ -135,7 +140,7 @@ export class GearsetGenerator {
         let possibleMeldCombinations = new Map<AllStatDedupKey, EquipmentSetWithStats>();
         const baseEquipSet = new EquipmentSetWithStats(new EquipmentSet, new RawStats);
 
-        console.log("Meld generator: Phase 1");
+        console.log("Meld generator: Phase 1 (Individual slot combinations)");
         statusCallback({
             phase: 1,
             count: 0,
@@ -156,7 +161,7 @@ export class GearsetGenerator {
 
         possibleMeldCombinations.set(this.statsToKey(baseEquipSet.stats), baseEquipSet);
 
-        console.log("Meld generation: Phase 2");
+        console.log("Meld generation: Phase 2 (full set meld combinations + dedupe)");
         statusCallback({
             phase: 2,
             count: 0,
@@ -220,7 +225,7 @@ export class GearsetGenerator {
             phase: 3,
             count: possibleMeldCombinations.size,
         });
-        console.log("Meld generation: Phase 3");
+        console.log("Meld generation: Phase 3 (food and GCD sorting)");
         const gcdMap = new Map<RotationCacheKey, MicroSetExport[]>();
         let count = 0;
         let lastReported = 0;
@@ -240,17 +245,28 @@ export class GearsetGenerator {
             count++;
 
 
-            const foods = [settings.gearset.food];
+            const foods = gearset.food ? [gearset.food] : [];
             // Solve for food if we have no food enabled, or if overwrite is ticked
             if (!foods[0] || settings.overwriteFood) {
-                const foodItems = this._sheet.relevantFoodForSolver;
+                let foodItems: FoodItem[];
+                if (settings.allowedFoodIds) {
+                    // If the user has explicitly restricted the food search space, use that.
+                    // This bypasses the builtin filtering logic (relevantFoodForSolver).
+                    const allowedIds = new Set(settings.allowedFoodIds);
+                    foodItems = [...this._sheet.allFoodItems, ...this._sheet.customFood].filter(f => allowedIds.has(f.id));
+                }
+                else {
+                    foodItems = this._sheet.relevantFoodForSolver;
+                }
                 for (let i = 0; i < foodItems.length; i++) {
-                    if (foodItems[i] !== settings.gearset.food) {
+                    if (foodItems[i] !== gearset.food) {
                         const food = foodItems[i];
                         foods.push(food);
                     }
                 }
             }
+
+            console.log(`Foods available to solver (${foods.length}): ${foods.map(f => `${f.name} (${f.id})`).join(", ")}`);
 
             for (const food of foods) {
                 const newGearset: CharacterGearSet = new CharacterGearSet(this._sheet);
@@ -258,8 +274,8 @@ export class GearsetGenerator {
                 newGearset.equipment = combination.set;
 
                 for (const slotKey of EquipSlots) {
-                    if (settings.gearset.equipment[slotKey]?.gearItem?.isCustomRelic) {
-                        newGearset.equipment[slotKey].relicStats = settings.gearset.equipment[slotKey].relicStats ?? undefined;
+                    if (gearset.equipment[slotKey]?.gearItem?.isCustomRelic) {
+                        newGearset.equipment[slotKey].relicStats = gearset.equipment[slotKey].relicStats ?? undefined;
                     }
                 }
 
@@ -287,14 +303,14 @@ export class GearsetGenerator {
         const gcdMapSize = gcdMap.size;
         statusCallback({
             phase: 4,
-            count: total,
+            count: count,
             subPhase: {
                 phase: 0,
                 phaseMax: gcdMapSize,
             },
         });
 
-        console.log("Meld generation: Phase 4");
+        console.log("Meld generation: Phase 4 (send combinations back)");
         let gcdMapDone = 0;
         // Push them in rough order of GCD so that rotation caching works well
         for (const [key, sets] of gcdMap) {
@@ -304,7 +320,7 @@ export class GearsetGenerator {
             gcdMapDone++;
             statusCallback({
                 phase: 4,
-                count: total,
+                count: count,
                 subPhase: {
                     phase: gcdMapDone,
                     phaseMax: gcdMapSize,
@@ -359,8 +375,9 @@ export class GearsetGenerator {
                     const lostToOvercap = Math.max(0, materia.primaryStatValue - (newStatAmount - oldStatAmount));
                     const newStatsKey = this.statsToKey(newStats);
 
+                    // TODO: this uses DEFAULT_MATERIA_ACCEPTABLE_OVERCAP_LOSS rather than
                     // Ignore anything that will cause large amounts of overcap, any skip any non-unique stat totals
-                    if (lostToOvercap <= MATERIA_ACCEPTABLE_OVERCAP_LOSS && !itemsToAdd.has(newStatsKey)) {
+                    if (lostToOvercap <= DEFAULT_MATERIA_ACCEPTABLE_OVERCAP_LOSS && !itemsToAdd.has(newStatsKey)) {
                         const newMelds: MeldableMateriaSlot[] = this.cloneMelds(existingCombination.item.melds);
                         newMelds[slotNum].equippedMateria = materia;
                         itemsToAdd.set(newStatsKey, new ItemWithStats(new EquippedItem(equippedItem.gearItem, newMelds), newStats));

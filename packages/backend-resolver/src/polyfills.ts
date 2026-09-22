@@ -3,7 +3,7 @@ import NodeFetchCache from 'node-fetch-cache';
 
 
 const cachedFetch = NodeFetchCache.create({
-    shouldCacheResponse: (response: Response) => response.ok,
+    shouldCacheResponse: (response: Response) => response.ok && !response.url?.includes("_cacheBust"),
 });
 
 // @ts-expect-error no type defs available for this library

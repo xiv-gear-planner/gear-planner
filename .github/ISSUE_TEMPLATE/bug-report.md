@@ -14,7 +14,7 @@ A clear and concise description of what the bug is.
 If not self-explanatory, write the steps to reproduce the behavior. For example:
 1. Create a new lvl 100 WHM sheet
 2. Equip the "Queensknight Cane"
-3. Omen the simulation results
+3. Open the simulation results
 4. See error
 
 **Expected behavior**

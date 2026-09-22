@@ -4,7 +4,7 @@ import {
     NavState,
     ONLY_SET_QUERY_PARAM,
     parsePath,
-    splitPath,
+    splitLegacyPipePath,
     tryParseOptionalIntParam
 } from "../nav/common_nav";
 
@@ -97,7 +97,7 @@ export function parseImport(text: string): ImportSpec {
                 const qp = url.searchParams;
                 const path = qp.get(HASH_QUERY_PARAM) ?? '';
                 const osIndex = tryParseOptionalIntParam(qp.get(ONLY_SET_QUERY_PARAM));
-                const pathParts = splitPath(path);
+                const pathParts = splitLegacyPipePath(path);
                 const importNav = new NavState(pathParts, osIndex, undefined);
                 const parsed = parsePath(importNav);
                 if (parsed) {

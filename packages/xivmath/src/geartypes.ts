@@ -263,11 +263,18 @@ export interface FoodItem extends XivItem {
     secondarySubStat: RawStatKey | undefined
 }
 
+export interface MedicineItem extends XivItem {
+    ilvl: number,
+    bonuses: FoodBonuses,
+    primarySubStat: RawStatKey | undefined,
+    secondarySubStat: RawStatKey | undefined
+}
+
 export interface Materia extends XivCombatItem {
     /**
      * The stat given by the materia
      */
-    primaryStat: RawStatKey,
+    primaryStat: MateriaSubstat,
     /**
      * The value of the stat given by the materia
      */
@@ -433,6 +440,7 @@ export interface ComputedSetStats extends RawStats {
     readonly magicDefenseDamageTaken: number;
 
     readonly effectiveFoodBonuses: RawStats;
+    readonly effectiveMedicineBonuses: RawStats;
 
     withModifications(modifications: StatModification, pre?: StatPreModifications): ComputedSetStats;
 }
@@ -445,6 +453,9 @@ export interface MeldableMateriaSlot {
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export interface RawStats {
+    /**
+     * Raw HP provided by the item - does NOT include HP provided via vitality.
+     */
     hp: number,
     vitality: number,
     strength: number,
@@ -460,13 +471,39 @@ export interface RawStats {
     skillspeed: number,
     wdPhys: number,
     wdMag: number,
+    /**
+     * weaponDelay expressed as seconds (i.e. 3.54 = 3.54 seconds)
+     */
     weaponDelay: number,
-    defenseMag: number;
-    defensePhys: number;
-    gearHaste: number;
+    defenseMag: number,
+    defensePhys: number,
+    gearHaste: number,
+    /**
+     * Represents direct main stat bonuses. Only applicable to item stats - not used in computed stats, as it should be
+     * converted to the actual concrete stat at that point.
+     */
+    extraMainStat: number,
+    /**
+     * Represents direct secondary stat bonuses. Only applicable to item stats - not used in computed stats, as it should be
+     * converted to the actual concrete stat at that point.
+     */
+    extraSecondaryStat: number,
+
+    // DoH
+    craftsmanship: number,
+    control: number,
+    cp: number,
+
+    // DoL
+    perception: number,
+    gathering: number,
+    gp: number,
+
 }
 
 export type RawStatKey = keyof RawStats;
+
+export type RawStatsPart = Partial<RawStats>;
 
 /**
  * Stats that should not have ilvl caps applied
@@ -494,6 +531,18 @@ export class RawStats implements RawStats {
     defenseMag: number = 0;
     defensePhys: number = 0;
     gearHaste: number = 0;
+    extraMainStat: number = 0;
+    extraSecondaryStat: number = 0;
+
+    // DoH
+    craftsmanship: number = 0;
+    control: number = 0;
+    cp: number = 0;
+
+    // DoL
+    perception: number = 0;
+    gathering: number = 0;
+    gp: number = 0;
 
     constructor(values: ({ [K in RawStatKey]?: number } | undefined) = undefined) {
         if (values) {
@@ -511,12 +560,12 @@ export interface LevelStats {
     hpScalar:
         ({
             'other': number
-        } & { [K in RoleKey]?: number })
-        | { [K in RoleKey]: number },
+        } & { [K in CombatRoleKey]?: number })
+        | { [K in CombatRoleKey]: number },
     // You can specify either 'default' and a non-exhaustive list, or an exhaustive list (i.e. every role).
     mainStatPowerMod: {
         'other': number
-    } & { [K in RoleKey]?: number }
+    } & { [K in CombatRoleKey]?: number }
 }
 
 
@@ -526,32 +575,46 @@ export interface LevelItemInfo {
     defaultIlvlSync?: number,
     minILvlFood: number,
     maxILvlFood: number,
+    // TODO: current unused
     minMateria: number,
     maxMateria: number,
     defaultDisplaySettings: ItemDisplaySettings
 }
 
 
-export const ROLES = ['Healer', 'Melee', 'Ranged', 'Caster', 'Tank'] as const;
+export const COMBAT_ROLES = ['Healer', 'Melee', 'Ranged', 'Caster', 'Tank'] as const;
 
-export type RoleKey = typeof ROLES[number];
+export type CombatRoleKey = typeof COMBAT_ROLES[number];
 
 export type Mainstat = typeof MAIN_STATS[number];
 export type Substat = (typeof FAKE_MAIN_STATS[number] | typeof SPECIAL_SUB_STATS[number]);
+
+export const JOB_TYPES = ['Combat', 'DoH', 'DoL'] as const;
+export type JobType = typeof JOB_TYPES[number];
+
+export const ALL_ROLES = [...COMBAT_ROLES, 'DoH' satisfies JobType, 'DoL' satisfies JobType] as const;
+export type AllRoleKey = typeof ALL_ROLES[number];
 
 /**
  * JobDataConst represents the subset of job-related data which we do not pull from Xivapi.
  * These are mostly manually curated.
  */
-export interface JobDataConst {
+export type JobDataConst = ({
+    // combat jobs
+    readonly type: 'Combat',
     /**
      * The role of the job
      */
-    readonly role: RoleKey,
+    readonly combatRole: CombatRoleKey,
     /**
      * The primary stat
      */
     readonly mainStat: Mainstat;
+
+    /**
+     * The secondary substat for the purposes of items such as pre-order earrings.
+     */
+    readonly secondaryStat: Substat;
     /**
      * The primary stat as used for auto-attack calculations specifically
      */
@@ -560,6 +623,17 @@ export interface JobDataConst {
      * Optional function to apply a damage multiplication trait.
      */
     readonly traitMulti?: (level: number, attackType: AttackType) => number;
+} | {
+    readonly type: 'DoH' | 'DoL'
+
+    // TODO: break these into a sub-object?
+    readonly combatRole: null,
+    readonly mainStat: null;
+    readonly secondaryStat: null;
+    readonly autoAttackStat: null;
+    readonly traitMulti?: undefined;
+}) & {
+    // This section is common to all jobs
     /**
      * Optional list of stat-modifying traits
      */
@@ -607,10 +681,26 @@ export interface JobDataConst {
     gcdDisplayOverrides?: (level: SupportedLevel) => (GcdDisplayOverride[]) | null;
 
     /**
+     * The minimum level of the job.
+     */
+    readonly minLevel: SupportedLevel;
+    /**
      * The maximum level of the job.
      */
     readonly maxLevel: SupportedLevel;
+
+    /**
+     * Optional override for item display filtering logic.
+     */
+    readonly extraItemFilter?: ClassItemFilter;
+
+    /**
+     * Default party size override
+     */
+    readonly defaultPartyBonus?: PartyBonusAmount;
 }
+
+export type ClassItemFilter = (item: GearItem) => boolean;
 
 export type GcdDisplayOverride = {
     /**
@@ -664,9 +754,30 @@ export type JobMultipliers = {
 /**
  * JobData is the combination of {@link JobDataConst} and other data pulled from Xivapi.
  */
-export interface JobData extends JobDataConst {
+export type JobData = JobDataConst & {
     jobStatMultipliers: JobMultipliers,
 }
+
+/**
+ * Serialized form of {@link JobData}. Function-bearing fields and traits are omitted because they cannot be usefully
+ * represented in an export. The useful values from a trait are applied during stat calculation rather than stored in
+ * the trait definition.
+ */
+export type JobDataExport = Pick<JobData,
+    | 'type'
+    | 'combatRole'
+    | 'mainStat'
+    | 'secondaryStat'
+    | 'autoAttackStat'
+    | 'irrelevantSubstats'
+    | 'offhand'
+    | 'meldParamIndex'
+    | 'aaPotency'
+    | 'excludedRelicSubstats'
+    | 'minLevel'
+    | 'maxLevel'
+    | 'jobStatMultipliers'
+>;
 
 export interface JobTrait {
     minLevel?: number,
@@ -745,11 +856,11 @@ export interface SheetExport {
     /**
      * The character clan (e.g. Wildwood or Duskwight) of the sheet.
      */
-    race: RaceName | undefined,
+    race?: RaceName | undefined,
     /**
      * Party bonus percentage (0-5)
      */
-    partyBonus: PartyBonusAmount,
+    partyBonus?: PartyBonusAmount,
     /**
      * The job abbreviation for the sheet.
      */
@@ -765,7 +876,7 @@ export interface SheetExport {
     /**
      * The simulations on this sheet.
      */
-    sims: SimExport[],
+    sims?: SimExport[],
     /**
      * Settings regarding which items to display
      */
@@ -787,6 +898,10 @@ export interface SheetExport {
      * The target GCD for materia auto-fill
      */
     mfMinGcd?: number,
+    /**
+     * The maximum stat waste allowed by materia auto-fill, by stat.
+     */
+    mfMaxWaste?: MateriaWasteLimits,
     /**
      * If ilvl sync is enabled, this represents what level the sheet should be synced to
      */
@@ -811,6 +926,11 @@ export interface SheetExport {
     isMultiJob?: boolean,
 
     specialStats?: string | null,
+
+    /**
+     * List of hidden items and food, by item ID
+     */
+    hiddenItems?: number[],
 }
 
 export type SheetModificationKey = number;
@@ -916,6 +1036,8 @@ export interface SheetStatsExport extends SheetExport {
     sets: SetStatsExport[],
 }
 
+// TODO: split into separator and non-separator
+
 /**
  * Represents an exported set. Note that in addition to some fields only being applicable to internal vs external
  * usage, some fields may be present based on whether this set was exported as a standalone individual set, or as
@@ -934,13 +1056,13 @@ export interface SetExport {
      */
     description?: string,
     /**
-     * Equipped items (and their materia and/or relic stats)
-     */
-    items: ItemsSlotsExport,
-    /**
      * Equipped food (by item ID)
      */
     food?: number,
+    /**
+     * Equipped medicine (by item ID)
+     */
+    medicine?: number,
     /**
      * When a relic is de-selected, its former stats are remembered here so that they can be recalled if the
      * relic is selected again. They keys are item IDs, and the values are {@link RelicStats}.
@@ -953,13 +1075,17 @@ export interface SetExport {
      */
     materiaMemory?: MateriaMemoryExport;
     /**
-     * Indicates that this set is a separator rather than an actual set
-     */
-    isSeparator?: boolean,
-    /**
      * For multi-class sheets, each set can have a different job.
      */
     jobOverride?: JobName | null,
+    /**
+     * Equipped items (and their materia and/or relic stats)
+     */
+    items: ItemsSlotsExport,
+    /**
+     * Indicates that this set is a separator rather than an actual set
+     */
+    isSeparator?: boolean,
 }
 
 export type ItemsSlotsExport = {
@@ -969,7 +1095,7 @@ export type ItemsSlotsExport = {
 /**
  * Type that represents a single set exported as a top-level sheet.
  */
-export interface SetExportExternalSingle extends SetExport {
+export type SetExportExternalSingle = SetExport & {
     // We don't care about job/level for internal usage, since
     // those are properties of the sheet. It's strictly to
     // prevent/warn on importing the wrong job, as well as for
@@ -1015,10 +1141,17 @@ export interface SetExportExternalSingle extends SetExport {
 }
 
 /**
+ * Serialized form of ComputedSetStats. Includes the serializable portion of jobStats.
+ */
+export type ComputedSetStatsExport = Omit<ComputedSetStats, "jobStats"> & {
+    readonly jobStats: JobDataExport,
+};
+
+/**
  * Special version of {@link SetExport} that comes from the /fulldata/ endpoint.
  */
-export interface SetStatsExport extends SetExport {
-    computedStats: ComputedSetStats
+export type SetStatsExport = SetExport & {
+    computedStats: ComputedSetStatsExport
 }
 
 // noinspection JSUnusedGlobalSymbols
@@ -1109,9 +1242,12 @@ export type MateriaAutoFillController = {
     unequipUnlocked(): void;
 }
 
+export type MateriaWasteLimits = Partial<Record<MateriaSubstat, number>>;
+
 export interface MateriaAutoFillPrio {
     statPrio: (MateriaSubstat)[];
     minGcd: number;
+    maxWaste: MateriaWasteLimits;
 }
 
 export const MATERIA_FILL_MODES = ['leave_empty', 'autofill', 'retain_slot_else_prio', 'retain_item_else_prio', 'retain_slot', 'retain_item'] as const;
@@ -1135,7 +1271,7 @@ export interface ItemDisplaySettings {
      */
     maxILvlFood: number,
     /**
-     * Show relics which exceed {@link #maxILvl}
+     * Show relics which exceed {@link maxILvl}
      */
     higherRelics: boolean,
     /**
@@ -1146,6 +1282,11 @@ export interface ItemDisplaySettings {
      * Show food with only one relevant stat
      */
     showOneStatFood: boolean,
+
+    /**
+     * Show hidden items, allowing you to unhide them.
+     */
+    showHidden: boolean,
 }
 
 export const AttackTypes = ['Unknown', 'Auto-attack', 'Spell', 'Weaponskill', 'Ability', 'Item'] as const;
@@ -1213,6 +1354,8 @@ export type GearAcquisitionSource =
     | 'artifact'
     | 'alliance'
     | 'criterion'
+    | 'deepdungeon'
+    | 'fieldoperation'
     | 'other'
     | 'custom';
 
@@ -1227,7 +1370,7 @@ export type GearSetResult = {
     readonly issues: readonly GearSetIssue[]
 }
 
-export type CollapsibleSlot = EquipSlotKey | 'food';
+export type CollapsibleSlot = EquipSlotKey | 'food' | 'medicine';
 
 export type SetDisplaySettingsExport = {
     hiddenSlots: CollapsibleSlot[]
@@ -1369,6 +1512,11 @@ export type ScalingOverrides = {
      * actors, e.g. Earthly Star, Living Shadow, Queen, SMN abilities.
      */
     wdMulti: number,
+    /**
+     * Add skill speed multiplier. Overridden by Wildfire, which gets DoT scaling despite not
+     * being a 'real' DoT.
+     */
+    addSkillSpeedMultiplier: boolean,
 }
 
 // TODO: look at Int16Array and friends to see if this can be compressed further
@@ -1389,7 +1537,7 @@ export type MicroSetExport = MicroSlotExport[];
 export type FoodMicroSlotExport = [slot: "food", foodId: number];
 // The itemId in this case has 0.5 added to it to indicate an NQ item
 export type NormalItemMicroSlotExport = [slot: EquipSlotKey, itemId: number, ...materiaIds: (number | null)[]];
-export type RelicItemMicroSlotExport = [slot: EquipSlotKey, itemId: number, "relic", relicStats: RelicStatsExport];
+export type RelicItemMicroSlotExport = [slot: EquipSlotKey, itemId: number, _: "relic", relicStats: RelicStatsExport];
 export type MicroSlotExport = FoodMicroSlotExport | NormalItemMicroSlotExport | RelicItemMicroSlotExport;
 
 export type IlvlSyncInfo = {

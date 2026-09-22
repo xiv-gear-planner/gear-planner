@@ -4,7 +4,7 @@ import {
     CycleSimResultFull,
     DisplayRecordFinalized,
     ExternalCycleSettings
-} from "@xivgear/core/sims/cycle_sim";
+} from "@xivgear/sims/cycle_sim";
 import {SimSettingsUpdateCallback, SimulationGui} from "./simulation_gui";
 import {SimSettings} from "@xivgear/core/sims/sim_types";
 import {cycleSettingsGui} from "./components/cycle_settings_components";
@@ -16,7 +16,7 @@ import {applyStdDev} from "@xivgear/xivmath/deviation";
 import {bestEffortFormat, simpleKvTable} from "./components/simple_tables";
 import {AbilitiesUsedTable} from "./components/ability_used_table";
 import {quickElement} from "@xivgear/common-ui/components/util";
-import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
+import {BaseMultiCycleSim} from "@xivgear/sims/processors/sim_processors";
 import {AnyStringIndex} from "@xivgear/util/util_types";
 import {
     col,

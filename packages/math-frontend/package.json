@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "dependencies": {
     "@webcomponents/webcomponentsjs": "^2.8.0",
-    "@xivgear/common-ui": "^1.0.0",
-    "@xivgear/core": "^1.0.0",
-    "@xivgear/xivmath": "^1.0.0",
+    "@xivgear/common-ui": "workspace:*",
+    "@xivgear/core": "workspace:*",
+    "@xivgear/util": "workspace:*",
+    "@xivgear/xivmath": "workspace:*",
     "highlight.js": "^11.11.1"
   },
   "exports": {
@@ -24,7 +25,7 @@
     "ts-mocha": "^10.1.0",
     "ts-node": "^10.9.2",
     "typedoc": "^0.28.4",
-    "webpack": "^5.99.8",
+    "webpack": "^5.105.2",
     "webpack-cli": "^5.1.4"
   },
   "scripts": {

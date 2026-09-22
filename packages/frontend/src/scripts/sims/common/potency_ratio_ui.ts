@@ -3,7 +3,7 @@ import {SimulationGui} from "../simulation_gui";
 import {EmptyObject} from "@xivgear/util/util_types";
 import {NamedSection} from "../../components/general/section";
 import {simpleMappedResultTable} from "../components/simple_tables";
-import {PotencyRatioSimResults} from "@xivgear/core/sims/common/potency_ratio";
+import {PotencyRatioSimResults} from "@xivgear/sims/common/potency_ratio";
 
 function makeDescriptionPanel() {
     const out = new NamedSection('Potency Ratio');

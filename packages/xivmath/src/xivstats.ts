@@ -22,7 +22,8 @@ import {
     detDmg,
     dhitChance,
     dhitDmg,
-    fl, flp,
+    fl,
+    flp,
     mainStatMulti,
     mpTick,
     sksTickMulti,
@@ -34,7 +35,7 @@ import {
     vitToHp,
     wdMulti
 } from "./xivmath";
-import {JobName, SupportedLevel} from "./xivconstants";
+import {BASE_CP, BASE_GP, JobName, SupportedLevel} from "./xivconstants";
 import {sum} from "@xivgear/util/array_utils";
 
 /**
@@ -108,74 +109,10 @@ function clamp(min: number, max: number, value: number) {
 }
 
 /**
- * Transform a ComputedSetStats into a form that serializes properly. That is, it serializes the getters rather
- * than only the backing data. This is realistically what you would want out of the fulldata API endpoint.
- *
- * @param stats
- */
-export function statsSerializationProxy(stats: ComputedSetStats): ComputedSetStats {
-    // The purpose of this is that the fullstats API won't correctly serialize the ComputedSetStatsImpl normally.
-    // We care about the
-    return new Proxy(stats, {
-        get(target, prop, receiver) {
-            // Check if the property is a getter on the prototype chain
-            let descriptor = Object.getOwnPropertyDescriptor(target, prop as string);
-            let proto = Object.getPrototypeOf(target);
-
-            while (!descriptor && proto) {
-                descriptor = Object.getOwnPropertyDescriptor(proto, prop as string);
-                proto = Object.getPrototypeOf(proto);
-            }
-
-            if (descriptor && typeof descriptor.get === 'function') {
-                return descriptor.get.call(target);
-            }
-
-            return Reflect.get(target, prop, receiver);
-        },
-        ownKeys(target) {
-            const keys = new Set<string | symbol>();
-
-            let obj: object = target;
-            while (obj) {
-                Reflect.ownKeys(obj).forEach((key) => {
-                    if (typeof key === 'string' && !key.startsWith('_')) {
-                        const descriptor = Object.getOwnPropertyDescriptor(obj, key);
-                        if (descriptor && typeof descriptor.get === 'function') {
-                            keys.add(key);
-                        }
-                    }
-                });
-                obj = Object.getPrototypeOf(obj);
-            }
-
-            return Array.from(keys);
-        },
-        getOwnPropertyDescriptor(target, prop) {
-            const descriptor = Object.getOwnPropertyDescriptor(target, prop) ||
-                Object.getOwnPropertyDescriptor(Object.getPrototypeOf(target), prop);
-
-            if (
-                descriptor &&
-                typeof descriptor.get === 'function' &&
-                typeof prop === 'string' &&
-                !prop.startsWith('_')
-            ) {
-                return {
-                    enumerable: true,
-                    configurable: true,
-                };
-            }
-            return undefined;
-        },
-    });
-}
-
-/**
  * ComputedSetStats implementation.
  *
  * Unlike the old ComputedSetStats, this should not be modified. Rather, if a modified version is required,
- * then the {@link #withModifications()} method should be used, which will apply the allowable modifications and
+ * then the {@link withModifications()} method should be used, which will apply the allowable modifications and
  * return a new object. Derived values do not need to be explicitly recomputed, e.g. if you apply a main stat bonus,
  * the main stat multiplier will take effect automatically.
  */
@@ -185,6 +122,7 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
     // This is initialized when the ctor calls this.recalc()
     private currentStats!: RawStats;
     private _effectiveFoodBonuses!: RawStats;
+    private _effectiveMedicineBonuses!: RawStats;
 
     constructor(
         readonly gearStats: RawStats,
@@ -194,9 +132,11 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
         private readonly classJob: JobName,
         private readonly classJobStats: JobData,
         readonly partyBonus: PartyBonusAmount,
-        readonly racialStats: RawStats
+        readonly racialStats: RawStats,
+        private readonly medicineStats: FoodBonuses = {}
     ) {
         this.finalBonusStats = new RawBonusStats();
+        this._effectiveMedicineBonuses = new RawStats();
         // TODO: order of operations here
         this.recalc();
         if (classJobStats.traits) {
@@ -209,6 +149,13 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
                 }
                 trait.apply(this.finalBonusStats);
             });
+        }
+        for (const key in this.medicineStats) {
+            const stat = key as RawStatKey;
+            const bonus = this.medicineStats[stat]!;
+            const effective = Math.min(fl(this[stat] * (bonus.percentage / 100)), bonus.max);
+            this.finalBonusStats[stat] += effective;
+            this._effectiveMedicineBonuses[stat] += effective;
         }
     }
 
@@ -243,7 +190,8 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
             this.classJob,
             this.classJobStats,
             this.partyBonus,
-            this.racialStats
+            this.racialStats,
+            this.medicineStats
         );
         Object.assign(out.finalBonusStats, this.finalBonusStats);
         modifications(out, out.finalBonusStats);
@@ -353,6 +301,30 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
         return result;
     }
 
+    get craftsmanship(): number {
+        return this.currentStats.craftsmanship + this.finalBonusStats.craftsmanship;
+    }
+
+    get control(): number {
+        return this.currentStats.control + this.finalBonusStats.control;
+    }
+
+    get cp(): number {
+        return BASE_CP + this.currentStats.cp + this.finalBonusStats.cp;
+    }
+
+    get perception(): number {
+        return this.currentStats.perception + this.finalBonusStats.perception;
+    }
+
+    get gathering(): number {
+        return this.currentStats.gathering + this.finalBonusStats.gathering;
+    }
+
+    get gp(): number {
+        return BASE_GP + this.currentStats.gp + this.finalBonusStats.gp;
+    }
+
     get job(): JobName {
         return this.classJob;
     }
@@ -417,6 +389,9 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
     };
 
     get mainStatValue(): number {
+        if (!this.classJobStats.mainStat) {
+            return 0;
+        }
         return this[this.classJobStats.mainStat];
     }
 
@@ -425,11 +400,17 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
     };
 
     get baseMainStatPlusRace(): number {
+        if (!this.classJobStats.mainStat) {
+            return 0;
+        }
         const mainStat = this.classJobStats.mainStat;
         return getBaseMainStat(this.levelStats, this.classJobStats, this.classJobStats.mainStat) + this.racialStats[mainStat];
     }
 
     get aaStatMulti(): number {
+        if (!this.classJobStats.autoAttackStat) {
+            return 0;
+        }
         return mainStatMulti(this.levelStats, this.classJobStats, this[this.classJobStats.autoAttackStat]);
     };
 
@@ -473,6 +454,20 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
     get effectiveFoodBonuses(): RawStats {
         return this._effectiveFoodBonuses;
     }
+
+    get effectiveMedicineBonuses(): RawStats {
+        return this._effectiveMedicineBonuses;
+    }
+
+    get extraMainStat(): 0 {
+        // Always 0 at this point because the extra main stat is already factored into the actual main stat.
+        return 0;
+    }
+
+    get extraSecondaryStat(): 0 {
+        // Always 0 at this point because the extra secondary stat is already factored into the actual secondary stat.
+        return 0;
+    }
 }
 
 export function finalizeStats(
@@ -483,10 +478,11 @@ export function finalizeStats(
     classJob: JobName,
     classJobStats: JobData,
     partyBonus: PartyBonusAmount,
-    racialStats: RawStats
+    racialStats: RawStats,
+    medicineStats: FoodBonuses = {}
 ) {
     return new ComputedSetStatsImpl(
-        gearStats, foodStats, level, levelStats, classJob, classJobStats, partyBonus, racialStats
+        gearStats, foodStats, level, levelStats, classJob, classJobStats, partyBonus, racialStats, medicineStats
     );
 
 }
@@ -499,20 +495,28 @@ export function finalizeStatsInt(
     levelStats: LevelStats,
     classJob: JobName,
     classJobStats: JobData,
-    partyBonus: PartyBonusAmount
+    partyBonus: PartyBonusAmount,
+    medicineStats: FoodBonuses = {}
 ): {
     raw: RawStats,
-    effectiveFoodBonuses: RawStats
+    effectiveFoodBonuses: RawStats,
+    effectiveMedicineBonuses: RawStats
 } {
     const combinedStats: RawStats = {...gearStats};
-    const mainStatKey = classJobStats.mainStat;
-    const aaStatKey = classJobStats.autoAttackStat;
-    combinedStats[mainStatKey] = fl(combinedStats[mainStatKey] * (1 + 0.01 * partyBonus));
-    if (mainStatKey !== aaStatKey) {
-        combinedStats[aaStatKey] = fl(combinedStats[aaStatKey] * (1 + 0.01 * partyBonus));
+    if (classJobStats.type === 'Combat') {
+        const mainStatKey = classJobStats.mainStat;
+        const secondaryStatKey = classJobStats.secondaryStat;
+        const aaStatKey = classJobStats.autoAttackStat;
+        combinedStats[mainStatKey] += gearStats.extraMainStat;
+        combinedStats[secondaryStatKey] += gearStats.extraSecondaryStat;
+        combinedStats[mainStatKey] = fl(combinedStats[mainStatKey] * (1 + 0.01 * partyBonus));
+        if (aaStatKey && mainStatKey !== aaStatKey) {
+            combinedStats[aaStatKey] = fl(combinedStats[aaStatKey] * (1 + 0.01 * partyBonus));
+        }
     }
     combinedStats.vitality = fl(combinedStats.vitality * (1 + 0.01 * partyBonus));
     const effectiveFoodBonuses = new RawStats();
+    const effectiveMedicineBonuses = new RawStats();
     // Food stats
     for (const key in foodStats) {
         const stat = key as RawStatKey;
@@ -525,8 +529,18 @@ export function finalizeStatsInt(
             effectiveFoodBonuses[stat] += extraValue;
         }
     }
+    for (const key in medicineStats) {
+        const stat = key as RawStatKey;
+        const bonus = medicineStats[stat];
+        if (bonus !== undefined) {
+            const extraValue = Math.min(bonus.max, fl(combinedStats[stat] * (bonus.percentage / 100)));
+            combinedStats[stat] += extraValue;
+            effectiveMedicineBonuses[stat] += extraValue;
+        }
+    }
     return {
         raw: combinedStats,
         effectiveFoodBonuses: effectiveFoodBonuses,
+        effectiveMedicineBonuses: effectiveMedicineBonuses,
     };
 }

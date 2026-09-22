@@ -28,30 +28,30 @@ export function sksToGcdEtroOriginal(baseGcd: number, levelStats: LevelStats, sk
             (fl(
                 (fl(
                     (fl(
-                        ((1000 -
-                                            fl(
+                        ((1000
+                                            - fl(
                                                 (130 * (sks - levelStats.baseSubStat)) / levelStats.levelDiv
-                                            )) *
-                                        baseGcd) /
-                                    1000
-                    ) *
-                                fl(
+                                            ))
+                                        * baseGcd)
+                                    / 1000
+                    )
+                                * fl(
                                     ((fl(
-                                        (fl(((100 - arrow) * (100 - haste)) / 100) *
-                                                    (100 - 0)) /
-                                                100
-                                    ) -
-                                            feyWind) *
-                                        (selfBuff2 - 100)) /
-                                    100
-                                )) /
-                            -100
-                ) *
-                        RoF) /
-                    1000
-            ) *
-                umbralAstral3) /
-            100
+                                        (fl(((100 - arrow) * (100 - haste)) / 100)
+                                                    * (100 - 0))
+                                                / 100
+                                    )
+                                            - feyWind)
+                                        * (selfBuff2 - 100))
+                                    / 100
+                                ))
+                            / -100
+                )
+                        * RoF)
+                    / 1000
+            )
+                * umbralAstral3)
+            / 100
         ) / 100 // Added to taken func. Converts from MS to S.
     );
 }
@@ -62,8 +62,8 @@ export function sksToGcdEtroSimplified(baseGcd: number, levelStats: LevelStats, 
     return Math.floor(
         (Math.floor(
             (Math.floor(
-                (Math.floor((baseGcd * (1000 - commonPart1) / 1000)) *
-                    Math.floor((100 - haste) * -1)) / -100) * 100) / 1000) * 100) / 100) / 100;
+                (Math.floor((baseGcd * (1000 - commonPart1) / 1000))
+                    * Math.floor((100 - haste) * -1)) / -100) * 100) / 1000) * 100) / 100) / 100;
 }
 
 export function sksToGcdMakarOriginal(baseGcd: number, levelStats: LevelStats, sks: number, haste = 0): number {

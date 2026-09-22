@@ -12,14 +12,14 @@ import {
     MateriaSlot,
     NormalOccGearSlotKey,
     RawStatKey,
-    RawStats
+    RawStats,
+    RawStatsPart
 } from "@xivgear/xivmath/geartypes";
 import {xivApiIconUrl} from "../external/xivapi";
 import {CURRENT_MAX_LEVEL, JobName, LEVEL_ITEMS, MATERIA_LEVEL_MAX_NORMAL} from "@xivgear/xivmath/xivconstants";
 import {applyStatCaps} from "../gear";
 import {GearPlanSheet} from "../sheet";
 import {toTranslatable} from "@xivgear/i18n/translation";
-import {RawStatsPart} from "@xivgear/util/util_types";
 import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 
 class CustomItemSlotMapping implements EquipSlotMap {
@@ -81,7 +81,7 @@ export class CustomItem implements GearItem {
     iconUrl: URL = new URL(xivApiIconUrl(26270));
     syncedDownTo: number | null;
     private _data: CustomItemExport;
-    readonly slotMapping: CustomItemSlotMapping;
+    readonly slotMapping: EquipSlotMap;
 
     private constructor(exportedData: CustomItemExport, private readonly sheet: GearPlanSheet, private readonly isUnsyncCopy: boolean = false) {
         this._data = exportedData;
@@ -108,6 +108,9 @@ export class CustomItem implements GearItem {
             // respectCaps is false for existing items to not cause changes to sheets
             respectCaps: false,
             ...exportedData,
+            // Pre DoH/DoL exports won't have the full set of stats.
+            // Reconstruct RawStats so those fields receive their zero defaults.
+            stats: new RawStats(exportedData.stats),
         }, sheet);
     }
 

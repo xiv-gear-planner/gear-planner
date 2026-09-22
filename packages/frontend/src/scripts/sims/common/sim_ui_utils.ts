@@ -1,6 +1,6 @@
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {CellRenderer} from "@xivgear/common-ui/table/tables";
-import {DisplayRecordFinalized} from "@xivgear/core/sims/cycle_sim";
+import {DisplayRecordFinalized} from "@xivgear/sims/cycle_sim";
 import {quickElement} from "@xivgear/common-ui/components/util";
 
 export function extraDataDiscreteGaugeRenderer<X>(inner: (usedAbility: PreDmgUsedAbility, extra: X) => HTMLElement[]): CellRenderer<DisplayRecordFinalized, PreDmgUsedAbility | undefined | null> {

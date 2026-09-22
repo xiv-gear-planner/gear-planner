@@ -1,8 +1,5 @@
 {
   "extends": "../../tsconfig.json",
-  "compilerOptions": {
-    "strict": true,
-  },
   "include": [
     "src/scripts"
   ],
@@ -20,6 +17,9 @@
     },
     {
       "path": "../common-ui"
+    },
+    {
+      "path": "../util"
     }
   ]
 }

@@ -14,16 +14,18 @@ function deq<T>(actual: T, expected: T) {
 }
 
 describe('New Datamanager', () => {
+    const sch90 = new NewApiDataManager(['SCH'], 90);
+    before(async () => {
+        await sch90.loadData();
+    });
     it('can load some SCH items', async () => {
-        const dm = new NewApiDataManager(['SCH'], 90);
-        await dm.loadData();
-        const codexOfAscension = dm.itemById(40176);
+        const codexOfAscension = sch90.itemById(40176);
         // Basic item props
         eq(codexOfAscension.id, 40176);
         eq(codexOfAscension.name, 'Codex of Ascension');
         eq(codexOfAscension.nameTranslation.en, 'Codex of Ascension');
         eq(codexOfAscension.nameTranslation.de, 'Kodex des Aufstiegs');
-        eq(codexOfAscension.iconUrl.toString(), 'https://v2.xivapi.com/api/asset?path=ui%2Ficon%2F033000%2F033387_hr1.tex&format=png');
+        eq(codexOfAscension.iconUrl.toString(), 'https://v2.xivapi.com/api/asset?path=ui%2Ficon%2F033000%2F033387_hr1.tex&format=webp');
 
         // XivCombatItem props
         deq(codexOfAscension.stats, new RawStats({
@@ -72,6 +74,16 @@ describe('New Datamanager', () => {
             defenseMag: 0,
             defensePhys: 0,
             gearHaste: 999_999,
+
+            extraMainStat: 416,
+            extraSecondaryStat: 306,
+
+            cp: 7,
+            craftsmanship: 1601,
+            control: 855,
+            gp: 9,
+            gathering: 1633,
+            perception: 933,
         });
         eq(codexOfAscension.materiaSlots.length, 2);
         eq(codexOfAscension.isCustomRelic, false);
@@ -86,14 +98,12 @@ describe('New Datamanager', () => {
         // eq(ilvl545book, undefined);
 
         // This item is 560, it just barely makes it
-        const ilvl560book = dm.itemById(34053);
+        const ilvl560book = sch90.itemById(34053);
         eq(ilvl560book.ilvl, 560);
 
     }).timeout(20_000);
     it('can get stats of food items', async () => {
-        const dm = new NewApiDataManager(['SCH'], 90);
-        await dm.loadData();
-        const food = dm.foodById(44096);
+        const food = sch90.foodById(44096);
         eq(food.id, 44096);
         eq(food.name, "Vegetable Soup");
         eq(food.nameTranslation.en, "Vegetable Soup");
@@ -104,7 +114,7 @@ describe('New Datamanager', () => {
         eq(food.bonuses.dhit.percentage, 10);
         eq(food.bonuses.determination.max, 73);
         eq(food.bonuses.determination.percentage, 10);
-    }).timeout(20_000);
+    }).timeout(30_000);
     it('handles multi-slot items correctly', async () => {
         const dm = new NewApiDataManager(['BLM'], 100);
         await dm.loadData();
@@ -136,6 +146,15 @@ describe('New Datamanager', () => {
             spellspeed: 179,
             tenacity: 179,
             determination: 179,
+            extraMainStat: 177,
+            extraSecondaryStat: 179,
+
+            cp: 12,
+            craftsmanship: 465,
+            control: 273,
+            gp: 12,
+            gathering: 263,
+            perception: 375,
         }));
     });
     describe('syncs levels correctly', () => {

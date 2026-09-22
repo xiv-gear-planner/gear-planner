@@ -11,6 +11,7 @@ import {
     FoodStatBonus,
     GearItem,
     GearSlotItem,
+    MedicineItem,
     RawStatKey,
     RawStats,
     Substat,
@@ -31,7 +32,7 @@ import {
     TitleRow
 } from "@xivgear/common-ui/table/tables";
 import {
-    ALL_SUB_STATS,
+    ALL_COMBAT_SUB_STATS,
     formatAcquisitionSource,
     MateriaSubstat,
     MateriaSubstats,
@@ -53,8 +54,9 @@ import {makeRelicStatEditor} from "../../items/relic_stats";
 import {ShowHideButton, ShowHideCallback} from "@xivgear/common-ui/components/show_hide_chevron";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {recordSheetEvent} from "../../../analytics/analytics";
-import {makeTrashIcon} from "@xivgear/common-ui/components/icons";
+import {hideIcon, makeTrashIcon, showIcon} from "@xivgear/common-ui/components/icons";
 import {sortItemsInPlace} from "../../items/item_utils";
+import {bold, p} from "@xivgear/common-ui/components/templates";
 
 function removeStatCellStyles(cell: CustomCell<GearSlotItem, unknown>) {
     cell.classList.remove("secondary");
@@ -235,6 +237,33 @@ function foodTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
 
 }
 
+function medicineTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<MedicineItem, unknown, unknown> {
+    return col({
+        shortName: stat,
+        displayName: STAT_ABBREVIATIONS[stat],
+        getter: item => {
+            const bonus = item.bonuses[stat];
+            return bonus ? {...bonus, effective: set.getEffectiveMedicineBonuses(item)[stat]} satisfies FoodStatBonusWithEffective : undefined;
+        },
+        renderer: (value: FoodStatBonusWithEffective | undefined) => value ? statBonusDisplay(value) : document.createTextNode(""),
+        condition: () => sheet.isStatRelevant(stat),
+        colStyler: (value, cell) => {
+            cell.classList.add('food-stat-col');
+            if (highlightPrimarySecondary) {
+                foodStatCellStyler(cell, stat);
+            }
+            if (value) {
+                addFoodCellTooltip(value, cell);
+            }
+        },
+    });
+}
+
+function medicineTableStatViewColumn(sheet: GearPlanSheet, set: CharacterGearSet, item: MedicineItem, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<MedicineItem, unknown, unknown> {
+    const wrapped = medicineTableStatColumn(sheet, set, stat, highlightPrimarySecondary);
+    return {...wrapped, condition: () => item.primarySubStat === stat || item.secondarySubStat === stat};
+}
+
 
 export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<FoodItem, never, never, FoodItem | undefined>> {
     constructor(sheet: GearPlanSheet, private readonly gearSet: CharacterGearSet) {
@@ -246,6 +275,10 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
             const name = rowValue.nameTranslation.asCurrentLang;
             return `${name} (${rowValue.id})`;
         };
+
+        // It seems to work well enough though is a bit odd due to CP/GP scaling differently.
+        const highlightDohDol = true;
+
         super.columns = [
             {
                 shortName: "ilvl",
@@ -273,7 +306,19 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
                         gearSet.food = undefined;
                         this.refreshSelection();
                     });
-                    return quickElement('div', ['food-name-holder-editable'], [quickElement('span', [], [name]), trashButton]);
+
+                    const hideButton = quickElement('button', ['hide-food-button'], ['Hide']);
+                    hideButton.replaceChildren(sheet.isItemHidden(rowValue) ? showIcon() : hideIcon());
+                    hideButton.addEventListener('click', () => {
+                        // This will trigger a refresh on its own, so no need to force any sort of refresh
+                        sheet.setItemHidden(rowValue, !sheet.isItemHidden(rowValue));
+                        if (sheet.itemDisplaySettings.showHidden) {
+                            this.updateHiddenState();
+                        }
+                    });
+
+                    const buttonsArea = el('div', {class: 'item-hover-buttons-area'}, [trashButton, hideButton]);
+                    return quickElement('div', ['food-name-holder-editable'], [quickElement('span', [], [name]), buttonsArea]);
                 },
                 // renderer: name => {
                 //     return quickElement('div', [], [document.createTextNode(name)]);
@@ -289,6 +334,12 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
             foodTableStatColumn(sheet, gearSet, 'skillspeed', true),
             foodTableStatColumn(sheet, gearSet, 'piety', true),
             foodTableStatColumn(sheet, gearSet, 'tenacity', true),
+            foodTableStatColumn(sheet, gearSet, 'gathering', highlightDohDol),
+            foodTableStatColumn(sheet, gearSet, 'perception', highlightDohDol),
+            foodTableStatColumn(sheet, gearSet, 'gp', highlightDohDol),
+            foodTableStatColumn(sheet, gearSet, 'craftsmanship', highlightDohDol),
+            foodTableStatColumn(sheet, gearSet, 'control', highlightDohDol),
+            foodTableStatColumn(sheet, gearSet, 'cp', highlightDohDol),
         ];
         // TODO: write a dedicated selection model for this
         this.selectionModel = {
@@ -342,6 +393,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
             super.data = [showHideRow.row, new HeaderRow(), new TitleRow('No items available - please check your filters')];
         }
         this.updateShowHide();
+        this.updateHiddenState();
     }
 
     private updateShowHide() {
@@ -354,6 +406,12 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
             }
         });
     }
+
+    private updateHiddenState() {
+        this.dataRowMap.forEach((row, value) => {
+            row.classList.toggle('hidden-item', this.gearSet.sheet.isItemHidden(value));
+        });
+    }
 }
 
 export class FoodItemViewTable extends CustomTable<FoodItem> {
@@ -361,6 +419,10 @@ export class FoodItemViewTable extends CustomTable<FoodItem> {
         super();
         this.classList.add("food-items-table");
         this.classList.add("food-items-view-table");
+
+        // It seems to work well enough though is a bit odd due to CP/GP scaling differently.
+        const highlightDohDol = true;
+
         super.columns = [
             // {
             //     shortName: "ilvl",
@@ -369,7 +431,7 @@ export class FoodItemViewTable extends CustomTable<FoodItem> {
             // },
             col({
                 shortName: "icon",
-                displayName: `Food: ${item.ilvl}`,
+                displayName: `Food: i${item.ilvl}`,
                 getter: item => {
                     return item;
                 },
@@ -398,6 +460,142 @@ export class FoodItemViewTable extends CustomTable<FoodItem> {
             foodTableStatViewColumn(sheet, gearSet, item, 'skillspeed', true),
             foodTableStatViewColumn(sheet, gearSet, item, 'piety', true),
             foodTableStatViewColumn(sheet, gearSet, item, 'tenacity', true),
+            foodTableStatViewColumn(sheet, gearSet, item, 'gathering', highlightDohDol),
+            foodTableStatViewColumn(sheet, gearSet, item, 'perception', highlightDohDol),
+            foodTableStatViewColumn(sheet, gearSet, item, 'gp', highlightDohDol),
+            foodTableStatViewColumn(sheet, gearSet, item, 'craftsmanship', highlightDohDol),
+            foodTableStatViewColumn(sheet, gearSet, item, 'control', highlightDohDol),
+            foodTableStatViewColumn(sheet, gearSet, item, 'cp', highlightDohDol),
+        ];
+        super.data = [new HeaderRow(), item];
+    }
+}
+
+export class MedicineItemsTable extends CustomTable<MedicineItem, TableSelectionModel<MedicineItem, never, never, MedicineItem | undefined>> {
+    constructor(sheet: GearPlanSheet, private readonly gearSet: CharacterGearSet) {
+        super();
+        this.classList.add("medicine-items-table", "medicine-items-edit-table", "hoverable");
+        this.rowTitleSetter = (rowValue: MedicineItem) => {
+            const name = rowValue.nameTranslation.asCurrentLang;
+            return `${name} (${rowValue.id})`;
+        };
+        super.columns = [
+            {
+                shortName: "ilvl",
+                displayName: "iLvl",
+                getter: item => item.ilvl,
+            },
+            col({
+                shortName: "icon",
+                displayName: "",
+                getter: item => item,
+                renderer: itemIconRenderer(),
+                fixedData: true,
+            }),
+            {
+                shortName: "itemname",
+                displayName: "Name",
+                getter: item => item.nameTranslation.asCurrentLang,
+                renderer: (name: string, rowValue: MedicineItem) => {
+                    const trashButton = quickElement('button', ['remove-food-button'], [makeTrashIcon()]);
+                    trashButton.addEventListener('click', () => {
+                        gearSet.medicine = undefined;
+                        this.refreshSelection();
+                    });
+                    const hideButton = quickElement('button', ['hide-food-button'], ['Hide']);
+                    hideButton.replaceChildren(sheet.isItemHidden(rowValue) ? showIcon() : hideIcon());
+                    hideButton.addEventListener('click', () => {
+                        sheet.setItemHidden(rowValue, !sheet.isItemHidden(rowValue));
+                    });
+                    const buttonsArea = el('div', {class: 'item-hover-buttons-area'}, [trashButton, hideButton]);
+                    return quickElement('div', ['food-name-holder-editable'], [quickElement('span', [], [name]), buttonsArea]);
+                },
+            },
+            medicineTableStatColumn(sheet, gearSet, 'craftsmanship', true),
+            medicineTableStatColumn(sheet, gearSet, 'control', true),
+            medicineTableStatColumn(sheet, gearSet, 'cp', true),
+            medicineTableStatColumn(sheet, gearSet, 'gathering', true),
+            medicineTableStatColumn(sheet, gearSet, 'perception', true),
+            medicineTableStatColumn(sheet, gearSet, 'gp', true),
+        ];
+        this.selectionModel = {
+            clickCell(cell: CustomCell<MedicineItem, MedicineItem>) {
+
+            },
+            clickColumnHeader(col: CustomColumn<MedicineItem>) {
+
+            },
+            clickRow(row: CustomRow<MedicineItem>) {
+                gearSet.medicine = row.dataItem;
+            },
+            getSelection(): MedicineItem | undefined {
+                return gearSet.medicine;
+            },
+            isCellSelectedDirectly(cell: CustomCell<MedicineItem, MedicineItem>) {
+                return false;
+            },
+            isColumnHeaderSelected(col: CustomColumn<MedicineItem>) {
+                return false;
+            },
+            isRowSelected(row: CustomRow<MedicineItem>) {
+                return gearSet.medicine === row.dataItem;
+            },
+            clearSelection(): void {
+
+            },
+        };
+        const showHideRow = makeShowHideRow('Medicine', gearSet.isSlotCollapsed('medicine'), (val) => {
+            gearSet.setSlotCollapsed('medicine', val);
+            recordSheetEvent('hideMedicine', sheet, {hidden: val});
+            this.updateShowHide();
+        });
+        const displayItems = [...sheet.medicineItemsForDisplay];
+        sortItemsInPlace(displayItems);
+        super.data = displayItems.length > 0
+            ? [showHideRow.row, new HeaderRow(), ...displayItems]
+            : [showHideRow.row, new HeaderRow(), new TitleRow('No items available - please check your filters')];
+        this.updateShowHide();
+    }
+
+    private updateShowHide() {
+        this.dataRowMap.forEach((row) => {
+            row.style.display = this.gearSet.isSlotCollapsed('medicine') && !this.selectionModel.isRowSelected(row) ? 'none' : '';
+        });
+    }
+
+}
+
+export class MedicineItemViewTable extends CustomTable<MedicineItem> {
+    constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet, item: MedicineItem) {
+        super();
+        this.classList.add("medicine-items-table", "medicine-items-view-table");
+        const highlight = true;
+        super.columns = [
+            col({
+                shortName: "icon",
+                displayName: `Medicine: i${item.ilvl}`,
+                getter: medicine => medicine,
+                renderer: itemIconRenderer(),
+                fixedData: true,
+                headerStyler: (cell, node) => {
+                    node.colSpan = 2;
+                    node.querySelector('div')?.classList.add('gear-items-view-item-header');
+                },
+            }),
+            col({
+                shortName: "itemname",
+                displayName: '',
+                getter: medicine => medicine.nameTranslation.asCurrentLang,
+                headerStyler: (cell, node) => {
+                    node.style.display = 'none';
+                },
+            }),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'craftsmanship', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'control', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'cp', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'gathering', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'perception', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'gp', highlight),
         ];
         super.data = [new HeaderRow(), item];
     }
@@ -430,7 +628,7 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                 if (!currentEquipment || currentEquipment.gearItem !== item) {
                     // If the relic has no stats configured, return a special marker value that causes all of the cells
                     // to display blank values rather than 0.
-                    if (!(ALL_SUB_STATS.find(stat => {
+                    if (!(ALL_COMBAT_SUB_STATS.find(stat => {
                         const statValue = preview.relicStats[stat];
                         return statValue !== undefined && statValue !== 0;
                     }))) {
@@ -443,13 +641,25 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                 return new RelicCellInfo(set, currentEquipment.gearItem, slotItem.slotId, stat as Substat, set.getStatDetail(slotItem.slotId, stat), !item.relicStatModel.excludedStats.includes(stat as Substat));
             }
             else {
+                // Future TODO: this makes the assumption that an item will never have extra main stat *and* provide a
+                // specific main stat directly.
+                let effectiveStat: RawStatKey;
+                if (item.stats.extraMainStat && stat === set.classJobStats.mainStat) {
+                    effectiveStat = 'extraMainStat';
+                }
+                else if (item.stats.extraSecondaryStat && stat === set.classJobStats.secondaryStat) {
+                    effectiveStat = 'extraSecondaryStat';
+                }
+                else {
+                    effectiveStat = stat;
+                }
                 // Not a relic, or not an editable stat. Display normally
                 const selected = set.getItemInSlot(slotItem.slotId) === item;
                 if (selected) {
-                    return set.getStatDetail(slotItem.slotId, stat);
+                    return set.getStatDetail(slotItem.slotId, effectiveStat);
                 }
                 else {
-                    return previewItemStatDetail(item, stat);
+                    return previewItemStatDetail(item, effectiveStat);
                 }
             }
         },
@@ -507,6 +717,24 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                 }
                 else if (value !== 'relic-zero') {
                     applyStatCellStyles(cell, value, stat);
+                    const item = cell.dataItem.item;
+                    // These items are a bit weird in that they don't really have a "big" or "small" stat
+                    if (item.stats.extraMainStat && stat === set.classJobStats.mainStat) {
+                        if (item.unsyncedVersion.stats.extraMainStat === item.unsyncedVersion.statCaps.extraMainStat) {
+                            cell.classList.add('primary');
+                        }
+                        else {
+                            cell.classList.add('secondary');
+                        }
+                    }
+                    else if (item.stats.extraSecondaryStat && stat === set.classJobStats.secondaryStat) {
+                        if (item.unsyncedVersion.stats.extraSecondaryStat === item.unsyncedVersion.statCaps.extraSecondaryStat) {
+                            cell.classList.add('primary');
+                        }
+                        else {
+                            cell.classList.add('secondary');
+                        }
+                    }
                 }
             }
             else {
@@ -580,7 +808,8 @@ function makeShowHideRow(label: string, initiallyHidden: boolean = false, setter
 
 /**
  * Table for displaying gear options for all slots
- aa*/
+ aa
+ */
 export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionModel<GearSlotItem, never, never, EquipmentSet>> {
     private readonly materiaManagers: AllSlotMateriaManager[];
     private selectionTracker: Map<keyof EquipmentSet, CustomRow<GearSlotItem> | GearSlotItem>;
@@ -619,6 +848,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
         const selectionTracker = new Map<keyof EquipmentSet, CustomRow<GearSlotItem> | GearSlotItem>();
         this.selectionTracker = selectionTracker;
         const refreshSingleItem = (item: CustomRow<GearSlotItem> | GearSlotItem) => this.refreshRowData(item);
+        const isCombat = sheet.classJobEarlyStats.type === 'Combat';
         for (const [name, slot] of Object.entries(EquipSlotInfo)) {
             if (handledSlots && !handledSlots.includes(name as EquipSlotKey)) {
                 continue;
@@ -772,7 +1002,21 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                         this.refreshMateria();
                         this.refreshRowData(rowValue);
                     });
-                    return quickElement('div', ['item-name-holder-editable'], [quickElement('span', [], [shortenItemName(name)]), trashButton]);
+
+                    const hideButton = quickElement('button', ['hide-item-button'], ['Hide']);
+                    const isHidden = sheet.isItemHidden(rowValue.item);
+                    hideButton.replaceChildren(isHidden ? showIcon() : hideIcon());
+                    hideButton.title = `Click to ${isHidden ? 'un-hide' : 'hide'} item`;
+                    hideButton.addEventListener('click', () => {
+                        // This will trigger a refresh on its own, so no need to force any sort of refresh
+                        sheet.setItemHidden(rowValue.item, !isHidden);
+                        if (sheet.itemDisplaySettings.showHidden) {
+                            this.updateHiddenState();
+                        }
+                    });
+
+                    const buttonsArea = el('div', {class: 'item-hover-buttons-area'}, [trashButton, hideButton]);
+                    return quickElement('div', ['item-name-holder-editable'], [quickElement('span', [], [shortenItemName(name)]), buttonsArea]);
                 },
                 colStyler: (value, colElement, internalElement, rowValue) => {
                 },
@@ -837,7 +1081,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                     }
                 },
                 initialWidth: 33,
-                condition: () => handledSlots === undefined || handledSlots.includes('Weapon'),
+                condition: () => isCombat && (handledSlots === undefined || handledSlots.includes('Weapon')),
                 titleSetter: (_, rowValue: GearSlotItem) => {
                     const statDetail = gearSet.getEquipStatDetail(gearSet.toEquippedItem(rowValue.item), rowValue.item.stats.wdPhys > rowValue.item.stats.wdMag ? 'wdPhys' : 'wdMag');
                     return statCellTitle(statDetail);
@@ -855,9 +1099,16 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
             itemTableStatColumn(sheet, gearSet, 'skillspeed', true),
             itemTableStatColumn(sheet, gearSet, 'piety', true),
             itemTableStatColumn(sheet, gearSet, 'tenacity', true),
+            itemTableStatColumn(sheet, gearSet, 'gp', false),
+            itemTableStatColumn(sheet, gearSet, 'gathering', false),
+            itemTableStatColumn(sheet, gearSet, 'perception', false),
+            itemTableStatColumn(sheet, gearSet, 'cp', false),
+            itemTableStatColumn(sheet, gearSet, 'craftsmanship', false),
+            itemTableStatColumn(sheet, gearSet, 'control', false),
         ];
         this.data = data;
         this.updateShowHide();
+        this.updateHiddenState();
     }
 
     refreshMateria() {
@@ -890,6 +1141,12 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
             else {
                 row.style.display = '';
             }
+        });
+    }
+
+    private updateHiddenState() {
+        this.dataRowMap.forEach((row, value) => {
+            row.classList.toggle('hidden-item', this.gearSet.sheet.isItemHidden(value.item));
         });
     }
 }
@@ -1027,6 +1284,39 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
             };
         }
 
+        const statCols: ReturnType<typeof w>[] = [];
+
+        switch (gearSet.classJobStats.type) {
+            case 'Combat': {
+                statCols.push(
+                    w(itemTableStatColumn(sheet, gearSet, 'crit', true)),
+                    w(itemTableStatColumn(sheet, gearSet, 'dhit', true)),
+                    w(itemTableStatColumn(sheet, gearSet, 'determination', true)),
+                    w(itemTableStatColumn(sheet, gearSet, 'spellspeed', true)),
+                    w(itemTableStatColumn(sheet, gearSet, 'skillspeed', true)),
+                    w(itemTableStatColumn(sheet, gearSet, 'piety', true)),
+                    w(itemTableStatColumn(sheet, gearSet, 'tenacity', true))
+                );
+                break;
+            }
+            case "DoL": {
+                statCols.push(
+                    w(itemTableStatColumn(sheet, gearSet, 'gp', false)),
+                    w(itemTableStatColumn(sheet, gearSet, 'gathering', false)),
+                    w(itemTableStatColumn(sheet, gearSet, 'perception', false))
+                );
+                break;
+            }
+            case "DoH": {
+                statCols.push(
+                    w(itemTableStatColumn(sheet, gearSet, 'cp', false)),
+                    w(itemTableStatColumn(sheet, gearSet, 'craftsmanship', false)),
+                    w(itemTableStatColumn(sheet, gearSet, 'control', false))
+                );
+                break;
+            }
+        }
+
         super.columns = [
             col({
                 shortName: "icon",
@@ -1048,6 +1338,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
                 },
                 // initialWidth: 300,
             }),
+            ...statCols,
             // {
             //     shortName: "wd",
             //     displayName: "WD",
@@ -1071,13 +1362,6 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
             // itemTableStatColumn(sheet, gearSet, 'dexterity'),
             // itemTableStatColumn(sheet, gearSet, 'intelligence'),
             // itemTableStatColumn(sheet, gearSet, 'mind'),
-            w(itemTableStatColumn(sheet, gearSet, 'crit', true)),
-            w(itemTableStatColumn(sheet, gearSet, 'dhit', true)),
-            w(itemTableStatColumn(sheet, gearSet, 'determination', true)),
-            w(itemTableStatColumn(sheet, gearSet, 'spellspeed', true)),
-            w(itemTableStatColumn(sheet, gearSet, 'skillspeed', true)),
-            w(itemTableStatColumn(sheet, gearSet, 'piety', true)),
-            w(itemTableStatColumn(sheet, gearSet, 'tenacity', true)),
         ];
         this.data = data;
     }
@@ -1089,12 +1373,12 @@ export class AltItemsModal extends BaseModal {
         super();
         this.headerText = 'Alternative Items';
 
-        const text = el('p');
+        let text: HTMLParagraphElement;
         if (sheet.ilvlSync) {
-            text.replaceChildren('These items are ', el('b', {}, ['equivalent to ']), baseItem.nameTranslation.asCurrentLang, ` when synced to i${baseItem.ilvl}:`);
+            text = p`These items are ${bold`equivalent to`} ${baseItem.nameTranslation.asCurrentLang} when synced to i${sheet.ilvlSync}:`;
         }
         else {
-            text.replaceChildren('These items are ', el('b', {}, ['equivalent to or better than ']), baseItem.nameTranslation.asCurrentLang, ':');
+            text = p`These items are ${bold`equivalent to or better than`} ${baseItem.nameTranslation.asCurrentLang}:`;
         }
         this.contentArea.appendChild(el('div', {class: 'alt-items-text-holder'}, [text]));
 
@@ -1141,18 +1425,28 @@ export class AltItemsModal extends BaseModal {
         table.data = [new HeaderRow(), ...altItems];
         this.contentArea.appendChild(table);
 
+        const disclaimer = p`Please note that this is not an exhaustive list. Other items, such as custom relics, may also be equivalent or better.`;
+        this.contentArea.appendChild(disclaimer);
+
         this.addCloseButton();
     }
 }
 
 /**
- * Component for an ilvl range picker. Binds to an object with a minimum and maximum field.
+ * Component for an ilvl range picker. Binds to an object with a minimum and maximum field, but defers updates to
+ * the underlying object until input validation passes.
+ *
+ * Future TODO: make "minimum too low" a warning so that if someone wants to be lazy they can just put "0" or "1" in the field
+ * to effectively mean "show as low as possible".
  */
-export class ILvlRangePicker<ObjType> extends HTMLElement {
-    private _listeners: ((min: number, max: number) => void)[] = [];
-    private readonly obj: ObjType;
-    private readonly minField: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType];
-    private readonly maxField: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType];
+export class ILvlRangePicker<ObjType extends {}> extends HTMLElement {
+    private readonly validityListener: (min: number, max: number) => boolean;
+    private readonly _listeners: ((min: number, max: number) => void)[] = [];
+    private isInputValid: boolean = true;
+    private readonly tempValues: {
+        min: number,
+        max: number,
+    };
 
     /**
      * Construct an ilvl picker.
@@ -1165,9 +1459,6 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
      */
     constructor(obj: ObjType, minField: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType], maxField: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType], label: string | undefined, minIlvl: number) {
         super();
-        this.obj = obj;
-        this.minField = minField;
-        this.maxField = maxField;
         this.classList.add('ilvl-range-picker');
 
         if (label) {
@@ -1176,20 +1467,32 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
             this.appendChild(labelElement);
         }
 
-        const lowerBoundControl = new FieldBoundIntField(obj, minField);
-        const upperBoundControl = new FieldBoundIntField(obj, maxField);
+        this.tempValues = {
+            min: obj[minField] as number,
+            max: obj[maxField] as number,
+        };
+
+        const lowerBoundControl = new FieldBoundIntField(this.tempValues, 'min');
+        const upperBoundControl = new FieldBoundIntField(this.tempValues, 'max');
         lowerBoundControl.title = `Minimum value must be between ${minIlvl} and the chosen maximum value`;
         upperBoundControl.title = `Maximum value must be between the chosen minimum value and ${MAX_ILVL}`;
-        const borderListener = function (min: number, max: number) {
+        this.validityListener = function (min: number, max: number): boolean {
             const invalid = min > max;
             lowerBoundControl.classList.toggle("invalid-numeric-input", invalid);
             upperBoundControl.classList.toggle("invalid-numeric-input", invalid);
             if (min < minIlvl) {
                 lowerBoundControl.classList.add('invalid-numeric-input');
                 lowerBoundControl.title = `Must be at least ${minIlvl}`;
+                return false;
             }
+            return !invalid;
         };
-        this._listeners.push(borderListener);
+        this.addListener((min, max) => {
+            // @ts-expect-error don't have concrete type
+            obj[minField] = this.tempValues.min;
+            // @ts-expect-error don't have concrete type
+            obj[maxField] = this.tempValues.max;
+        });
 
         lowerBoundControl.addListener(() => this.runListeners());
         upperBoundControl.addListener(() => this.runListeners());
@@ -1206,8 +1509,12 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
     }
 
     private runListeners() {
-        const minField = this.obj[this.minField] as number;
-        const maxField = this.obj[this.maxField] as number;
+        const minField = this.tempValues.min;
+        const maxField = this.tempValues.max;
+        this.isInputValid = this.validityListener(minField, maxField);
+        if (!this.isInputValid) {
+            return;
+        }
         for (const listener of this._listeners) {
             listener(minField, maxField);
         }
@@ -1255,6 +1562,8 @@ customElements.define("gear-items-table", GearItemsTable, {extends: "table"});
 customElements.define("gear-items-view-table", GearItemsViewTable, {extends: "table"});
 customElements.define("food-items-table", FoodItemsTable, {extends: "table"});
 customElements.define("food-items-view-table", FoodItemViewTable, {extends: "table"});
+customElements.define("medicine-items-table", MedicineItemsTable, {extends: "table"});
+customElements.define("medicine-items-view-table", MedicineItemViewTable, {extends: "table"});
 customElements.define("ilvl-range-picker", ILvlRangePicker);
 customElements.define("food-stat-bonus", FoodStatBonusDisplay);
 customElements.define("alt-items-modal", AltItemsModal);

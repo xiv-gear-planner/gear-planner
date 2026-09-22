@@ -1,7 +1,7 @@
-import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/sims/cycle_sim";
 import {col, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
-import {AstExtraData, AstSettings, AstSimResult} from "@xivgear/core/sims/healer/ast_sheet_sim";
+import {AstExtraData, AstSettings, AstSimResult} from "@xivgear/sims/healer/ast_sheet_sim";
 import {StyleSwitcher, WritableCssProp} from "@xivgear/common-ui/util/types";
 import {extraDataDiscreteGaugeRenderer} from "../common/sim_ui_utils";
 

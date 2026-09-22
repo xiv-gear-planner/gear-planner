@@ -9,7 +9,7 @@ import {
     Substat
 } from "@xivgear/xivmath/geartypes";
 import {
-    ALL_SUB_STATS,
+    ALL_COMBAT_SUB_STATS,
     getClassJobStats,
     JobName,
     STAT_ABBREVIATIONS,
@@ -24,6 +24,12 @@ function err(description: string): GearSetIssue {
     };
 }
 
+/**
+ * EW/DT relic stat model
+ *
+ * @param large
+ * @param small
+ */
 function ewRelic(large: number, small: number): EwRelicStatModel {
     return {
         type: 'ewrelic',
@@ -40,7 +46,7 @@ function ewRelic(large: number, small: number): EwRelicStatModel {
             let reportSmall = !statToReport;
             let reportLarge = !statToReport;
             const caps = item.gearItem.unsyncedVersion.statCaps;
-            for (const stat of ALL_SUB_STATS) {
+            for (const stat of ALL_COMBAT_SUB_STATS) {
                 const current = item.relicStats[stat];
                 const cap = caps[stat];
                 if (current === undefined) {
@@ -84,7 +90,7 @@ function customRelic(total: number): CustomRelicStatModel {
             const out: GearSetIssue[] = [];
             let runningTotal = 0;
             const caps = item.gearItem.unsyncedVersion.statCaps;
-            for (const stat of ALL_SUB_STATS) {
+            for (const stat of ALL_COMBAT_SUB_STATS) {
                 const current = item.relicStats[stat];
                 const cap = caps[stat];
                 if (current && cap && current > cap && (!statToReport || statToReport === stat)) {
@@ -145,14 +151,14 @@ export function getRelicStatModelFor(gearItem: GearItem, baseParams: BaseParamMa
                 const relicStats = item.relicStats;
                 if (statToReport) {
                     if (relicStats[statToReport] && jobData.excludedRelicSubstats.includes(statToReport)) {
-                        failures.push(err(`${STAT_FULL_NAMES[statToReport]} is not available on ${jobData.role.toLowerCase()} relics.`));
+                        failures.push(err(`${STAT_FULL_NAMES[statToReport]} is not available on ${jobData.combatRole.toLowerCase()} relics.`));
                     }
                 }
                 else {
                     for (const entry of Object.entries(relicStats)) {
                         const stat = entry[0] as Substat;
                         if (entry[1] && jobData.excludedRelicSubstats.includes(stat)) {
-                            failures.push(err(`Stat ${STAT_FULL_NAMES[stat]} is not available on ${jobData.role.toLowerCase()} relics.`));
+                            failures.push(err(`Stat ${STAT_FULL_NAMES[stat]} is not available on ${jobData.combatRole.toLowerCase()} relics.`));
                         }
                     }
                 }
@@ -171,6 +177,18 @@ function getRelicStatModelForPartial(gearItem: GearItem, baseParams: BaseParamMa
     const slotModifier = baseParams.crit.slots[gearItem.occGearSlotName] / 140;
     const statCap = gearItem.unsyncedVersion.statCaps.crit;
     switch (gearItem.ilvl) {
+        case 795: {
+            let small = Math.round(108 * slotModifier);
+            // I don't know why but the PLD sword/shield are off by one or two no matter how I do the rounding, so just
+            // do this.
+            if (gearItem.occGearSlotName === 'Weapon1H') {
+                small--;
+            }
+            else if (gearItem.occGearSlotName === 'OffHand') {
+                small++;
+            }
+            return ewRelic(statCap, small);
+        }
         // EW relics are 2 capped stats, and one 72
         case 665:
             return ewRelic(statCap, Math.round(72 * slotModifier));
@@ -186,7 +204,7 @@ function getRelicStatModelForPartial(gearItem: GearItem, baseParams: BaseParamMa
         validate(item: EquippedItem, statToReport?: Substat): GearSetIssue[] {
             const out: GearSetIssue[] = [];
             const caps = item.gearItem.unsyncedVersion.statCaps;
-            const stats: readonly Substat[] = (statToReport ? [statToReport] as const : ALL_SUB_STATS);
+            const stats: readonly Substat[] = (statToReport ? [statToReport] as const : ALL_COMBAT_SUB_STATS);
             for (const stat of stats) {
                 const current: number = item.relicStats[stat as Substat];
                 const cap = caps[stat as Substat];

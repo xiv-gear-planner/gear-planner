@@ -1,9 +1,12 @@
 import {
+    el,
     FieldBoundCheckBox,
     FieldBoundDataSelect,
     FieldBoundFloatField,
+    FieldBoundIntField,
     labelFor,
-    makeActionButton
+    makeActionButton,
+    wrappedLabelPost
 } from "@xivgear/common-ui/components/util";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {GearPlanSheetGui} from "../sheet_gui";
@@ -15,9 +18,12 @@ import {MeldSolver} from "../../solver/meldsolver";
 import {GearsetGenerationSettings} from "@xivgear/core/solving/gearset_generation";
 import {SolverSimulationSettings} from "@xivgear/core/solving/sim_runner";
 import {recordSheetEvent} from "../../../analytics/analytics";
+import {PersistentSettings, SETTINGS} from "@xivgear/common-ui/settings/persistent_settings";
+import {GearsetGenerationStatusUpdate, MeldSolvingStatusUpdate} from "@xivgear/core/solving/types";
 
 export class MeldSolverDialog extends BaseModal {
     private _sheet: GearPlanSheetGui;
+    private _set: CharacterGearSet;
 
     private form: HTMLFormElement;
     private descriptionText: HTMLDivElement;
@@ -33,6 +39,7 @@ export class MeldSolverDialog extends BaseModal {
     constructor(sheet: GearPlanSheetGui, set: CharacterGearSet) {
         super();
         this._sheet = sheet;
+        this._set = set;
         this.id = 'meld-solver-dialog';
         this.headerText = 'Meld and Food Solver';
         this.form = document.createElement("form");
@@ -43,11 +50,14 @@ export class MeldSolverDialog extends BaseModal {
         this.descriptionText.textContent = "Solve for the highest-dps set of melds/food for this gearset.\r\n"
             + "Computation will be much slower without a target GCD.";
 
-        this.setNameText = document.createElement('div');
-        this.setNameText.textContent = `"${set.name}"`;
-        this.setNameText.classList.add('meld-solver-set');
+        this.setNameText = el('div', {class: 'meld-solver-set'}, [
+            "Solving for ", el('span', {class: 'meld-solver-set-name'}, [set.name]),
+        ]);
+        // this.setNameText.textContent = `"${set.name}"`;
+        // this.setNameText.classList.add('meld-solver-set');
 
-        this.settingsDiv = new MeldSolverSettingsMenu(sheet, set);
+        const gearsetGenSettings = sheet.getDefaultSolverSettings(set);
+        this.settingsDiv = new MeldSolverSettingsMenu(sheet, set, gearsetGenSettings);
 
 
         this.solveMeldsButton = makeActionButton("Solve Melds", async () => {
@@ -55,58 +65,32 @@ export class MeldSolverDialog extends BaseModal {
             const meldSolveStart: number = Date.now();
             this.buttonArea.removeChild(this.solveMeldsButton);
             this.showProgress();
-            this.progressDisplay.loadbar.updateProgress(0);
+            this.progressDisplay.reset();
 
-            let displayedSimText: boolean = false;
             const solverPromise = this.solver.solveMelds(
                 this.settingsDiv.gearsetGenSettings,
                 this.settingsDiv.simSettings,
                 update => {
-                    if ('done' in update) {
-                        const percentage = 100.0 * update.done / update.total;
-                        this.progressDisplay.loadbar.updateProgress(percentage);
-                        // Don't re-render this unnecessarily
-                        if (!displayedSimText) {
-                            this.progressDisplay.text.textContent = `Simulating ${update.total} sets...`;
-                            displayedSimText = true;
-                        }
-                    }
-                    else {
-                        let out: string;
-                        switch (update.phase) {
-                            case 0:
-                                out = "Initializing...";
-                                break;
-                            case 1:
-                                out = "Generating Piece Combinations...";
-                                break;
-                            case 2:
-                                if ("subPhase" in update) {
-                                    out = `Generating Sets - Slot ${update.subPhase.phase} / ${update.subPhase.phaseMax}... ${update.count} so far`;
-                                }
-                                else {
-                                    out = `Generating Sets... ${update.count} so far`;
-                                }
-                                break;
-                            case 3:
-                                if ("subPhase" in update) {
-                                    out = `Sorting ${update.subPhase.phase} / ${update.subPhase.phaseMax} Sets...`;
-                                }
-                                else {
-                                    out = `Sorting ${update.count} Sets...`;
-                                }
-                                break;
-                            case 4:
-                                out = `Finalizing ${update.count} Sets (${update.subPhase.phase} / ${update.subPhase.phaseMax})...`;
-                                break;
-                            default:
-                                return;
-                        }
-                        this.progressDisplay.text.textContent = out;
-                    }
+                    this.progressDisplay.displayUpdate(update);
 
+                }, async (count: number) => {
+                    if (!SETTINGS.generatorWarnIfAbove) {
+                        return true;
+                    }
+                    else if (count < SETTINGS.generatorWarnThreshold) {
+                        return true;
+                    }
+                    return await ConfirmLargeSolveDialog.askConfirmation(count);
                 });
-            solverPromise.then(([set, dps]) => this.solveResultReceived(set, dps));
+            solverPromise.then((result) => {
+                if (result === 'cancelled') {
+                    this.cancel();
+                }
+                else {
+                    const [set, dps] = result;
+                    this.solveResultReceived(set, dps);
+                }
+            });
             const timeTaken = Date.now() - (meldSolveStart);
             console.log("Time taken: " + timeTaken);
             recordSheetEvent("SolveMelds", sheet, {
@@ -115,15 +99,19 @@ export class MeldSolverDialog extends BaseModal {
         });
 
         this.cancelButton = makeActionButton("Cancel", async () => {
-            await this.solver.cancel();
-            this.buttonArea.removeChild(this.cancelButton);
-            this.inProgress = false;
-
-            this.showSettings();
+            await this.cancel();
         });
 
         this.showSettings();
         this.contentArea.append(this.form);
+    }
+
+    async cancel() {
+        await this.solver.cancel();
+        this.buttonArea.removeChild(this.cancelButton);
+        this.inProgress = false;
+
+        this.showSettings();
     }
 
     async solveResultReceived(set: CharacterGearSet, dps: number) {
@@ -161,6 +149,42 @@ export class MeldSolverDialog extends BaseModal {
     get explicitCloseOnly() {
         return this.inProgress;
     }
+
+    onClose() {
+        this._sheet.setDefaultSolverSettings(this._set, this.settingsDiv.gearsetGenSettings);
+    }
+}
+
+class ConfirmLargeSolveDialog extends BaseModal {
+    constructor(count: number, onAnswer: (answer: boolean) => void) {
+        super();
+        this.headerText = 'Confirm Large Solve';
+        const p = el('p', {}, [
+            'A total of ',
+            el('span', {class: 'large-solve-confirmation-count'}, [count.toString()]),
+            ' unique combinations have been identified. Are you sure you wish to proceed?',
+        ]);
+        this.addActionButton('Yes, Continue', () => {
+            onAnswer(true);
+            this.close();
+        });
+        this.addActionButton('No, Cancel', () => {
+            onAnswer(false);
+            this.close();
+        });
+        this.contentArea.replaceChildren(p);
+    }
+
+    get explicitCloseOnly(): boolean {
+        return true;
+    }
+
+    static askConfirmation(count: number): Promise<boolean> {
+        return new Promise(resolve => {
+            const dialog = new ConfirmLargeSolveDialog(count, resolve);
+            dialog.attachAndShowTop();
+        });
+    }
 }
 
 class LoadBar extends HTMLDivElement {
@@ -176,7 +200,6 @@ class LoadBar extends HTMLDivElement {
 
         this.innerBar = document.createElement('div');
         this.innerBar.classList.add('load-bar-inner');
-        this.innerBar.style.height = "30px";
         this.innerBar.style.width = "0%";
 
         this.outerBar.replaceChildren(this.innerBar);
@@ -188,57 +211,134 @@ class LoadBar extends HTMLDivElement {
     }
 }
 
+type ExtendedPhase = 0 | 1 | 2 | 3 | 4 | 5;
+
 class MeldSolverProgressDisplay extends HTMLDivElement {
 
-    public readonly loadbar: LoadBar;
+    private readonly inPhaseLoadBar: LoadBar;
+    private displayedSimText: boolean = false;
     text: HTMLHeadingElement;
+    private phaseIndicators: LoadBar[] = [];
+    private lastSeenPhase: ExtendedPhase = 0;
 
     constructor() {
         super();
 
-        this.loadbar = new LoadBar;
+        this.inPhaseLoadBar = new LoadBar();
+        this.inPhaseLoadBar.classList.add('in-phase-progress');
         this.text = document.createElement('h4');
         this.text.textContent = "Generating meld combinations...";
+        this.classList.add('meld-solver-progress-display');
 
-        this.replaceChildren(this.text, this.loadbar);
+        for (let i: ExtendedPhase = 0; i <= 5; i++) {
+            this.phaseIndicators.push(new LoadBar());
+        }
+        const phaseHolder = el('div', {class: 'phases-holder'}, this.phaseIndicators);
+
+        this.replaceChildren(phaseHolder, this.inPhaseLoadBar, this.text);
+    }
+
+    reset() {
+        this.inPhaseLoadBar.updateProgress(0);
+    }
+
+    updatePhase(phase: ExtendedPhase, phaseProgress: number, phaseMax: number) {
+        const percentage = phaseMax > 0 ? 100.0 * phaseProgress / phaseMax : 0;
+        this.inPhaseLoadBar.updateProgress(percentage);
+        this.phaseIndicators[phase].updateProgress(percentage);
+        // If transitioning to a new phase, reset the state of these
+        if (phase !== this.lastSeenPhase) {
+            this.phaseIndicators.forEach((l, i) => {
+                if (i < phase) {
+                    l.updateProgress(100);
+                }
+                else if (i > phase) {
+                    l.updateProgress(0);
+                }
+            });
+            this.lastSeenPhase = phase;
+        }
+    }
+
+    displayUpdate(update: GearsetGenerationStatusUpdate | MeldSolvingStatusUpdate) {
+
+        if ('done' in update) {
+            this.updatePhase(5, update.done, update.total);
+            // Don't re-render this unnecessarily
+            if (!this.displayedSimText) {
+                this.text.textContent = `Simulating ${update.total} sets...`;
+                this.displayedSimText = true;
+            }
+        }
+        else {
+            let out: string;
+            this.updatePhase(update.phase, update.subPhase?.phase ?? 0, update.subPhase?.phaseMax ?? 0);
+            switch (update.phase) {
+                case 0:
+                    out = "Initializing...";
+                    break;
+                case 1:
+                    out = "Generating Piece Combinations...";
+                    break;
+                case 2:
+                    if ("subPhase" in update) {
+                        out = `Generating Sets - Slot ${update.subPhase.phase} / ${update.subPhase.phaseMax}... ${update.count} so far`;
+                    }
+                    else {
+                        out = `Generating Sets... ${update.count} so far`;
+                    }
+                    break;
+                case 3:
+                    if ("subPhase" in update) {
+                        out = `Sorting ${update.subPhase.phase} / ${update.subPhase.phaseMax} Sets...`;
+                    }
+                    else {
+                        out = `Sorting ${update.count} Sets...`;
+                    }
+                    break;
+                case 4:
+                    out = `Finalizing ${update.count} Sets (${update.subPhase.phase} / ${update.subPhase.phaseMax})...`;
+                    break;
+                default:
+                    return;
+            }
+            this.text.textContent = out;
+        }
     }
 }
 
 class MeldSolverSettingsMenu extends HTMLDivElement {
-    public gearsetGenSettings: GearsetGenerationSettings;
-    public simSettings: SolverSimulationSettings;
-    private overwriteMateriaText: HTMLSpanElement;
-    private overwriteMateriaCheckbox: FieldBoundCheckBox<GearsetGenerationSettings>;
-    private useTargetGcdCheckBox: FieldBoundCheckBox<GearsetGenerationSettings>;
-    private overwriteFoodCheckbox: FieldBoundCheckBox<GearsetGenerationSettings>;
-    private overwriteFoodText: HTMLSpanElement;
-    private targetGcdInput: FieldBoundFloatField<GearsetGenerationSettings>;
-    private checkboxContainer: HTMLDivElement;
-    private simDropdown: FieldBoundDataSelect<SolverSimulationSettings, Simulation<SimResult, unknown, unknown>>;
+    public readonly gearsetGenSettings: GearsetGenerationSettings;
+    public readonly simSettings: SolverSimulationSettings;
+    private readonly overwriteMateriaText: HTMLSpanElement;
+    private readonly overwriteMateriaCheckbox: FieldBoundCheckBox<GearsetGenerationSettings>;
+    private readonly useTargetGcdCheckBox: FieldBoundCheckBox<GearsetGenerationSettings>;
+    private readonly overwriteFoodCheckbox: FieldBoundCheckBox<GearsetGenerationSettings>;
+    private readonly overwriteFoodText: HTMLSpanElement;
+    private readonly filterFoodCheckbox: FieldBoundCheckBox<GearsetGenerationSettings>;
+    private readonly targetGcdInput: FieldBoundFloatField<GearsetGenerationSettings>;
+    private readonly warnIfAboveCheckBox: FieldBoundCheckBox<PersistentSettings>;
+    private readonly warnIfAboveNumberField: FieldBoundIntField<PersistentSettings>;
+    private readonly checkboxContainer: HTMLDivElement;
+    private readonly simDropdown: FieldBoundDataSelect<SolverSimulationSettings, Simulation<SimResult, unknown, unknown>>;
 
     private readonly disableables: {
         disabled?: boolean
     }[] = [];
 
-    constructor(sheet: GearPlanSheetGui, set: CharacterGearSet) {
+    constructor(sheet: GearPlanSheetGui, set: CharacterGearSet, settings: GearsetGenerationSettings) {
         super();
 
-        const override = sheet.classJobStats.gcdDisplayOverrides?.(sheet.level);
-        let buffHaste = 0;
-        let gaugeHaste = 0;
-        if (override && override.length >= 1) {
-            buffHaste += (override[0].buffHaste ?? 0);
-            gaugeHaste += (override[0].gaugeHaste ?? 0);
-        }
-        const haste = Math.max(set.computedStats.haste("Weaponskill", buffHaste, gaugeHaste), set.computedStats.haste("Spell", buffHaste, gaugeHaste));
-        const gcd = Math.min(set.computedStats.gcdPhys(2.5, haste), set.computedStats.gcdMag(2.5, haste));
+        this.gearsetGenSettings = settings;
 
-        this.gearsetGenSettings = new GearsetGenerationSettings(set, false, true, gcd);
         this.simSettings = {
             sim: sheet.sims.at(0),
             sets: undefined, // Not referenced in UI
         };
 
+        // TODO for later: to make it more clear, it should display the default GCD as a placeholder, rather than
+        // the actual value, so that we can differentiate between "left it as the default" and "explicitly set to the
+        // same value as the default".
         this.targetGcdInput = new FieldBoundFloatField(this.gearsetGenSettings, 'targetGcd', {
             postValidators: [ctx => {
                 const val = ctx.newValue;
@@ -257,27 +357,40 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
         });
 
         this.useTargetGcdCheckBox = new FieldBoundCheckBox(this.gearsetGenSettings, 'useTargetGcd');
-        this.useTargetGcdCheckBox.classList.add('meld-solver-settings');
+        // this.useTargetGcdCheckBox.classList.add('meld-solver-settings');
         this.targetGcdInput.title = 'Solve for the best set with this GCD';
         this.targetGcdInput.classList.add('meld-solver-target-gcd-input');
 
         const targetGcdText = labelFor("Target GCD: ", this.useTargetGcdCheckBox);
         targetGcdText.textContent = "Target GCD: ";
-        targetGcdText.classList.add('meld-solver-settings');
+        // targetGcdText.classList.add('meld-solver-settings');
 
         this.overwriteFoodCheckbox = new FieldBoundCheckBox(this.gearsetGenSettings, 'overwriteFood');
-        this.overwriteFoodCheckbox.classList.add('meld-solver-settings');
+        // this.overwriteFoodCheckbox.classList.add('meld-solver-settings');
         this.overwriteFoodText = labelFor("Overwrite food? ", this.overwriteFoodCheckbox);
-        this.overwriteFoodText.classList.add('meld-solver-settings');
+        // this.overwriteFoodText.classList.add('meld-solver-settings');
+
+        this.filterFoodCheckbox = new FieldBoundCheckBox(this.gearsetGenSettings, 'filterFood');
+        const filterFood = wrappedLabelPost("Use visible food? ", this.filterFoodCheckbox);
+        filterFood.title = 'If checked, use visible food instead of default food filtering logic.';
 
         this.overwriteMateriaCheckbox = new FieldBoundCheckBox(this.gearsetGenSettings, 'overwriteExistingMateria');
-        this.overwriteMateriaCheckbox.classList.add('meld-solver-settings');
+        // this.overwriteMateriaCheckbox.classList.add('meld-solver-settings');
         this.overwriteMateriaText = labelFor("Overwrite existing materia?", this.overwriteMateriaCheckbox);
-        this.overwriteMateriaText.classList.add('meld-solver-settings');
+        // this.overwriteMateriaText.classList.add('meld-solver-settings');
+
+        this.warnIfAboveCheckBox = new FieldBoundCheckBox(SETTINGS, 'generatorWarnIfAbove');
+        // this.warnIfAboveCheckBox.classList.add('meld-solver-settings');
+        this.warnIfAboveNumberField = new FieldBoundIntField(SETTINGS, 'generatorWarnThreshold');
+        // this.warnIfAboveNumberField.classList.add('meld-solver-settings');
+        this.warnIfAboveCheckBox.addAndRunListener(warnEnabled => {
+            this.warnIfAboveNumberField.disabled = !warnEnabled;
+        });
+        this.warnIfAboveNumberField.classList.add('meld-solver-warn-threshold-input');
 
         const simText = document.createElement('span');
         simText.textContent = "Sim: ";
-        simText.classList.add('meld-solver-settings');
+        // simText.classList.add('meld-solver-settings');
 
         this.simDropdown = new FieldBoundDataSelect<typeof this.simSettings, Simulation<SimResult, unknown, unknown>>(
             this.simSettings,
@@ -289,33 +402,35 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
         );
         this.simDropdown.classList.add('meld-solver-sim-dropdown');
 
-        const span1 = document.createElement('li');
-        span1.replaceChildren(this.overwriteMateriaCheckbox, this.overwriteMateriaText);
+        this.checkboxContainer = el('div', {class: 'meld-solver-settings'},
+            [
+                el('li', {}, [simText, this.simDropdown]),
+                el('li', {}, [this.useTargetGcdCheckBox, targetGcdText, this.targetGcdInput]),
+                el('li', {}, [this.overwriteMateriaCheckbox, this.overwriteMateriaText]),
+                el('li', {}, [this.overwriteFoodCheckbox, this.overwriteFoodText]),
+                el('li', {}, [filterFood]),
+                el('li', {}, [this.warnIfAboveCheckBox, labelFor('Confirm before simming more than ', this.warnIfAboveCheckBox), this.warnIfAboveNumberField, labelFor(' sets', this.warnIfAboveNumberField)]),
+            ]
+        );
 
-        const span2 = document.createElement('li');
-        span2.replaceChildren(this.overwriteFoodCheckbox, this.overwriteFoodText);
-
-        const span3 = document.createElement('li');
-        span3.replaceChildren(this.useTargetGcdCheckBox, targetGcdText, this.targetGcdInput);
-
-        const span4 = document.createElement('li');
-        span4.replaceChildren(simText, this.simDropdown);
-
-        this.checkboxContainer = document.createElement('div');
-        this.checkboxContainer.classList.add('meld-solver-settings');
-        const children = [span1, span2, span3, span4];
-        this.checkboxContainer.replaceChildren(...children);
-
-        const pentameldWarning = document.createElement('li');
-        pentameldWarning.style.overflow = 'hidden';
-        pentameldWarning.style.display = 'block';
-        pentameldWarning.style.maxWidth = "90%";
-        pentameldWarning.style.width = "90%";
-        const warningSpan = document.createElement('span');
-        warningSpan.textContent = "⚠️ Solving pentameld sets can take a long time. To speed it up, try filling some materia and solving without Overwrite existing materia, or not solving food.";
-        warningSpan.style.fontSize = '90%';
-        warningSpan.style.display = 'inline';
-        pentameldWarning.append(warningSpan);
+        // TODO: move this to CSS
+        const pentameldWarning = el('li', {
+            style: {
+                overflow: 'hidden',
+                display: 'block',
+                maxWidth: "90%",
+                width: "90%",
+            },
+        }, [
+            el('span', {
+                style: {
+                    fontSize: '90%',
+                    display: 'inline',
+                },
+            }, [
+                "⚠️ Solving pentameld sets can take a long time. To speed it up, try filling some materia and solving without Overwrite existing materia, or not solving food.",
+            ]),
+        ]);
 
         const gearsetGenSettings = this.gearsetGenSettings;
         const calculateNumberOfMateriaToSolve = function () {
@@ -419,6 +534,7 @@ class FoodEntry extends HTMLDivElement {
     }
 }
 
+// TODO: delete this leftover debugging code
 // @ts-expect-error asdfsadfdsafdsafa
 window['srt'] = () => {
     new MeldSolverConfirmationDialog(window.currentSheet, window.currentGearSet, window.currentGearSet, [12345, 13579], () => {
@@ -665,3 +781,4 @@ customElements.define('meld-solver-settings-menu', MeldSolverSettingsMenu, {exte
 customElements.define('meld-solver-result-materia-entry', MateriaEntry, {extends: 'div'});
 customElements.define('meld-solver-result-food-entry', FoodEntry, {extends: 'div'});
 customElements.define('meld-solver-result-dialog', MeldSolverConfirmationDialog);
+customElements.define('meld-solver-confirm-large-solve-dialog', ConfirmLargeSolveDialog);

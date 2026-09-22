@@ -6,17 +6,27 @@ import {
     Materia,
     MATERIA_FILL_MODES,
     MateriaAutoFillController,
+    MateriaAutoFillPrio,
     MateriaFillMode,
     MeldableMateriaSlot,
     RawStatKey
 } from "@xivgear/xivmath/geartypes";
-import {MateriaSubstat, MAX_GCD, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "@xivgear/xivmath/xivconstants";
+import {
+    DEFAULT_MATERIA_ACCEPTABLE_OVERCAP_LOSS,
+    MateriaSubstat,
+    MateriaSubstats,
+    MAX_GCD,
+    STAT_ABBREVIATIONS,
+    STAT_FULL_NAMES
+} from "@xivgear/xivmath/xivconstants";
 import {
     el,
     FieldBoundDataSelect,
     FieldBoundFloatField,
+    FieldBoundIntOrUndefField,
     labelFor,
     makeActionButton,
+    nonNegative,
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {GearPlanSheet} from "@xivgear/core/sheet";
@@ -24,8 +34,17 @@ import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {GearPlanSheetGui} from "../sheet_gui";
 import {recordCurrentSheetEvent} from "../../../analytics/analytics";
 import {MODAL_CONTROL} from "@xivgear/common-ui/modalcontrol";
-import {makeLockIcon, makeNewSheetIcon, makePlusIcon, makeTrashIcon} from "@xivgear/common-ui/components/icons";
-import {materiaShortLabel} from "@xivgear/core/materia/materia_utils";
+import {
+    makeLockIcon,
+    makeNewSheetIcon,
+    makePlusIcon,
+    makeTrashIcon,
+    settingsIcon
+} from "@xivgear/common-ui/components/icons";
+import {getMateriaFillModeName, materiaShortLabel} from "@xivgear/core/materia/materia_utils";
+import {BaseModal} from "@xivgear/common-ui/components/modal";
+import {writeProxy} from "@xivgear/util/proxies";
+import {elt} from "@xivgear/common-ui/components/templates";
 
 /**
  * Component for managing all materia slots on an item
@@ -265,7 +284,7 @@ export class SingleMateriaViewOnly extends HTMLElement {
     constructor(materia: Materia) {
         super();
         this.classList.add("single-materia-view-only");
-        const imageHolder = el("div", {class:"materia-image-holder"});
+        const imageHolder = el("div", {class: "materia-image-holder"});
         this.image = document.createElement("img");
         this.text = el("span", {}, [materiaShortLabel(materia)]);
         imageHolder.appendChild(this.image);
@@ -305,21 +324,20 @@ function toRomanNumeral(grade: number) {
 
 export class SlotMateriaManagerPopup extends HTMLElement {
 
+    private showAllGrades = false;
+
     constructor(private sheet: GearPlanSheet, private materiaSlot: MeldableMateriaSlot, private callback: () => void) {
         super();
         this.hide();
     }
 
-    show() {
-        const allMateria = this.sheet.getRelevantMateriaFor(this.materiaSlot);
+    private renderTable(): HTMLTableElement {
+        const showAllGrades = this.showAllGrades;
+        const allMateria = this.sheet.getRelevantMateriaFor(this.materiaSlot, !showAllGrades);
         const typeMap: { [K in RawStatKey]?: Materia[] } = {};
         const stats: RawStatKey[] = [];
         const grades: number[] = [];
         for (const materia of allMateria) {
-            if (materia.materiaGrade > this.materiaSlot.materiaSlot.maxGrade
-                || materia.isHighGrade && !this.materiaSlot.materiaSlot.allowsHighGrade) {
-                continue;
-            }
             (typeMap[materia.primaryStat] = typeMap[materia.primaryStat] ?? []).push(materia);
             if (!stats.includes(materia.primaryStat)) {
                 stats.push(materia.primaryStat);
@@ -347,6 +365,7 @@ export class SlotMateriaManagerPopup extends HTMLElement {
             classes: ['materia-picker-lock', 'materia-picker-special-button'],
         }, [makeLockIcon()]);
         const slot = this.materiaSlot;
+
         function checkLock() {
             if (slot.locked) {
                 lock.classList.add('locked');
@@ -359,6 +378,7 @@ export class SlotMateriaManagerPopup extends HTMLElement {
                 lock.title = 'This slot is unlocked. It may be affected by auto-fill and the solver.\n\nClick to lock.';
             }
         }
+
         lock.addEventListener('mousedown', (ev) => {
             this.materiaSlot.locked = !this.materiaSlot.locked;
             checkLock();
@@ -406,7 +426,23 @@ export class SlotMateriaManagerPopup extends HTMLElement {
                 }
             }
         }
-        this.replaceChildren(table);
+        return table;
+    }
+
+    show() {
+        const table = this.renderTable();
+        if (this.showAllGrades) {
+            this.replaceChildren(table);
+        }
+        else {
+            const showAllGradesButton = el('button', {class: 'show-more-materia-button'}, ['Show lower materia']);
+            showAllGradesButton.addEventListener('mousedown', (ev) => {
+                this.showAllGrades = true;
+                this.replaceChildren(this.renderTable());
+                ev.stopPropagation();
+            });
+            this.replaceChildren(table, showAllGradesButton);
+        }
         const self = this;
         MODAL_CONTROL.setModal({
             modalElement: self,
@@ -441,31 +477,14 @@ export class MateriaPriorityPicker extends HTMLElement {
         const header = document.createElement('span');
         header.textContent = 'Mat Prio: ';
         const fillModeDropdown = new FieldBoundDataSelect<MateriaAutoFillController, MateriaFillMode>(prioController, 'autoFillMode',
-            (val: MateriaFillMode) => {
-                switch (val) {
-                    case "leave_empty":
-                        return "Leave Empty";
-                    case "autofill":
-                        return "Prio Fill";
-                    case "retain_slot_else_prio":
-                        return "Keep Slot > Prio";
-                    case "retain_item_else_prio":
-                        return "Keep Item > Prio";
-                    case "retain_slot":
-                        return "Keep Slot > None";
-                    case "retain_item":
-                        return "Keep Item > None";
-                    default:
-                        return "?";
-                }
-            }, [...MATERIA_FILL_MODES]);
-        fillModeDropdown.title = 'Control what happens when an item is selected.\n' +
-            'Leave Empty: Do not fill any materia when selecting an item.\n' +
-            'Prio Fill: Fill materia slots according to the priority above.\n' +
-            'Keep Slot, else Prio: Keep the same materia as the previously item in that slot. If none equipped, use priority.\n' +
-            'Keep Item, else Prio: Remember what materia was equipped to each item. If none equipped, use priority.\n' +
-            'Keep Slot, else None: Keep the same materia as the previously item in that slot. If none equipped, leave empty.\n' +
-            'Keep Item, else None: Remember what materia was equipped to each item. If none equipped, leave empty.';
+            getMateriaFillModeName, [...MATERIA_FILL_MODES]);
+        fillModeDropdown.title = 'Control what happens when an item is selected.\n'
+            + 'Leave Empty: Do not fill any materia when selecting an item.\n'
+            + 'Prio Fill: Fill materia slots according to the priority above.\n'
+            + 'Keep Slot, else Prio: Keep the same materia as the previously item in that slot. If none equipped, use priority.\n'
+            + 'Keep Item, else Prio: Remember what materia was equipped to each item. If none equipped, use priority.\n'
+            + 'Keep Slot, else None: Keep the same materia as the previously item in that slot. If none equipped, leave empty.\n'
+            + 'Keep Item, else None: Remember what materia was equipped to each item. If none equipped, leave empty.';
         const fillModeLabel = labelFor("Fill Mode:", fillModeDropdown);
         fillModeDropdown.addListener((newValue) => {
             recordEvent("fillMode", {
@@ -477,12 +496,20 @@ export class MateriaPriorityPicker extends HTMLElement {
             prioController.fillEmpty();
             recordEvent("fillEmpty");
         }, 'Fill all empty materia slots according to the chosen priority.');
-        fillEmptyNow.classList.add('materia-fill-button');
+        fillEmptyNow.classList.add('materia-fill-button', 'icon-text-button');
+
         const fillAllNow = makeActionButton([makeNewSheetIcon(), 'Fill All'], () => {
             prioController.fillAll();
             recordEvent("fillAll");
         }, 'Empty out and re-fill all materia slots according to the chosen priority.');
-        fillAllNow.classList.add('materia-fill-button');
+        fillAllNow.classList.add('materia-fill-button', 'icon-text-button');
+
+        const maxWasteSettings = makeActionButton([settingsIcon()], () => {
+            new MateriaAutoFillSettingsModal(prioController, sheet).attachAndShowTop();
+            recordEvent("openMateriaAutoFillSettings");
+        }, 'Configure the maximum stat waste allowed by materia auto-fill.');
+        maxWasteSettings.classList.add('materia-fill-button');
+        maxWasteSettings.setAttribute('aria-label', 'Configure materia auto-fill settings');
 
         const lockAllEquipped = makeActionButton('Lock Filled', () => {
             prioController.lockFilled();
@@ -534,18 +561,50 @@ export class MateriaPriorityPicker extends HTMLElement {
         });
         minGcdInput.title = 'Enter the minimum desired GCD in the form x.yz.\nSkS/SpS materia will be de-prioritized once this target GCD is met.';
         minGcdInput.classList.add('min-gcd-input');
+        const isCombat = sheet.classJobStats.type === "Combat";
         this.replaceChildren(header, drag,
             document.createElement('br'),
-            minGcdText, minGcdInput,
-            document.createElement('br'),
+            // Only show GCD for combat jobs
+            ...(isCombat ? [minGcdText, minGcdInput, document.createElement('br')] : []),
             fillModeLabel, fillModeDropdown,
             document.createElement('br'),
-            fillEmptyNow, fillAllNow,
+            fillEmptyNow, fillAllNow, maxWasteSettings,
             document.createElement('br'),
             lockAllEquipped, lockAllEmpty, unlockAll, unequipAll,
             document.createElement('br'),
             tips
         );
+    }
+}
+
+export class MateriaAutoFillSettingsModal extends BaseModal {
+    constructor(prioController: MateriaAutoFillController, sheet: GearPlanSheetGui) {
+        super();
+        this.headerText = 'Materia Auto-Fill Settings';
+
+        const explanation = elt('p')`Configure the maximum overcap loss for each stat. The materia autofiller will not consider a particular materia if it would lose more than the given value.`;
+        const settings = quickElement('div', ['materia-max-waste-settings']);
+        const prio: MateriaAutoFillPrio = prioController.prio;
+        const maxWaste = writeProxy(prio.maxWaste, () => prioController.callback());
+        const mats = sheet.relevantMateria;
+        const stats = MateriaSubstats.filter(stat => mats.some(materia => materia.primaryStat === stat));
+
+        for (const stat of stats) {
+            const input = new FieldBoundIntOrUndefField(maxWaste, stat, {
+                postValidators: [nonNegative],
+            });
+            input.classList.add('materia-max-waste-input');
+            input.placeholder = String(DEFAULT_MATERIA_ACCEPTABLE_OVERCAP_LOSS);
+            input.title = `Maximum ${STAT_FULL_NAMES[stat]} points allowed to be wasted.`;
+            const row = quickElement('div', ['materia-max-waste-row'], [
+                labelFor(`${STAT_FULL_NAMES[stat]}:`, input),
+                input,
+            ]);
+            settings.appendChild(row);
+        }
+
+        this.contentArea.append(explanation, settings);
+        this.addCloseButton();
     }
 }
 
@@ -755,4 +814,4 @@ customElements.define("slot-materia-popup", SlotMateriaManagerPopup);
 customElements.define("materia-priority-picker", MateriaPriorityPicker);
 customElements.define("materia-drag-order", MateriaDragList);
 customElements.define("materia-dragger", MateriaDragger);
-
+customElements.define("materia-autofill-settings-modal", MateriaAutoFillSettingsModal);

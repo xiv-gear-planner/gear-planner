@@ -5,6 +5,7 @@ import tseslint from 'typescript-eslint';
 import stylisticJs from '@stylistic/eslint-plugin-js'
 import pluginChaiFriendly from 'eslint-plugin-chai-friendly';
 import namedImportSpacing from 'eslint-plugin-named-import-spacing';
+import jsdoc from "eslint-plugin-jsdoc";
 
 export default [
     eslint.configs.recommended,
@@ -14,12 +15,12 @@ export default [
             '@stylistic/js': stylisticJs,
             'chai-friendly': pluginChaiFriendly,
             'named-import-spacing': namedImportSpacing,
+            'jsdoc': jsdoc,
         },
         ignores: ['**/build/', '**/dist/', '**/*.d.ts'],
         languageOptions: {
             // parser: parser,
             parserOptions: {
-                project: ['./tsconfig.json', './packages/*/tsconfig.json'],
                 projectService: true,
             }
         },
@@ -55,6 +56,7 @@ export default [
             "@stylistic/js/comma-spacing": "error",
             "@stylistic/js/keyword-spacing": "error",
             "@stylistic/js/no-trailing-spaces": "error",
+            "@stylistic/js/operator-linebreak": ["error", "before"],
             "@stylistic/js/eol-last": "error",
             "@stylistic/js/space-infix-ops": "error",
             "@stylistic/js/brace-style": ["error", "stroustrup"],
@@ -96,6 +98,39 @@ export default [
             "camelcase": "error",
             "block-scoped-var": "error",
             "named-import-spacing/named-import-spacing": ["error", "never"],
+            // Block the use of node-specific things (see below for exceptions)
+            "no-restricted-imports": ["error", {
+                "paths": [
+                    "fs",
+                    "path",
+                    "os",
+                    "crypto",
+                    "child_process",
+                    "http",
+                    "https",
+                    "url",
+                    "process",
+                    "util"
+                ],
+                "patterns": [
+                    "node:*"
+                ]
+            }],
+            "jsdoc/multiline-blocks": ['error', {
+                noSingleLineBlocks: true,
+            }]
+        }
+    },
+    {
+        // Exceptions to disallowed node.js imports - it's fine for tests, and for the backend part since that specifically
+        // runs in node.
+        "files": [
+            "**/test/**",
+            "**/*test.ts",
+            "packages/backend-resolver/**"
+        ],
+        "rules": {
+            "no-restricted-imports": "off"
         }
     }
 ];

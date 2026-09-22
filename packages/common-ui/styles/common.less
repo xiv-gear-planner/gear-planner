@@ -10,12 +10,23 @@ body {
   --border-color-highlight: #888890;
   --default-table-bg-color: #202027;
   --table-bg-color: var(--default-table-bg-color);
+
+  // Combat substats
   --color-sps-sks: #22ff22;
   --color-crit: #ff2222;
   --color-dhit: #ff8800;
   --color-det: #0099ff;
   --color-tnc: #ffff00;
   --color-piety: #ff00ff;
+  // DoH substats
+  --color-cp: #00a3b0;
+  --color-craftsmanship: #003cff;
+  --color-control: #574bff;
+  // DoL substats
+  --color-gp: #09b600;
+  --color-gathering: #00b78d;
+  --color-perception: #a6c000;
+
   --stat-mix-primary: 65%;
   --stat-mix-primary-bg: 12%;
   --stat-mix-secondary: 15%;
@@ -85,6 +96,8 @@ body {
   --role-color-tank: #4848ff;
   --role-color-healer: #13a813;;
   --role-color-dps: #ff0000;
+  --role-color-doh: #ffd632;
+  --role-color-dol: var(--role-color-doh);
   --invalid-input-box-shadow: 1px 1px 2px red inset, -1px -1px 2px #ff6000 inset;
 
   --perfect-tiering-box-shadow: 0 0 5px -1px inset color-mix(in srgb, var(--stat-color) 50%, var(--border-color));
@@ -884,6 +897,7 @@ table.gear-plan-table {
 
   &.view-only {
     --action-col-width: 10px;
+
     .stat-col {
       text-align: center;
     }
@@ -995,6 +1009,13 @@ job-picker {
       --role-color: var(--role-color-dps);
     }
 
+    &.job-picker-section-doh {
+      --role-color: var(--role-color-doh);
+    }
+    &.job-picker-section-dol {
+      --role-color: var(--role-color-dol);
+    }
+
     padding-top: 10px;
     display: grid;
     grid-template-columns: repeat(6, 40px);
@@ -1022,8 +1043,16 @@ job-picker {
         //opacity: 50%;
       }
 
+      --brightness-filter: brightness(80%);
+      --saturate-filter: saturate(200%);
+      --role-shadow: drop-shadow(0 0 7px var(--role-color));
+      &:has(.ffxiv-role-doh, .ffxiv-role-dol) {
+        --extra-hover-emphasis: brightness(120%);
+      }
+
       &:hover {
-        filter: saturate(200%);
+        filter: var(--saturate-filter) var(--extra-hover-emphasis, );
+
 
         img {
           opacity: 100%;
@@ -1032,19 +1061,20 @@ job-picker {
 
       &:active {
         border-color: #00000000;
-        filter: brightness(80%);
+        filter: var(--brightness-filter);
       }
 
       &.selected {
         &:active {
           border-color: #00000000;
-          filter: drop-shadow(0 0 10px var(--role-color)) saturate(200%) brightness(80%);
+          filter: var(--role-shadow) var(--saturate-filter) var(--brightness-filter);
         }
 
         // This has a LOWER z-index so that the shadows do not appear over other buttons
         z-index: 2;
         //background-color: var(--role-color);
-        filter: drop-shadow(0 0 10px var(--role-color)) saturate(200%);
+        filter: var(--role-shadow) var(--saturate-filter);
+
 
         img {
           opacity: 100%;
@@ -1478,146 +1508,175 @@ gear-plan {
   container-type: scroll-state;
 }
 
-table.gear-items-edit-table, table.food-items-edit-table {
-  width: 100%;
+table {
 
-  > tbody {
-    // Exclude header
-    > tr:has(> td) {
-      // Don't show text selection cursor on item tables since the text doesn't
-      // allow selection.
-      cursor: pointer;
+  &.gear-items-table, &.food-items-table, &.medicine-items-table {
+    margin-left: auto;
+    margin-right: auto;
+    .shadow();
+
+    show-hide-button {
+      margin-left: 15px;
     }
-  }
-}
-
-table.gear-items-table, table.food-items-table {
-  margin-left: auto;
-  margin-right: auto;
-  .shadow();
-
-  show-hide-button {
-    margin-left: 15px;
-  }
 
 
-  // Match direct children only
-  > tbody {
+    // Match direct children only
+    > tbody {
 
-    > tr, td {
-      height: 25px;
-      box-sizing: border-box;
+      > tr.hidden-item {
+        > td {
+          filter: saturate(5%);
+          color: color-mix(in srgb, var(--fg-color) 30%, transparent);
+        }
+      }
 
-      > td {
+      > tr, td {
         height: 25px;
         box-sizing: border-box;
-      }
-    }
 
-    th.hoverable {
-      cursor: pointer;
-    }
-
-    > * > td > img {
-      height: 100%;
-    }
-  }
-
-
-  max-width: var(--item-table-max-width);
-
-  [col-id='itemname'] {
-    width: var(--item-name-col-width);
-    max-width: var(--item-name-col-max-width);
-    min-width: 100px;
-  }
-
-  [col-id='ilvl'] {
-    overflow: visible;
-    text-align: center;
-  }
-
-  [col-id='icon'] {
-    box-sizing: content-box;
-    width: 23px;
-    max-width: 23px;
-    min-width: 23px;
-  }
-
-  th[col-id='itemname'] {
-    min-width: max-content;
-    position: relative;
-  }
-
-  td[col-id='mats'], td[col-id='wd'], td[col-id='haste'] {
-    text-align: center;
-  }
-
-  tr:last-child {
-    td, th {
-      border-top: none;
-    }
-  }
-
-  input[type='number'] {
-    -moz-appearance: textfield;
-
-    &::-webkit-inner-spin-button, &::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
-    }
-  }
-
-  &.gear-items-edit-table, &.food-items-edit-table {
-    tr {
-      .item-name-holder-editable, .food-name-holder-editable {
-        display: flex;
-        flex-direction: row;
-
-        span {
-          flex-basis: 1px;
-          flex-grow: 99;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          width: 1px;
-        }
-
-        .remove-item-button, .remove-food-button {
-          display: none;
+        > td {
+          height: 25px;
+          box-sizing: border-box;
         }
       }
 
-      &:hover {
-        &[is-selected="true"] {
-          .remove-item-button, .remove-food-button {
-            background: none;
-            display: block;
-            .borderless-button();
+      th.hoverable {
+        cursor: pointer;
+      }
 
-            padding: 0;
-            margin: 0;
+      > * > td > img {
+        height: 100%;
+      }
+    }
 
-            height: min-content;
-            width: min-content;
 
-            svg {
-              fill: var(--fg-color);
-            }
+    max-width: var(--item-table-max-width);
 
-            &:hover {
-              fill: var(--action-input-hover-background-color);
+    [col-id='itemname'] {
+      width: var(--item-name-col-width);
+      max-width: var(--item-name-col-max-width);
+      min-width: 100px;
+    }
+
+    [col-id='ilvl'] {
+      overflow: visible;
+      text-align: center;
+    }
+
+    [col-id='icon'] {
+      box-sizing: content-box;
+      width: 23px;
+      max-width: 23px;
+      min-width: 23px;
+    }
+
+    th[col-id='itemname'] {
+      min-width: max-content;
+      position: relative;
+    }
+
+    td[col-id='mats'], td[col-id='wd'], td[col-id='haste'] {
+      text-align: center;
+    }
+
+    tr:last-child {
+      td, th {
+        border-top: none;
+      }
+    }
+
+    input[type='number'] {
+      -moz-appearance: textfield;
+
+      &::-webkit-inner-spin-button, &::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+      }
+    }
+
+    &.gear-items-edit-table, &.food-items-edit-table, &.medicine-items-edit-table {
+      > tbody {
+        // Exclude header
+        > tr:has(> td) {
+          // Don't show text selection cursor on item tables since the text doesn't
+          // allow selection.
+          cursor: pointer;
+        }
+      }
+
+      tr {
+        .item-name-holder-editable, .food-name-holder-editable {
+          display: flex;
+          flex-direction: row;
+
+          span {
+            flex-basis: 1px;
+            flex-grow: 99;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 1px;
+          }
+
+          // The button area should only show when hovering
+          .item-hover-buttons-area {
+            display: contents;
+
+            button {
+              cursor: pointer;
+              background: none;
+              .borderless-button();
+
+              padding: 0 0 0 3px;
+              margin: 0;
+
+              height: min-content;
+              width: min-content;
 
               svg {
+                fill: var(--fg-color);
+              }
+
+              &:hover {
                 fill: var(--action-input-hover-background-color);
+
+                svg {
+                  fill: var(--action-input-hover-background-color);
+                }
               }
             }
+
+            // The remove item button should also be hidden unless the item is selected
+            .remove-item-button {
+              display: none;
+            }
+          }
+        }
+
+        &[is-selected="true"] {
+          // When the item is selected, don't hide the remove-item-button
+          .item-hover-buttons-area {
+            .remove-item-button {
+              display: block;
+            }
+          }
+        }
+
+        &:not(:hover) {
+          .item-hover-buttons-area {
+            display: none;
+          }
+        }
+
+        &:hover {
+          .item-hover-buttons-area {
+            // When hovering, unhide the button area
+            //display: contents;
           }
         }
       }
     }
   }
-
 }
 
 .left-side-gear-table, .right-side-gear-table {
@@ -1782,6 +1841,11 @@ slot-materia-popup {
 
   > table {
     padding: 0 !important;
+  }
+  background-color: var(--table-bg-color);
+
+  .show-more-materia-button {
+    width: 100%;
   }
 
   th {
@@ -2073,61 +2137,17 @@ div.gear-sheet-toolbar-holder {
 .load-bar-inner {
   background-color: var(--border-color-highlight);
   border-radius: 3px;
+  height: 30px;
 }
 
 .meld-solver-set {
-  float: left;
-  font-weight: bold;
-  text-decoration: underline;
-}
-
-.meld-solver-area {
-  white-space: pre-wrap;
-}
-
-.meld-solver-settings {
-
-  float: left;
-  display: flex;
-  flex-direction: column;
-  border-width: 1px;
-  border-color: #00ff00;
-
-  li {
-    margin: 5px;
-    list-style-type: none;
-    float: left;
-
-    .meld-solver-target-gcd-input {
-      max-width: 30px;
-      border: var(--faint-border);
-      float: left;
-    }
-
-    .meld-solver-target-gcd-input:disabled {
-      border: var(--faint-border);
-      opacity: 50%;
-    }
-
-    select.meld-solver-sim-dropdown {
-      float: left;
-      max-width: fit-content;
-      width: 100%;
-
-      option {
-        padding: 5px;
-      }
-    }
-  }
-
-  button {
-    margin: 5px;
-    border-width: 1px;
-    border-color: #909090;
-    float: left;
-    height: 100%;
+  //float: left;
+  .meld-solver-set-name {
+    font-weight: bold;
+    text-decoration: underline;
   }
 }
+
 
 .gear-set-editor-toolbar {
 
@@ -2169,9 +2189,10 @@ div.gear-sheet-toolbar-holder {
         box-sizing: content-box;
         padding: 5px 8px;
         margin-bottom: 10px;
-
-        > svg {
-          padding-right: 5px;
+        &.icon-text-button {
+          > svg {
+            padding-right: 5px;
+          }
         }
       }
     }
@@ -2282,6 +2303,10 @@ div.gear-set-editor-toolbar, set-view-toolbar {
         text-align: center;
         margin-right: 2px;
       }
+    }
+
+    .labeled-checkbox {
+      text-align: left;
     }
   }
 
@@ -2786,7 +2811,7 @@ food-stat-bonus {
 
 }
 
-table.food-items-table {
+table.food-items-table, table.medicine-items-table {
 
   .food-stat-col {
     --food-stat-col-width: 80px;
@@ -3031,7 +3056,7 @@ gear-set-viewer {
         }
       }
 
-      .gear-items-view-item-header, .food-items-view-item-header {
+      .gear-items-view-item-header, .food-items-view-item-header, .medicine-items-view-item-table {
         display: flex;
         flex-direction: row;
         gap: 3px;
@@ -3128,6 +3153,37 @@ gear-set-viewer {
   --stat-color: var(--color-piety);
   .color-stat-column();
 }
+
+.stat-gp {
+  --stat-color: var(--color-gp);
+  .color-stat-column();
+}
+
+.stat-gathering {
+  --stat-color: var(--color-gathering);
+  .color-stat-column();
+}
+
+.stat-perception {
+  --stat-color: var(--color-perception);
+  .color-stat-column();
+}
+
+.stat-cp {
+  --stat-color: var(--color-cp);
+  .color-stat-column();
+}
+
+.stat-craftsmanship {
+  --stat-color: var(--color-craftsmanship);
+  .color-stat-column();
+}
+
+.stat-control {
+  --stat-color: var(--color-control);
+  .color-stat-column();
+}
+
 
 td.stat-melded, td.stat-melded-overcapped, td.stat-melded-overcapped-major, td.stat-synced-down {
   //box-shadow: 0 0 4px 2px rgb(from color-mix(in srgb, var(--stat-color) 40%, var(--materia-melded-slot-blend-color)) r g b / 80%) inset;
@@ -3425,6 +3481,14 @@ sheet-export-modal, set-export-modal {
 
   &.ffxiv-role-dps {
     --role-color: var(--role-color-dps);
+  }
+
+  &.ffxiv-role-doh {
+    --role-color: var(--role-color-doh);
+  }
+
+  &.ffxiv-role-dol {
+    --role-color: var(--role-color-dol);
   }
 
   background: linear-gradient(var(--role-color), color-mix(in srgb, var(--role-color) 50%, #000));

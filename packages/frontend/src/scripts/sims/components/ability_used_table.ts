@@ -2,7 +2,7 @@ import {col, CustomColumnSpec, CustomTable, HeaderRow, LazyTableStrategy} from "
 import {toRelPct} from "@xivgear/util/strutils";
 import {AbilityIcon, actionNameTranslated} from "../../components/sim/abilities";
 import {BuffListDisplay} from "./buff_list_display";
-import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/sims/cycle_sim";
 import {AutoAttack, Buff, CombinedBuffEffect, GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
 import {ItemIcon} from "../../components/items/item_icon";
 import {quickElement} from "@xivgear/common-ui/components/util";

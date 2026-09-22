@@ -1,7 +1,6 @@
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 const path = require("path");
-const BeastiesWebpackPlugin = require("beasties-webpack-plugin");
 const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin");
 module.exports = (env, argv) => {
     const prod = argv.mode === 'production';
@@ -18,7 +17,7 @@ module.exports = (env, argv) => {
             // Normally, webpack tries to guess the public URL of the output files, but the way it does so will break
             // if you have 3rd party scripts (cloudflare beacon, etc) on the page. This tells it that the scripts are
             // always in the same directory as the HTML document.
-            publicPath: './',
+            publicPath: '/',
         },
         optimization: {
             // Minimize for the 'npm run buildprod' mode but not the normal 'npm run build'.
@@ -50,13 +49,6 @@ module.exports = (env, argv) => {
                 scriptLoading: 'module'
             }),
             new NodePolyfillPlugin(),
-            new BeastiesWebpackPlugin({
-                preload: false,
-                path: './dist/',
-                publicPath: '',
-                logLevel: 'debug',
-                includeSelectors: ['body.light-mode']
-            })
         ],
         resolve: {
             extensions: ['.ts', '.js'],
@@ -68,16 +60,12 @@ module.exports = (env, argv) => {
                 "net": false,
                 "tls": false,
                 "child_process": false,
+                "path": false,
+                "os": false,
             },
             plugins: [
                 new TsconfigPathsPlugin({
                     logLevel: "INFO",
-                    references: [
-                        "../common-ui",
-                        "../core",
-                        "../util",
-                        "../xivmath",
-                    ]
                 }),
             ],
         },
@@ -86,6 +74,14 @@ module.exports = (env, argv) => {
             port: 8076,
             client: {
                 overlay: false
+            },
+            historyApiFallback: {
+                rewrites: [
+                    {
+                        from: /.*/,
+                        to: '/index.html'
+                    }
+                ]
             }
         }
     }

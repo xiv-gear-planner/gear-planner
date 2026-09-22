@@ -7,7 +7,7 @@ import {
     getRaceStats,
     JobName,
     MAIN_STATS,
-    MATERIA_ACCEPTABLE_OVERCAP_LOSS,
+    DEFAULT_MATERIA_ACCEPTABLE_OVERCAP_LOSS,
     MateriaSubstat,
     NORMAL_GCD,
     RaceName,
@@ -28,6 +28,7 @@ import {
     GearSetResult,
     JobData,
     Materia,
+    MedicineItem,
     MateriaAutoFillController,
     MateriaAutoFillPrio,
     MateriaMemoryExport,
@@ -237,9 +238,10 @@ export function previewItemStatDetail(item: GearItem, stat: RawStatKey): ItemSin
 type GearSetCheckpoint = {
     equipment: EquipmentSet;
     food: FoodItem | undefined;
+    medicine: MedicineItem | undefined;
     jobOverride: JobName | null;
     name: string;
-    description: string;
+    description: string | undefined;
 }
 // GearSetCheckpointNode establishes a doubly-linked list of checkpoints.
 // This allows us to easily remove the 'redo' tree if you undo and then make a change.
@@ -262,6 +264,7 @@ export class CharacterGearSet {
     private _jobOverride: JobName | null = null;
     private _raceOverride: RaceName | null = null;
     private _food: FoodItem | undefined;
+    private _medicine: MedicineItem | undefined;
     private readonly _sheet: GearPlanSheet;
     private readonly refresher = new Inactivitytimer(0, () => {
         this._notifyListeners();
@@ -274,6 +277,7 @@ export class CharacterGearSet {
     private _reverting: boolean = false;
     private _undoHook: () => void = () => null;
     isSeparator: boolean = false;
+    private _materiaGradeCache: Map<number, number> = new Map();
 
     constructor(sheet: GearPlanSheet) {
         this._sheet = sheet;
@@ -302,11 +306,11 @@ export class CharacterGearSet {
     /**
      * Optional description for the set. May be undefined if not specified.
      */
-    get description() {
+    get description(): string | undefined {
         return this._description;
     }
 
-    set description(desc) {
+    set description(desc: string | undefined) {
         this._description = desc;
         this.notifyListeners();
     }
@@ -316,6 +320,13 @@ export class CharacterGearSet {
      */
     get food(): FoodItem | undefined {
         return this._food;
+    }
+
+    /**
+     * The medicine item currently selected, else undefined if no medicine is selected.
+     */
+    get medicine(): MedicineItem | undefined {
+        return this._medicine;
     }
 
     /**
@@ -335,6 +346,11 @@ export class CharacterGearSet {
         this.notifyListeners();
     }
 
+    set medicine(medicine: MedicineItem | undefined) {
+        this._medicine = medicine;
+        this.forceRecalc();
+    }
+
     get jobOverride(): JobName | null {
         return this._jobOverride;
     }
@@ -343,7 +359,7 @@ export class CharacterGearSet {
         this._jobOverride = job;
         const newEffectiveJob = this.job;
         // Unequip items which are no longer usable under the new job
-        Object.keys(this.equipment).forEach((slot: EquipSlotKey) => {
+        EquipSlots.forEach((slot: EquipSlotKey) => {
             const equipped = this.equipment[slot];
             if (equipped && !equipped.gearItem.usableByJob(newEffectiveJob)) {
                 this.setEquip(slot, null);
@@ -364,8 +380,23 @@ export class CharacterGearSet {
         this._jobOverride = job;
     }
 
+    private getMaxGradeForIlvl(ilvl: number): number {
+        const cached = this._materiaGradeCache.get(ilvl);
+        if (cached !== undefined) {
+            return cached;
+        }
+        const materia = this.sheet.allMateria.filter(mat => mat.ilvl <= ilvl && mat.primaryStat === 'determination');
+        if (materia.length === 0) {
+            this._materiaGradeCache.set(ilvl, 0);
+            return 0;
+        }
+        const maxGrade = Math.max(...materia.map(mat => mat.materiaGrade));
+        this._materiaGradeCache.set(ilvl, maxGrade);
+        return maxGrade;
+    }
+
     /**
-     * Set a new equipment piece into the given slot. Unlike directly setting fields on {@link #equipment}, this will
+     * Set a new equipment piece into the given slot. Unlike directly setting fields on {@link equipment}, this will
      * also handle things like materia autofill, invalidation, saving, etc.
      *
      * @param slot
@@ -390,54 +421,51 @@ export class CharacterGearSet {
         // console.debug(`Set ${this.name}: slot ${slot} => ${item?.name}`);
         if (materiaAutoFillController) {
             const mode = materiaAutoFillController.autoFillMode;
-            if (mode === 'leave_empty') {
-                // Do nothing
-            }
-            else {
-                // This var tracks what we would like to re-equip
-                let reEquip: {
-                    materia: Materia | null,
-                    locked: boolean,
-                }[] = [];
-                if (mode === 'retain_slot' || mode === 'retain_slot_else_prio') {
-                    if (old && old.melds.find(meld => meld.equippedMateria)) {
-                        reEquip = old.melds.map(meld => {
-                            return {
-                                materia: meld.equippedMateria,
-                                locked: meld.locked,
-                            };
-                        }).filter(value => value);
-                    }
+            // This var tracks what we would like to re-equip
+            let reEquip: {
+                materia: Materia | null,
+                locked: boolean,
+            }[] = [];
+            if (mode === 'retain_slot' || mode === 'retain_slot_else_prio') {
+                if (old && old.melds.find(meld => meld.equippedMateria)) {
+                    reEquip = old.melds.map(meld => {
+                        return {
+                            materia: meld.equippedMateria,
+                            locked: meld.locked,
+                        };
+                    }).filter(value => value);
                 }
-                else if (mode === 'retain_item' || mode === 'retain_item_else_prio') {
-                    const remembered = this.materiaMemory.get(slot, item);
-                    remembered.forEach((slotMemory, index) => {
-                        const materiaId = slotMemory.id;
-                        if (materiaId <= 0) {
+            }
+            else if (item) {
+                const remembered = this.materiaMemory.get(slot, item);
+                remembered.forEach((slotMemory, index) => {
+                    const materiaId = slotMemory.id;
+                    if (materiaId <= 0) {
+                        reEquip.push({
+                            materia: null,
+                            locked: slotMemory.locked,
+                        });
+                    }
+                    else {
+                        const meld = this.equipment[slot].melds[index];
+                        if (meld) {
+                            reEquip.push({
+                                materia: this._sheet.getMateriaById(materiaId),
+                                locked: slotMemory.locked,
+                            });
+                        }
+                        else {
                             reEquip.push({
                                 materia: null,
                                 locked: slotMemory.locked,
                             });
                         }
-                        else {
-                            const meld = this.equipment[slot].melds[index];
-                            if (meld) {
-                                reEquip.push({
-                                    materia: this._sheet.getMateriaById(materiaId),
-                                    locked: slotMemory.locked,
-                                });
-                            }
-                            else {
-                                reEquip.push({
-                                    materia: null,
-                                    locked: slotMemory.locked,
-                                });
-                            }
-                        }
-                    });
-                }
-                // We want to unconditionally restore locked materia
-                const eq = this.equipment[slot]!;
+                    }
+                });
+            }
+            // We want to unconditionally restore locked materia
+            const eq = this.equipment[slot];
+            if (eq) {
                 for (let i = 0; i < reEquip.length; i++) {
                     if (i in eq.melds) {
                         const meld = eq.melds[i];
@@ -446,7 +474,7 @@ export class CharacterGearSet {
                         const materia = req.materia;
                         if (materia && isMateriaAllowed(materia, meld.materiaSlot)
                             // We want to restore the materia if the slot is locked, or if the mode is not autofill
-                            && (meld.locked || mode !== 'autofill')) {
+                            && (meld.locked || (mode !== 'autofill' && mode !== 'leave_empty'))) {
                             meld.equippedMateria = materia;
                         }
                     }
@@ -619,7 +647,17 @@ export class CharacterGearSet {
         this._dirtyComp = false;
         // Add BLU weapon damage modifier
         combinedStats.wdMag += classJob === "BLU" ? bluWdfromInt(gearIntStat) : 0;
-        const computedStats = finalizeStats(combinedStats, this._food?.bonuses ?? {}, level, levelStats, classJob, classJobStats, this._sheet.partyBonus, raceStats);
+        const computedStats = finalizeStats(
+            combinedStats,
+            this._food?.bonuses ?? {},
+            level,
+            levelStats,
+            classJob,
+            classJobStats,
+            this._sheet.partyBonus,
+            raceStats,
+            this._medicine?.bonuses ?? {}
+        );
         const leftRing = this.getItemInSlot('RingLeft');
         const rightRing = this.getItemInSlot('RingRight');
         if (leftRing && leftRing.isUnique && rightRing && rightRing.isUnique) {
@@ -673,6 +711,21 @@ export class CharacterGearSet {
             this.sheet.partyBonus
         );
         return finalized.effectiveFoodBonuses;
+    }
+
+    getEffectiveMedicineBonuses(medicineItem: MedicineItem): RawStats {
+        const stats = this.computedStats;
+        const finalized = finalizeStatsInt(
+            stats.gearStats,
+            this.food?.bonuses,
+            stats.level,
+            stats.levelStats,
+            stats.job,
+            stats.jobStats,
+            this.sheet.partyBonus,
+            medicineItem.bonuses
+        );
+        return finalized.effectiveMedicineBonuses;
     }
 
     /**
@@ -744,8 +797,8 @@ export class CharacterGearSet {
      * @param stat
      * @param materiaOverride
      */
-    getEquipStatDetail(equip: EquippedItem, stat: RawStatKey, materiaOverride?: Materia[]): ItemSingleStatDetail {
-        const gearItem = equip.gearItem;
+    getEquipStatDetail(equip: EquippedItem | null, stat: RawStatKey, materiaOverride?: Materia[]): ItemSingleStatDetail {
+        const gearItem = equip?.gearItem;
         if (!gearItem) {
             return {
                 mode: 'unequipped',
@@ -898,6 +951,7 @@ export class CharacterGearSet {
                     // TODO: we also have gearItem.substatCap we can use to make it more direct
                     const override = this.sheet.classJobStats.gcdDisplayOverrides?.(this.sheet.level) ?? [];
                     for (const stat of statPrio) {
+                        const maxWaste = prio.maxWaste[stat] ?? DEFAULT_MATERIA_ACCEPTABLE_OVERCAP_LOSS;
                         if (stat === 'skillspeed') {
                             const over = override.find(over => over.basis === 'sks' && over.isPrimary);
                             const attackType = over ? over.attackType : 'Weaponskill';
@@ -934,7 +988,7 @@ export class CharacterGearSet {
                             console.error(`Failed to calculate substat cap for ${stat} on ${gearItem.id} (${gearItem.id})`);
                             return 1000;
                         })();
-                        if (newMateria.primaryStatValue + slotStats[stat] - MATERIA_ACCEPTABLE_OVERCAP_LOSS < cap) {
+                        if (newMateria.primaryStatValue + slotStats[stat] - maxWaste <= cap) {
                             meldSlot.equippedMateria = newMateria;
                             continue materiaLoop;
                         }
@@ -1001,6 +1055,7 @@ export class CharacterGearSet {
         const checkpoint: GearSetCheckpoint = {
             equipment: cloneEquipmentSet(this.equipment),
             food: this._food,
+            medicine: this._medicine,
             jobOverride: this._jobOverride,
             name: this._name,
             description: this._description,
@@ -1065,6 +1120,7 @@ export class CharacterGearSet {
         const newEquipment = cloneEquipmentSet(checkpoint.equipment);
         Object.assign(this.equipment, newEquipment);
         this._food = checkpoint.food;
+        this._medicine = checkpoint.medicine;
         this._name = checkpoint.name;
         this._description = checkpoint.description;
         if (checkpoint.jobOverride !== this._jobOverride) {
@@ -1214,9 +1270,12 @@ export class CharacterGearSet {
                 // Must be same slot
                 && otherItem.occGearSlotName === thisItem.occGearSlotName
                 // Must be better or same stats
-                && isSameOrBetterItem(otherItem, thisItem)
+                && this.isSameOrBetterItem(otherItem, thisItem)
                 // Only allow items up to current max level for this job
                 && otherItem.equipLvl <= this.classJobStats.maxLevel)) {
+                return false;
+            }
+            if (!otherItem.usableByJob(this.job)) {
                 return false;
             }
             // For unique rings specifically, we need to check if the player already has that ring equipped in the
@@ -1229,6 +1288,68 @@ export class CharacterGearSet {
             }
             return true;
         });
+    }
+
+    /**
+     * Returns true if 'candidateItem' has identical or better stats than 'baseItem'.
+     *
+     * In order to be true, every stat must be identical or greater.
+     *
+     * @param candidateItem
+     * @param baseItem
+     */
+    private isSameOrBetterItem(candidateItem: GearItem, baseItem: GearItem): boolean {
+        // TODO: consider actual materia
+
+        // Phase 1: Raw stats
+        const candidateStats = candidateItem.stats;
+        const baseStats = baseItem.stats;
+        for (const [statKey, baseValue] of Object.entries(baseStats)) {
+            const candidateValue = candidateStats[statKey as RawStatKey] as number;
+            // For skill/spell speed, we want an exact match, since allowing extra sks/sps could cause
+            // it to bump up a GCD tier.
+            if (statKey as RawStatKey === 'skillspeed' || statKey as RawStatKey === 'spellspeed' || statKey as RawStatKey === 'gearHaste') {
+                if (candidateValue !== baseValue) {
+                    return false;
+                }
+            }
+            else { // For everything else, it's fine if the candidate value is greater than the base value.
+                if (candidateValue < baseValue) {
+                    return false;
+                }
+            }
+        }
+        // Phase 2: Materia
+        // The logic here is to just check that every materia slot in the base item:
+        // 1. Exists in the candidate item,
+        // 2. is at least the same grade, and
+        // 3. is high grade if the source slot is also high grade
+        for (let index = 0; index < baseItem.materiaSlots.length; index++) {
+            const baseSlot = baseItem.materiaSlots[index];
+            // const baseBestMateria = this.sheet.getBestMateria('determination', baseSlot);
+            if (index in candidateItem.materiaSlots) {
+                const candidateSlot = candidateItem.materiaSlots[index];
+                // const candBestMateria = this.sheet.getBestMateria('determination', baseSlot);
+                // Check that the supported grade is at least the same as the base item
+                const baseMaxGrade = Math.min(baseSlot.maxGrade, this.getMaxGradeForIlvl(baseSlot.ilvl));
+                const candMaxGrade = Math.min(candidateSlot.maxGrade, this.getMaxGradeForIlvl(candidateSlot.ilvl));
+                if (candMaxGrade < baseMaxGrade) {
+                    return false;
+                }
+                else if (baseSlot.allowsHighGrade && !candidateSlot.allowsHighGrade) {
+                    // Also check that if the base item allows high grade, that the candidate also does.
+                    // Without this, an 11 would be considered an acceptable substitute to a 10, despite the fact that
+                    // grade 11 materia are better than grade 10 materia.
+                    return false;
+                }
+            }
+            else {
+                // Not enough slots
+                return false;
+            }
+        }
+
+        return true;
     }
 }
 
@@ -1281,64 +1402,6 @@ export type ItemSingleStatDetail = {
     cap: 0,
 };
 
-
-/**
- * Returns true if 'candidateItem' has identical or better stats than 'baseItem'.
- *
- * In order to be true, every stat must be identical or greater.
- *
- * @param candidateItem
- * @param baseItem
- */
-export function isSameOrBetterItem(candidateItem: GearItem, baseItem: GearItem): boolean {
-    // TODO: consider actual materia
-
-    // Phase 1: Raw stats
-    const candidateStats = candidateItem.stats;
-    const baseStats = baseItem.stats;
-    for (const [statKey, baseValue] of Object.entries(baseStats)) {
-        const candidateValue = candidateStats[statKey as RawStatKey] as number;
-        // For skill/spell speed, we want an exact match, since allowing extra sks/sps could cause
-        // it to bump up a GCD tier.
-        if (statKey as RawStatKey === 'skillspeed' || statKey as RawStatKey === 'spellspeed' || statKey as RawStatKey === 'gearHaste') {
-            if (candidateValue !== baseValue) {
-                return false;
-            }
-        }
-        else { // For everything else, it's fine if the candidate value is greater than the base value.
-            if (candidateValue < baseValue) {
-                return false;
-            }
-        }
-    }
-    // Phase 2: Materia
-    // The logic here is to just check that every materia slot in the base item:
-    // 1. Exists in the candidate item,
-    // 2. is at least the same grade, and
-    // 3. is high grade if the source slot is also high grade
-    for (const baseSlot of baseItem.materiaSlots) {
-        const index = baseItem.materiaSlots.indexOf(baseSlot);
-        if (index in candidateItem.materiaSlots) {
-            const candidateSlot = candidateItem.materiaSlots[index];
-            // Check that the supported grade is at least the same as the base item
-            if (candidateSlot.maxGrade < baseSlot.maxGrade) {
-                return false;
-            }
-            else if (baseSlot.allowsHighGrade && !candidateSlot.allowsHighGrade) {
-                // Also check that if the base item allows high grade, that the candidate also does.
-                // Without this, an 11 would be considered an acceptable substitute to a 10, despite the fact that
-                // grade 11 materia are better than grade 10 materia.
-                return false;
-            }
-        }
-        else {
-            // Not enough slots
-            return false;
-        }
-    }
-
-    return true;
-}
 
 export type LvlSyncInfo = {
     lvlSync: number | null;

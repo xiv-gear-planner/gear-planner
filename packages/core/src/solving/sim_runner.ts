@@ -5,7 +5,7 @@ import {GearPlanSheet} from "../sheet";
 import {microExportToFullExport, setToMicroExport} from "../workers/worker_utils";
 
 export class SolverSimulationSettings {
-    sim: Simulation<SimResult, unknown, unknown>;
+    sim: Simulation<SimResult, SimSettings, unknown>;
     sets: CharacterGearSet[];
 
     // It is not necessary to capture sheet-level details, because the workers' setSheet logic takes care of sheet-level
@@ -27,7 +27,7 @@ export class SolverSimulationSettingsExport {
     sets: MicroSetExport[];
 }
 
-export class SimRunner<SimType extends Simulation<SimResult, unknown, unknown>> {
+export class SimRunner<SimType extends Simulation<SimResult, SimSettings, unknown>> {
 
     _sim: SimType;
 
@@ -38,7 +38,7 @@ export class SimRunner<SimType extends Simulation<SimResult, unknown, unknown>> 
     /**
      * Simulate and process the best set in one function because splitting them up requires more work.
      */
-    async simulateSetsAndReturnBest(sheet: GearPlanSheet, setExports: MicroSetExport[], update: (n: number) => void): Promise<[number, CharacterGearSet]> {
+    async simulateSetsAndReturnBest(sheet: GearPlanSheet, setExports: MicroSetExport[], update: (n: number) => void): Promise<[number, CharacterGearSet] | null> {
         if (!setExports
             || setExports.length === 0
             || !this._sim) {
@@ -70,6 +70,9 @@ export class SimRunner<SimType extends Simulation<SimResult, unknown, unknown>> 
         }
         update(numSetsProcessed);
 
+        if (bestSet === null) {
+            return null;
+        }
         return [bestDps, bestSet];
     }
 }

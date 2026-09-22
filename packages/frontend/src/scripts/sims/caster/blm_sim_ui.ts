@@ -1,10 +1,10 @@
 import {FieldBoundCheckBox, labeledCheckbox, quickElement} from "@xivgear/common-ui/components/util";
-import {BlmSettings, BlmSimResult} from "@xivgear/core/sims/caster/blm/blm_sheet_sim";
+import {BlmSettings, BlmSimResult} from "@xivgear/sims/caster/blm/blm_sheet_sim";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
-import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/sims/cycle_sim";
 import {col, CustomColumn} from "@xivgear/common-ui/table/tables";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
-import {BlmElement, BlmGaugeState} from "@xivgear/core/sims/caster/blm/blm_types";
+import {BlmElement, BlmGaugeState} from "@xivgear/sims/caster/blm/blm_types";
 
 export class BlmSimGui extends BaseMultiCycleSimGui<BlmSimResult, BlmSettings> {
 

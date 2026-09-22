@@ -475,7 +475,7 @@ export class AccountStateTracker {
     }
 
     /**
-     * Like {@link #tokenPromise}, but resolves to null if we have a token without the 'verified' role (i.e. can't
+     * Like {@link tokenPromise}, but resolves to null if we have a token without the 'verified' role (i.e. can't
      * do anything with it other than verifying account).
      */
     get verifiedTokenPromise(): Promise<string | null> {

@@ -1,0 +1,30 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "strict": false,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+    "strictPropertyInitialization": false,
+    "strictNullChecks": false,
+    "noImplicitAny": true
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "./node_modules",
+    "./dist",
+    "*.d.ts"
+  ],
+  "references": [
+    {
+      "path": "../core"
+    },
+    {
+      "path": "../util"
+    },
+    {
+      "path": "../xivmath"
+    }
+  ]
+}

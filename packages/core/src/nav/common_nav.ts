@@ -2,11 +2,17 @@ import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
 import {JobName} from "@xivgear/xivmath/xivconstants";
 import {arrayEq} from "@xivgear/util/array_utils";
 
-/** For loading saved sheets via UUID */
+/**
+ * For loading saved sheets via UUID
+ */
 export const SHORTLINK_HASH = 'sl';
-/** Obsolete */
+/**
+ * Obsolete
+ */
 export const SHARE_LINK = 'https://share.xivgear.app/share/';
-/** For loading bis sheets */
+/**
+ * For loading bis sheets
+ */
 export const BIS_HASH = 'bis';
 
 /**
@@ -14,11 +20,17 @@ export const BIS_HASH = 'bis';
  */
 export const BIS_BROWSER_HASH = 'bisbrowser';
 
-/** For viewing a sheet via json blob */
+/**
+ * For viewing a sheet via json blob
+ */
 export const VIEW_SHEET_HASH = 'viewsheet';
-/** For viewing an individual set via json blob */
+/**
+ * For viewing an individual set via json blob
+ */
 export const VIEW_SET_HASH = 'viewset';
-/** Prefix for embeds */
+/**
+ * Prefix for embeds
+ */
 export const EMBED_HASH = 'embed';
 
 /**
@@ -26,11 +38,17 @@ export const EMBED_HASH = 'embed';
  */
 export const POPUP_HASH = 'popup';
 
-/** Prefix for formula pages */
+/**
+ * Prefix for formula pages
+ */
 export const CALC_HASH = 'math';
-/** Path separator */
-export const PATH_SEPARATOR = '|';
-/** The query param used to represent the path */
+/**
+ * Legacy pipe separator used by query and hash paths.
+ */
+export const LEGACY_PATH_SEPARATOR = '|';
+/**
+ * The query param used to represent the path
+ */
 export const HASH_QUERY_PARAM = 'page';
 
 /**
@@ -39,12 +57,16 @@ export const HASH_QUERY_PARAM = 'page';
 export const ONLY_SET_QUERY_PARAM = 'onlySetIndex';
 
 export const SELECTION_INDEX_QUERY_PARAM = 'selectedIndex';
+
+export const EXPORT_AS_SHEET_PARAM = 'exportAsSheet';
 /**
  * Special hash value used to indicate that the page should stay with the old-style hash, rather than redirecting
  * to the new style query parameter.
  */
 export const NO_REDIR_HASH = 'nore';
-/** Max length before switching to fallback hash method (see {@link NO_REDIR_HASH} */
+/**
+ * Max length before switching to fallback hash method (see {@link NO_REDIR_HASH}
+ */
 export const QUERY_PATH_MAX_LENGTH = 1000;
 /**
  * Default name, used for social media previews. Used as the sheet name if the sheet has no name, otherwise
@@ -120,7 +142,7 @@ export type SheetType = NavPath['type'];
  * NavState represents a very raw location of a page within the SPA. It encompasses the `path` query parameter, as well
  * as a couple other optional parameters.
  *
- * {@link #parsePath} can turn a NavState into a NavPath.
+ * {@link parsePath} can turn a NavState into a NavPath.
  */
 export class NavState {
     constructor(private readonly _path: string[], readonly onlySetIndex: number | undefined = undefined, readonly selectIndex: number | undefined = undefined) {
@@ -131,7 +153,7 @@ export class NavState {
     }
 
     get encodedPath(): string {
-        return this.path.map(part => encodeURIComponent(part)).join(PATH_SEPARATOR);
+        return makeUrlPath(this.path);
     }
 
     isEqual(other: NavState): boolean {
@@ -139,7 +161,7 @@ export class NavState {
     }
 
     toString() {
-        return `NavState(${this._path.join('|')}, ${this.onlySetIndex}, ${this.selectIndex})`;
+        return `NavState(${this.encodedPath}, ${this.onlySetIndex}, ${this.selectIndex})`;
     }
 }
 
@@ -194,7 +216,7 @@ export function parsePath(state: NavState): NavPath | null {
             };
         }
         else {
-            const json = path.slice(1).join(PATH_SEPARATOR);
+            const json = path.slice(1).join(LEGACY_PATH_SEPARATOR);
             const parsed = JSON.parse(decodeURIComponent(json)) as SheetExport;
             return {
                 type: 'sheetjson',
@@ -215,7 +237,7 @@ export function parsePath(state: NavState): NavPath | null {
             };
         }
         else {
-            const json = path.slice(1).join(PATH_SEPARATOR);
+            const json = path.slice(1).join(LEGACY_PATH_SEPARATOR);
             const parsed = JSON.parse(json) as SetExport;
             const viewOnly = mainNav === VIEW_SET_HASH;
             if (!viewOnly) {
@@ -301,10 +323,6 @@ export function makeUrlSimple(...path: string[]): URL {
  * @param navState
  */
 export function makeUrl(navState: NavState): URL {
-    const joinedPath = navState.path
-        .map(pp => encodeURIComponent(pp))
-        .map(pp => pp.replaceAll(PATH_SEPARATOR, VERTICAL_BAR_REPLACEMENT))
-        .join(PATH_SEPARATOR);
     const currentLocation = document.location;
     const params = new URLSearchParams(currentLocation.search);
     const baseUrl = document.location.toString();
@@ -316,16 +334,25 @@ export function makeUrl(navState: NavState): URL {
     else if (navState.selectIndex !== undefined) {
         params.set(SELECTION_INDEX_QUERY_PARAM, navState.selectIndex.toString());
     }
-    if (joinedPath.length > QUERY_PATH_MAX_LENGTH) {
+    if (makeUrlPath(navState.path).length > QUERY_PATH_MAX_LENGTH) {
         const oldStyleHash = [NO_REDIR_HASH, ...navState.path]
             .map(pp => encodeURIComponent(pp))
             .map(pp => '/' + pp)
             .join('');
         params.delete(HASH_QUERY_PARAM);
-        return new URL(`?${params.toString()}#${oldStyleHash}`, baseUrl);
+        const query = params.toString();
+        return new URL(`/${query ? `?${query}` : ''}#${oldStyleHash}`, baseUrl);
     }
-    params.set(HASH_QUERY_PARAM, joinedPath);
-    return new URL(`?${params.toString()}`, baseUrl);
+    params.delete(HASH_QUERY_PARAM);
+    const query = params.toString();
+    return new URL(`${makeUrlPath(navState.path)}${query ? `?${query}` : ''}`, baseUrl);
+}
+
+/**
+ * Turn navigation parts into the canonical slash-delimited URL pathname.
+ */
+export function makeUrlPath(path: string[]): string {
+    return '/' + path.map(part => encodeURIComponent(part)).join('/');
 }
 
 /**
@@ -343,22 +370,57 @@ export function splitHashLegacy(input: string) {
  *
  * @param input The path, not including ?page=
  */
-export function splitPath(input: string) {
-    return (input.startsWith(PATH_SEPARATOR) ? input.substring(1) : input)
-        .split(PATH_SEPARATOR)
+export function splitLegacyPipePath(input: string) {
+    return (input.startsWith(LEGACY_PATH_SEPARATOR) ? input.substring(1) : input)
+        .split(LEGACY_PATH_SEPARATOR)
         .filter(item => item)
         .map(item => decodeURIComponent(item))
-        .map(pp => pp.replaceAll(VERTICAL_BAR_REPLACEMENT, PATH_SEPARATOR));
+        .map(pp => pp.replaceAll(VERTICAL_BAR_REPLACEMENT, LEGACY_PATH_SEPARATOR));
 }
 
-export function tryParseOptionalIntParam(input: string | undefined): number | undefined {
-    if (input) {
-        try {
-            return parseInt(input);
-        }
-        catch (e) {
-            console.error(`Error parsing '${input}'`, e);
-        }
+/**
+ * Join navigation parts into the legacy pipe-delimited representation.
+ */
+export function joinLegacyPipePath(path: string[]): string {
+    return path
+        .map(part => encodeURIComponent(part))
+        .map(part => part.replaceAll(LEGACY_PATH_SEPARATOR, VERTICAL_BAR_REPLACEMENT))
+        .join(LEGACY_PATH_SEPARATOR);
+}
+
+/**
+ * Split a canonical slash-delimited URL pathname into navigation parts.
+ *
+ * This is deliberately separate from {@link splitHashLegacy}: URL path parts are
+ * percent-encoded individually, whereas legacy hashes use their own historical
+ * format. `/index.html` remains the application root for compatibility with old
+ * direct links.
+ */
+export function splitUrlPath(input: string) {
+    const normalized = input.startsWith('/') ? input.substring(1) : input;
+    if (normalized === '' || normalized === 'index.html') {
+        return [];
     }
-    return undefined;
+    return normalized.split('/').filter(item => item).map(item => decodeURIComponent(item));
+}
+
+/**
+ * Resolve navigation parts from a URL pathname and its legacy `page` parameter.
+ *
+ * The legacy parameter takes precedence so that old links keep their original
+ * meaning even if they happen to be opened below a non-root pathname.
+ */
+export function getUrlNavigationPath(pathname: string, legacyPage: string | null | undefined): string[] {
+    return legacyPage === null || legacyPage === undefined ? splitUrlPath(pathname) : splitLegacyPipePath(legacyPage);
+}
+
+export function tryParseOptionalIntParam(input: string | number | undefined): number | undefined {
+    if (input === undefined || input === null || input === '') {
+        return undefined;
+    }
+    if (typeof input === 'number') {
+        return isNaN(input) ? undefined : input;
+    }
+    const parsed = parseInt(input);
+    return isNaN(parsed) ? undefined : parsed;
 }

@@ -19,7 +19,7 @@ export abstract class SimulationGui<ResultType extends SimResult, SettingsType e
      *
      * @param settings The settings.
      * @param updateCallback A callback that should be called after anything on the settings
-     * object is changed. Depending on {@link manualRun}, this may trigger a re-run automatically.
+     * object is changed. Depending on {@link Simulation#manualRun}, this may trigger a re-run automatically.
      */
     abstract makeConfigInterface(settings: SettingsType, updateCallback: SimSettingsUpdateCallback): HTMLElement;
 

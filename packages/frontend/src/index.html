@@ -1,12 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="./style.css"/>
+    <link rel="stylesheet" href="/style.css"/>
     <script blocking="render">
-        if (localStorage.getItem('light-mode') === 'true') {
-            document.addEventListener('DOMContentLoaded', () => {
-                document.querySelector('body').classList.add('light-mode');
-            });
+        try {
+            if (localStorage.getItem('light-mode') === 'true') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    document.querySelector('body').classList.add('light-mode');
+                });
+            }
+        } catch (e) {
+            // If we are in a cross-site context, even referencing 'localStorage' will throw an error.
+            // If not in an iframe, just re-throw it. Otherwise, silently ignore it.
+            if (window.self === window.top) {
+                throw e
+            }
         }
     </script>
     <meta charset="UTF-8">
@@ -16,7 +24,6 @@
     <meta name="mobile-web-app-capable" content="yes">
 
     <title>XivGear - FFXIV Gear Planner</title>
-    <script async src="https://um.xivgear.app/umami" data-website-id="bc3fc7a6-b0ac-4a30-b737-031b59a9810f"></script>
     <script data-cfasync="false">window.nitroAds = window.nitroAds || {
         createAd: function () {
             return new Promise(e => {
@@ -34,7 +41,7 @@
                 return;
             }
             const target = event.target;
-            if (target && target.tagName.toLowerCase() === 'script') {
+            if (target && target?.tagName?.toLowerCase() === 'script') {
                 const scriptSrc = target.src;
                 if (scriptSrc?.includes('main') && scriptSrc?.includes('.js')) {
                     console.error("Main script load appears to have failed", event);
@@ -69,15 +76,15 @@
     <button id="show-hide-menu-button"><span>≡</span></button>
 </div>
 <div id="help-button-area">
-    <a target="_blank" href="https://github.com/xiv-gear-planner/gear-planner/blob/master/docs/Index.md">
+    <a target="_blank" href="https://github.com/xiv-gear-planner/gear-planner/blob/main/docs/README.md">
         <button id="help-button">?</button>
     </a>
 </div>
 <div id="main-menu-area">
     <div id="main-menu-area-inner">
-        <a href="?page=">My Sheets</a>
-        <a href="?page=newsheet" id="new-sheet-button">New Sheet</a>
-        <a href="?page=importsheet">Import</a>
+        <a href="/">My Sheets</a>
+        <a href="/newsheet" id="new-sheet-button">New Sheet</a>
+        <a href="/importsheet">Import</a>
         <a href="" id="settings-button">Settings</a>
         <a href="" id="account-button"><span id="account-text">Log In</span></a>
         <a href="./math/">Math</a><!--    <a href="." id="dev-menu-button">Dev Menu</a>-->

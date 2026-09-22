@@ -5,6 +5,7 @@
 The goal of this project is to provide a better UX for assembling and testing gear sets.
 
 The rough road map is:
+
 - Done: Provide a good UI for making gear sets.
 - Done: Allow for multiple sims on the same job to compare across multiple party comps or fights.
 - Done: Brute force materia and food solving for highest DPS, with optional GCD speed constraints.
@@ -17,6 +18,7 @@ You can try it out [here](https://xivgear.app).
 ## Help Wanted
 
 We are still looking for people to write simulations for the following jobs:
+
 - Phys Ranged: BRD, MCH
 - Casters: SMN, RDM, PCT
 
@@ -25,6 +27,8 @@ We are still looking for people to write simulations for the following jobs:
 [User's Guide](/USER_MANUAL.md)
 
 ## Developer Guides
+
+[Dev Docs](./docs/dev-docs/DEV_DOCS.md)
 
 [API Documentation](/API_DOC.md)
 

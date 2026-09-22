@@ -1,5 +1,3 @@
-import {RawStats} from "@xivgear/xivmath/geartypes";
-
 export type EmptyObject = Record<string, never>;
 
 export type PropertyOfType<ObjectType, PropType> = {
@@ -11,7 +9,5 @@ export type AnyStringIndex = {
 }
 
 export type AnyStringIndexOpt = Partial<AnyStringIndex>
-
-export type RawStatsPart = Partial<RawStats>;
 
 export type PublicOnly<T> = { [key in keyof T]: T[key] }

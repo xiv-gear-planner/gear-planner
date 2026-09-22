@@ -1,11 +1,12 @@
 import {
     getClassJobStats,
+    JOB_DATA,
     JobName,
     LEVEL_ITEMS,
     MATERIA_LEVEL_MAX_NORMAL,
     MATERIA_LEVEL_MAX_OVERMELD,
-    MATERIA_LEVEL_MIN_RELEVANT,
     MATERIA_SLOTS_MAX,
+    MateriaSubstat,
     statById,
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
@@ -23,13 +24,14 @@ import {
     IlvlSyncInfo,
     JobMultipliers,
     Materia,
+    MedicineItem,
     MateriaSlot,
     OccGearSlotKey,
     RawStatKey,
     RawStats,
+    RawStatsPart,
     RelicStatModel
 } from "@xivgear/xivmath/geartypes";
-import {BaseParamToStatKey, RelevantBaseParam} from "./external/xivapitypes";
 import {getRelicStatModelFor} from "./relicstats/relicstats";
 import {requireArrayTyped, requireNumber, requireString} from "./external/data_validators";
 import {
@@ -41,10 +43,10 @@ import {
 import {BaseParamMap, DataManager, DmJobs} from "./datamanager";
 import {applyStatCaps} from "./gear";
 import {toTranslatable, TranslatableString} from "@xivgear/i18n/translation";
-import {RawStatsPart} from "@xivgear/util/util_types";
-import {ApiFoodData, ApiItemData, ApiMateriaData, checkResponse, DATA_API_CLIENT} from "./data_api_client";
+import {ApiFoodData, ApiItemData, ApiMateriaData, ApiMedicineData, checkResponse, DATA_API_CLIENT} from "./data_api_client";
 import {addStats} from "@xivgear/xivmath/xivstats";
 import {arrayEqTyped} from "@xivgear/util/array_utils";
+import {xivApiIconUrl} from "./external/xivapi";
 
 export class NewApiDataManager implements DataManager {
 
@@ -57,6 +59,8 @@ export class NewApiDataManager implements DataManager {
     private readonly _level: SupportedLevel;
     private readonly _ilvlSync: number | undefined;
     private readonly apiClient: DataApiClient<never>;
+    private readonly minEquipIlvl: number;
+    private readonly minEquipLvl: SupportedLevel;
 
     public constructor(classJobs: DmJobs, level: SupportedLevel, ilvlSync?: number | undefined) {
         this._classJob = classJobs[0];
@@ -69,11 +73,14 @@ export class NewApiDataManager implements DataManager {
         this._maxIlvlFood = lvlData.maxILvlFood;
         this._ilvlSync = ilvlSync;
         this.apiClient = DATA_API_CLIENT;
+        this.minEquipLvl = Math.min(...classJobs.map(job => JOB_DATA[job].minLevel)) as SupportedLevel;
+        this.minEquipIlvl = LEVEL_ITEMS[this.minEquipLvl].minILvl;
     }
 
     private _allItems: DataApiGearInfo[] | undefined;
     private _allMateria: Materia[] | undefined;
     private _allFoodItems: DataApiFoodInfo[] | undefined;
+    private _allMedicineItems: DataApiMedicineInfo[] | undefined;
     private _jobMultipliers: Map<JobName, JobMultipliers> | undefined;
     /**
      * _baseParams maps stat keys to BaseParamInfo. BaseParamInfo is a map from slot to percentages and meld params.
@@ -165,8 +172,34 @@ export class NewApiDataManager implements DataManager {
                                 case "gearHaste":
                                     // Don't bother capping haste since it doesn't work like a normal stat.
                                     return 999_999;
+                                case "extraMainStat":
+                                    // Main stats **should** all be the same
+                                    ilvlModifier = row.mind;
+                                    break;
+                                case "extraSecondaryStat":
+                                    // Secondary stats also should all be the same
+                                    ilvlModifier = row.directHitRate;
+                                    break;
+                                case "cp":
+                                    ilvlModifier = row.CP;
+                                    break;
+                                case "control":
+                                    ilvlModifier = row.control;
+                                    break;
+                                case "craftsmanship":
+                                    ilvlModifier = row.craftsmanship;
+                                    break;
+                                case "gp":
+                                    ilvlModifier = row.GP;
+                                    break;
+                                case "gathering":
+                                    ilvlModifier = row.gathering;
+                                    break;
+                                case "perception":
+                                    ilvlModifier = row.perception;
+                                    break;
                                 default:
-                                    console.warn(`Bad ilvl modifer! ${statsKey}:${slot}`);
+                                    console.warn(`Bad ilvl modifier! ${statsKey}:${slot}`);
                                     ilvlModifier = undefined;
                                     break;
                             }
@@ -175,7 +208,7 @@ export class NewApiDataManager implements DataManager {
                                 const bpInfo = baseParams[statsKey as RawStatKey];
                                 const baseParamModifier: number = bpInfo.slots[slot];
                                 const jobCap = bpInfo.meldParam[jobStats.meldParamIndex] / 100;
-                                if (jobCap !== undefined) {
+                                if (jobCap !== undefined && ilvlModifier !== undefined) {
                                     return Math.round(jobCap * Math.round(ilvlModifier * baseParamModifier / 1000));
                                 }
                                 else {
@@ -183,10 +216,26 @@ export class NewApiDataManager implements DataManager {
                                 }
                             }
 
-                            // Theoretically, this is safe even for multi-job because the item stat cap multipliers
-                            // are role-bound.
+                            // There is some weird rounding behavior that I think I have mostly figured out, but not
+                            // completely. There are still some cases where it is off by one.
+                            // Here's how I think it works, using Crit on PLD as an example:
+                            // BaseParam Critical Hit has 1H% = 100, OH% = 40, and 2H% = 140. Notice how 100 + 40 = 140.
+                            // The caps *should* be the same as a 1H, but due to roundoff, they might not be.
+                            // In order to prevent stacking roundoff error (i.e. where both round up or both round down),
+                            // It seems that you're supposed to just ignore the OH% entirely, and instead calculate the
+                            // 2H cap and 1H cap and subtract them.
+                            // However, this is not the case for all stats - e.g. Craftsmanship is OH% == 1h% == 2H% = 350.
+                            // Gathering stats (excl. GP) are also weird, they have 350 for 2H, but then 350/200 or 200/350.
                             if (slot === 'OffHand') {
-                                return calcCap('Weapon2H') - calcCap('Weapon1H');
+                                const bpInfo = baseParams[statsKey as RawStatKey];
+                                const oneCap: number = bpInfo.slots['Weapon1H'];
+                                const twoCap: number = bpInfo.slots['Weapon2H'];
+                                const ohCap: number = bpInfo.slots['OffHand'];
+                                // Combat stats = 1H + OH == 2H
+                                if (oneCap + ohCap === twoCap) {
+                                    return calcCap('Weapon2H') - calcCap('Weapon1H');
+                                }
+                                // Other stats - just go with OH cap
                             }
                             return calcCap(slot);
                         },
@@ -227,13 +276,18 @@ export class NewApiDataManager implements DataManager {
         return this._allFoodItems.find(food => food.id === id);
     }
 
+    medicineById(id: number) {
+        // @x-ts-expect-error - assumed that DataManager is not meaningfully used prior to loading data
+        return this._allMedicineItems.find(medicine => medicine.id === id);
+    }
+
 
     async loadData() {
         const baseParamPromise = this.queryBaseParams().then(response => {
             checkResponse(response);
             this._baseParams = response.data.items!.reduce<BaseParamMap>((baseParams, value) => {
                 // Each individual item also gets converted
-                baseParams[BaseParamToStatKey[value.name as RelevantBaseParam]] = {
+                baseParams[statById(value.rowId)] = {
                     meldParam: requireArrayTyped(value.meldParam, 'number'),
                     // This maps our internal stat keys to the xivapi percentages.
                     slots: {
@@ -273,10 +327,16 @@ export class NewApiDataManager implements DataManager {
             }).then((rawItems) => {
                 this._allItems = rawItems
                     .filter(i => {
-                        // TODO: can this just be server-side?
                         try {
-                            return Object.keys(i.baseParamMapHQ).length > 0
-                                || (i.classJobs.includes('BLU') && i.equipSlotCategory.mainHand === 1); // Don't filter out BLU weapons
+                            // Always include FSH offhand
+                            if (i.classJobs.includes('FSH') && i.equipSlotCategory.offHand === 1) {
+                                return true;
+                            }
+                            // Filter out lower-level items for jobs that don't care about it
+                            return i.ilvl >= this.minEquipIlvl
+                                && (Object.keys(i.baseParamMapHQ).length > 0
+                                    // Don't filter out BLU weapons
+                                    || (i.classJobs.includes('BLU') && i.equipSlotCategory.mainHand === 1));
                         }
                         catch (e) {
                             console.log(e);
@@ -290,6 +350,30 @@ export class NewApiDataManager implements DataManager {
                         else {
                             return [new DataApiGearInfo(i)];
                         }
+                    })
+                    .filter(i => {
+                        // Filter out ARR/HW junk items
+                        if (i.isCustomRelic) {
+                            return true;
+                        }
+                        if (i.equipLvl < this.minEquipLvl) {
+                            // Always include weapons.
+                            if (i.displayGearSlotName === 'Weapon') {
+                                return true;
+                            }
+                            if (i.displayGearSlotName === 'OffHand' && i.usableByJob('FSH')) {
+                                // Include FSH offhand
+                                console.log(`Including FSH offhand ${i.id}`);
+                                return true;
+                            }
+                            if (i.materiaSlots.length === 0 && !i.primarySubstat) {
+                                return false;
+                            }
+                            // The item must have some main stat, or a FSH offhand
+                            return i.stats.extraMainStat || i.stats.vitality || i.stats.intelligence || i.stats.mind || i.stats.strength || i.stats.dexterity;
+                        }
+                        return true;
+
                     });
                 this._maxIlvlForEquipLevel = new Map();
                 this._maxIlvlForEquipLevelWeapon = new Map();
@@ -307,6 +391,7 @@ export class NewApiDataManager implements DataManager {
         const statsPromise = Promise.all([itemsPromise, baseParamPromise]).then(() => {
             console.log(`Finishing item calculations for ${this._allItems.length} items`);
             this._allItems.forEach(item => {
+                // console.log(`Item ${item.id} ${item.name}`);
                 const itemIlvlPromise = this.getIlvlSyncData(baseParamPromise, item.ilvl);
                 let isyncLvl: number | null;
                 // Downsync by ilvl directly
@@ -361,6 +446,17 @@ export class NewApiDataManager implements DataManager {
             })
             .then((processedFoods) => processedFoods.filter(food => Object.keys(food.bonuses).length > 1))
             .then((foods) => this._allFoodItems = foods);
+        const hasNonCombatJob = this._allJobs.some(job => JOB_DATA[job].type !== 'Combat');
+        const medicinePromise = hasNonCombatJob
+            ? this.apiClient.medicine.foodItems1()
+                .then((response) => {
+                    checkResponse(response);
+                    console.log(`Got ${response.data.items.length} Medicine Items`);
+                    return response.data.items;
+                })
+                .then(rawMedicine => rawMedicine.map(item => new DataApiMedicineInfo(item)))
+                .then(medicine => this._allMedicineItems = medicine)
+            : Promise.resolve(this._allMedicineItems = []);
         console.log("Loading jobs");
         const jobsPromise = this.apiClient.jobs.jobs()
             .then(response => {
@@ -383,7 +479,7 @@ export class NewApiDataManager implements DataManager {
             });
         // These will all resolve at the same time, so it doesn't matter which one we await
         const ilvlPromise = this.getIlvlSyncData(baseParamPromise, 710);
-        await Promise.all([baseParamPromise, itemsPromise, statsPromise, materiaPromise, foodPromise, jobsPromise, ilvlPromise]);
+        await Promise.all([baseParamPromise, itemsPromise, statsPromise, materiaPromise, foodPromise, medicinePromise, jobsPromise, ilvlPromise]);
         await Promise.all(extraPromises);
     }
 
@@ -404,6 +500,10 @@ export class NewApiDataManager implements DataManager {
 
     get allFoodItems(): DataApiFoodInfo[] {
         return this._allFoodItems;
+    }
+
+    get allMedicineItems(): DataApiMedicineInfo[] {
+        return this._allMedicineItems;
     }
 
     get allMateria(): Materia[] {
@@ -615,7 +715,14 @@ export class DataApiGearInfo implements GearItem {
         }
         this.equipLvl = data.equipLevel;
         this.ilvl = data.ilvl;
-        this.iconUrl = new URL(data.icon.pngIconUrl);
+        let iconUrl;
+        try {
+            iconUrl = new URL(data.icon.url);
+        }
+        catch (e) {
+            iconUrl = new URL(xivApiIconUrl(26270));
+        }
+        this.iconUrl = iconUrl;
         const slotMap = new DataApiEquipSlotMap(data.equipSlotCategory);
         this.displayGearSlotName = slotMap.displayGearSlotName;
         this.occGearSlotName = slotMap.occGearSlotName;
@@ -672,12 +779,11 @@ export class DataApiGearInfo implements GearItem {
         this.computeSubstats();
         this.materiaSlots = [];
         const baseMatCount: number = data.materiaSlotCount;
-        if (baseMatCount === 0) {
-            // If there are no materia slots, then it might be a custom relic
-            // TODO: is this branch still needed?
-            if (this.displayGearSlot !== DisplayGearSlotMapping.OffHand) {
-                // Offhands never have materia slots
-                this.isCustomRelic = true;
+        // If there are no materia slots, and it is purple rarity, then it might be a custom relic
+        if (baseMatCount === 0 && data.rarity === 4) {
+            // Pre-order earrings and other items that directly provide main stat
+            if (this.baseStats.extraMainStat) {
+                this.isCustomRelic = false;
             }
             else if (!this.primarySubstat) {
                 // If there is no primary substat on the item, then consider it a relic
@@ -760,6 +866,12 @@ export class DataApiGearInfo implements GearItem {
             case AcqSrc.Criterion:
                 this.acquisitionType = 'criterion';
                 break;
+            case AcqSrc.DeepDungeon:
+                this.acquisitionType = 'deepdungeon';
+                break;
+            case AcqSrc.FieldOperation:
+                this.acquisitionType = 'fieldoperation';
+                break;
             case AcqSrc.Other:
                 this.acquisitionType = 'other';
                 break;
@@ -800,8 +912,14 @@ export class DataApiGearInfo implements GearItem {
             .filter(item => item[1])
             .reverse();
         if (sortedStats.length < 2) {
-            this.primarySubstat = null;
-            this.secondarySubstat = null;
+            if (sortedStats.length === 1) {
+                this.primarySubstat = sortedStats[0][0] as keyof RawStats;
+                this.secondarySubstat = null;
+            }
+            else {
+                this.primarySubstat = null;
+                this.secondarySubstat = null;
+            }
         }
         else {
             this.primarySubstat = sortedStats[0][0] as keyof RawStats;
@@ -884,7 +1002,45 @@ export class DataApiFoodInfo implements FoodItem {
     constructor(data: ApiFoodData) {
         this.id = requireNumber(data.rowId);
         this.name = requireString(data.name);
-        this.iconUrl = new URL(data.icon.pngIconUrl);
+        this.iconUrl = new URL(data.icon.url);
+        this.ilvl = requireNumber(data.levelItem);
+        this.nameTranslation = toTranslatable(this.name, data.nameTranslations);
+        for (const rawKey in data.bonusesHQ) {
+            if (rawKey === '0') {
+                continue;
+            }
+            const actualKey = statById(parseInt(rawKey));
+            this.bonuses[actualKey] = data.bonusesHQ[rawKey];
+        }
+        const sortedStats = Object.entries(this.bonuses).sort((entryA, entryB) => entryB[1].max - entryA[1].max).map(entry => entry[0] as RawStatKey).filter(stat => stat !== 'vitality');
+        if (sortedStats.length >= 1) {
+            this.primarySubStat = sortedStats[0];
+        }
+        if (sortedStats.length >= 2) {
+            this.secondarySubStat = sortedStats[1];
+        }
+    }
+}
+
+export class DataApiMedicineInfo implements MedicineItem {
+    bonuses: {
+        [K in RawStatKey]?: {
+            percentage: number;
+            max: number
+        }
+    } = {};
+    iconUrl: URL;
+    id: number;
+    name: string;
+    readonly nameTranslation: TranslatableString;
+    ilvl: number;
+    primarySubStat: RawStatKey | undefined;
+    secondarySubStat: RawStatKey | undefined;
+
+    constructor(data: ApiMedicineData) {
+        this.id = requireNumber(data.rowId);
+        this.name = requireString(data.name);
+        this.iconUrl = new URL(data.icon.url);
         this.ilvl = requireNumber(data.levelItem);
         this.nameTranslation = toTranslatable(this.name, data.nameTranslations);
         for (const rawKey in data.bonusesHQ) {
@@ -906,7 +1062,7 @@ export class DataApiFoodInfo implements FoodItem {
 
 export function processRawMateriaInfo(data: ApiMateriaData): Materia[] {
     const out: Materia[] = [];
-    for (let i = MATERIA_LEVEL_MIN_RELEVANT - 1; i < MATERIA_LEVEL_MAX_NORMAL; i++) {
+    for (let i = 0; i < MATERIA_LEVEL_MAX_NORMAL; i++) {
         const itemData = data.item[i];
         const itemId = itemData.rowId;
         const itemName = itemData.name;
@@ -922,12 +1078,12 @@ export function processRawMateriaInfo(data: ApiMateriaData): Materia[] {
             name: itemName,
             nameTranslation: toTranslatable(itemName, itemData.nameTranslations),
             id: itemId,
-            iconUrl: new URL(itemData.icon.pngIconUrl),
+            iconUrl: new URL(itemData.icon.url),
             stats: stats,
-            primaryStat: stat,
+            primaryStat: stat as MateriaSubstat,
             primaryStatValue: stats[stat],
             materiaGrade: grade,
-            isHighGrade: (grade % 2) === 0,
+            isHighGrade: (grade % 2) === 0 && grade >= 6,
             ilvl: itemData.ilvl ?? 0,
         });
     }

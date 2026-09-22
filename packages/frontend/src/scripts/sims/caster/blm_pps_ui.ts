@@ -4,7 +4,7 @@ import {writeProxy} from "@xivgear/util/proxies";
 import {simpleKvTable} from "../components/simple_tables";
 import {NamedSection} from "../../components/general/section";
 import {quickElement} from "@xivgear/common-ui/components/util";
-import {BlmPpsResult, BlmPpsSettings, BlmPpsSettingsExternal} from "@xivgear/core/sims/caster/blm/blm_pps_sim";
+import {BlmPpsResult, BlmPpsSettings, BlmPpsSettingsExternal} from "@xivgear/sims/caster/blm/blm_pps_sim";
 import {applyStdDev} from "@xivgear/xivmath/deviation";
 import {ResultSettingsArea} from "../components/result_settings";
 

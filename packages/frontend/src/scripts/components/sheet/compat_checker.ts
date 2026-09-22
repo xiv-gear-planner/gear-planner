@@ -4,6 +4,7 @@ import {CharacterGearSet} from "@xivgear/core/gear";
 import {col, CustomTable, HeaderRow} from "@xivgear/common-ui/table/tables";
 import {el, makeActionButton} from "@xivgear/common-ui/components/util";
 import {errorIcon, warningIcon} from "@xivgear/common-ui/components/icons";
+import {elt} from "@xivgear/common-ui/components/templates";
 
 export function showCompatOverview(sheet: GearPlanSheet, set: CharacterGearSet) {
     new CompatCheckerOverviewModal(sheet, set).attachAndShowExclusively();
@@ -13,16 +14,14 @@ class CompatCheckerOverviewModal extends BaseModal {
     constructor(sheet: GearPlanSheet, baseSet: CharacterGearSet) {
         super();
         this.headerText = 'Compatibility Checker';
-        const descriptionText = 'This shows the compatibility of the selected set with all other sets in the sheet. ' +
-            '"Compatible" means that if the same item is used on both sets, that the same materia is installed on both sets. ' +
-            'If the item is not unique, then it is considered "soft incompatible" - you can still assemble both sets, but you will need duplicate items. ';
+        const descriptionText = 'This shows the compatibility of the selected set with all other sets in the sheet. '
+            + '"Compatible" means that if the same item is used on both sets, that the same materia is installed on both sets. '
+            + 'If the item is not unique, then it is considered "soft incompatible" - you can still assemble both sets, but you will need duplicate items. ';
         const description = el('div', {class: 'description'}, [descriptionText]);
         const setsToCompare = sheet.sets.filter(otherSet => otherSet !== baseSet);
         if (setsToCompare.length === 0) {
-            const msg = el('div', {class: 'no-sets-to-compare'}, [
-                'No other sets to compare against.',
-            ]);
-            this.contentArea.replaceChildren(descriptionText, msg);
+            const msg = elt('p', {class: 'no-sets-to-compare'})`No other sets to compare against.`;
+            this.contentArea.replaceChildren(el('p', {}, [descriptionText]), msg);
         }
         else {
             const table = new CustomTable<CharacterGearSet>();
@@ -40,9 +39,7 @@ class CompatCheckerOverviewModal extends BaseModal {
                     renderer: (value: SetCompatibilityReport, rowValue) => {
                         // show button to allow details to be opened
                         if (value.compatibilityLevel === 'compatible') {
-                            return el('div', {class: 'set-compat-good'}, [
-                                'No issues',
-                            ]);
+                            return elt('div', {class: 'set-compat-good'})`No issues`;
 
                         }
                         else {

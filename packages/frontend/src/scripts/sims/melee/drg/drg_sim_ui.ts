@@ -1,10 +1,10 @@
 import {FieldBoundCheckBox, FieldBoundFloatField, labeledCheckbox, quickElement, el, labelFor, nonNegative} from "@xivgear/common-ui/components/util";
-import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/sims/cycle_sim";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {BaseMultiCycleSimGui} from "../../multicyclesim_ui";
-import {DrgSimResult, DrgSettings} from "@xivgear/core/sims/melee/drg/drg_sim";
-import {DrgGaugeState} from "@xivgear/core/sims/melee/drg/drg_types";
+import {DrgSimResult, DrgSettings} from "@xivgear/sims/melee/drg/drg_sim";
+import {DrgGaugeState} from "@xivgear/sims/melee/drg/drg_types";
 
 export class DrgSimGui extends BaseMultiCycleSimGui<DrgSimResult, DrgSettings> {
     protected extraAbilityUsedColumns(_: DrgSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {

@@ -1,5 +1,5 @@
 import {DEFAULT_SHEET_METADATA, LocalSheetMetadata, SheetExport, SheetSummary} from "@xivgear/xivmath/geartypes";
-import {GearPlanSheet} from "../sheet";
+import {ExportTypes, GearPlanSheet} from "../sheet";
 import {PublicOnly} from "@xivgear/util/util_types";
 import {CURRENT_MAX_LEVEL, JobName} from "@xivgear/xivmath/xivconstants";
 
@@ -31,7 +31,7 @@ function makeSummaryFromData(data: SheetExport): SheetSummary {
 
 export type ConflictResolutionStrategy = 'keep-local' | 'keep-remote';
 
-class SheetHandleImpl {
+export class SheetHandleImpl {
     private metaDirty: boolean = false;
     private dataDirty: boolean = false;
 
@@ -912,7 +912,7 @@ export class SheetManagerImpl implements SheetManager {
     saveData(sheet: GearPlanSheet) {
         const saveKey = sheet.saveKey;
         const handle = this.getOrCreateForKey(saveKey);
-        handle.postLocalModification(sheet.exportSheet(false));
+        handle.postLocalModification(sheet.exportSheet(ExportTypes.InternalSave));
         handle.flush();
     }
 

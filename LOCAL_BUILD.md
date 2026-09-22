@@ -1,27 +1,33 @@
 # Building and Running Locally
 
+## Prerequisites
+
+- Node.js 24.x
+- pnpm 9.x
+
 ## Building
 
 In a command line, run the following commands:
 ```shell
 # Only needed once, or when dependencies change
-npm install
+pnpm i
 # Build/rebuild
-npm run build
-# This is a faster way to rebuild just the CSS if that's all you've changed
-npx lessc --source-map ./src/style.less dist/style.css
+pnpm build
 # Run tests
-npm test
+pnpm test
+# Run Local Dev Server
+pnpm serve
+# Rebuild CSS - example of running a specific sub-package task
+pnpm -F @xivgear/gearplan-frontend less
+# See package.json at the top level as well as in each sub-project for more tasks you can run.
 ```
-
-After making code changes, run `npm run build` again. 
-After making CSS changes, run the `npc lessc ...` command from above again. 
-Before merging code, run the `npm test` command again.
 
 ## Running
 
-Opening the HTML files alone will not work in most browsers. Instead, you will need to run a local HTTP server.
-The easiest way to do so depends on your development environment.
+### Dev Server
+
+Run `pnpm serve` to run a dev server locally. This handles building and automatic reloading, though you may need
+to rebuild CSS manually.
 
 ### WebStorm (and other JetBrains products)
 
@@ -32,8 +38,3 @@ In WebStorm, you can simply right-click the `packages/frontend/dist/index.html` 
 In VS Code, you can use addons such as 
 [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) to do the equivalent.
 The file to open is `packages/frontend/dist/index.html`.
-
-### Others
-
-For others, there is a built-in npm script to launch a server. You can run `npm run serve` and then
-navigate to [http://localhost:8076/](http://localhost:8076/).
