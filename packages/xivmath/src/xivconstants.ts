@@ -599,7 +599,7 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
         baseMainStat: 202,
         baseSubStat: 341,
         levelDiv: 341,
-        hp: 1700,
+        hp: 1400,
         hpScalar: {
             Tank: 14.5,
             other: 10.8,
@@ -614,7 +614,7 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
         baseMainStat: 218,
         baseSubStat: 354,
         levelDiv: 600,
-        hp: 1700,
+        hp: 1500,
         hpScalar: {
             Tank: 16.0,
             other: 12.0,
@@ -669,7 +669,6 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
             other: 195,
         },
     },
-    // DAWNTRAIL TODO: replace with real values once known
     100: {
         level: 100,
         // Verified
