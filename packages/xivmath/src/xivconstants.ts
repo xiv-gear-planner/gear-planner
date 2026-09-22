@@ -601,8 +601,8 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
         levelDiv: 341,
         hp: 1400,
         hpScalar: {
-            Tank: 14.5,
-            other: 10.8,
+            Tank: 15.5,
+            other: 11.2,
         },
         mainStatPowerMod: {
             Tank: 56,
@@ -616,8 +616,8 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
         levelDiv: 600,
         hp: 1500,
         hpScalar: {
-            Tank: 16.0,
-            other: 12.0,
+            Tank: 17.5,
+            other: 12.9,
         },
         mainStatPowerMod: {
             Tank: 91,
