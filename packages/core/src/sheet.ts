@@ -1141,6 +1141,10 @@ export class GearPlanSheet {
             // Not sure what the best way to handle this is
             return true;
         }
+        // TODO
+        if (stat === 'vitality') {
+            return true;
+        }
         switch (this.classJobEarlyStats.type) {
             case "Combat":
                 if (DOH_STATS.includes(stat as typeof DOH_STATS[number]) || DOL_STATS.includes(stat as typeof DOL_STATS[number])) {

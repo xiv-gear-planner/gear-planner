@@ -80,7 +80,7 @@ describe('bug #695 - offhands have wrong stats', () => {
             dm.allItems.forEach(item => {
                 // TODO: workaround for BST stuff for now
                 if (item.ilvl < 290) {
-                    return;
+                    // return;
                 }
                 if (item.isCustomRelic) {
                     return;
@@ -112,7 +112,7 @@ describe('bug #695 - offhands have wrong stats', () => {
                             return;
                         }
                     }
-                    failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has substat ${primarySub} ${primarySubValue} !== ${primarySubCap} (cap)`);
+                    failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has substat ${primarySub} ${primarySubValue} !== ${primarySubCap} (computed cap)`);
                 }
                 // This includes vitality
                 MAIN_STATS.forEach(mainStat => {
@@ -145,7 +145,7 @@ describe('bug #695 - offhands have wrong stats', () => {
                         }
                     }
                     if (value !== cap) {
-                        failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has mainstat ${mainStat} ${value} !== ${cap} (cap)`);
+                        failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has mainstat ${mainStat} ${value} !== ${cap} (computed cap)`);
                     }
                 });
                 const defStats: RawStatKey[] = ["defensePhys", "defenseMag"];
@@ -161,7 +161,7 @@ describe('bug #695 - offhands have wrong stats', () => {
                     }
                     // Allow a margin of error of one unless we find a confirmed-wrong case.
                     if (Math.abs(value - cap) > 1) {
-                        failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has defstat ${defStat} ${value} !== ${cap} (cap)`);
+                        failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has defstat ${defStat} ${value} !== ${cap} (computed cap)`);
                     }
 
                 });

@@ -47,6 +47,7 @@ import {ApiFoodData, ApiItemData, ApiMateriaData, ApiMedicineData, checkResponse
 import {addStats} from "@xivgear/xivmath/xivstats";
 import {arrayEqTyped} from "@xivgear/util/array_utils";
 import {xivApiIconUrl} from "./external/xivapi";
+import {fl, statCapNoJob, statCapWithJob} from "@xivgear/xivmath/xivmath";
 
 export class NewApiDataManager implements DataManager {
 
@@ -209,10 +210,10 @@ export class NewApiDataManager implements DataManager {
                                 const baseParamModifier: number = bpInfo.slots[slot];
                                 const jobCap = bpInfo.meldParam[jobStats.meldParamIndex] / 100;
                                 if (jobCap !== undefined && ilvlModifier !== undefined) {
-                                    return Math.round(jobCap * Math.round(ilvlModifier * baseParamModifier / 1000));
+                                    return statCapWithJob(jobCap, ilvlModifier, baseParamModifier);
                                 }
                                 else {
-                                    return Math.round(ilvlModifier * baseParamModifier / 1000);
+                                    return statCapNoJob(ilvlModifier, baseParamModifier);
                                 }
                             }
 

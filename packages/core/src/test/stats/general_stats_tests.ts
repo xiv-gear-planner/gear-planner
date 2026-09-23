@@ -2,7 +2,7 @@ import {finalizeStats} from "@xivgear/xivmath/xivstats";
 import {EquipSlot, EquipSlotKey, RawStats} from "@xivgear/xivmath/geartypes";
 import {getLevelStats, getRaceStats, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {expect} from "chai";
-import {applyDhCritFull, baseDamageFull, fl, getDefaultScalings} from "@xivgear/xivmath/xivmath";
+import {applyDhCritFull, baseDamageFull, fl, getDefaultScalings, statCapWithJob} from "@xivgear/xivmath/xivmath";
 import {multiplyFixed} from "@xivgear/xivmath/deviation";
 import {HEADLESS_SHEET_PROVIDER} from "../../sheet";
 import {AlternativeScaling} from "../../sims/sim_types";
@@ -1052,7 +1052,46 @@ describe('hp correctness', () => {
 
         expect(stats.vitality).to.eq(784);
         expect(stats.hp).to.eq(8876);
+        // > it's the head/hands/feet
+        // > they are giving 56 vit each in-game
+        /*
+        https://v2.xivapi.com/api/sheet/ItemLevel/270
+        Vitality = 736
+        https://v2.xivapi.com/api/sheet/BaseParam/3
+        Hands/Head/FeetPercent = 85
+        MeldParam[5] = 90
+        https://v2.xivapi.com/api/sheet/ClassJob/36
+        ModifierVitality = 100
+         */
     });
+});
+
+describe('stat cap tests', () => {
+    // Verified in-game by Xi
+    it('BLU 270 head VIT', () => {
+        expect(statCapWithJob(0.90, 736, 85)).to.eq(56);
+    });
+
+    // Verified in-game by Wynn
+    it('BLU 270 earring Crit', () => {
+        expect(statCapWithJob(1, 685, 67)).to.eq(46);
+    });
+
+    it('BLU 270 earring VIT', () => {
+        expect(statCapWithJob(0.90, 736, 67)).to.eq(44);
+    });
+
+    it('RDM 530 head VIT', () => {
+        // 530 item has 122 vit
+        // 600 item synced down gives us 123? tested in game
+        expect(statCapWithJob(0.90, 1603, 85)).to.eq(123);
+    });
+
+    it('270 proto ultima neck', () => {
+        // Proto Ultima Amulet of Healing has 46 big piety, and the melding UI shows that as the stat cap.
+        expect(statCapWithJob(1, 685, 67)).to.eq(46);
+    });
+
 });
 
 

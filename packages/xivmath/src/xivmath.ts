@@ -639,3 +639,12 @@ export function combineHasteBuffs(existingHaste: number, nextBuffHaste: number) 
     const combinedMult = flp(2, existingMult * nextMult);
     return fl(100 * (1 - combinedMult));
 }
+
+export function statCapWithJob(jobCap: number, ilvlModifier: number, baseParamModifier: number): number {
+    return Math.round(jobCap * (ilvlModifier * baseParamModifier / 1000));
+}
+
+export function statCapNoJob(ilvlModifier: number, baseParamModifier: number): number {
+    return Math.round(ilvlModifier * baseParamModifier / 1000);
+}
+
