@@ -19,8 +19,8 @@ You can try it out [here](https://xivgear.app).
 
 We are still looking for people to write simulations for the following jobs:
 
-- Phys Ranged: BRD, MCH
-- Casters: SMN, RDM, PCT
+- Phys Ranged: BRD
+- Casters: SMN, RDM
 
 ## User Guides
 
@@ -28,7 +28,7 @@ We are still looking for people to write simulations for the following jobs:
 
 ## Developer Guides
 
-[Dev Docs](./docs/dev-docs/DEV_DOCS.md)
+[Dev Docs](./docs/dev-docs/README.md)
 
 [API Documentation](/API_DOC.md)
 

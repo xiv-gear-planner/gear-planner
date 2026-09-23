@@ -29,12 +29,5 @@ pnpm -F @xivgear/gearplan-frontend less
 Run `pnpm serve` to run a dev server locally. This handles building and automatic reloading, though you may need
 to rebuild CSS manually.
 
-### WebStorm (and other JetBrains products)
-
-In WebStorm, you can simply right-click the `packages/frontend/dist/index.html` file, and select Open In > Browser.
-
-### VS Code
-
-In VS Code, you can use addons such as 
-[Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) to do the equivalent.
-The file to open is `packages/frontend/dist/index.html`.
+Since this also handles SPA path redirection (i.e. `/foo/bar` will still load `index.html`), this is the only
+supported way to run locally, except by building the entire container image.
