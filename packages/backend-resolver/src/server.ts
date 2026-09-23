@@ -7,6 +7,7 @@ import {frontendPaths} from "./frontend_file_server";
 import {BisServiceImpl} from "@xivgear/core/external/static_bis";
 import {ShortlinkServiceImpl} from "@xivgear/core/external/shortlink_server";
 import {NavDataServiceImpl} from "./server_utils";
+import {startPeriodicMemoryMonitor} from "./periodic_mem_stats";
 
 /*
 This file is the entry point
@@ -47,6 +48,8 @@ const fePaths = frontendPaths({
 });
 
 const navDataService = new NavDataServiceImpl(shortlinkService, bisService);
+
+startPeriodicMemoryMonitor();
 
 // TODO: no particularly good way to override this yet
 const dataApiOverride = process.env.DATA_API;
