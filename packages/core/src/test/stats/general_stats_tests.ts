@@ -1,12 +1,13 @@
 import {finalizeStats} from "@xivgear/xivmath/xivstats";
-import {RawStats} from "@xivgear/xivmath/geartypes";
-import {getLevelStats, getRaceStats} from "@xivgear/xivmath/xivconstants";
+import {EquipSlot, EquipSlotKey, RawStats} from "@xivgear/xivmath/geartypes";
+import {getLevelStats, getRaceStats, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {expect} from "chai";
 import {applyDhCritFull, baseDamageFull, fl, getDefaultScalings} from "@xivgear/xivmath/xivmath";
 import {multiplyFixed} from "@xivgear/xivmath/deviation";
 import {HEADLESS_SHEET_PROVIDER} from "../../sheet";
 import {AlternativeScaling} from "../../sims/sim_types";
 import {getScalingOverrides} from "../../sims/sim_utils";
+import {CharacterGearSet} from "../../gear";
 
 
 const level = 100;
@@ -990,3 +991,68 @@ describe("Final damage values for known values", () => {
         expect(damageBeforeCrit50Crowned.expected).to.eq(2838);
     });
 });
+
+function equipById(set: CharacterGearSet, ...ids: number[]) {
+    ids.forEach((id) => {
+        const item = set.sheet.itemById(id);
+        expect(item).to.not.be.undefined;
+        expect(item).to.not.be.null;
+        const rawSlot = item.displayGearSlotName;
+        let actualSlot: EquipSlotKey;
+        if (rawSlot === 'Ring') {
+            if (set.equipment.RingRight) {
+                actualSlot = 'RingLeft';
+            }
+            else {
+                actualSlot = 'RingRight';
+            }
+        }
+        else {
+            actualSlot = rawSlot;
+        }
+        set.setEquip(actualSlot, item);
+    });
+}
+
+describe('hp correctness', () => {
+    async function prepSheet(level: SupportedLevel, itemIds: number[]): Promise<CharacterGearSet> {
+        const sheet = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'BLU', level, undefined, false);
+        await sheet.load();
+        sheet.partyBonus = 0;
+        sheet.race = 'Midlander';
+        const set = new CharacterGearSet(sheet);
+        equipById(set, ...itemIds);
+        return set;
+    }
+    it('level 50 no gear', async () => {
+        const set = await prepSheet(50, [24551]);
+        const stats = set.computedStats;
+
+        expect(stats.hp).to.eq(1470);
+        expect(stats.vitality).to.eq(202);
+    });
+    it('level 60 no gear', async () => {
+        const set = await prepSheet(60, [24551]);
+        const stats = set.computedStats;
+
+        expect(stats.hp).to.eq(1575);
+        expect(stats.vitality).to.eq(218);
+    });
+    // TODO: 50/60 with native-level gear - not currently known to be broken on this branch but should be tested anyway
+    it('level 50 synced i530 gear', async () => {
+        const set = await prepSheet(50, [40345, 32330, 32553, 40348, 40349, 40350, 32562, 32567, 32572, 32577, 32355]);
+        const stats = set.computedStats;
+
+        expect(stats.hp).to.eq(5065);
+        expect(stats.vitality).to.eq(523);
+    });
+    it('level 60 synced i530 gear', async () => {
+        const set = await prepSheet(60, [40345, 32330, 32553, 40348, 40349, 40350, 32562, 32567, 32572, 32577, 32355]);
+        const stats = set.computedStats;
+
+        expect(stats.vitality).to.eq(784);
+        expect(stats.hp).to.eq(8876);
+    });
+});
+
+
