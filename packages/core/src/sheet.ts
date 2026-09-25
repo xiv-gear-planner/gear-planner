@@ -1141,6 +1141,10 @@ export class GearPlanSheet {
             // Not sure what the best way to handle this is
             return true;
         }
+        // TODO
+        if (stat === 'vitality') {
+            return true;
+        }
         switch (this.classJobEarlyStats.type) {
             case "Combat":
                 if (DOH_STATS.includes(stat as typeof DOH_STATS[number]) || DOL_STATS.includes(stat as typeof DOL_STATS[number])) {
@@ -1866,7 +1870,8 @@ function jobDataSerializationProxy(jobStats: JobData): JobDataExport {
         autoAttackStat: jobStats.autoAttackStat,
         irrelevantSubstats: jobStats.irrelevantSubstats,
         offhand: jobStats.offhand,
-        meldParamIndex: jobStats.meldParamIndex,
+        // Deprecated, keep dummy value here to keep consumers happy
+        meldParamIndex: 0,
         aaPotency: jobStats.aaPotency,
         excludedRelicSubstats: jobStats.excludedRelicSubstats,
         minLevel: jobStats.minLevel,

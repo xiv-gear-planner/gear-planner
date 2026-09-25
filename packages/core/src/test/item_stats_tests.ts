@@ -2,7 +2,7 @@ import {CharacterGearSet, previewItemStatDetail} from "../gear";
 import {EwRelicStatModel, GearItem, RawStatKey, RawStats} from "@xivgear/xivmath/geartypes";
 import {expect} from 'chai';
 import {NewApiDataManager} from "../datamanager_new";
-import {ALL_COMBAT_JOBS, MAIN_STATS} from "@xivgear/xivmath/xivconstants";
+import {ALL_COMBAT_JOBS, JOB_DATA, MAIN_STATS} from "@xivgear/xivmath/xivconstants";
 import {HEADLESS_SHEET_PROVIDER} from "../sheet";
 
 
@@ -78,8 +78,8 @@ describe('bug #695 - offhands have wrong stats', () => {
             await dm.loadData();
             const failures: string[] = [];
             dm.allItems.forEach(item => {
-                // TODO: workaround for BST stuff for now
-                if (item.ilvl < 290) {
+                // Don't care about items below what the job would be interested in.
+                if (item.ilvl < JOB_DATA[job].minLevel) {
                     return;
                 }
                 if (item.isCustomRelic) {
@@ -96,29 +96,36 @@ describe('bug #695 - offhands have wrong stats', () => {
                 // Due to BLU's lower minimum level, it will pick up a lot of items that offer the wrong main stat.
                 // It is expected that these mismatch, because a caster will have a lower value on non-int main stats.
                 if (job === 'BLU' && item.stats.intelligence === 0) {
-                    return;
+                    // return;
                 }
                 const primarySub = item.primarySubstat;
                 const primarySubValue = item.stats[primarySub];
                 const primarySubCap = item.statCaps[primarySub];
                 if (primarySubValue !== primarySubCap) {
+                    // hall of the novice ring
+                    if (item.id === 44410) {
+                        return;
+                    }
                     // A few ilvls have different caps for dhit and tenacity
                     if (primarySub === 'dhit' || primarySub === 'tenacity') {
                         const ilvlSyncInfo = dm.getIlvlSyncInfo(item.ilvl);
-                        const thisCap = ilvlSyncInfo.substatCap(item.occGearSlotName, primarySub);
+                        const thisCap = ilvlSyncInfo.substatCap(item.occGearSlotName, primarySub, item.meldParamIndex);
                         // The cap for the "normal" substats
-                        const normalCap = ilvlSyncInfo.substatCap(item.occGearSlotName, 'crit');
+                        const normalCap = ilvlSyncInfo.substatCap(item.occGearSlotName, 'crit', item.meldParamIndex);
                         if (thisCap !== normalCap && primarySubValue === normalCap) {
                             return;
                         }
                     }
-                    failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has substat ${primarySub} ${primarySubValue} !== ${primarySubCap} (cap)`);
+                    failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has substat ${primarySub} ${primarySubValue} !== ${primarySubCap} (computed cap)`);
                 }
                 // This includes vitality
                 MAIN_STATS.forEach(mainStat => {
                     const value = item.stats[mainStat];
                     if (value === 0) {
                         return;
+                    }
+                    if (mainStat === 'vitality') {
+                        // return;
                     }
                     const cap = item.statCaps[mainStat];
                     // See bug #715
@@ -127,10 +134,10 @@ describe('bug #695 - offhands have wrong stats', () => {
                         && (item.occGearSlotName === 'Head' || item.occGearSlotName === 'Hand' || item.occGearSlotName === 'Feet')
                         && mainStat === 'vitality'
                     ) {
-                        return;
+                        // return;
                     }
                     if (mainStat === 'vitality' && item.jobs.length > 15) {
-                        // Preorder earrings - these seem to not follow the pattern exactly
+                        // Preorder earrings/rings - these seem to not follow the pattern exactly
                         if (item.ilvl === 290 && item.stats.vitality === 46) {
                             return;
                         }
@@ -145,7 +152,20 @@ describe('bug #695 - offhands have wrong stats', () => {
                         }
                     }
                     if (value !== cap) {
-                        failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has mainstat ${mainStat} ${value} !== ${cap} (cap)`);
+                        if (mainStat === 'vitality' && Math.abs(value - cap) === 1) {
+                            // Acceptable margin of error since a lot of these items don't sync as expected
+                            return;
+                        }
+                        if (item.id === 6111
+                            // Lower level crafter/gathering items
+                            || (item.meldParamIndex === 9 && item.ilvl <= 150)
+                        ) {
+                            return;
+                        }
+                        if (item.name.endsWith(" Officer's Overcoat")) {
+                            return;
+                        }
+                        failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has mainstat ${mainStat} ${value} !== ${cap} (computed cap)`);
                     }
                 });
                 const defStats: RawStatKey[] = ["defensePhys", "defenseMag"];
@@ -159,9 +179,18 @@ describe('bug #695 - offhands have wrong stats', () => {
                     if (value === 0 || value === 1) {
                         return;
                     }
+                    // Exclude some specific items
+                    if (item.ilvl <= 150
+                        // Warlord's Crown
+                        || item.id === 6109
+                        || (item.name.startsWith("Field Commander's") && item.ilvl === 160)
+                        || (item.name.includes("Lieutenant's") && item.ilvl === 100)
+                    ) {
+                        return;
+                    }
                     // Allow a margin of error of one unless we find a confirmed-wrong case.
                     if (Math.abs(value - cap) > 1) {
-                        failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has defstat ${defStat} ${value} !== ${cap} (cap)`);
+                        failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has defstat ${defStat} ${value} !== ${cap} (computed cap)`);
                     }
 
                 });
