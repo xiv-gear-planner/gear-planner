@@ -1870,7 +1870,8 @@ function jobDataSerializationProxy(jobStats: JobData): JobDataExport {
         autoAttackStat: jobStats.autoAttackStat,
         irrelevantSubstats: jobStats.irrelevantSubstats,
         offhand: jobStats.offhand,
-        meldParamIndex: jobStats.meldParamIndex,
+        // Deprecated, keep dummy value here to keep consumers happy
+        meldParamIndex: 0,
         aaPotency: jobStats.aaPotency,
         excludedRelicSubstats: jobStats.excludedRelicSubstats,
         minLevel: jobStats.minLevel,

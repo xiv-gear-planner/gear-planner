@@ -653,14 +653,6 @@ export type JobDataConst = ({
     //     [K in RawStatKey]?: number
     // };
     /**
-     * Which BaseParam.MeldParam index to use for calculating stat caps.
-     * Makes hardcoded itemStatCapMultipliers obsolete.
-     * Since these only have numeric indices with no indication of which is which, it is derived from looking at gear
-     * pieces of the same ilvl and comparing their stats across different jobs. However, there are many rows which are
-     * identical for
-     */
-    readonly meldParamIndex: number;
-    /**
      * Auto-attack potency amount
      */
     readonly aaPotency: number;
@@ -771,13 +763,17 @@ export type JobDataExport = Pick<JobData,
     | 'autoAttackStat'
     | 'irrelevantSubstats'
     | 'offhand'
-    | 'meldParamIndex'
     | 'aaPotency'
     | 'excludedRelicSubstats'
     | 'minLevel'
     | 'maxLevel'
     | 'jobStatMultipliers'
->;
+> & {
+    /**
+     * @deprecated This is a property of items, not jobs or roles
+     */
+    meldParamIndex: 0,
+};
 
 export interface JobTrait {
     minLevel?: number,
@@ -1542,5 +1538,5 @@ export type MicroSlotExport = FoodMicroSlotExport | NormalItemMicroSlotExport | 
 
 export type IlvlSyncInfo = {
     readonly ilvl: number;
-    substatCap(slot: OccGearSlotKey, statsKey: RawStatKey): number;
+    substatCap(slot: OccGearSlotKey, statsKey: RawStatKey, meldParamIndex: number | null): number;
 }
