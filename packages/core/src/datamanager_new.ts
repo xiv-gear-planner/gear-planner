@@ -213,13 +213,13 @@ export class NewApiDataManager implements DataManager {
 
                             function calcCap(slot: OccGearSlotKey): number {
                                 const bpInfo = baseParams[statsKey as RawStatKey];
-                                const baseParamModifier: number = bpInfo.slots[slot];
-                                const jobCap = meldParamIndex === null ? 100 : bpInfo.meldParam[meldParamIndex];
-                                if (jobCap !== undefined && ilvlModifier !== undefined) {
-                                    return statCapWithJob(jobCap, ilvlModifier, baseParamModifier);
+                                const baseParamSlotModifier: number = bpInfo.slots[slot];
+                                const meldParam = meldParamIndex === null ? 100 : bpInfo.meldParam[meldParamIndex];
+                                if (meldParam !== undefined && ilvlModifier !== undefined) {
+                                    return statCapWithJob(meldParam, ilvlModifier, baseParamSlotModifier);
                                 }
                                 else {
-                                    return statCapNoJob(ilvlModifier, baseParamModifier);
+                                    return statCapNoJob(ilvlModifier, baseParamSlotModifier);
                                 }
                             }
 
