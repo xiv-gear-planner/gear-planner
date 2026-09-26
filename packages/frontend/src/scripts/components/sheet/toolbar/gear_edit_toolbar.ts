@@ -100,14 +100,14 @@ export class ToolbarButtonsArea extends HTMLDivElement {
         this.undoButton = makeActionButton([undoIcon()], () => {
             recordEvent("undo");
             this.currentSet?.undo();
-        }, 'Undo');
+        }, 'Undo (Ctrl-Z)');
         this.undoButton.classList.add('big-text-btn');
 
         // Redo button
         this.redoButton = makeActionButton([redoIcon()], () => {
             recordEvent("redo");
             this.currentSet?.redo();
-        }, 'Redo');
+        }, 'Redo (Ctrl-Shift-Z)');
         this.redoButton.classList.add('big-text-btn');
 
         this.popoutArea = el('div', {class: 'popout-area'});
