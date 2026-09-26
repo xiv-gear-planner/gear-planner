@@ -1,4 +1,4 @@
-import {CharacterGearSet, ItemSingleStatDetail, previewItemStatDetail} from "@xivgear/core/gear";
+import {CharacterGearSet, ItemSingleStatDetail} from "@xivgear/core/gear";
 import {
     DisplayGearSlotKey,
     EquipmentSet,
@@ -243,7 +243,10 @@ function medicineTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, st
         displayName: STAT_ABBREVIATIONS[stat],
         getter: item => {
             const bonus = item.bonuses[stat];
-            return bonus ? {...bonus, effective: set.getEffectiveMedicineBonuses(item)[stat]} satisfies FoodStatBonusWithEffective : undefined;
+            return bonus ? {
+                ...bonus,
+                effective: set.getEffectiveMedicineBonuses(item)[stat],
+            } satisfies FoodStatBonusWithEffective : undefined;
         },
         renderer: (value: FoodStatBonusWithEffective | undefined) => value ? statBonusDisplay(value) : document.createTextNode(""),
         condition: () => sheet.isStatRelevant(stat),
@@ -261,7 +264,10 @@ function medicineTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, st
 
 function medicineTableStatViewColumn(sheet: GearPlanSheet, set: CharacterGearSet, item: MedicineItem, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<MedicineItem, unknown, unknown> {
     const wrapped = medicineTableStatColumn(sheet, set, stat, highlightPrimarySecondary);
-    return {...wrapped, condition: () => item.primarySubStat === stat || item.secondarySubStat === stat};
+    return {
+        ...wrapped,
+        condition: () => item.primarySubStat === stat || item.secondarySubStat === stat,
+    };
 }
 
 
