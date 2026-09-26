@@ -1,5 +1,4 @@
 import {
-    getClassJobStats,
     JOB_DATA,
     JobName,
     LEVEL_ITEMS,
@@ -24,8 +23,8 @@ import {
     IlvlSyncInfo,
     JobMultipliers,
     Materia,
-    MedicineItem,
     MateriaSlot,
+    MedicineItem,
     OccGearSlotKey,
     RawStatKey,
     RawStats,
@@ -43,11 +42,18 @@ import {
 import {BaseParamMap, DataManager, DmJobs} from "./datamanager";
 import {applyStatCaps} from "./gear";
 import {toTranslatable, TranslatableString} from "@xivgear/i18n/translation";
-import {ApiFoodData, ApiItemData, ApiMateriaData, ApiMedicineData, checkResponse, DATA_API_CLIENT} from "./data_api_client";
+import {
+    ApiFoodData,
+    ApiItemData,
+    ApiMateriaData,
+    ApiMedicineData,
+    checkResponse,
+    DATA_API_CLIENT
+} from "./data_api_client";
 import {addStats} from "@xivgear/xivmath/xivstats";
 import {arrayEqTyped} from "@xivgear/util/array_utils";
 import {xivApiIconUrl} from "./external/xivapi";
-import {fl, statCapNoJob, statCapWithJob} from "@xivgear/xivmath/xivmath";
+import {statCapNoJob, statCapWithJob} from "@xivgear/xivmath/xivmath";
 
 export class NewApiDataManager implements DataManager {
 
@@ -103,8 +109,6 @@ export class NewApiDataManager implements DataManager {
         if (this._isyncPromise === undefined) {
             this._isyncPromise = Promise.all([baseParamPromise, this.apiClient.itemLevel.itemLevels()]).then(responses => {
                 const outMap = new Map<number, IlvlSyncInfo>();
-                // This is the constant data from xivconstants.ts
-                const jobStats = getClassJobStats(this._classJob);
                 // Iterate over rows in ItemLevel table
                 for (const row of checkResponse(responses[1]).data!.items!) {
                     const ilvl = row.rowId!;
@@ -174,11 +178,13 @@ export class NewApiDataManager implements DataManager {
                                     // Don't bother capping haste since it doesn't work like a normal stat.
                                     return 999_999;
                                 case "extraMainStat":
-                                    // Main stats **should** all be the same
+                                    // Main stats **should** all be the same, but it doesn't matter because these are
+                                    // capped as the stat that they actually become.
                                     ilvlModifier = row.mind;
                                     break;
                                 case "extraSecondaryStat":
-                                    // Secondary stats also should all be the same
+                                    // Secondary stats also should all be the same, but it doesn't matter because these are
+                                    // capped as the stat that they actually become.
                                     ilvlModifier = row.directHitRate;
                                     break;
                                 case "cp":

@@ -651,7 +651,8 @@ export function combineHasteBuffs(existingHaste: number, nextBuffHaste: number) 
  */
 export function statCapWithJob(jobCap: number, ilvlModifier: number, baseParamModifier: number): number {
     // jobCap is expected to already be divided by 100
-    return Math.round(fl(fl(ilvlModifier * baseParamModifier / 100) * jobCap / 100) / 10);
+    // return Math.round(fl(fl(ilvlModifier * baseParamModifier / 100) * jobCap / 100) / 10);
+    return Math.round(fl(fl(ilvlModifier * jobCap / 100) * baseParamModifier / 100) / 10);
 }
 
 /**

@@ -2,7 +2,7 @@ import {expect} from "chai";
 import {HEADLESS_SHEET_PROVIDER} from "../../sheet";
 import {CharacterGearSet} from "../../gear";
 import {EquipSlotKey} from "@xivgear/xivmath/geartypes";
-import {SupportedLevel} from "@xivgear/xivmath/xivconstants";
+import {JobName, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {statCapWithJob} from "@xivgear/xivmath/xivmath";
 
 function equipById(set: CharacterGearSet, ...ids: number[]) {
@@ -27,26 +27,42 @@ function equipById(set: CharacterGearSet, ...ids: number[]) {
     });
 }
 
-describe('hp correctness', () => {
-    async function prepSheet(level: SupportedLevel, itemIds: number[]): Promise<CharacterGearSet> {
-        const sheet = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'BLU', level, undefined, false);
-        await sheet.load();
-        sheet.partyBonus = 0;
-        sheet.race = 'Midlander';
-        const set = new CharacterGearSet(sheet);
-        equipById(set, ...itemIds);
-        return set;
+async function prepSheet(params: {
+    level: SupportedLevel,
+    job: JobName,
+    itemIds?: number[],
+    isync?: number,
+}): Promise<CharacterGearSet> {
+    const sheet = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", params.job, params.level, params.isync, false);
+    await sheet.load();
+    sheet.partyBonus = 0;
+    sheet.race = 'Midlander';
+    const set = new CharacterGearSet(sheet);
+    if (params.itemIds) {
+        equipById(set, ...params.itemIds);
     }
+    return set;
+}
+
+describe('hp correctness', () => {
 
     it('level 50 no gear', async () => {
-        const set = await prepSheet(50, [24551]);
+        const set = await prepSheet({
+            job: 'BLU',
+            level: 50,
+            itemIds: [24551],
+        });
         const stats = set.computedStats;
 
         expect(stats.hp).to.eq(1470);
         expect(stats.vitality).to.eq(202);
     });
     it('level 60 no gear', async () => {
-        const set = await prepSheet(60, [24551]);
+        const set = await prepSheet({
+            job: 'BLU',
+            level: 60,
+            itemIds: [24551],
+        });
         const stats = set.computedStats;
 
         expect(stats.hp).to.eq(1575);
@@ -54,14 +70,22 @@ describe('hp correctness', () => {
     });
     // TODO: 50/60 with native-level gear - not currently known to be broken on this branch but should be tested anyway
     it('level 50 synced i530 gear', async () => {
-        const set = await prepSheet(50, [40345, 32330, 32553, 40348, 40349, 40350, 32562, 32567, 32572, 32577, 32355]);
+        const set = await prepSheet({
+            job: 'BLU',
+            level: 50,
+            itemIds: [40345, 32330, 32553, 40348, 40349, 40350, 32562, 32567, 32572, 32577, 32355],
+        });
         const stats = set.computedStats;
 
         expect(stats.hp).to.eq(5065);
         expect(stats.vitality).to.eq(523);
     });
     it('level 60 synced i530 gear', async () => {
-        const set = await prepSheet(60, [40345, 32330, 32553, 40348, 40349, 40350, 32562, 32567, 32572, 32577, 32355]);
+        const set = await prepSheet({
+            job: 'BLU',
+            level: 60,
+            itemIds: [40345, 32330, 32553, 40348, 40349, 40350, 32562, 32567, 32572, 32577, 32355],
+        });
         const stats = set.computedStats;
 
         expect(stats.vitality).to.eq(784);
@@ -108,4 +132,20 @@ describe('stat cap tests', () => {
 
 });
 
+describe('earring sync tests', () => {
+    it('430 earring sync', async () => {
+        const set = await prepSheet({
+            job: 'SGE',
+            level: 80,
+            isync: 430,
+            itemIds: [49564],
+        });
+        const ears = set.getSlotEffectiveStats('Ears');
+        expect(ears.vitality).to.eq(72);
+        expect(ears.mind).to.eq(78);
+        expect(ears.crit).to.eq(79);
+        expect(ears.determination).to.eq(79);
+
+    });
+});
 

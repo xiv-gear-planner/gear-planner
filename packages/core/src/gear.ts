@@ -1,13 +1,12 @@
 import {
-    ALL_SUB_STATS,
     bluWdfromInt,
+    DEFAULT_MATERIA_ACCEPTABLE_OVERCAP_LOSS,
     EMPTY_STATS,
     FAKE_MAIN_STATS,
     getLevelStats,
     getRaceStats,
     JobName,
     MAIN_STATS,
-    DEFAULT_MATERIA_ACCEPTABLE_OVERCAP_LOSS,
     MateriaSubstat,
     NORMAL_GCD,
     RaceName,
@@ -28,10 +27,10 @@ import {
     GearSetResult,
     JobData,
     Materia,
-    MedicineItem,
     MateriaAutoFillController,
     MateriaAutoFillPrio,
     MateriaMemoryExport,
+    MedicineItem,
     MeldableMateriaSlot,
     NO_SYNC_STATS,
     RawStatKey,
@@ -195,6 +194,12 @@ export class SetDisplaySettings {
     }
 }
 
+/**
+ * @deprecated Use {@link CharacterGearSet#getEquipStatDetail} instead, which properly handles things like extra
+ * main or secondary stats.
+ * @param item
+ * @param stat
+ */
 export function previewItemStatDetail(item: GearItem, stat: RawStatKey): ItemSingleStatDetail {
     const cap = item.statCaps[stat]!;
     if (item.isSyncedDown) {
@@ -745,9 +750,12 @@ export class CharacterGearSet {
                 issues: [],
             };
         }
+        // Start with the raw stats of the item
         const itemStats = new RawStats(equip.gearItem.stats);
         // Note for future: if we ever get an item that has both custom stats AND materia, this logic will need to be extended.
-        for (const stat of ALL_SUB_STATS) {
+
+        for (const statRaw of Object.keys(itemStats)) {
+            const stat = statRaw as RawStatKey;
             const statDetail = this.getStatDetail(slotId, stat);
             itemStats[stat] = statDetail.effectiveAmount;
             if (statDetail.mode === 'melded-overcapped-major') {
@@ -786,7 +794,7 @@ export class CharacterGearSet {
      * @param stat
      * @param materiaOverride
      */
-    getStatDetail(slotId: keyof EquipmentSet, stat: RawStatKey, materiaOverride?: Materia[]): ReturnType<CharacterGearSet['getEquipStatDetail']> {
+    getStatDetail(slotId: keyof EquipmentSet, stat: RawStatKey, materiaOverride?: Materia[]): ItemSingleStatDetail {
         const equip = this.equipment[slotId];
         return this.getEquipStatDetail(equip, stat, materiaOverride);
     }
@@ -808,28 +816,56 @@ export class CharacterGearSet {
                 cap: 0,
             };
         }
-        const stats = new RawStats(gearItem.stats);
+        const itemStats = new RawStats(gearItem.stats);
         if (equip.relicStats) {
             const relicStats = new RawStats(equip.relicStats);
-            addStats(stats, relicStats);
+            addStats(itemStats, relicStats);
         }
+        let extraKey: RawStatKey | null;
+        if (stat === this.classJobStats.mainStat) {
+            extraKey = 'extraMainStat';
+        }
+        else if (stat === this.classJobStats.secondaryStat) {
+            extraKey = 'extraSecondaryStat';
+        }
+        // Since we fold the stats in this function, we shouldn't return a potentially misleading value for these
+        else if (stat === 'extraMainStat' || stat === 'extraSecondaryStat') {
+            return {
+                mode: 'unmelded',
+                overcapAmount: 0,
+                effectiveAmount: 0,
+                fullAmount: 0,
+                cap: 0,
+            };
+        }
+        else {
+            extraKey = null;
+        }
+        // We don't actually care about the cap on extraMain/Secondary itself because we
+        // are re-applying the cap on the stat it is actually going to become.
+        let extra = extraKey !== null ? gearItem.unsyncedVersion.stats[extraKey] : 0;
+        // Apply the real stat cap to the extra amount
+        const cap = gearItem.statCaps[stat] ?? 9999;
+        if (gearItem.isSyncedDown && extra > cap) {
+            extra = cap;
+        }
+        const baseStatValue = itemStats[stat] + extra;
         if (gearItem.isSyncedDown) {
+            // TODO: this branch is not covered
             if (gearItem.isCustomRelic) {
-                const cap = gearItem.statCaps[stat];
-                const current = stats[stat];
-                if (cap && current > cap) {
+                if (cap && baseStatValue > cap) {
                     return {
                         effectiveAmount: cap,
-                        fullAmount: current,
-                        overcapAmount: current - cap,
+                        fullAmount: baseStatValue,
+                        overcapAmount: baseStatValue - cap,
                         cap: cap,
                         mode: "synced-down",
                     };
                 }
                 else {
                     return {
-                        effectiveAmount: current,
-                        fullAmount: current,
+                        effectiveAmount: baseStatValue,
+                        fullAmount: baseStatValue,
                         overcapAmount: 0,
                         cap: cap,
                         mode: 'unmelded',
@@ -837,8 +873,9 @@ export class CharacterGearSet {
                 }
             }
             else {
-                const unsynced = gearItem.unsyncedVersion.stats[stat];
-                const synced = stats[stat];
+                const unsyncedStats = gearItem.unsyncedVersion.stats;
+                const unsynced = unsyncedStats[stat] + (extraKey !== null ? unsyncedStats[extraKey] : 0);
+                const synced = baseStatValue;
                 if (synced < unsynced) {
                     return {
                         effectiveAmount: synced,
@@ -859,9 +896,7 @@ export class CharacterGearSet {
                 }
             }
         }
-        const cap = gearItem.statCaps[stat] ?? 9999;
-        const baseItemStatValue = stats[stat];
-        let meldedStatValue = baseItemStatValue;
+        let meldedStatValue = baseStatValue;
         let smallestMateria = 999999;
         const materiaList = materiaOverride === undefined ? equip.melds.map(meld => meld.equippedMateria).filter(item => item) : materiaOverride.filter(item => item);
         for (const materia of materiaList) {
@@ -872,7 +907,7 @@ export class CharacterGearSet {
             }
         }
         // Not melded or melds are not relevant to this stat
-        if (meldedStatValue === baseItemStatValue) {
+        if (meldedStatValue === baseStatValue) {
             return {
                 mode: 'unmelded',
                 overcapAmount: 0,
@@ -902,6 +937,7 @@ export class CharacterGearSet {
             };
         }
         else {
+            // TODO: this branch is not covered
             return {
                 effectiveAmount: cap,
                 fullAmount: meldedStatValue,

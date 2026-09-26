@@ -641,25 +641,13 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                 return new RelicCellInfo(set, currentEquipment.gearItem, slotItem.slotId, stat as Substat, set.getStatDetail(slotItem.slotId, stat), !item.relicStatModel.excludedStats.includes(stat as Substat));
             }
             else {
-                // Future TODO: this makes the assumption that an item will never have extra main stat *and* provide a
-                // specific main stat directly.
-                let effectiveStat: RawStatKey;
-                if (item.stats.extraMainStat && stat === set.classJobStats.mainStat) {
-                    effectiveStat = 'extraMainStat';
-                }
-                else if (item.stats.extraSecondaryStat && stat === set.classJobStats.secondaryStat) {
-                    effectiveStat = 'extraSecondaryStat';
-                }
-                else {
-                    effectiveStat = stat;
-                }
                 // Not a relic, or not an editable stat. Display normally
                 const selected = set.getItemInSlot(slotItem.slotId) === item;
                 if (selected) {
-                    return set.getStatDetail(slotItem.slotId, effectiveStat);
+                    return set.getStatDetail(slotItem.slotId, stat);
                 }
                 else {
-                    return previewItemStatDetail(item, effectiveStat);
+                    return set.getEquipStatDetail(set.toEquippedItem(item), stat);
                 }
             }
         },

@@ -168,7 +168,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                     getter: item => item,
                     renderer: (item: CustomItem) => {
                         const ilvlSyncInfo = sheet.ilvlSyncInfo(item.ilvl);
-                        const cap = ilvlSyncInfo.substatCap(item.occGearSlotName, stat);
+                        const cap = ilvlSyncInfo.substatCap(item.occGearSlotName, stat, null);
                         // Small stat is ceil(big stat * 70%)
                         const suggestions = [cap];
                         if (ALL_COMBAT_SUB_STATS.includes(stat as Substat)) {

@@ -131,13 +131,13 @@ describe('New Datamanager', () => {
             defenseMag: 545,
         }));
         deq(verm.statCaps, new RawStats({
-            vitality: 157,
+            vitality: 156,
             intelligence: 177,
             mind: 124,
             dexterity: 124,
             strength: 124,
             piety: 125,
-            defensePhys: 312,
+            defensePhys: 311,
             defenseMag: 545,
             gearHaste: 999999,
             crit: 179,
