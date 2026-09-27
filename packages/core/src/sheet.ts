@@ -416,7 +416,6 @@ export class GearPlanSheet {
      * @param dataManager The DataManager to use.
      */
     async loadFromDataManager(dataManager: DataManager) {
-        console.log("Loading sheet...");
         console.log("Reading data");
         const saved = this._importedData;
         const lvlItemInfo = LEVEL_ITEMS[this.level];
