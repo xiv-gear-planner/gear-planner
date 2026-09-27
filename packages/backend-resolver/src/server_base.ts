@@ -25,6 +25,11 @@ function baseFastify() {
         ignoreTrailingSlash: true,
         ignoreDuplicateSlashes: true,
         // querystringParser: str => querystring.parse(str, '&', '=', {}),
+        ajv: {
+            customOptions: {
+                allowUnionTypes: true,
+            },
+        },
     });
 }
 
