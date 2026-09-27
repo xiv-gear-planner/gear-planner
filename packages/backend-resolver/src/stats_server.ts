@@ -54,6 +54,7 @@ import {
     ToEmbedSheetResponse,
     ToEmbedSheetSet
 } from "./stats_server_schema_types";
+import {Sema} from "async-sema";
 
 
 export class StatsServer extends ServerBase {
@@ -553,36 +554,44 @@ function isValidSheet(b: unknown): b is SheetExport {
     }).sets);
 }
 
+const semaphore = new Sema(4);
+
 async function importExportSheet(request: SheetRequest<ImportExportSheetQuery>, exportedPre: SheetExport | SetExport, nav?: NavPath): Promise<SheetStatsExport> {
-    const exportedInitial: SheetExport | SetExport = exportedPre;
-    const initiallyFullSheet = 'sets' in exportedPre;
-    const onlySetIndex: number | undefined = (nav !== undefined && "onlySetIndex" in nav) ? nav.onlySetIndex : undefined;
-    if (onlySetIndex !== undefined) {
-        if (!initiallyFullSheet) {
-            request.log.warn("onlySetIndex does not make sense when isFullSheet is false");
-        }
-        else {
-            const singleMaybe = extractSingleSet(exportedInitial as SheetExport, onlySetIndex);
-            if (singleMaybe === undefined) {
-                throw new Error(`Error: Set index ${onlySetIndex} is not valid.`);
+    const token = await semaphore.acquire();
+    try {
+        const exportedInitial: SheetExport | SetExport = exportedPre;
+        const initiallyFullSheet = 'sets' in exportedPre;
+        const onlySetIndex: number | undefined = (nav !== undefined && "onlySetIndex" in nav) ? nav.onlySetIndex : undefined;
+        if (onlySetIndex !== undefined) {
+            if (!initiallyFullSheet) {
+                request.log.warn("onlySetIndex does not make sense when isFullSheet is false");
             }
-            exportedPre = singleMaybe;
+            else {
+                const singleMaybe = extractSingleSet(exportedInitial as SheetExport, onlySetIndex);
+                if (singleMaybe === undefined) {
+                    throw new Error(`Error: Set index ${onlySetIndex} is not valid.`);
+                }
+                exportedPre = singleMaybe;
+            }
         }
+        const exported = exportedPre;
+        const isFullSheet = 'sets' in exported;
+        const sheet = isFullSheet ? HEADLESS_SHEET_PROVIDER.fromExport(exported as SheetExport) : HEADLESS_SHEET_PROVIDER.fromSetExport(exported as SetExport);
+        sheet.setViewOnly();
+        const pb = request.query.partyBonus;
+        if (pb) {
+            const parsed = typeof pb === 'number' ? pb : parseFloat(pb);
+            if (!isNaN(parsed) && Number.isInteger(parsed) && parsed >= 0 && parsed <= MAX_PARTY_BONUS) {
+                sheet.partyBonus = parsed as PartyBonusAmount;
+            }
+            else {
+                throw Error(`Party bonus '${pb}' is invalid`);
+            }
+        }
+        await sheet.load();
+        return sheet.exportSheet(ExportTypes.FullStatsExport);
     }
-    const exported = exportedPre;
-    const isFullSheet = 'sets' in exported;
-    const sheet = isFullSheet ? HEADLESS_SHEET_PROVIDER.fromExport(exported as SheetExport) : HEADLESS_SHEET_PROVIDER.fromSetExport(exported as SetExport);
-    sheet.setViewOnly();
-    const pb = request.query.partyBonus;
-    if (pb) {
-        const parsed = typeof pb === 'number' ? pb : parseFloat(pb);
-        if (!isNaN(parsed) && Number.isInteger(parsed) && parsed >= 0 && parsed <= MAX_PARTY_BONUS) {
-            sheet.partyBonus = parsed as PartyBonusAmount;
-        }
-        else {
-            throw Error(`Party bonus '${pb}' is invalid`);
-        }
+    finally {
+        semaphore.release(token);
     }
-    await sheet.load();
-    return sheet.exportSheet(ExportTypes.FullStatsExport);
 }

@@ -8,10 +8,18 @@ import {BisServiceImpl} from "@xivgear/core/external/static_bis";
 import {ShortlinkServiceImpl} from "@xivgear/core/external/shortlink_server";
 import {NavDataServiceImpl} from "./server_utils";
 import {startPeriodicMemoryMonitor} from "./periodic_mem_stats";
+import util from "node:util";
 
 /*
 This file is the entry point
  */
+
+// Some node setup to reduce logging verbosity
+util.inspect.defaultOptions.breakLength = 99999;
+util.inspect.defaultOptions.compact = true;
+util.inspect.defaultOptions.colors = true;
+util.inspect.defaultOptions.maxStringLength = 100;
+util.inspect.defaultOptions.maxArrayLength = 100;
 
 function validateUrl(url: string, description: string) {
     try {
