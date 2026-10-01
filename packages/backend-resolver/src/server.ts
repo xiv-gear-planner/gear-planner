@@ -9,6 +9,7 @@ import {ShortlinkServiceImpl} from "@xivgear/core/external/shortlink_server";
 import {NavDataServiceImpl} from "./server_utils";
 import {startPeriodicMemoryMonitor} from "./periodic_mem_stats";
 import util from "node:util";
+import {installFetchCache} from "./fetch_cache";
 
 /*
 This file is the entry point
@@ -70,10 +71,13 @@ if (dataApiOverride) {
 let server: ServerBase;
 if (process.env.IS_PREVIEW_SERVER === 'true') {
     console.log('Building preview server');
+    installFetchCache();
     server = new PreviewServer(fePaths, navDataService);
 }
 else {
     console.log('Building stats server');
+    // Don't install the fetch cache for stats server - data api items calls are too heavy, and it is
+    // generally less performance-sensitive.
     server = new StatsServer(shortlinkService, navDataService, bisService);
 }
 server.setupAndStart();
