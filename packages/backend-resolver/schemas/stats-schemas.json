@@ -152,6 +152,9 @@
         "effectiveFoodBonuses": {
           "$ref": "#/definitions/RawStats"
         },
+        "effectiveMedicineBonuses": {
+          "$ref": "#/definitions/RawStats"
+        },
         "extraMainStat": {
           "description": "Represents direct main stat bonuses. Only applicable to item stats - not used in computed stats, as it should be converted to the actual concrete stat at that point.",
           "type": "number"
@@ -290,6 +293,7 @@
         "dhitChance",
         "dhitMulti",
         "effectiveFoodBonuses",
+        "effectiveMedicineBonuses",
         "extraMainStat",
         "extraSecondaryStat",
         "gathering",
@@ -748,7 +752,8 @@
           "description": "The maximum level of the job."
         },
         "meldParamIndex": {
-          "description": "Which BaseParam.MeldParam index to use for calculating stat caps. Makes hardcoded itemStatCapMultipliers obsolete. Since these only have numeric indices with no indication of which is which, it is derived from looking at gear pieces of the same ilvl and comparing their stats across different jobs. However, there are many rows which are identical for",
+          "const": 0,
+          "deprecated": "This is a property of items, not jobs or roles",
           "type": "number"
         },
         "minLevel": {
@@ -781,17 +786,17 @@
         }
       },
       "required": [
-        "type",
-        "combatRole",
-        "mainStat",
-        "secondaryStat",
-        "autoAttackStat",
-        "meldParamIndex",
         "aaPotency",
+        "autoAttackStat",
+        "combatRole",
         "excludedRelicSubstats",
-        "minLevel",
+        "jobStatMultipliers",
+        "mainStat",
         "maxLevel",
-        "jobStatMultipliers"
+        "meldParamIndex",
+        "minLevel",
+        "secondaryStat",
+        "type"
       ],
       "type": "object"
     },
@@ -844,6 +849,7 @@
         "SAM",
         "RPR",
         "VPR",
+        "BST",
         "BRD",
         "MCH",
         "DNC",
@@ -1098,6 +1104,51 @@
         "gp"
       ],
       "type": "string"
+    },
+    "MateriaWasteLimits": {
+      "additionalProperties": false,
+      "properties": {
+        "control": {
+          "type": "number"
+        },
+        "cp": {
+          "type": "number"
+        },
+        "craftsmanship": {
+          "type": "number"
+        },
+        "crit": {
+          "type": "number"
+        },
+        "determination": {
+          "type": "number"
+        },
+        "dhit": {
+          "type": "number"
+        },
+        "gathering": {
+          "type": "number"
+        },
+        "gp": {
+          "type": "number"
+        },
+        "perception": {
+          "type": "number"
+        },
+        "piety": {
+          "type": "number"
+        },
+        "skillspeed": {
+          "type": "number"
+        },
+        "spellspeed": {
+          "type": "number"
+        },
+        "tenacity": {
+          "type": "number"
+        }
+      },
+      "type": "object"
     },
     "NormalOccGearSlotKey": {
       "enum": [
@@ -1453,6 +1504,10 @@
           "$ref": "#/definitions/MateriaMemoryExport",
           "description": "When an item is de-selected, its former materia are remembered so that they can later be automatically re-equipped based on settings. They keys are slot names (so that left/right ring can be differentiated), and the values are lists of tuples of [item ID, [materia 0, materia 1, ... materia n]]"
         },
+        "medicine": {
+          "description": "Equipped medicine (by item ID)",
+          "type": "number"
+        },
         "name": {
           "description": "Name of the gear set.",
           "type": "string"
@@ -1528,6 +1583,10 @@
         "materiaMemory": {
           "$ref": "#/definitions/MateriaMemoryExport",
           "description": "When an item is de-selected, its former materia are remembered so that they can later be automatically re-equipped based on settings. They keys are slot names (so that left/right ring can be differentiated), and the values are lists of tuples of [item ID, [materia 0, materia 1, ... materia n]]"
+        },
+        "medicine": {
+          "description": "Equipped medicine (by item ID)",
+          "type": "number"
         },
         "name": {
           "description": "Name of the gear set.",
@@ -1607,6 +1666,10 @@
           "$ref": "#/definitions/MateriaMemoryExport",
           "description": "When an item is de-selected, its former materia are remembered so that they can later be automatically re-equipped based on settings. They keys are slot names (so that left/right ring can be differentiated), and the values are lists of tuples of [item ID, [materia 0, materia 1, ... materia n]]"
         },
+        "medicine": {
+          "description": "Equipped medicine (by item ID)",
+          "type": "number"
+        },
         "name": {
           "description": "Name of the gear set.",
           "type": "string"
@@ -1671,6 +1734,10 @@
         "level": {
           "$ref": "#/definitions/SupportedLevel",
           "description": "The level of the sheet (90, 80, etc)"
+        },
+        "mfMaxWaste": {
+          "$ref": "#/definitions/MateriaWasteLimits",
+          "description": "The maximum stat waste allowed by materia auto-fill, by stat."
         },
         "mfMinGcd": {
           "description": "The target GCD for materia auto-fill",
@@ -1783,6 +1850,10 @@
         "level": {
           "$ref": "#/definitions/SupportedLevel",
           "description": "The level of the sheet (90, 80, etc)"
+        },
+        "mfMaxWaste": {
+          "$ref": "#/definitions/MateriaWasteLimits",
+          "description": "The maximum stat waste allowed by materia auto-fill, by stat."
         },
         "mfMinGcd": {
           "description": "The target GCD for materia auto-fill",
