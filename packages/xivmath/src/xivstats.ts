@@ -505,10 +505,7 @@ export function finalizeStatsInt(
     const combinedStats: RawStats = {...gearStats};
     if (classJobStats.type === 'Combat') {
         const mainStatKey = classJobStats.mainStat;
-        const secondaryStatKey = classJobStats.secondaryStat;
         const aaStatKey = classJobStats.autoAttackStat;
-        combinedStats[mainStatKey] += gearStats.extraMainStat;
-        combinedStats[secondaryStatKey] += gearStats.extraSecondaryStat;
         combinedStats[mainStatKey] = fl(combinedStats[mainStatKey] * (1 + 0.01 * partyBonus));
         if (aaStatKey && mainStatKey !== aaStatKey) {
             combinedStats[aaStatKey] = fl(combinedStats[aaStatKey] * (1 + 0.01 * partyBonus));

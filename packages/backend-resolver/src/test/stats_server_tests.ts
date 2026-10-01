@@ -57,7 +57,6 @@ describe('stats server', () => {
                     mainStat: 'mind',
                     secondaryStat: 'piety',
                     autoAttackStat: 'strength',
-                    meldParamIndex: 6,
                     aaPotency: 90,
                 });
                 expect(stats.jobStats.jobStatMultipliers).to.be.an('object');

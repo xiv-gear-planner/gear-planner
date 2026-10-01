@@ -225,6 +225,8 @@ export type ItemBase = XivApiObject &
     defensePhys: number;
     /** @format int32 */
     defenseMag: number;
+    /** @format int32 */
+    meldParamIndex: number;
   };
 
 export type ItemLevel = XivApiObject &
@@ -722,11 +724,11 @@ export class DataApiClient<
     /**
      * No description
      *
-     * @name FoodItems1
+     * @name MedicineItems
      * @summary Get medicine items
      * @request GET:/Medicine
      */
-    foodItems1: (params: RequestParams = {}) =>
+    medicineItems: (params: RequestParams = {}) =>
       this.request<MedicineEndpointResponse, any>({
         path: `/Medicine`,
         method: "GET",

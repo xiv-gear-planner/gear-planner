@@ -146,7 +146,6 @@ const STANDARD_HEALER: JobDataConst = {
     autoAttackStat: 'strength',
     irrelevantSubstats: ['skillspeed', 'tenacity'],
     traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.3, // Maim and Mend II
-    meldParamIndex: 6,
     aaPotency: MELEE_AUTO_POTENCY,
     excludedRelicSubstats: ['dhit'],
 } as const;
@@ -158,7 +157,6 @@ const STANDARD_TANK: JobDataConst = {
     secondaryStat: 'tenacity',
     autoAttackStat: 'strength',
     irrelevantSubstats: ['spellspeed', 'piety'],
-    meldParamIndex: 1,
     aaPotency: MELEE_AUTO_POTENCY,
     excludedRelicSubstats: ['dhit'],
 } as const;
@@ -172,23 +170,20 @@ const STANDARD_MELEE = {
     irrelevantSubstats: ['spellspeed', 'tenacity', 'piety'],
     aaPotency: MELEE_AUTO_POTENCY,
     excludedRelicSubstats: [],
-} as const satisfies Omit<JobDataConst, 'meldParamIndex'>;
+} as const;
 
 const MELEE_STRIKING: JobDataConst = {
     ...STANDARD_MELEE,
-    meldParamIndex: 3,
 } as const;
 
 const MELEE_SCOUTING: JobDataConst = {
     ...STANDARD_MELEE,
     mainStat: 'dexterity',
     autoAttackStat: 'dexterity',
-    meldParamIndex: 4,
 } as const;
 
 const MELEE_MAIMING: JobDataConst = {
     ...STANDARD_MELEE,
-    meldParamIndex: 2,
 } as const;
 
 const STANDARD_RANGED: JobDataConst = {
@@ -199,7 +194,6 @@ const STANDARD_RANGED: JobDataConst = {
     autoAttackStat: 'dexterity',
     irrelevantSubstats: ['spellspeed', 'tenacity', 'piety'],
     traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.2, // Increased Action Damage II
-    meldParamIndex: 4,
     aaPotency: RANGE_AUTO_POTENCY,
     excludedRelicSubstats: [],
 } as const;
@@ -212,7 +206,6 @@ const STANDARD_CASTER: JobDataConst = {
     autoAttackStat: 'strength',
     irrelevantSubstats: ['skillspeed', 'tenacity', 'piety'],
     traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.3, // Maim and Mend II
-    meldParamIndex: 5,
     aaPotency: MELEE_AUTO_POTENCY,
     excludedRelicSubstats: [],
 } as const;
@@ -234,13 +227,11 @@ const NON_COMBAT = {
 const STANDARD_DOL: JobDataConst = {
     ...NON_COMBAT,
     type: 'DoL',
-    meldParamIndex: 0, // they're all the same, doesn't matter
 } as const;
 
 const STANDARD_DOH: JobDataConst = {
     ...NON_COMBAT,
     type: 'DoH',
-    meldParamIndex: 0, // they're all the same, doesn't matter
 } as const;
 
 export const BASE_GP = 400;

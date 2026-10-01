@@ -1,4 +1,4 @@
-import {CharacterGearSet, ItemSingleStatDetail, previewItemStatDetail} from "@xivgear/core/gear";
+import {CharacterGearSet, ItemSingleStatDetail} from "@xivgear/core/gear";
 import {
     DisplayGearSlotKey,
     EquipmentSet,
@@ -243,7 +243,10 @@ function medicineTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, st
         displayName: STAT_ABBREVIATIONS[stat],
         getter: item => {
             const bonus = item.bonuses[stat];
-            return bonus ? {...bonus, effective: set.getEffectiveMedicineBonuses(item)[stat]} satisfies FoodStatBonusWithEffective : undefined;
+            return bonus ? {
+                ...bonus,
+                effective: set.getEffectiveMedicineBonuses(item)[stat],
+            } satisfies FoodStatBonusWithEffective : undefined;
         },
         renderer: (value: FoodStatBonusWithEffective | undefined) => value ? statBonusDisplay(value) : document.createTextNode(""),
         condition: () => sheet.isStatRelevant(stat),
@@ -261,7 +264,10 @@ function medicineTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, st
 
 function medicineTableStatViewColumn(sheet: GearPlanSheet, set: CharacterGearSet, item: MedicineItem, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<MedicineItem, unknown, unknown> {
     const wrapped = medicineTableStatColumn(sheet, set, stat, highlightPrimarySecondary);
-    return {...wrapped, condition: () => item.primarySubStat === stat || item.secondarySubStat === stat};
+    return {
+        ...wrapped,
+        condition: () => item.primarySubStat === stat || item.secondarySubStat === stat,
+    };
 }
 
 
@@ -641,25 +647,13 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                 return new RelicCellInfo(set, currentEquipment.gearItem, slotItem.slotId, stat as Substat, set.getStatDetail(slotItem.slotId, stat), !item.relicStatModel.excludedStats.includes(stat as Substat));
             }
             else {
-                // Future TODO: this makes the assumption that an item will never have extra main stat *and* provide a
-                // specific main stat directly.
-                let effectiveStat: RawStatKey;
-                if (item.stats.extraMainStat && stat === set.classJobStats.mainStat) {
-                    effectiveStat = 'extraMainStat';
-                }
-                else if (item.stats.extraSecondaryStat && stat === set.classJobStats.secondaryStat) {
-                    effectiveStat = 'extraSecondaryStat';
-                }
-                else {
-                    effectiveStat = stat;
-                }
                 // Not a relic, or not an editable stat. Display normally
                 const selected = set.getItemInSlot(slotItem.slotId) === item;
                 if (selected) {
-                    return set.getStatDetail(slotItem.slotId, effectiveStat);
+                    return set.getStatDetail(slotItem.slotId, stat);
                 }
                 else {
-                    return previewItemStatDetail(item, effectiveStat);
+                    return set.getEquipStatDetail(set.toEquippedItem(item), stat);
                 }
             }
         },

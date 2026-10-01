@@ -1,9 +1,13 @@
 // @ts-expect-error no type defs available for this library
-import NodeFetchCache from 'node-fetch-cache';
+import NodeFetchCache, {MemoryCache} from 'node-fetch-cache';
 
 
 const cachedFetch = NodeFetchCache.create({
     shouldCacheResponse: (response: Response) => response.ok && !response.url?.includes("_cacheBust"),
+    cache: new MemoryCache({
+        // 24 hours
+        ttl: 24 * 60 * 60 * 1000,
+    }),
 });
 
 // @ts-expect-error no type defs available for this library

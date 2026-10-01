@@ -20,10 +20,10 @@ const testMedicine = {
     },
 };
 let medicineRequestCount = 0;
-const originalMedicineItems = DATA_API_CLIENT.medicine.foodItems1;
+const originalMedicineItems = DATA_API_CLIENT.medicine.medicineItems;
 
 before(() => {
-    DATA_API_CLIENT.medicine.foodItems1 = async () => {
+    DATA_API_CLIENT.medicine.medicineItems = async () => {
         medicineRequestCount++;
         return {
             ok: true,
@@ -33,7 +33,7 @@ before(() => {
 });
 
 after(() => {
-    DATA_API_CLIENT.medicine.foodItems1 = originalMedicineItems;
+    DATA_API_CLIENT.medicine.medicineItems = originalMedicineItems;
 });
 
 describe('DoH stats tests', () => {

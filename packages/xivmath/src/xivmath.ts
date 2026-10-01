@@ -104,6 +104,7 @@ export function clp(places: number, input: number) {
     const multiplier = Math.pow(10, places);
     return cl(input * multiplier) / multiplier;
 }
+
 /**
  * Convert skill speed to GCD speed.
  *
@@ -639,3 +640,28 @@ export function combineHasteBuffs(existingHaste: number, nextBuffHaste: number) 
     const combinedMult = flp(2, existingMult * nextMult);
     return fl(100 * (1 - combinedMult));
 }
+
+/**
+ * Calculate the stat cap for a given meldParam, ilvlModifier, and baseParamModifierSlotModifier
+ *
+ * @param meldParam The appropriate BaseParam.MeldParam value. Index comes from Item.BaseParamModifier. i.e.
+ *               this is BaseParam.MeldParam[Item.BaseParamModifier].
+ * @param ilvlModifier From ItemLevel[BaseParam.Name].
+ * @param baseParamModifierSlotModifier From BaseParam[slot].
+ */
+export function statCapWithJob(meldParam: number, ilvlModifier: number, baseParamModifierSlotModifier: number): number {
+    // meldParam is expected to already be divided by 100
+    // return Math.round(fl(fl(ilvlModifier * baseParamModifierSlotModifier / 100) * meldParam / 100) / 10);
+    return Math.round(fl(fl(ilvlModifier * meldParam / 100) * baseParamModifierSlotModifier / 100) / 10);
+}
+
+/**
+ * Calculate the stat cap for stats which do not have a jobCap available.
+ *
+ * @param ilvlModifier
+ * @param baseParamSlotModifier
+ */
+export function statCapNoJob(ilvlModifier: number, baseParamSlotModifier: number): number {
+    return Math.round(fl(ilvlModifier * baseParamSlotModifier / 100) / 10);
+}
+

@@ -1,5 +1,4 @@
 import {
-    getClassJobStats,
     JOB_DATA,
     JobName,
     LEVEL_ITEMS,
@@ -24,8 +23,8 @@ import {
     IlvlSyncInfo,
     JobMultipliers,
     Materia,
-    MedicineItem,
     MateriaSlot,
+    MedicineItem,
     OccGearSlotKey,
     RawStatKey,
     RawStats,
@@ -43,10 +42,18 @@ import {
 import {BaseParamMap, DataManager, DmJobs} from "./datamanager";
 import {applyStatCaps} from "./gear";
 import {toTranslatable, TranslatableString} from "@xivgear/i18n/translation";
-import {ApiFoodData, ApiItemData, ApiMateriaData, ApiMedicineData, checkResponse, DATA_API_CLIENT} from "./data_api_client";
+import {
+    ApiFoodData,
+    ApiItemData,
+    ApiMateriaData,
+    ApiMedicineData,
+    checkResponse,
+    DATA_API_CLIENT
+} from "./data_api_client";
 import {addStats} from "@xivgear/xivmath/xivstats";
 import {arrayEqTyped} from "@xivgear/util/array_utils";
 import {xivApiIconUrl} from "./external/xivapi";
+import {statCapNoJob, statCapWithJob} from "@xivgear/xivmath/xivmath";
 
 export class NewApiDataManager implements DataManager {
 
@@ -102,8 +109,6 @@ export class NewApiDataManager implements DataManager {
         if (this._isyncPromise === undefined) {
             this._isyncPromise = Promise.all([baseParamPromise, this.apiClient.itemLevel.itemLevels()]).then(responses => {
                 const outMap = new Map<number, IlvlSyncInfo>();
-                // This is the constant data from xivconstants.ts
-                const jobStats = getClassJobStats(this._classJob);
                 // Iterate over rows in ItemLevel table
                 for (const row of checkResponse(responses[1]).data!.items!) {
                     const ilvl = row.rowId!;
@@ -112,7 +117,7 @@ export class NewApiDataManager implements DataManager {
                     const baseParams = this._baseParams!;
                     outMap.set(ilvl, {
                         ilvl: ilvl,
-                        substatCap(slot: OccGearSlotKey, statsKey: RawStatKey): number {
+                        substatCap(slot: OccGearSlotKey, statsKey: RawStatKey, meldParamIndex: number | null): number {
                             let ilvlModifier: number | undefined;
                             switch (statsKey) {
                                 case "hp":
@@ -173,11 +178,13 @@ export class NewApiDataManager implements DataManager {
                                     // Don't bother capping haste since it doesn't work like a normal stat.
                                     return 999_999;
                                 case "extraMainStat":
-                                    // Main stats **should** all be the same
+                                    // Main stats **should** all be the same, but it doesn't matter because these are
+                                    // capped as the stat that they actually become.
                                     ilvlModifier = row.mind;
                                     break;
                                 case "extraSecondaryStat":
-                                    // Secondary stats also should all be the same
+                                    // Secondary stats also should all be the same, but it doesn't matter because these are
+                                    // capped as the stat that they actually become.
                                     ilvlModifier = row.directHitRate;
                                     break;
                                 case "cp":
@@ -206,13 +213,13 @@ export class NewApiDataManager implements DataManager {
 
                             function calcCap(slot: OccGearSlotKey): number {
                                 const bpInfo = baseParams[statsKey as RawStatKey];
-                                const baseParamModifier: number = bpInfo.slots[slot];
-                                const jobCap = bpInfo.meldParam[jobStats.meldParamIndex] / 100;
-                                if (jobCap !== undefined && ilvlModifier !== undefined) {
-                                    return Math.round(jobCap * Math.round(ilvlModifier * baseParamModifier / 1000));
+                                const baseParamSlotModifier: number = bpInfo.slots[slot];
+                                const meldParam = meldParamIndex === null ? 100 : bpInfo.meldParam[meldParamIndex];
+                                if (meldParam !== undefined && ilvlModifier !== undefined) {
+                                    return statCapWithJob(meldParam, ilvlModifier, baseParamSlotModifier);
                                 }
                                 else {
-                                    return Math.round(ilvlModifier * baseParamModifier / 1000);
+                                    return statCapNoJob(ilvlModifier, baseParamSlotModifier);
                                 }
                             }
 
@@ -448,7 +455,7 @@ export class NewApiDataManager implements DataManager {
             .then((foods) => this._allFoodItems = foods);
         const hasNonCombatJob = this._allJobs.some(job => JOB_DATA[job].type !== 'Combat');
         const medicinePromise = hasNonCombatJob
-            ? this.apiClient.medicine.foodItems1()
+            ? this.apiClient.medicine.medicineItems()
                 .then((response) => {
                     checkResponse(response);
                     console.log(`Got ${response.data.items.length} Medicine Items`);
@@ -700,6 +707,7 @@ export class DataApiGearInfo implements GearItem {
     // Actual effective stats
     stats: RawStats;
     readonly slotMapping: DataApiEquipSlotMap;
+    readonly meldParamIndex: number;
 
     constructor(data: ApiItemData, forceNq: boolean = false) {
         this.jobs = data.classJobs as JobName[];
@@ -886,6 +894,7 @@ export class DataApiGearInfo implements GearItem {
                 break;
         }
         this.rarity = data.rarity;
+        this.meldParamIndex = data.meldParamIndex;
         this.recalcEffectiveStats();
     }
 
@@ -931,7 +940,7 @@ export class DataApiGearInfo implements GearItem {
         const statCapsNative: RawStatsPart = {};
         Object.entries(this.baseStats).forEach(([stat, _]) => {
             const rsk = stat as RawStatKey;
-            statCapsNative[rsk] = nativeIlvlInfo.substatCap(this.occGearSlotName, rsk);
+            statCapsNative[rsk] = nativeIlvlInfo.substatCap(this.occGearSlotName, rsk, this.meldParamIndex);
         });
         this.statCaps = statCapsNative;
         if (syncIlvlInfo && (syncIlvlInfo.ilvl < this.ilvl || level < this.equipLvl)) {
@@ -943,7 +952,7 @@ export class DataApiGearInfo implements GearItem {
             const statCapsSync: RawStatsPart = {};
             Object.entries(this.baseStats).forEach(([stat, v]) => {
                 const rsk = stat as RawStatKey;
-                statCapsSync[rsk] = syncIlvlInfo.substatCap(this.occGearSlotName, rsk);
+                statCapsSync[rsk] = syncIlvlInfo.substatCap(this.occGearSlotName, rsk, this.meldParamIndex);
             });
             this.baseStats = applyStatCaps(this.baseStats, statCapsSync);
             this.statCaps = statCapsSync;

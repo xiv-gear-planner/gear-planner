@@ -249,14 +249,14 @@ export class CustomItem implements GearItem {
         if (this.respectCaps && nativeIlvlInfo) {
             const statCapsNative: RawStatsPart = {};
             Object.entries(this.stats).forEach(([stat, _]) => {
-                statCapsNative[stat as RawStatKey] = nativeIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
+                statCapsNative[stat as RawStatKey] = nativeIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey, null);
             });
             this.statCaps = statCapsNative;
             if (syncIlvlInfo && syncIlvlInfo.ilvl < this.ilvl) {
                 this.unsyncedVersion = new CustomItem({...this._data}, this.sheet, true);
                 const statCapsSync: RawStatsPart = {};
                 Object.entries(this.stats).forEach(([stat, v]) => {
-                    statCapsSync[stat as RawStatKey] = syncIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
+                    statCapsSync[stat as RawStatKey] = syncIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey, null);
                 });
                 this.statCaps = statCapsSync;
                 this.isSyncedDown = true;
