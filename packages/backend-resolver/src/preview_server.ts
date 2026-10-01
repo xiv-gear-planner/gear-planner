@@ -2,7 +2,6 @@ import {ServerBase} from "./server_base";
 import {FastifyInstance} from "fastify";
 import fastifyWebResponse from "fastify-web-response";
 import {FrontendFileServerProvider} from "./frontend_file_server";
-import {nonCachedFetch} from "./polyfills";
 import {
     DEFAULT_DESC,
     DEFAULT_NAME,
@@ -20,6 +19,7 @@ import {ALL_COMBAT_JOBS, JOB_DATA} from "@xivgear/xivmath/xivconstants";
 import process from "process";
 import {getMergedQueryParams, intParam, NavDataService, navPathParam, SheetRequest} from "./server_utils";
 import {PreviewQueryParams} from "./stats_server_schema_types";
+import {nonCachedFetch} from "./fetch_cache";
 
 export class PreviewServer extends ServerBase {
     private readonly parser = new DOMParser();
