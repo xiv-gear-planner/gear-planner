@@ -70,7 +70,7 @@ async function startServer() {
         // Parallel import
         const [{DOMParser}, {PreviewServer}] = await Promise.all([
             import('linkedom'),
-            import('@xivgear/backend-resolver/preview_server'),
+            Promise.resolve().then(() => require('@xivgear/backend-resolver/preview_server')),
         ]);
         new PreviewServer(fePaths, navDataService, new DOMParser()).setupAndStart();
     }
@@ -78,7 +78,7 @@ async function startServer() {
         console.log('Building stats server');
         // Don't install the fetch cache for stats server - data api items calls are too heavy, and it is
         // generally less performance-sensitive.
-        const {StatsServer} = await import('@xivgear/backend-resolver/stats_server');
+        const {StatsServer} = require('@xivgear/backend-resolver/stats_server');
         new StatsServer(shortlinkService, navDataService, bisService).setupAndStart();
     }
 }
