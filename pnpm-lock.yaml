@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  linkedom@0.18.13:
+    hash: jgtjtnr46dskygda7slhqbfrpq
+    path: packages/backend-resolver/patches/linkedom@0.18.13.patch
+
 importers:
 
   .:
@@ -123,7 +128,7 @@ importers:
         version: 3.0.0
       linkedom:
         specifier: ^0.18.13
-        version: 0.18.13
+        version: 0.18.13(patch_hash=jgtjtnr46dskygda7slhqbfrpq)
       node-fetch-cache:
         specifier: ^4.1.2
         version: 4.1.2
@@ -2219,6 +2224,7 @@ packages:
   eslint@9.39.2:
     resolution: {integrity: sha512-LEyamqS7W5HB3ujJyvi0HQK/dtVINZvd5mAAp9eT5S/ujByGjiZLCzPcHVzuXbpJDJF/cxwHlfceVUDZ2lnSTw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'
@@ -7726,7 +7732,7 @@ snapshots:
 
   lines-and-columns@1.2.4: {}
 
-  linkedom@0.18.13:
+  linkedom@0.18.13(patch_hash=jgtjtnr46dskygda7slhqbfrpq):
     dependencies:
       css-select: 7.0.0
       cssom: 0.5.0

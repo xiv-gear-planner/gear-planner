@@ -26,7 +26,7 @@ export class PreviewServer extends ServerBase {
     constructor(
         private readonly frontendPaths: FrontendFileServerProvider,
         private readonly navDataService: NavDataService,
-        private readonly parser: LinkedomDOMParser,
+        private readonly parser: LinkedomDOMParser
     ) {
         super();
         const extraScriptsRaw = process.env.EXTRA_SCRIPTS;
@@ -71,7 +71,7 @@ export class PreviewServer extends ServerBase {
             const nav = parsePath(state);
             request.log.info(pathPaths, 'Path');
             const navResult = this.navDataService.resolveNavData(nav);
-            const doc = this.parser.parseFromString(text, 'text/html') as unknown as globalThis.HTMLDocument;
+            const doc = this.parser.parseFromString(text, 'text/html');
             const head = doc.head;
             const body = doc.body;
             if (navResult !== null) {
@@ -107,10 +107,10 @@ export class PreviewServer extends ServerBase {
                 }
 
                 function addPreload(url: string, as: string) {
-                    // For some reason, `.as = 'fetch'` doesn't work, but this does.
                     const preload = doc.createElement('link');
                     preload.rel = 'preload';
                     preload.href = url;
+                    // For some reason, `.as = 'fetch'` doesn't work, but this does.
                     preload.setAttribute("as", as);
                     preload.setAttribute("crossorigin", "");
                     head.appendChild(preload);
