@@ -1,4 +1,5 @@
 import {expect} from "chai";
+import 'global-jsdom/register';
 import {BIS_BROWSER_HASH, BIS_HASH, SHORTLINK_HASH} from "@xivgear/core/nav/common_nav";
 import {ALL_COMBAT_JOBS} from "@xivgear/xivmath/xivconstants";
 import '../polyfills';
@@ -25,7 +26,11 @@ function readPreviewProps(document: Document): Record<string, string> {
 function makePreviewServer() {
     const sls = makeMockShortlinkService();
     const bis = makeMockBisService();
-    const previewServer = new PreviewServer(frontendPaths(), new NavDataServiceImpl(sls, bis));
+    const previewServer = new PreviewServer(
+        frontendPaths(),
+        new NavDataServiceImpl(sls, bis),
+        new DOMParser() as unknown as ConstructorParameters<typeof PreviewServer>[2],
+    );
     return previewServer.setupForTest();
 }
 

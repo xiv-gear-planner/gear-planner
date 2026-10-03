@@ -10,6 +10,9 @@
     "generate-schemas": "pnpm exec ts-json-schema-generator --path \"src/stats_server_schema_types.ts\" --out schemas/stats-schemas.json -f ./tsconfig.json",
     "test": "ts-mocha --no-experimental-strip-types --parallel=true --timeout 30000 \"src/test/**/*.ts\""
   },
+  "exports": {
+    "./*": "./src/*.ts"
+  },
   "dependencies": {
     "@fastify/cors": "8.5.0",
     "@fastify/swagger": "^8.14.0",
@@ -22,9 +25,8 @@
     "fastify": "^4.29.1",
     "fastify-ip": "1.1.0",
     "fastify-web-response": "^0.1.2",
-    "global-jsdom": "^25.0.0",
     "isomorphic-fetch": "^3.0.0",
-    "jsdom": "^25.0.1",
+    "linkedom": "^0.18.13",
     "node-fetch-cache": "^4.1.2",
     "npm-bundle": "^3.0.3"
   },
@@ -33,6 +35,8 @@
     "@types/jsdom": "^21.1.7",
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.15.18",
+    "global-jsdom": "^25.0.0",
+    "jsdom": "^25.0.1",
     "ts-json-schema-generator": "^2.5.0",
     "ts-mocha": "^10.1.0",
     "ts-node": "^10.9.2",

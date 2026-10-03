@@ -2,6 +2,7 @@ import {ServerBase} from "./server_base";
 import {FastifyInstance} from "fastify";
 import fastifyWebResponse from "fastify-web-response";
 import {FrontendFileServerProvider} from "./frontend_file_server";
+import type {DOMParser as LinkedomDOMParser} from "linkedom" with {"resolution-mode": "import"};
 import {
     DEFAULT_DESC,
     DEFAULT_NAME,
@@ -13,8 +14,6 @@ import {
     PREVIEW_MAX_NAME_LENGTH,
     SELECTION_INDEX_QUERY_PARAM
 } from "@xivgear/core/nav/common_nav";
-import 'global-jsdom/register';
-import './polyfills';
 import {ALL_COMBAT_JOBS, JOB_DATA} from "@xivgear/xivmath/xivconstants";
 import process from "process";
 import {getMergedQueryParams, intParam, NavDataService, navPathParam, SheetRequest} from "./server_utils";
@@ -22,10 +21,13 @@ import {PreviewQueryParams} from "./stats_server_schema_types";
 import {nonCachedFetch} from "./fetch_cache";
 
 export class PreviewServer extends ServerBase {
-    private readonly parser = new DOMParser();
     private readonly extraScripts: readonly string[] = [];
 
-    constructor(private readonly frontendPaths: FrontendFileServerProvider, private readonly navDataService: NavDataService) {
+    constructor(
+        private readonly frontendPaths: FrontendFileServerProvider,
+        private readonly navDataService: NavDataService,
+        private readonly parser: LinkedomDOMParser,
+    ) {
         super();
         const extraScriptsRaw = process.env.EXTRA_SCRIPTS;
         if (extraScriptsRaw) {
@@ -69,7 +71,7 @@ export class PreviewServer extends ServerBase {
             const nav = parsePath(state);
             request.log.info(pathPaths, 'Path');
             const navResult = this.navDataService.resolveNavData(nav);
-            const doc = this.parser.parseFromString(text, 'text/html');
+            const doc = this.parser.parseFromString(text, 'text/html') as unknown as globalThis.HTMLDocument;
             const head = doc.head;
             const body = doc.body;
             if (navResult !== null) {
@@ -105,10 +107,10 @@ export class PreviewServer extends ServerBase {
                 }
 
                 function addPreload(url: string, as: string) {
+                    // For some reason, `.as = 'fetch'` doesn't work, but this does.
                     const preload = doc.createElement('link');
                     preload.rel = 'preload';
                     preload.href = url;
-                    // For some reason, `.as = 'fetch'` doesn't work, but this does.
                     preload.setAttribute("as", as);
                     preload.setAttribute("crossorigin", "");
                     head.appendChild(preload);
@@ -148,7 +150,7 @@ export class PreviewServer extends ServerBase {
                 (await navResult.imagePreloads).forEach(preload => addImagePreload(preload.toString()));
                 // addDnsPreload('https://v2.xivapi.com/');
                 if (this.extraScripts) {
-                    function addExtraScript(url: string, extraProps: object = {}) {
+                    function addExtraScript(url: string, extraProps: Record<string, string> = {}) {
                         const script = doc.createElement('script');
                         script.src = url;
                         Object.entries(extraProps).forEach(([k, v]) => {
@@ -203,7 +205,7 @@ export class PreviewServer extends ServerBase {
                 //     head.append(meta);
                 // }
                 if (this.extraScripts) {
-                    function addDisabledScript(url: string, extraProps: object = {}) {
+                    function addDisabledScript(url: string, extraProps: Record<string, string> = {}) {
                         const script = doc.createElement('script-disabled');
                         script.setAttribute('src', url);
                         Object.entries(extraProps).forEach(([k, v]) => {

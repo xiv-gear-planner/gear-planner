@@ -24,6 +24,9 @@ describe("shortlink put endpoints", () => {
         expect(json.embedUrl).to.be.ok;
         const normal = new URL(json.url);
         const embed = new URL(json.embedUrl);
+        const expectedHostname = new URL(process.env.FRONTEND_CLIENT || 'https://xivgear.app/').hostname;
+        expect(normal.hostname).to.equal(expectedHostname);
+        expect(embed.hostname).to.equal(expectedHostname);
         const normalPath = splitUrlPath(normal.pathname);
         const embedPath = splitUrlPath(embed.pathname);
         expect(normalPath).to.have.length(2);
@@ -66,6 +69,8 @@ describe("shortlink put endpoints", () => {
         const json = response.json() as PutSheetResponse;
         expect(json.url).to.be.ok;
         const base = new URL(json.url);
+        const expectedHostname = new URL(process.env.FRONTEND_CLIENT || 'https://xivgear.app/').hostname;
+        expect(base.hostname).to.equal(expectedHostname);
         const basePath = splitUrlPath(base.pathname);
         expect(basePath).to.have.length(2);
         expect(basePath[0]).to.equal('sl');
@@ -78,12 +83,72 @@ describe("shortlink put endpoints", () => {
             const normal = new URL(s.url);
             const embed = new URL(s.embedUrl);
             const preSelect = new URL(s.preSelectUrl);
+            expect(normal.hostname).to.equal(expectedHostname);
+            expect(embed.hostname).to.equal(expectedHostname);
+            expect(preSelect.hostname).to.equal(expectedHostname);
             expect(splitUrlPath(normal.pathname)).to.deep.equal(['sl', uuid]);
             expect(normal.searchParams.get('onlySetIndex')).to.equal(s.index.toString());
             expect(splitUrlPath(embed.pathname)).to.deep.equal(['embed', 'sl', uuid]);
             expect(embed.searchParams.get('onlySetIndex')).to.equal(s.index.toString());
             expect(splitUrlPath(preSelect.pathname)).to.deep.equal(['sl', uuid]);
             expect(preSelect.searchParams.get('selectedIndex')).to.equal(s.index.toString());
+        }
+    }).timeout(30_000);
+
+    it("defaults generated URLs to xivgear.app", async () => {
+        const originalFrontendClient = process.env.FRONTEND_CLIENT;
+        const originalDocument = globalThis.document;
+        delete process.env.FRONTEND_CLIENT;
+        try {
+            const defaultFastify = makeStatsServer().setupForTest();
+            const response = await defaultFastify.inject({
+                method: 'PUT',
+                url: '/putset',
+                payload: {
+                    name: 'Default Set',
+                    items: {},
+                },
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as PutSetResponse;
+            expect(new URL(json.url).hostname).to.equal('xivgear.app');
+            expect(new URL(json.embedUrl).hostname).to.equal('xivgear.app');
+        }
+        finally {
+            globalThis.document = originalDocument;
+            if (originalFrontendClient !== undefined) {
+                process.env.FRONTEND_CLIENT = originalFrontendClient;
+            }
+        }
+    }).timeout(30_000);
+
+    it("uses FRONTEND_CLIENT as the generated URL base", async () => {
+        const originalFrontendClient = process.env.FRONTEND_CLIENT;
+        const originalDocument = globalThis.document;
+        process.env.FRONTEND_CLIENT = 'https://preview.example.test/';
+        try {
+            const configuredFastify = makeStatsServer().setupForTest();
+            const response = await configuredFastify.inject({
+                method: 'PUT',
+                url: '/putset',
+                payload: {
+                    name: 'Configured Set',
+                    items: {},
+                },
+            });
+            expect(response.statusCode).to.equal(200);
+            const json = response.json() as PutSetResponse;
+            expect(new URL(json.url).hostname).to.equal('preview.example.test');
+            expect(new URL(json.embedUrl).hostname).to.equal('preview.example.test');
+        }
+        finally {
+            globalThis.document = originalDocument;
+            if (originalFrontendClient === undefined) {
+                delete process.env.FRONTEND_CLIENT;
+            }
+            else {
+                process.env.FRONTEND_CLIENT = originalFrontendClient;
+            }
         }
     }).timeout(30_000);
 });
