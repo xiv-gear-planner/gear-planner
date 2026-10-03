@@ -1,8 +1,4 @@
-import * as process from "process";
 import {setDataApi} from "@xivgear/core/data_api_client";
-import {ServerBase} from "./server_base";
-import {StatsServer} from "./stats_server";
-import {PreviewServer} from "./preview_server";
 import {frontendPaths} from "./frontend_file_server";
 import {BisServiceImpl} from "@xivgear/core/external/static_bis";
 import {ShortlinkServiceImpl} from "@xivgear/core/external/shortlink_server";
@@ -60,7 +56,6 @@ const navDataService = new NavDataServiceImpl(shortlinkService, bisService);
 
 startPeriodicMemoryMonitor();
 
-// TODO: no particularly good way to override this yet
 const dataApiOverride = process.env.DATA_API;
 if (dataApiOverride) {
     console.log(`Data api override: '${dataApiOverride}';`);
@@ -68,16 +63,29 @@ if (dataApiOverride) {
     setDataApi(dataApiOverride);
 }
 
-let server: ServerBase;
-if (process.env.IS_PREVIEW_SERVER === 'true') {
-    console.log('Building preview server');
-    installFetchCache();
-    server = new PreviewServer(fePaths, navDataService);
+async function startServer() {
+    if (process.env.IS_PREVIEW_SERVER === 'true') {
+        console.log('Building preview server');
+        installFetchCache();
+        // Parallel import
+        const [{DOMParser}, {PreviewServer}] = await Promise.all([
+            import('linkedom'),
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
+            Promise.resolve().then(() => require('@xivgear/backend-resolver/preview_server')),
+        ]);
+        new PreviewServer(fePaths, navDataService, new DOMParser()).setupAndStart();
+    }
+    else {
+        console.log('Building stats server');
+        // Don't install the fetch cache for stats server - data api items calls are too heavy, and it is
+        // generally less performance-sensitive.
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const {StatsServer} = require('@xivgear/backend-resolver/stats_server');
+        new StatsServer(shortlinkService, navDataService, bisService).setupAndStart();
+    }
 }
-else {
-    console.log('Building stats server');
-    // Don't install the fetch cache for stats server - data api items calls are too heavy, and it is
-    // generally less performance-sensitive.
-    server = new StatsServer(shortlinkService, navDataService, bisService);
-}
-server.setupAndStart();
+
+startServer().catch(error => {
+    console.error(error);
+    process.exitCode = 1;
+});

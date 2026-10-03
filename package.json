@@ -48,5 +48,10 @@
     "userdataschemalocal": "pnpm --filter @xivgear/user-data-client exec swagger-typescript-api generate -o ./src/ -n userdata.ts -p http://localhost:8087/swagger/xivgear-userdata-service-0.0.yml --api-class-name UserDataClient --responses",
     "clean": "rm -rf packages/*/dist packages/*/build ./build packages/*/.nyc_output",
     "proxy:userdata": "node scripts/userdata-proxy.js"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "linkedom@0.18.13": "packages/backend-resolver/patches/linkedom@0.18.13.patch"
+    }
   }
 }

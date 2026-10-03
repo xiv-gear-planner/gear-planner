@@ -323,6 +323,7 @@ export function makeUrlSimple(...path: string[]): URL {
  * @param navState
  */
 export function makeUrl(navState: NavState): URL {
+    // TODO: if this references document, it isn't server friendly
     const currentLocation = document.location;
     const params = new URLSearchParams(currentLocation.search);
     const baseUrl = document.location.toString();

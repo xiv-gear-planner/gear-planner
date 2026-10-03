@@ -1,7 +1,6 @@
 import {ServerBase} from "./server_base";
 import {FastifyInstance, FastifyRequest} from "fastify";
-import 'global-jsdom/register';
-import './polyfills';
+import process from "node:process";
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
 import {ShortlinkService} from "@xivgear/core/external/shortlink_server";
@@ -58,9 +57,17 @@ import {Sema} from "async-sema";
 
 
 export class StatsServer extends ServerBase {
+    private readonly frontendLocation: URL;
 
     constructor(private readonly shortlinkService: ShortlinkService, private readonly navDataService: NavDataService, private readonly bisService: BisService) {
         super();
+        this.frontendLocation = new URL(process.env.FRONTEND_CLIENT || 'https://xivgear.app/');
+        // makeUrl only needs location.search and location.toString(); the stats service has no DOM.
+        this.installFrontendLocation();
+    }
+
+    private installFrontendLocation(): void {
+        globalThis.document = {location: this.frontendLocation} as unknown as Document;
     }
 
     setup(fastifyInstance: FastifyInstance): void {
@@ -469,6 +476,7 @@ export class StatsServer extends ServerBase {
                         return;
                     }
                     const contentStr = JSON.stringify(b);
+                    this.installFrontendLocation();
                     const normalUrl = await this.shortlinkService.putShortLink(contentStr, false);
                     const embedUrl = toEmbedUrl(normalUrl);
                     const out: PutSetResponse = {
@@ -502,6 +510,7 @@ export class StatsServer extends ServerBase {
                         return;
                     }
                     const contentStr = JSON.stringify(b);
+                    this.installFrontendLocation();
                     const baseUrl = await this.shortlinkService.putShortLink(contentStr, false);
                     const setsOut: PutSheetResponse['sets'] = [];
                     const sheet = b as unknown as SheetExport;
