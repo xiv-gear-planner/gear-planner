@@ -1,4 +1,5 @@
 import {expect} from "chai";
+import 'global-jsdom/register';
 import {BIS_BROWSER_HASH, BIS_HASH, SHORTLINK_HASH} from "@xivgear/core/nav/common_nav";
 import {ALL_COMBAT_JOBS} from "@xivgear/xivmath/xivconstants";
 import '../polyfills';
@@ -22,19 +23,27 @@ function readPreviewProps(document: Document): Record<string, string> {
     return out;
 }
 
-function makePreviewServer() {
+async function makePreviewServer() {
+    const {DOMParser} = await import("linkedom");
     const sls = makeMockShortlinkService();
     const bis = makeMockBisService();
-    const previewServer = new PreviewServer(frontendPaths(), new NavDataServiceImpl(sls, bis));
+    const previewServer = new PreviewServer(
+        frontendPaths(),
+        new NavDataServiceImpl(sls, bis),
+        new DOMParser()
+    );
     return previewServer.setupForTest();
 }
 
 describe('preview server', () => {
     describe("preview endpoint", () => {
-        const fastify = makePreviewServer();
+        let fastify: Awaited<ReturnType<typeof makePreviewServer>>;
         const parser = new DOMParser();
         const slTitle = 'WHM 6.4 copy - XivGear - FFXIV Gear Planner';
         const shortlinkUuid = 'f9b260a9-650c-445a-b3eb-c56d8d968501';
+        before(async () => {
+            fastify = await makePreviewServer();
+        });
         it("resolves canonical slash-delimited shortlink paths", async () => {
             const response = await fastify.inject({
                 method: 'GET',
@@ -482,7 +491,7 @@ describe('preview server', () => {
         });
 
         it("injects extra scripts for normal pages", async () => {
-            const fastify = makePreviewServer();
+            const fastify = await makePreviewServer();
             const response = await fastify.inject({
                 method: 'GET',
                 url: `/?page=${SHORTLINK_HASH}|f9b260a9-650c-445a-b3eb-c56d8d968501`,
@@ -493,7 +502,7 @@ describe('preview server', () => {
         }).timeout(30_000);
 
         it("does not inject extra scripts when embedded", async () => {
-            const fastify = makePreviewServer();
+            const fastify = await makePreviewServer();
             const response = await fastify.inject({
                 method: 'GET',
                 url: `/?page=embed|sl|f9b260a9-650c-445a-b3eb-c56d8d968501&onlySetIndex=1`,

@@ -1,5 +1,3 @@
-import 'global-jsdom/register';
-import './polyfills';
 import {FastifyRequest} from "fastify";
 import {SetExport, SetExportExternalSingle, SheetExport, TopLevelExport} from "@xivgear/xivmath/geartypes";
 import {BisService} from "@xivgear/core/external/static_bis";

@@ -1,0 +1,13 @@
+diff --git a/types/esm/html/document.d.ts b/types/esm/html/document.d.ts
+index cebc263b5c3ba5bf121f3bfb3dbcfaaa682e2c41..c362c77e2a5b3d0aee5386bf6a7a1b127c8b1c83 100644
+--- a/types/esm/html/document.d.ts
++++ b/types/esm/html/document.d.ts
+@@ -17,7 +17,7 @@ export class HTMLDocument extends Document implements globalThis.HTMLDocument {
+      * @type HTMLTitleElement
+      */
+     get title(): HTMLTitleElement;
+-    createElement(localName: any, options: any): any;
++    createElement(localName: any, options?: any): any;
+ }
+ import { Document } from '../interface/document.js';
+ import { NodeList } from '../interface/node-list.js';
