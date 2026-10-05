@@ -151,17 +151,23 @@ function enableScripts() {
 async function doNav(navState: NavState) {
     try {
         const nav = parsePath(navState);
-        if ('embed' in nav && !nav.embed) {
-            enableScripts();
-        }
         if (nav === null) {
             console.error('unknown nav', navState);
+            recordError('unknownNav', {
+                'navState': navState,
+                'navStatePath': navState?.path,
+            });
             showSheetPickerMenu();
             return;
         }
-        if ('embed' in nav && nav.embed) {
-            embed = true;
-            earlyEmbedInit();
+        if ('embed' in nav) {
+            if (nav.embed) {
+                embed = true;
+                earlyEmbedInit();
+            }
+            else {
+                enableScripts();
+            }
         }
         if (nav.type !== 'mysheets') {
             hideWelcomeArea();
