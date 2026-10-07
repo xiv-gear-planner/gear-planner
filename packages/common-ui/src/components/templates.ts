@@ -15,21 +15,31 @@ export type ElementTemplate<Out extends HTMLElement> = StringTemplate<ElementTem
 // attempt at using tagged templates to do strings
 export function elt<X extends keyof HTMLElementTagNameMap>(tag: X, opts: ElOpts<X> = {}): ElementTemplate<HTMLElementTagNameMap[X]> {
     return (strings: readonly string[], ...args: unknown[]) => {
-        const out: Parameters<ParentNode['replaceChildren']> = [];
-        out.push(strings[0]);
-        for (let i = 0; i < args.length; i++) {
-            const arg = args[i];
-            if (typeof arg === 'string' || arg instanceof Node) {
-                out.push(arg);
-            }
-            else {
-                out.push(String(arg));
-            }
-            out.push(strings[i + 1]);
-        }
+        const out = processElementTemplate(strings, args);
         return el(tag, opts, out);
     };
 }
+
+function processElementTemplate(strings: readonly string[], ...args: unknown[]): (string | Node)[] {
+    const out: Parameters<ParentNode['replaceChildren']> = [];
+    out.push(strings[0]);
+    for (let i = 0; i < args.length; i++) {
+        const arg = args[i];
+        if (typeof arg === 'string' || arg instanceof Node) {
+            out.push(arg);
+        }
+        else {
+            out.push(String(arg));
+        }
+        out.push(strings[i + 1]);
+    }
+    return out;
+}
+
+/**
+ * Like elt, but just returns a list of children rather than creating an element.
+ */
+export const cht: StringTemplate<ElementTemplateInputs, (Node | string)[]> = processElementTemplate;
 
 export const bold = elt('b');
 export const p = elt('p');
