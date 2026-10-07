@@ -1,4 +1,4 @@
-import {goHash, processNav, setHash} from "./nav_hash";
+import {goPath, processNav, setPath} from "./nav_hash";
 import {DISPLAY_SETTINGS} from "@xivgear/common-ui/settings/display_settings";
 import {showSettingsModal} from "@xivgear/common-ui/settings/settings_modal";
 import {splitLegacyPipePath} from "@xivgear/core/nav/common_nav";
@@ -37,7 +37,7 @@ export function initTopMenu() {
         if (href?.startsWith('?page=')) {
             link.addEventListener('click', e => {
                 e.preventDefault();
-                goHash(...splitLegacyPipePath(href.slice(6)));
+                goPath(...splitLegacyPipePath(href.slice(6)));
             });
         }
     });
@@ -99,7 +99,7 @@ export function earlyUiSetup() {
     nukeButton.addEventListener('click', (ev) => {
         if (confirm('This will DELETE ALL sheets, sets, and settings.')) {
             localStorage.clear();
-            setHash();
+            setPath();
             location.reload();
         }
     });

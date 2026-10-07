@@ -17,7 +17,7 @@ import {
     SupportedLevel,
     SupportedLevels
 } from "@xivgear/xivmath/xivconstants";
-import {setHash} from "../nav_hash";
+import {setPath} from "../nav_hash";
 import {CALC_HASH} from "@xivgear/core/nav/common_nav";
 import {writeProxy} from "@xivgear/util/proxies";
 import {ShowHideButton} from "@xivgear/common-ui/components/show_hide_chevron";
@@ -154,7 +154,7 @@ export class MathArea extends HTMLElement {
         registered.forEach(reg => {
             const menuItem = makeActionButton(reg.name, () => {
                 this.setFormulaSet(reg);
-                setHash(CALC_HASH, reg.stub);
+                setPath(CALC_HASH, reg.stub);
             });
             menuItem.value = reg.stub;
             this.menu.appendChild(menuItem);
