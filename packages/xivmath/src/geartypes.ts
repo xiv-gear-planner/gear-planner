@@ -1538,5 +1538,9 @@ export type MicroSlotExport = FoodMicroSlotExport | NormalItemMicroSlotExport | 
 
 export type IlvlSyncInfo = {
     readonly ilvl: number;
+    /**
+     * Get the ItemLevel modifier for a stat at this item level.
+     */
+    getIlvlModifier(statsKey: RawStatKey): number | undefined;
     substatCap(slot: OccGearSlotKey, statsKey: RawStatKey, meldParamIndex: number | null): number;
 }

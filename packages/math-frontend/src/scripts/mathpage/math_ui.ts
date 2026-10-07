@@ -580,6 +580,14 @@ export class MathArea extends HTMLElement {
                         },
                     }));
                 }
+                else if (variable.type === 'select') {
+                    columns.push(col({
+                        displayName: variable.label,
+                        shortName: 'var-' + variable.property.toString(),
+                        getter: item => variable.options.find(option => option.value === item.inputs[variable.property])?.label ?? '',
+                        renderer: value => document.createTextNode(value),
+                    }));
+                }
             });
             // Output columns
             formulaSet.functions.forEach(fn => {
@@ -702,6 +710,21 @@ export class MathArea extends HTMLElement {
                     out.appendChild(labeledInput(variable.label, editor));
                     break;
                 }
+                case "select": {
+                    const editor = document.createElement('select');
+                    variable.options.forEach(option => {
+                        const optionElement = document.createElement('option');
+                        optionElement.value = option.value;
+                        optionElement.textContent = option.label;
+                        editor.appendChild(optionElement);
+                    });
+                    editor.value = settings[variable.property] as string;
+                    editor.addEventListener('change', () => {
+                        (proxy as unknown as Record<string, unknown>)[variable.property] = editor.value;
+                    });
+                    out.appendChild(labeledInput(variable.label, editor));
+                    break;
+                }
             }
         }
         // Per-formula column visibility controls
@@ -766,4 +789,3 @@ function formatInputNum(value: unknown): string {
         return String(value);
     }
 }
-

@@ -32,16 +32,25 @@ export type Variable<AllArgType extends object> =
     {
         label: string,
     } & ({
-    type: 'number',
-    integer: boolean,
-    property: PropertyOfType<AllArgType, number>,
-    min?: (generalSettings: GeneralSettings) => number,
-    max?: (generalSettings: GeneralSettings) => number,
-} | {
-    type: 'level'
-} | {
-    type: 'job'
-});
+        type: 'number',
+        integer: boolean,
+        property: PropertyOfType<AllArgType, number>,
+        min?: (generalSettings: GeneralSettings) => number,
+        max?: (generalSettings: GeneralSettings) => number,
+    } | {
+        type: 'select',
+        property: PropertyOfType<AllArgType, string>,
+        options: readonly {
+            label: string,
+            value: string,
+        }[],
+    } | {
+        type: 'level'
+    } | {
+        type: 'job'
+    });
+
+export type MathFormulaVariable<AllArgType extends object> = Extract<Variable<AllArgType>, {type: 'number' | 'select'}>;
 
 // export type Foo = Variable<object> & {type: 'number'}
 
@@ -54,9 +63,7 @@ export type MathFormulaSet<AllArgType extends object> = {
     functions: MathFormula<AllArgType, Func>[];
     makeDefaultInputs: (generalSettings: GeneralSettings) => AllArgType;
     // makeEditorArea: (args: AllArgType, updateCallback: () => void) => Element;
-    variables: (Variable<AllArgType> & {
-        type: 'number'
-    })[];
+    variables: MathFormulaVariable<AllArgType>[];
     /**
      * The "primary" variable. If the user enters 100 for this, then the table should show values between
      * 100-x and 100+x for this.
@@ -94,4 +101,3 @@ export type FormulaSetInput<AllArgType extends object> = {
     results: ResultSet,
     isRange: boolean
 }
-

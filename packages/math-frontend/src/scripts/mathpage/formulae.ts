@@ -22,10 +22,20 @@ import {
     vitToHp,
     wdMulti
 } from "@xivgear/xivmath/xivmath";
-import {getClassJobStats, JOB_DATA, JobName, MAIN_STATS, STAT_ABBREVIATIONS} from "@xivgear/xivmath/xivconstants";
+import {
+    getClassJobStats,
+    JOB_DATA,
+    JobName,
+    LEVEL_ITEMS,
+    MAIN_STATS,
+    STAT_ABBREVIATIONS,
+    STAT_FULL_NAMES,
+    SupportedLevel,
+} from "@xivgear/xivmath/xivconstants";
 import {Func, GeneralSettings, MathFormula, registerFormula} from "./math_main";
 import {DataManager, makeDataManager} from "@xivgear/core/datamanager";
-import {JobData, LevelStats} from "@xivgear/xivmath/geartypes";
+import {JobData, LevelStats, OccGearSlotKey, OccGearSlots, RawStatKey} from "@xivgear/xivmath/geartypes";
+import {statCapWithJob} from "@xivgear/xivmath/xivmath";
 
 type BaseSpeedSettings = {
     baseGcd: number,
@@ -59,12 +69,16 @@ const hasteVar = {
 
 let jobDataManager: Promise<DataManager>;
 
-async function getClassJobStatsFull(job: JobName) {
+async function getMathDataManager(job: JobName): Promise<DataManager> {
     if (jobDataManager === undefined) {
         const dm = makeDataManager([job], 100);
         jobDataManager = dm.loadData().then(() => dm);
     }
-    const multipliers = (await jobDataManager).multipliersForJob(job);
+    return jobDataManager;
+}
+
+async function getClassJobStatsFull(job: JobName) {
+    const multipliers = (await getMathDataManager(job)).multipliersForJob(job);
     return {
         ...getClassJobStats(job),
         jobStatMultipliers: multipliers,
@@ -73,6 +87,32 @@ async function getClassJobStatsFull(job: JobName) {
 
 const baseMain = (generalSettings: GeneralSettings) => generalSettings.levelStats.baseMainStat;
 const baseSub = (generalSettings: GeneralSettings) => generalSettings.levelStats.baseSubStat;
+
+type IlvlSyncCapInputs = {
+    ilvl: number,
+    baseParam: RawStatKey,
+    slot: OccGearSlotKey,
+    meldParamIndex: string,
+}
+
+const meldParamOptions = [
+    {label: '0: TODO', value: '0'},
+    {label: '1: TODO', value: '1'},
+    {label: '2: TODO', value: '2'},
+    {label: '3: TODO', value: '3'},
+    {label: '4: TODO', value: '4'},
+    {label: '5: TODO', value: '5'},
+    {label: '6: TODO', value: '6'},
+    {label: '7: TODO', value: '7'},
+    {label: '8: TODO', value: '8'},
+    {label: '9: DoH/DoL', value: '9'},
+] as const;
+
+const baseParamOptions = (Object.keys(STAT_FULL_NAMES) as RawStatKey[])
+    .filter(stat => stat !== 'gearHaste')
+    .map(stat => ({label: STAT_FULL_NAMES[stat], value: stat}));
+
+const slotOptions = OccGearSlots.map(slot => ({label: slot, value: slot}));
 
 /**
  * Formual "wrapper" (actually just a pass-through) to allow for internal type-consistency for function arguments
@@ -122,6 +162,59 @@ export function registerFormulae() {
         ,
     })
     ;
+
+    registerFormula<IlvlSyncCapInputs>({
+        name: 'iLvl Sync Cap',
+        stub: 'ilvl-sync-cap',
+        functions: [formula({
+            name: 'Stat Cap With Job',
+            fn: statCapWithJob,
+            async argExtractor(arg, gen: GeneralSettings) {
+                const dm = await getMathDataManager(gen.classJob);
+                const baseParamInfo = dm.baseParams[arg.baseParam];
+                const meldParam = baseParamInfo?.meldParam[Number(arg.meldParamIndex)];
+                const ilvlModifier = dm.getIlvlSyncInfo(arg.ilvl)?.getIlvlModifier(arg.baseParam);
+                const baseParamSlotModifier = baseParamInfo?.slots[arg.slot];
+                if (meldParam === undefined || ilvlModifier === undefined || baseParamSlotModifier === undefined) {
+                    throw new Error(`Unable to calculate stat cap for ${arg.baseParam} at iLvl ${arg.ilvl}`);
+                }
+                return [meldParam, ilvlModifier, baseParamSlotModifier] as const;
+            },
+        })],
+        variables: [{
+            type: 'number',
+            label: 'Item Level',
+            property: 'ilvl',
+            integer: true,
+            min: () => 1,
+            max: () => 999,
+        }, {
+            type: 'select',
+            label: 'BaseParam',
+            property: 'baseParam',
+            options: baseParamOptions,
+        }, {
+            type: 'select',
+            label: 'Gear Slot',
+            property: 'slot',
+            options: slotOptions,
+        }, {
+            type: 'select',
+            label: 'Meld Param',
+            property: 'meldParamIndex',
+            options: meldParamOptions,
+        }],
+        primaryVariable: 'ilvl',
+        makeDefaultInputs(generalSettings: GeneralSettings) {
+            const level = generalSettings.levelStats.level as SupportedLevel;
+            return {
+                ilvl: LEVEL_ITEMS[level].defaultIlvlSync ?? LEVEL_ITEMS[level].defaultDisplaySettings.minILvl,
+                baseParam: 'crit',
+                slot: 'Body',
+                meldParamIndex: '0',
+            };
+        },
+    });
 
     registerFormula<{
         'wd': number,
@@ -657,4 +750,3 @@ export function registerFormulae() {
         variables: [],
     });
 }
-
