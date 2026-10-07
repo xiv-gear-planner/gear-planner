@@ -7,7 +7,8 @@ module.exports = (env, argv) => {
         entry: [path.resolve(__dirname, "./src/scripts/main.ts")],
         output: {
             path: path.resolve(__dirname + "/dist"),
-            clean: false
+            clean: false,
+            publicPath: '/'
         },
         optimization: {
             // Don't minimize the math stuff, formulae won't be readable
@@ -43,5 +44,20 @@ module.exports = (env, argv) => {
                 }),
             ],
         },
+        devServer: {
+            static: "./dist",
+            port: 8077,
+            client: {
+                overlay: false
+            },
+            historyApiFallback: {
+                rewrites: [
+                    {
+                        from: /.*/,
+                        to: '/index.html'
+                    }
+                ]
+            }
+        }
     }
 };
