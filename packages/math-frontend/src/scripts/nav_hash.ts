@@ -1,9 +1,4 @@
-import {
-    CALC_HASH,
-    getUrlNavigationPath,
-    HASH_QUERY_PARAM,
-    makeUrlPath
-} from "@xivgear/core/nav/common_nav";
+import {CALC_HASH, getUrlNavigationPath, HASH_QUERY_PARAM, makeUrlPath} from "@xivgear/core/nav/common_nav";
 
 import {formatTopMenu} from "./base_ui";
 import {openMath} from "./mathpage/math_ui";
@@ -128,17 +123,9 @@ export function goPath(...pathParts: string[]) {
     processNav();
 }
 
-/** @deprecated Use {@link setPath}. */
-export function setHash(...pathParts: string[]) {
-    setPath(...pathParts);
-}
-
-/** @deprecated Use {@link goPath}. */
-export function goHash(...pathParts: string[]) {
-    goPath(...pathParts);
-}
-
-/** Update the URL to a canonical slash-delimited path while preserving other query parameters. */
+/**
+ * Update the URL to a canonical slash-delimited path while preserving other query parameters.
+ */
 function setUrlPath(pathParts: string[]) {
     const url = new URL(location.href);
     url.pathname = makeUrlPath(pathParts);
