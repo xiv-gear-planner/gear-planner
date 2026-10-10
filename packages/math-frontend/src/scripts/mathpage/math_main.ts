@@ -31,6 +31,7 @@ export type MathFormula<AllArgType, FuncType extends Func> = {
 export type Variable<AllArgType extends object> =
     {
         label: string,
+        hideCol?: boolean,
     } & ({
         type: 'number',
         integer: boolean,
@@ -45,12 +46,20 @@ export type Variable<AllArgType extends object> =
             value: string,
         }[],
     } | {
+        type: 'numberselect',
+        property: PropertyOfType<AllArgType, number>,
+        options: readonly {
+            label: string,
+            value: number,
+        }[],
+        includeValueInLabel?: boolean,
+    } | {
         type: 'level'
     } | {
         type: 'job'
     });
 
-export type MathFormulaVariable<AllArgType extends object> = Extract<Variable<AllArgType>, {type: 'number' | 'select'}>;
+export type MathFormulaVariable<AllArgType extends object> = Extract<Variable<AllArgType>, {type: 'number' | 'select' | 'numberselect'}>;
 
 // export type Foo = Variable<object> & {type: 'number'}
 
@@ -64,6 +73,7 @@ export type MathFormulaSet<AllArgType extends object> = {
     makeDefaultInputs: (generalSettings: GeneralSettings) => AllArgType;
     // makeEditorArea: (args: AllArgType, updateCallback: () => void) => Element;
     variables: MathFormulaVariable<AllArgType>[];
+    maxDisplayEntries?: number;
     /**
      * The "primary" variable. If the user enters 100 for this, then the table should show values between
      * 100-x and 100+x for this.

@@ -175,6 +175,7 @@ export class NewApiDataManager implements DataManager {
                             case "perception":
                                 return row.perception;
                             default:
+                                console.warn(`Bad ilvl modifier! Stat: ${statsKey}`);
                                 return undefined;
                         }
                     };
@@ -296,9 +297,8 @@ export class NewApiDataManager implements DataManager {
             return response;
         });
         const extraPromises: Promise<unknown>[] = [];
+
         console.log("Loading items");
-
-
         const itemsPromise = this.apiClient.items.items({job: this._allJobs})
             .then(async (response) => {
                 checkResponse(response);

@@ -385,7 +385,7 @@ export class MathArea extends HTMLElement {
                             // Hard limit of number of entries to calculate in a single tier. If we hit this, we will
                             // the computation to have hit a hard limit in that direction.
                             const perTierLimit = 2_000;
-                            const entriesRange = outer.displayEntries;
+                            const entriesRange = formulaSet.maxDisplayEntries ?? outer.displayEntries;
                             const lowerOut: typeof rows = [];
                             const upperOut: typeof rows = [];
                             // Compute lower values
@@ -557,6 +557,9 @@ export class MathArea extends HTMLElement {
                 });
             }
             formulaSet.variables.forEach(variable => {
+                if (variable.hideCol) {
+                    return;
+                }
                 if (variable.type === 'number') {
                     columns.push(col({
                         displayName: variable.label,
@@ -585,6 +588,20 @@ export class MathArea extends HTMLElement {
                         displayName: variable.label,
                         shortName: 'var-' + variable.property.toString(),
                         getter: item => variable.options.find(option => option.value === item.inputs[variable.property])?.label ?? '',
+                        renderer: value => document.createTextNode(value),
+                    }));
+                }
+                else if (variable.type === 'numberselect') {
+                    columns.push(col({
+                        displayName: variable.label,
+                        shortName: 'var-' + variable.property.toString(),
+                        getter: item => {
+                            const option = variable.options.find(option => option.value === item.inputs[variable.property]);
+                            if (option === undefined) {
+                                return '';
+                            }
+                            return variable.includeValueInLabel ? `${option.value}: ${option.label}` : option.label;
+                        },
                         renderer: value => document.createTextNode(value),
                     }));
                 }
@@ -721,6 +738,21 @@ export class MathArea extends HTMLElement {
                     editor.value = settings[variable.property] as string;
                     editor.addEventListener('change', () => {
                         (proxy as unknown as Record<string, unknown>)[variable.property] = editor.value;
+                    });
+                    out.appendChild(labeledInput(variable.label, editor));
+                    break;
+                }
+                case "numberselect": {
+                    const editor = document.createElement('select');
+                    variable.options.forEach(option => {
+                        const optionElement = document.createElement('option');
+                        optionElement.value = String(option.value);
+                        optionElement.textContent = variable.includeValueInLabel ? `${option.value}: ${option.label}` : option.label;
+                        editor.appendChild(optionElement);
+                    });
+                    editor.value = String(settings[variable.property]);
+                    editor.addEventListener('change', () => {
+                        (proxy as unknown as Record<string, unknown>)[variable.property] = Number(editor.value);
                     });
                     out.appendChild(labeledInput(variable.label, editor));
                     break;

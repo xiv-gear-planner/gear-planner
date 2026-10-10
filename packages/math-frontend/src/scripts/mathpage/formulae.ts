@@ -17,6 +17,7 @@ import {
     sksToGcd,
     spsTickMulti,
     spsToGcd,
+    statCapWithJob,
     tenacityDmg,
     tenacityIncomingDmg,
     vitToHp,
@@ -28,14 +29,14 @@ import {
     JobName,
     LEVEL_ITEMS,
     MAIN_STATS,
+    MAX_ILVL,
     STAT_ABBREVIATIONS,
     STAT_FULL_NAMES,
-    SupportedLevel,
+    SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
 import {Func, GeneralSettings, MathFormula, registerFormula} from "./math_main";
 import {DataManager, makeDataManager} from "@xivgear/core/datamanager";
 import {JobData, LevelStats, OccGearSlotKey, OccGearSlots, RawStatKey} from "@xivgear/xivmath/geartypes";
-import {statCapWithJob} from "@xivgear/xivmath/xivmath";
 
 type BaseSpeedSettings = {
     baseGcd: number,
@@ -92,27 +93,99 @@ type IlvlSyncCapInputs = {
     ilvl: number,
     baseParam: RawStatKey,
     slot: OccGearSlotKey,
-    meldParamIndex: string,
+    meldParamIndex: number,
+}
+
+async function ilvlSyncCapArguments(arg: IlvlSyncCapInputs, gen: GeneralSettings): Promise<[number, number, number]> {
+    const dm = await getMathDataManager(gen.classJob);
+    const baseParamInfo = dm.baseParams[arg.baseParam];
+    const meldParam = baseParamInfo?.meldParam[arg.meldParamIndex];
+    const ilvlModifier = dm.getIlvlSyncInfo(arg.ilvl)?.getIlvlModifier(arg.baseParam);
+    const baseParamSlotModifier = baseParamInfo?.slots[arg.slot];
+    if (meldParam === undefined || ilvlModifier === undefined || baseParamSlotModifier === undefined) {
+        return [0, 0, 0];
+    }
+    return [meldParam, ilvlModifier, baseParamSlotModifier];
+}
+
+function showMeldParam(meldParam: number, _ilvlModifier: number, _baseParamSlotModifier: number): number {
+    return meldParam;
+}
+
+function showIlvlModifier(_meldParam: number, ilvlModifier: number, _baseParamSlotModifier: number): number {
+    return ilvlModifier;
+}
+
+function showBaseParamSlotModifier(_meldParam: number, _ilvlModifier: number, baseParamSlotModifier: number): number {
+    return baseParamSlotModifier;
 }
 
 const meldParamOptions = [
-    {label: '0: TODO', value: '0'},
-    {label: '1: TODO', value: '1'},
-    {label: '2: TODO', value: '2'},
-    {label: '3: TODO', value: '3'},
-    {label: '4: TODO', value: '4'},
-    {label: '5: TODO', value: '5'},
-    {label: '6: TODO', value: '6'},
-    {label: '7: TODO', value: '7'},
-    {label: '8: TODO', value: '8'},
-    {label: '9: DoH/DoL', value: '9'},
+    {
+        value: 0,
+        label: 'General',
+    },
+    {
+        value: 1,
+        label: 'Fending',
+    },
+    {
+        value: 2,
+        label: 'Maiming',
+    },
+    {
+        value: 3,
+        label: 'Striking',
+    },
+    {
+        value: 4,
+        label: 'Aiming',
+    },
+    {
+        value: 5,
+        label: 'Casting',
+    },
+    {
+        value: 6,
+        label: 'Healing',
+    },
+    {
+        value: 7,
+        label: 'Special DoW',
+    },
+    {
+        value: 8,
+        label: 'Special DoM',
+    },
+    {
+        value: 9,
+        label: 'DoH/DoL',
+    },
+    {
+        value: 10,
+        label: 'Slaying',
+    },
+    {
+        value: 11,
+        label: 'Scouting',
+    },
+    {
+        value: 12,
+        label: 'Aiming Acc',
+    },
 ] as const;
 
 const baseParamOptions = (Object.keys(STAT_FULL_NAMES) as RawStatKey[])
     .filter(stat => stat !== 'gearHaste')
-    .map(stat => ({label: STAT_FULL_NAMES[stat], value: stat}));
+    .map(stat => ({
+        label: STAT_FULL_NAMES[stat],
+        value: stat,
+    }));
 
-const slotOptions = OccGearSlots.map(slot => ({label: slot, value: slot}));
+const slotOptions = OccGearSlots.map(slot => ({
+    label: slot,
+    value: slot,
+}));
 
 /**
  * Formual "wrapper" (actually just a pass-through) to allow for internal type-consistency for function arguments
@@ -163,58 +236,6 @@ export function registerFormulae() {
     })
     ;
 
-    registerFormula<IlvlSyncCapInputs>({
-        name: 'iLvl Sync Cap',
-        stub: 'ilvl-sync-cap',
-        functions: [formula({
-            name: 'Stat Cap With Job',
-            fn: statCapWithJob,
-            async argExtractor(arg, gen: GeneralSettings) {
-                const dm = await getMathDataManager(gen.classJob);
-                const baseParamInfo = dm.baseParams[arg.baseParam];
-                const meldParam = baseParamInfo?.meldParam[Number(arg.meldParamIndex)];
-                const ilvlModifier = dm.getIlvlSyncInfo(arg.ilvl)?.getIlvlModifier(arg.baseParam);
-                const baseParamSlotModifier = baseParamInfo?.slots[arg.slot];
-                if (meldParam === undefined || ilvlModifier === undefined || baseParamSlotModifier === undefined) {
-                    throw new Error(`Unable to calculate stat cap for ${arg.baseParam} at iLvl ${arg.ilvl}`);
-                }
-                return [meldParam, ilvlModifier, baseParamSlotModifier] as const;
-            },
-        })],
-        variables: [{
-            type: 'number',
-            label: 'Item Level',
-            property: 'ilvl',
-            integer: true,
-            min: () => 1,
-            max: () => 999,
-        }, {
-            type: 'select',
-            label: 'BaseParam',
-            property: 'baseParam',
-            options: baseParamOptions,
-        }, {
-            type: 'select',
-            label: 'Gear Slot',
-            property: 'slot',
-            options: slotOptions,
-        }, {
-            type: 'select',
-            label: 'Meld Param',
-            property: 'meldParamIndex',
-            options: meldParamOptions,
-        }],
-        primaryVariable: 'ilvl',
-        makeDefaultInputs(generalSettings: GeneralSettings) {
-            const level = generalSettings.levelStats.level as SupportedLevel;
-            return {
-                ilvl: LEVEL_ITEMS[level].defaultIlvlSync ?? LEVEL_ITEMS[level].defaultDisplaySettings.minILvl,
-                baseParam: 'crit',
-                slot: 'Body',
-                meldParamIndex: '0',
-            };
-        },
-    });
 
     registerFormula<{
         'wd': number,
@@ -748,5 +769,68 @@ export function registerFormulae() {
         },
         primaryVariable: 'job',
         variables: [],
+    });
+
+    registerFormula<IlvlSyncCapInputs>({
+        name: 'iLvl Sync Cap',
+        stub: 'ilvl-sync-cap',
+        maxDisplayEntries: 2000,
+        functions: [formula({
+            name: 'Stat Cap',
+            fn: statCapWithJob,
+            argExtractor: ilvlSyncCapArguments,
+        }), formula({
+            name: 'Meld Param',
+            fn: showMeldParam,
+            argExtractor: ilvlSyncCapArguments,
+            excludeFormula: true,
+        }), formula({
+            name: 'Ilvl Slot Mod',
+            fn: showIlvlModifier,
+            argExtractor: ilvlSyncCapArguments,
+            excludeFormula: true,
+        }), formula({
+            name: 'BaseParam Slot Mod',
+            fn: showBaseParamSlotModifier,
+            argExtractor: ilvlSyncCapArguments,
+            excludeFormula: true,
+        })],
+        variables: [{
+            type: 'number',
+            label: 'iLvl',
+            property: 'ilvl',
+            integer: true,
+            min: () => 1,
+            max: () => MAX_ILVL,
+        }, {
+            type: 'select',
+            label: 'BaseParam',
+            property: 'baseParam',
+            options: baseParamOptions,
+            hideCol: true,
+        }, {
+            type: 'select',
+            label: 'Gear Slot',
+            property: 'slot',
+            options: slotOptions,
+            hideCol: true,
+        }, {
+            type: 'numberselect',
+            label: 'Meld Param',
+            property: 'meldParamIndex',
+            options: meldParamOptions,
+            includeValueInLabel: true,
+            hideCol: true,
+        }],
+        primaryVariable: 'ilvl',
+        makeDefaultInputs(generalSettings: GeneralSettings) {
+            const level = generalSettings.levelStats.level as SupportedLevel;
+            return {
+                ilvl: LEVEL_ITEMS[level].defaultIlvlSync ?? LEVEL_ITEMS[level].defaultDisplaySettings.minILvl,
+                baseParam: 'crit',
+                slot: 'Body',
+                meldParamIndex: 0,
+            };
+        },
     });
 }
