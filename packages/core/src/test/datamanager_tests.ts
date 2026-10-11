@@ -67,13 +67,10 @@ describe('New Datamanager', () => {
             // Other
             wdMag: 132,
             wdPhys: 132,
-            weaponDelay: 0, // TODO: ?
             vitality: 412,
-            hp: 0,
             // Weapons don't have def/mdef
             defenseMag: 0,
             defensePhys: 0,
-            gearHaste: 999_999,
 
             extraMainStat: 416,
             extraSecondaryStat: 306,
@@ -130,7 +127,7 @@ describe('New Datamanager', () => {
             defensePhys: 312,
             defenseMag: 545,
         }));
-        deq(verm.statCaps, new RawStats({
+        deq(verm.statCaps, {
             vitality: 156,
             intelligence: 177,
             mind: 124,
@@ -139,7 +136,6 @@ describe('New Datamanager', () => {
             piety: 125,
             defensePhys: 311,
             defenseMag: 545,
-            gearHaste: 999999,
             crit: 179,
             dhit: 179,
             skillspeed: 179,
@@ -149,13 +145,16 @@ describe('New Datamanager', () => {
             extraMainStat: 177,
             extraSecondaryStat: 179,
 
+            wdMag: 0,
+            wdPhys: 0,
+
             cp: 12,
             craftsmanship: 465,
             control: 273,
             gp: 12,
             gathering: 263,
             perception: 375,
-        }));
+        });
     });
     describe('syncs levels correctly', () => {
 

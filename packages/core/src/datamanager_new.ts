@@ -155,7 +155,7 @@ export class NewApiDataManager implements DataManager {
                                 return row.magicDefense;
                             case "gearHaste":
                                 // Don't bother capping haste since it doesn't work like a normal stat.
-                                return 999_999;
+                                return null;
                             case "extraMainStat":
                                 // Main stats should all be the same, but this uses mind like the cap calculation does.
                                 return row.mind;
@@ -176,17 +176,20 @@ export class NewApiDataManager implements DataManager {
                                 return row.perception;
                             default:
                                 console.warn(`Bad ilvl modifier! Stat: ${statsKey}`);
-                                return undefined;
+                                return null;
                         }
                     };
                     outMap.set(ilvl, {
                         ilvl: ilvl,
                         getIlvlModifier,
-                        substatCap(slot: OccGearSlotKey, statsKey: RawStatKey, meldParamIndex: number | null): number {
+                        substatCap(slot: OccGearSlotKey, statsKey: RawStatKey, meldParamIndex: number | null): number | null {
                             const ilvlModifier = getIlvlModifier(statsKey);
 
-                            function calcCap(slot: OccGearSlotKey): number {
+                            function calcCap(slot: OccGearSlotKey): number | null {
                                 const bpInfo = baseParams[statsKey as RawStatKey];
+                                if (ilvlModifier === 0 || bpInfo === undefined) {
+                                    return null;
+                                }
                                 const baseParamSlotModifier: number = bpInfo.slots[slot];
                                 const meldParam = meldParamIndex === null ? 100 : bpInfo.meldParam[meldParamIndex];
                                 if (meldParam !== undefined && ilvlModifier !== undefined) {
@@ -207,16 +210,23 @@ export class NewApiDataManager implements DataManager {
                             // 2H cap and 1H cap and subtract them.
                             // However, this is not the case for all stats - e.g. Craftsmanship is OH% == 1h% == 2H% = 350.
                             // Gathering stats (excl. GP) are also weird, they have 350 for 2H, but then 350/200 or 200/350.
-                            if (slot === 'OffHand') {
+                            if (slot === 'OffHand' && ilvlModifier !== 0) {
                                 const bpInfo = baseParams[statsKey as RawStatKey];
-                                const oneCap: number = bpInfo.slots['Weapon1H'];
-                                const twoCap: number = bpInfo.slots['Weapon2H'];
-                                const ohCap: number = bpInfo.slots['OffHand'];
-                                // Combat stats = 1H + OH == 2H
-                                if (oneCap + ohCap === twoCap) {
-                                    return calcCap('Weapon2H') - calcCap('Weapon1H');
+                                if (bpInfo !== undefined) {
+                                    const oneCap: number = bpInfo.slots['Weapon1H'];
+                                    const twoCap: number = bpInfo.slots['Weapon2H'];
+                                    const ohCap: number = bpInfo.slots['OffHand'];
+                                    // Combat stats = 1H + OH == 2H
+                                    if (oneCap + ohCap === twoCap) {
+                                        const h2 = calcCap('Weapon2H');
+                                        const h1 = calcCap('Weapon1H');
+                                        if (h2 === null || h1 === null) {
+                                            return null;
+                                        }
+                                        return h2 - h1;
+                                    }
+                                    // Other stats - just go with OH cap
                                 }
-                                // Other stats - just go with OH cap
                             }
                             return calcCap(slot);
                         },
@@ -665,9 +675,7 @@ export class DataApiGearInfo implements GearItem {
     unsyncedVersion: DataApiGearInfo;
     readonly acquisitionType: GearAcquisitionSource;
     readonly jobs: JobName[];
-    statCaps: {
-        [K in RawStatKey]?: number
-    };
+    statCaps: RawStatsPart;
     isSyncedDown: boolean;
     relicStatModel: RelicStatModel;
     syncedDownTo: number | null;
@@ -913,7 +921,10 @@ export class DataApiGearInfo implements GearItem {
         const statCapsNative: RawStatsPart = {};
         Object.entries(this.baseStats).forEach(([stat, _]) => {
             const rsk = stat as RawStatKey;
-            statCapsNative[rsk] = nativeIlvlInfo.substatCap(this.occGearSlotName, rsk, this.meldParamIndex);
+            const cap = nativeIlvlInfo.substatCap(this.occGearSlotName, rsk, this.meldParamIndex);
+            if (cap !== null) {
+                statCapsNative[rsk] = cap;
+            }
         });
         this.statCaps = statCapsNative;
         if (syncIlvlInfo && (syncIlvlInfo.ilvl < this.ilvl || level < this.equipLvl)) {

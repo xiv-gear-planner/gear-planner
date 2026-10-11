@@ -1160,4 +1160,3 @@ export const SPECIAL_STATS_MAPPING: Record<SpecialStatKey, SpecialStatInfo> = {
         showHaste: false,
     },
 };
-

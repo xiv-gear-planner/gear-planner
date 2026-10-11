@@ -217,9 +217,7 @@ export interface GearItem extends XivCombatItem {
      * The secondary substat
      */
     secondarySubstat: keyof RawStats | null;
-    statCaps: {
-        [K in RawStatKey]?: number
-    };
+    statCaps: RawStatsPart;
     /**
      * Materia slots on the item. When downsynced, this is replaced with an empty list.
      */
@@ -331,6 +329,7 @@ export interface ComputedSetStats extends RawStats {
      * Compute the effective auto-attack delay. Assumes the attack has the type 'Auto-attack'.
      *
      * @param buffHaste The amount of haste from buffs.
+     * @param gaugeHaste The amount of haste from gauge and gauge-like things.
      */
     effectiveAaDelay(buffHaste: number, gaugeHaste: number): number;
 
@@ -1542,5 +1541,12 @@ export type IlvlSyncInfo = {
      * Get the ItemLevel modifier for a stat at this item level.
      */
     getIlvlModifier(statsKey: RawStatKey): number | undefined;
-    substatCap(slot: OccGearSlotKey, statsKey: RawStatKey, meldParamIndex: number | null): number;
+    /**
+     * Calculate the substat cap for a given slot, stat, and meldParamIndex. Returns null to indicate no cap.
+     *
+     * @param slot
+     * @param statsKey
+     * @param meldParamIndex
+     */
+    substatCap(slot: OccGearSlotKey, statsKey: RawStatKey, meldParamIndex: number | null): number | null;
 }
