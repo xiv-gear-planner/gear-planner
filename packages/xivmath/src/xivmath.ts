@@ -249,7 +249,6 @@ export function mainStatMulti(levelStats: LevelStats, jobStats: JobData, mainsta
  * Convert a main stat value to a damage multiplier for Living Shadow abilities.
  *
  * @param levelStats
- * @param jobStats
  * @param livingShadowStrength
  */
 export function mainStatMultiLivingShadow(levelStats: LevelStats, livingShadowStrength: number) {
@@ -378,21 +377,19 @@ function usesCasterDamageFormula(stats: ComputedSetStats, attackType: AttackType
  */
 export function getLivingShadowStrength(rawStrength: number, baseMainStat: number, playerBaseMainStat: number): number {
     const livingShadowRacialBonus = 2;
-    const livingShadowStrength = rawStrength - playerBaseMainStat + baseMainStat + livingShadowRacialBonus;
-    return livingShadowStrength;
+    return rawStrength - playerBaseMainStat + baseMainStat + livingShadowRacialBonus;
 }
 
 /**
  * Gets Automaton Queen's dex value from a given set of gear stats and racial bonuses.
  *
- * @param rawStrength The raw dex (pre party bonus)
+ * @param rawDex The raw dex (pre party bonus)
  * @param baseMainStat The base main stat for this level
  * @param playerBaseMainStat The player's base main stat, i.e. main stat for this level + job mod + racial bonus
  */
 export function getAutomatonQueenDex(rawDex: number, baseMainStat: number, playerBaseMainStat: number): number {
     const automatonQueenRacialBonus = 0;
-    const automatonQueenDex = rawDex - playerBaseMainStat + baseMainStat + automatonQueenRacialBonus;
-    return automatonQueenDex;
+    return rawDex - playerBaseMainStat + baseMainStat + automatonQueenRacialBonus;
 }
 
 /**
@@ -452,7 +449,7 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
     const effectiveDetMulti = autoDH ? detAutoDhMulti : detMulti;
 
     // Base action potency and main stat multi
-    let stage1potency: number;
+    let afterSpeed: number;
     // Mahdi:
     // Caster Damage has potency multiplied into weapon damage and then truncated
     // to an integer as opposed to into ap and truncated to 2 decimal.
@@ -463,8 +460,7 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
         // Factor in Tenacity multiplier
         const afterTnc = fl(basePotency * tncMulti);
         // Factor in sps/sks for dots
-        const afterSpd = fl(afterTnc * spdMulti);
-        stage1potency = afterSpd;
+        afterSpeed = fl(afterTnc * spdMulti);
     }
     else {
         const basePotency = fl(potency * mainStatMulti);
@@ -475,12 +471,11 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
         // Factor in weapon damage multiplier
         const afterWeaponDamage = fl(afterTnc * wdMulti);
         // Factor in sps/sks for dots
-        const afterSpd = fl(afterWeaponDamage * spdMulti);
-        stage1potency = afterSpd;
+        afterSpeed = fl(afterWeaponDamage * spdMulti);
     }
 
     // Factor in trait multiplier, as well as the 1 extra damage if potency is less than 100
-    const finalDamage = fl(stage1potency * traitMulti) + ((potency < 100) ? 1 : 0);
+    const finalDamage = fl(afterSpeed * traitMulti) + ((potency < 100) ? 1 : 0);
 
     if (finalDamage <= 1) {
         return fixedValue(1);
@@ -650,8 +645,6 @@ export function combineHasteBuffs(existingHaste: number, nextBuffHaste: number) 
  * @param baseParamModifierSlotModifier From BaseParam[slot].
  */
 export function statCapWithJob(meldParam: number, ilvlModifier: number, baseParamModifierSlotModifier: number): number {
-    // meldParam is expected to already be divided by 100
-    // return Math.round(fl(fl(ilvlModifier * baseParamModifierSlotModifier / 100) * meldParam / 100) / 10);
     return Math.round(fl(fl(ilvlModifier * meldParam / 100) * baseParamModifierSlotModifier / 100) / 10);
 }
 

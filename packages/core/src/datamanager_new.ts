@@ -115,104 +115,84 @@ export class NewApiDataManager implements DataManager {
                     // Unroll the ItemLevel object into a direct mapping from RawStatKey => modifier
                     // BaseParam data is trickier. First, we need to convert from a list to a map, where the keys are the stat.
                     const baseParams = this._baseParams!;
+                    const getIlvlModifier = (statsKey: RawStatKey): number | undefined => {
+                        switch (statsKey) {
+                            case "hp":
+                                return row.HP;
+                            case "vitality":
+                                return row.vitality;
+                            case "strength":
+                                return row.strength;
+                            case "dexterity":
+                                return row.dexterity;
+                            case "intelligence":
+                                return row.intelligence;
+                            case "mind":
+                                return row.mind;
+                            case "piety":
+                                return row.piety;
+                            case "crit":
+                                return row.criticalHit;
+                            case "dhit":
+                                return row.directHitRate;
+                            case "determination":
+                                return row.determination;
+                            case "tenacity":
+                                return row.tenacity;
+                            case "spellspeed":
+                                return row.spellSpeed;
+                            case "skillspeed":
+                                return row.skillSpeed;
+                            case "wdPhys":
+                                return row.physicalDamage;
+                            case "wdMag":
+                                return row.magicalDamage;
+                            case "weaponDelay":
+                                return row.delay;
+                            case "defensePhys":
+                                return row.defense;
+                            case "defenseMag":
+                                return row.magicDefense;
+                            case "gearHaste":
+                                // Don't bother capping haste since it doesn't work like a normal stat.
+                                return null;
+                            case "extraMainStat":
+                                // Main stats should all be the same, but this uses mind like the cap calculation does.
+                                return row.mind;
+                            case "extraSecondaryStat":
+                                // Secondary stats should all be the same, but this uses direct hit like the cap calculation does.
+                                return row.directHitRate;
+                            case "cp":
+                                return row.CP;
+                            case "control":
+                                return row.control;
+                            case "craftsmanship":
+                                return row.craftsmanship;
+                            case "gp":
+                                return row.GP;
+                            case "gathering":
+                                return row.gathering;
+                            case "perception":
+                                return row.perception;
+                            default:
+                                console.warn(`Bad ilvl modifier! Stat: ${statsKey}`);
+                                return null;
+                        }
+                    };
                     outMap.set(ilvl, {
                         ilvl: ilvl,
-                        substatCap(slot: OccGearSlotKey, statsKey: RawStatKey, meldParamIndex: number | null): number {
-                            let ilvlModifier: number | undefined;
-                            switch (statsKey) {
-                                case "hp":
-                                    ilvlModifier = row.HP;
-                                    break;
-                                case "vitality":
-                                    ilvlModifier = row.vitality;
-                                    break;
-                                case "strength":
-                                    ilvlModifier = row.strength;
-                                    break;
-                                case "dexterity":
-                                    ilvlModifier = row.dexterity;
-                                    break;
-                                case "intelligence":
-                                    ilvlModifier = row.intelligence;
-                                    break;
-                                case "mind":
-                                    ilvlModifier = row.mind;
-                                    break;
-                                case "piety":
-                                    ilvlModifier = row.piety;
-                                    break;
-                                case "crit":
-                                    ilvlModifier = row.criticalHit;
-                                    break;
-                                case "dhit":
-                                    ilvlModifier = row.directHitRate;
-                                    break;
-                                case "determination":
-                                    ilvlModifier = row.determination;
-                                    break;
-                                case "tenacity":
-                                    ilvlModifier = row.tenacity;
-                                    break;
-                                case "spellspeed":
-                                    ilvlModifier = row.spellSpeed;
-                                    break;
-                                case "skillspeed":
-                                    ilvlModifier = row.skillSpeed;
-                                    break;
-                                case "wdPhys":
-                                    ilvlModifier = row.physicalDamage;
-                                    break;
-                                case "wdMag":
-                                    ilvlModifier = row.magicalDamage;
-                                    break;
-                                case "weaponDelay":
-                                    ilvlModifier = row.delay;
-                                    break;
-                                case "defensePhys":
-                                    ilvlModifier = row.defense;
-                                    break;
-                                case "defenseMag":
-                                    ilvlModifier = row.magicDefense;
-                                    break;
-                                case "gearHaste":
-                                    // Don't bother capping haste since it doesn't work like a normal stat.
-                                    return 999_999;
-                                case "extraMainStat":
-                                    // Main stats **should** all be the same, but it doesn't matter because these are
-                                    // capped as the stat that they actually become.
-                                    ilvlModifier = row.mind;
-                                    break;
-                                case "extraSecondaryStat":
-                                    // Secondary stats also should all be the same, but it doesn't matter because these are
-                                    // capped as the stat that they actually become.
-                                    ilvlModifier = row.directHitRate;
-                                    break;
-                                case "cp":
-                                    ilvlModifier = row.CP;
-                                    break;
-                                case "control":
-                                    ilvlModifier = row.control;
-                                    break;
-                                case "craftsmanship":
-                                    ilvlModifier = row.craftsmanship;
-                                    break;
-                                case "gp":
-                                    ilvlModifier = row.GP;
-                                    break;
-                                case "gathering":
-                                    ilvlModifier = row.gathering;
-                                    break;
-                                case "perception":
-                                    ilvlModifier = row.perception;
-                                    break;
-                                default:
-                                    console.warn(`Bad ilvl modifier! ${statsKey}:${slot}`);
-                                    ilvlModifier = undefined;
-                                    break;
-                            }
+                        getIlvlModifier,
+                        substatCap(slot: OccGearSlotKey, statsKey: RawStatKey, meldParamIndex: number | null): number | null {
+                            const ilvlModifier = getIlvlModifier(statsKey);
 
-                            function calcCap(slot: OccGearSlotKey): number {
+                            function calcCap(slot: OccGearSlotKey): number | null {
+                                if (ilvlModifier === null || ilvlModifier === 0) {
+                                    return null;
+                                }
                                 const bpInfo = baseParams[statsKey as RawStatKey];
+                                if (bpInfo === undefined) {
+                                    return null;
+                                }
                                 const baseParamSlotModifier: number = bpInfo.slots[slot];
                                 const meldParam = meldParamIndex === null ? 100 : bpInfo.meldParam[meldParamIndex];
                                 if (meldParam !== undefined && ilvlModifier !== undefined) {
@@ -233,16 +213,23 @@ export class NewApiDataManager implements DataManager {
                             // 2H cap and 1H cap and subtract them.
                             // However, this is not the case for all stats - e.g. Craftsmanship is OH% == 1h% == 2H% = 350.
                             // Gathering stats (excl. GP) are also weird, they have 350 for 2H, but then 350/200 or 200/350.
-                            if (slot === 'OffHand') {
+                            if (slot === 'OffHand' && ilvlModifier !== 0) {
                                 const bpInfo = baseParams[statsKey as RawStatKey];
-                                const oneCap: number = bpInfo.slots['Weapon1H'];
-                                const twoCap: number = bpInfo.slots['Weapon2H'];
-                                const ohCap: number = bpInfo.slots['OffHand'];
-                                // Combat stats = 1H + OH == 2H
-                                if (oneCap + ohCap === twoCap) {
-                                    return calcCap('Weapon2H') - calcCap('Weapon1H');
+                                if (bpInfo !== undefined) {
+                                    const oneCap: number = bpInfo.slots['Weapon1H'];
+                                    const twoCap: number = bpInfo.slots['Weapon2H'];
+                                    const ohCap: number = bpInfo.slots['OffHand'];
+                                    // Combat stats = 1H + OH == 2H
+                                    if (oneCap + ohCap === twoCap) {
+                                        const h2 = calcCap('Weapon2H');
+                                        const h1 = calcCap('Weapon1H');
+                                        if (h2 === null || h1 === null) {
+                                            return null;
+                                        }
+                                        return h2 - h1;
+                                    }
+                                    // Other stats - just go with OH cap
                                 }
-                                // Other stats - just go with OH cap
                             }
                             return calcCap(slot);
                         },
@@ -323,9 +310,8 @@ export class NewApiDataManager implements DataManager {
             return response;
         });
         const extraPromises: Promise<unknown>[] = [];
+
         console.log("Loading items");
-
-
         const itemsPromise = this.apiClient.items.items({job: this._allJobs})
             .then(async (response) => {
                 checkResponse(response);
@@ -692,9 +678,7 @@ export class DataApiGearInfo implements GearItem {
     unsyncedVersion: DataApiGearInfo;
     readonly acquisitionType: GearAcquisitionSource;
     readonly jobs: JobName[];
-    statCaps: {
-        [K in RawStatKey]?: number
-    };
+    statCaps: RawStatsPart;
     isSyncedDown: boolean;
     relicStatModel: RelicStatModel;
     syncedDownTo: number | null;
@@ -940,7 +924,10 @@ export class DataApiGearInfo implements GearItem {
         const statCapsNative: RawStatsPart = {};
         Object.entries(this.baseStats).forEach(([stat, _]) => {
             const rsk = stat as RawStatKey;
-            statCapsNative[rsk] = nativeIlvlInfo.substatCap(this.occGearSlotName, rsk, this.meldParamIndex);
+            const cap = nativeIlvlInfo.substatCap(this.occGearSlotName, rsk, this.meldParamIndex);
+            if (cap !== null) {
+                statCapsNative[rsk] = cap;
+            }
         });
         this.statCaps = statCapsNative;
         if (syncIlvlInfo && (syncIlvlInfo.ilvl < this.ilvl || level < this.equipLvl)) {

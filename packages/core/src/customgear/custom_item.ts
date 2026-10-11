@@ -76,7 +76,7 @@ export class CustomItem implements GearItem {
 
     primarySubstat: keyof RawStats = null;
     secondarySubstat: keyof RawStats = null;
-    statCaps: Partial<RawStats> = {};
+    statCaps: RawStatsPart = {};
     // TODO: pull this out into a constant somewhere
     iconUrl: URL = new URL(xivApiIconUrl(26270));
     syncedDownTo: number | null;
