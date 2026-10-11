@@ -186,8 +186,11 @@ export class NewApiDataManager implements DataManager {
                             const ilvlModifier = getIlvlModifier(statsKey);
 
                             function calcCap(slot: OccGearSlotKey): number | null {
+                                if (ilvlModifier === null || ilvlModifier === 0) {
+                                    return null;
+                                }
                                 const bpInfo = baseParams[statsKey as RawStatKey];
-                                if (ilvlModifier === 0 || bpInfo === undefined) {
+                                if (bpInfo === undefined) {
                                     return null;
                                 }
                                 const baseParamSlotModifier: number = bpInfo.slots[slot];
