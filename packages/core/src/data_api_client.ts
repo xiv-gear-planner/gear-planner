@@ -56,8 +56,8 @@ async function retryFetch(...params: Parameters<typeof fetch>): Promise<Response
 }
 
 export const DATA_API_CLIENT = new DataApiClient<never>({
-    // baseUrl: "https://data.xivgear.app",
-    baseUrl: "https://betadata.xivgear.app",
+    baseUrl: "https://data.xivgear.app",
+    // baseUrl: "https://betadata.xivgear.app",
     // baseUrl: "http://localhost:8085",
     customFetch: retryFetch,
 });
@@ -66,15 +66,25 @@ export function setDataApi(baseUrl: string) {
     DATA_API_CLIENT.baseUrl = baseUrl;
 }
 
+function formatHeaders(headers: Headers | null | undefined): string {
+    if (!headers) {
+        return '';
+    }
+    const formattedHeaders = Array.from(headers.entries())
+        .map(([name, value]) => `${name}: ${value}`)
+        .join('\n');
+    return formattedHeaders ? `${formattedHeaders}` : '(Headers unreadable)';
+}
+
 export function checkResponse<X extends HttpResponse<unknown>>(response: X): X {
     const url = response.url;
     if (!response.ok) {
         errorReporter(response, [url]);
-        throw new Error(`Data API error: response not ok: ${response.status}: ${response.statusText} (${url}`);
+        throw new Error(`Data API error: response not ok: ${response.status}: ${response.statusText} (${url})\n${formatHeaders(response.headers)}`);
     }
     else if (!response.data) {
         errorReporter(response, [url]);
-        throw new Error(`Data API error: no data: ${response.status}: ${response.statusText} (${url}`);
+        throw new Error(`Data API error: no data: ${response.status}: ${response.statusText} (${url})\n${formatHeaders(response.headers)}`);
     }
     return response;
 }
