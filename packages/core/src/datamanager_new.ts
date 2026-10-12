@@ -315,7 +315,7 @@ export class NewApiDataManager implements DataManager {
 
         console.log("Loading items");
         const itemsQuery: Parameters<typeof this.apiClient.items.items>[0] = {job: this._allJobs};
-        if (this._specificItems !== null) {
+        if (this._specificItems !== undefined) {
             itemsQuery.itemIds = Array.from(this._specificItems.values());
         }
         const itemsPromise = this.apiClient.items.items(itemsQuery)
