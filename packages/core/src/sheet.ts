@@ -221,6 +221,7 @@ export class GearPlanSheet {
 
     // Display state
     private _isViewOnly: boolean = false;
+    private _isSpecificItems: boolean = false;
     isEmbed: boolean = false;
 
     // Temporal state
@@ -391,6 +392,17 @@ export class GearPlanSheet {
         this._isViewOnly = true;
     }
 
+    /**
+     * Enable view-only mode, and specifically only request the items in the exported data from the DataManager.
+     * This should be used by the stats server's fulldata endpoints, but the jury's still out on client-side usage, as
+     * the smaller response has to be weighed against the significantly lower
+     *
+     */
+    setSpecificItemsView() {
+        this._isViewOnly = true;
+        this._isSpecificItems = true;
+    }
+
     get allJobs(): DmJobs {
         return [this.classJobName, ...this.altJobs];
     }
@@ -399,7 +411,22 @@ export class GearPlanSheet {
      * Load the sheet data fully. Create a DataManager internally.
      */
     async load() {
-        const dataManager = makeDataManager(this.allJobs, this.level, this.ilvlSync);
+        let specificItems: Set<number> | null;
+        if (this._isSpecificItems) {
+            specificItems = new Set<number>();
+            this._importedData.sets.forEach(set => {
+                for (const equipmentSlot in set.items) {
+                    const importedItem: ItemSlotExport | undefined = set.items[equipmentSlot as EquipSlotKey];
+                    if (importedItem) {
+                        specificItems.add(importedItem.id);
+                    }
+                }
+            });
+        }
+        else {
+            specificItems = null;
+        }
+        const dataManager = makeDataManager(this.allJobs, this.level, this.ilvlSync, specificItems);
         await dataManager.loadData();
         await this.loadFromDataManager(dataManager);
 

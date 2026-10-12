@@ -586,7 +586,7 @@ async function importExportSheet(request: SheetRequest<ImportExportSheetQuery>, 
         const exported = exportedPre;
         const isFullSheet = 'sets' in exported;
         const sheet = isFullSheet ? HEADLESS_SHEET_PROVIDER.fromExport(exported as SheetExport) : HEADLESS_SHEET_PROVIDER.fromSetExport(exported as SetExport);
-        sheet.setViewOnly();
+        sheet.setSpecificItemsView();
         const pb = request.query.partyBonus;
         if (pb) {
             const parsed = typeof pb === 'number' ? pb : parseFloat(pb);

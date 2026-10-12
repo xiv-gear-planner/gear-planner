@@ -64,12 +64,13 @@ export class NewApiDataManager implements DataManager {
     private readonly _classJob: JobName;
     private readonly _allJobs: JobName[];
     private readonly _level: SupportedLevel;
+    private readonly _specificItems: Set<number>;
     private readonly _ilvlSync: number | undefined;
     private readonly apiClient: DataApiClient<never>;
     private readonly minEquipIlvl: number;
     private readonly minEquipLvl: SupportedLevel;
 
-    public constructor(classJobs: DmJobs, level: SupportedLevel, ilvlSync?: number | undefined) {
+    public constructor(classJobs: DmJobs, level: SupportedLevel, ilvlSync?: number | undefined, specificItems?: Set<number>) {
         this._classJob = classJobs[0];
         this._allJobs = [...classJobs];
         this._level = level;
@@ -79,6 +80,7 @@ export class NewApiDataManager implements DataManager {
         this._minIlvlFood = lvlData.minILvlFood;
         this._maxIlvlFood = lvlData.maxILvlFood;
         this._ilvlSync = ilvlSync;
+        this._specificItems = specificItems;
         this.apiClient = DATA_API_CLIENT;
         this.minEquipLvl = Math.min(...classJobs.map(job => JOB_DATA[job].minLevel)) as SupportedLevel;
         this.minEquipIlvl = LEVEL_ITEMS[this.minEquipLvl].minILvl;
@@ -312,12 +314,17 @@ export class NewApiDataManager implements DataManager {
         const extraPromises: Promise<unknown>[] = [];
 
         console.log("Loading items");
-        const itemsPromise = this.apiClient.items.items({job: this._allJobs})
+        const itemsQuery: Parameters<typeof this.apiClient.items.items>[0] = {job: this._allJobs};
+        if (this._specificItems !== null) {
+            itemsQuery.itemIds = Array.from(this._specificItems.values());
+        }
+        const itemsPromise = this.apiClient.items.items(itemsQuery)
             .then(async (response) => {
                 checkResponse(response);
                 console.log(`Got ${response.data.items.length} Items`);
-                return response.data.items;
-            }).then((rawItems) => {
+                return response.data;
+            }).then((data) => {
+                const rawItems = data.items;
                 this._allItems = rawItems
                     .filter(i => {
                         try {
@@ -368,18 +375,14 @@ export class NewApiDataManager implements DataManager {
                         return true;
 
                     });
-                this._maxIlvlForEquipLevel = new Map();
-                this._maxIlvlForEquipLevelWeapon = new Map();
-                this._allItems.forEach(item => {
-                    // Track maximum ilvl seen for a particular equip level
-                    if (item.displayGearSlotName === 'Weapon' || item.displayGearSlotName === 'OffHand') {
-                        this._maxIlvlForEquipLevelWeapon.set(item.equipLvl, Math.max(item.ilvl, this._maxIlvlForEquipLevelWeapon.get(item.equipLvl) ?? 0));
-                    }
-                    else {
-                        this._maxIlvlForEquipLevel.set(item.equipLvl, Math.max(item.ilvl, this._maxIlvlForEquipLevel.get(item.equipLvl) ?? 0));
-                    }
-                });
-                // TODO: put up better error
+                const maxIlvlMap = this._maxIlvlForEquipLevel = new Map();
+                const maxIlvlWpnMap = this._maxIlvlForEquipLevelWeapon = new Map();
+                for (let i = 0; i < data.maxIlvlPerLvl.length; i++) {
+                    maxIlvlMap.set(i, data.maxIlvlPerLvl[i]);
+                }
+                for (let i = 0; i < data.maxIlvlPerLvlWpn.length; i++) {
+                    maxIlvlWpnMap.set(i, data.maxIlvlPerLvlWpn[i]);
+                }
             });
         const statsPromise = Promise.all([itemsPromise, baseParamPromise]).then(() => {
             console.log(`Finishing item calculations for ${this._allItems.length} items`);
