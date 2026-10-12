@@ -411,7 +411,7 @@ export class GearPlanSheet {
      * Load the sheet data fully. Create a DataManager internally.
      */
     async load() {
-        let specificItems: Set<number> | null;
+        let specificItems: Set<number> | undefined;
         if (this._isSpecificItems) {
             specificItems = new Set<number>();
             this._importedData.sets.forEach(set => {
@@ -424,7 +424,7 @@ export class GearPlanSheet {
             });
         }
         else {
-            specificItems = null;
+            specificItems = undefined;
         }
         const dataManager = makeDataManager(this.allJobs, this.level, this.ilvlSync, specificItems);
         await dataManager.loadData();
