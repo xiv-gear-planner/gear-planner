@@ -107,6 +107,6 @@ export interface DataManager {
 
 export type DmJobs = [primary: JobName, ...alts: JobName[]]
 
-export function makeDataManager(classJob: DmJobs, level: SupportedLevel, ilvlSync?: number | undefined): DataManager {
-    return new NewApiDataManager(classJob, level, ilvlSync);
+export function makeDataManager(classJob: DmJobs, level: SupportedLevel, ilvlSync?: number | undefined, specificItems?: Set<number>): DataManager {
+    return new NewApiDataManager(classJob, level, ilvlSync, specificItems);
 }

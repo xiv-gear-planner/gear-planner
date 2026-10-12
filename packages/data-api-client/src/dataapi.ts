@@ -287,6 +287,8 @@ export interface ItemLevelEndpointResponse {
 
 export interface ItemsEndpointResponse {
   items: Item[];
+  maxIlvlPerLvl: number[];
+  maxIlvlPerLvlWpn: number[];
 }
 
 export interface JobEndpointResponse {
@@ -677,6 +679,7 @@ export class DataApiClient<
     items: (
       query: {
         job: string[];
+        itemIds?: number[] | null;
       },
       params: RequestParams = {},
     ) =>
