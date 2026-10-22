@@ -1,10 +1,6 @@
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {el, FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
-import {
-    SHEET_OPTIONAL_COLUMNS,
-    SheetOptionalColumnKey,
-    SheetOptionalColumnSelection,
-} from "./sheet_columns";
+import {SHEET_OPTIONAL_COLUMNS, SheetOptionalColumnKey, SheetOptionalColumnSelection} from "./sheet_columns";
 import {elt} from "@xivgear/common-ui/components/templates";
 
 /**
@@ -16,7 +12,7 @@ export class SheetColumnOptionsModal extends BaseModal {
 
     constructor(
         columns: SheetOptionalColumnSelection[],
-        private readonly onApply: (columns: SheetOptionalColumnKey[]) => void,
+        private readonly onApply: (columns: SheetOptionalColumnKey[]) => void
     ) {
         super();
         this.headerText = 'Customize Columns';
