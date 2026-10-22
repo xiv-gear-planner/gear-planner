@@ -827,6 +827,13 @@ export interface SimExport {
     name?: string
 }
 
+export type SheetDisplaySettings = {
+    /**
+     * The keys of custom columns to display on the sheet.
+     */
+    customColumns?: string[],
+};
+
 // TODO: further split this up. API vs Local should have different types.
 /**
  * Represents an exported set. Many of the fields fill the same role as the fields
@@ -874,8 +881,12 @@ export interface SheetExport {
     sims?: SimExport[],
     /**
      * Settings regarding which items to display
-     */
+    */
     itemDisplaySettings?: ItemDisplaySettings,
+    /**
+     * Settings for displaying sheet columns and other sheet-level UI.
+     */
+    sheetDisplaySettings?: SheetDisplaySettings,
     // Keeping these abbreviated so exports don't become unnecessarily large
     // /**
     //  * Whether to auto-fill materia into newly selected items (Materia Fill New Items).
@@ -1303,9 +1314,12 @@ export interface MultiplierStat extends GeneralStat {
 }
 
 /**
- * Stat that provides a
+ * Stat that provides a mitigation
  */
 export interface MitigationStat extends GeneralStat {
+    /**
+     * The incoming multiplier. e.g. 0.95 means 5% mitigation.
+     */
     incomingMulti: number
 }
 
