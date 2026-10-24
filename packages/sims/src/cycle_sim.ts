@@ -43,6 +43,8 @@ import {BuffSettingsExport} from "./common/party_comp_settings";
 import {CycleSettings} from "./cycle_settings";
 import {buffRelevantAtSnapshot, buffRelevantAtStart} from "@xivgear/core/sims/buff_helpers";
 import {GaugeStateTypeOfMgr, NoopGaugeManager} from "./processors/sim_processors";
+import {MedicineItem} from "@xivgear/xivmath/geartypes";
+import {makeMedicinePotion} from "./common/medicine";
 
 /**
  * Represents the "zero" CombinedBuffEffect object, which represents not having any offensive buffs.
@@ -300,6 +302,10 @@ export type MultiCycleSettings = {
      */
     readonly stats: ComputedSetStats,
     /**
+     * The medicine equipped on the gear set, if any.
+     */
+    readonly medicine?: MedicineItem,
+    /**
      * Whether to use auto-attacks.
      */
     readonly useAutos: boolean,
@@ -459,6 +465,10 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
      */
     stats: ComputedSetStats;
     /**
+     * Potion action constructed from the equipped medicine item.
+     */
+    readonly medicinePotion: OgcdAbility | undefined;
+    /**
      * Map from DoT effect ID to an object which tracks, among other things, when it was used.
      */
     readonly dotMap = new Map<number, PreDmgUsedAbility>();
@@ -528,6 +538,7 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
         this.cycleTime = settings.cycleTime;
         this.totalTime = settings.totalTime;
         this.stats = settings.stats;
+        this.medicinePotion = makeMedicinePotion(settings.medicine);
         this.manuallyActivatedBuffs = settings.manuallyActivatedBuffs ?? [];
         this.useAutos = settings.useAutos;
         this.hideCycleDividers = settings.hideCycleDividers;
@@ -1377,6 +1388,16 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
         return this.use(ability);
     }
 
+    /**
+     * Use the medicine potion equipped on the gear set, if one is available.
+     */
+    usePotion(): AbilityUseResult {
+        if (!this.medicinePotion) {
+            return 'none';
+        }
+        return this.use(this.medicinePotion);
+    }
+
     private adjustPrepull() {
         if (this.pendingPrePullOffset === 0) {
             return;
@@ -1878,4 +1899,3 @@ function updateComboTracker(combo: ComboData, ability: Ability, tracker: ComboTr
     }
     return out;
 }
-

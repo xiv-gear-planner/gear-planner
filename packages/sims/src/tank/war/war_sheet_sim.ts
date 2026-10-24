@@ -9,7 +9,6 @@ import {WarExtraData, WarAbility, WarGcdAbility, WrathfulBuff, SurgingTempest, N
 import {sum} from "@xivgear/util/array_utils";
 import * as Actions from './war_actions';
 import {BaseMultiCycleSim} from "@xivgear/sims/processors/sim_processors";
-import {potionMaxStr} from "@xivgear/sims/common/potion";
 
 export interface WarSimResult extends CycleSimResult {
 
@@ -316,8 +315,8 @@ export class WarSim extends BaseMultiCycleSim<WarSimResult, WarSettings, WarCycl
             this.use(cp, Actions.InnerRelease);
         }
 
-        if (cp.shouldPot() && cp.canUseWithoutClipping(potionMaxStr)) {
-            this.use(cp, potionMaxStr);
+        if (cp.medicinePotion && cp.shouldPot() && cp.canUseWithoutClipping(cp.medicinePotion)) {
+            this.use(cp, cp.medicinePotion);
         }
 
         if (cp.isWrathfulActive() && cp.canUseWithoutClipping(Actions.PrimalWrath)){
@@ -397,7 +396,7 @@ export class WarSim extends BaseMultiCycleSim<WarSimResult, WarSettings, WarCycl
         }
 
         // Only use potion if enabled in settings
-        if (!this.settings.usePotion && ability.name.includes("of Strength")) {
+        if (!this.settings.usePotion && ability.attackType === 'Item') {
             return null;
         }
 
@@ -431,8 +430,10 @@ export class WarSim extends BaseMultiCycleSim<WarSimResult, WarSettings, WarCycl
         this.use(cp, Actions.Maim);
         this.use(cp, Actions.StormsEye);
         this.use(cp, Actions.InnerRelease);
-        cp.advanceForLateWeave([potionMaxStr]);
-        this.use(cp, potionMaxStr);
+        if (cp.medicinePotion) {
+            cp.advanceForLateWeave([cp.medicinePotion]);
+            this.use(cp, cp.medicinePotion);
+        }
         if (level >= 80) {
             this.use(cp, Actions.InnerChaos);
         }

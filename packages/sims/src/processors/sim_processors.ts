@@ -167,6 +167,7 @@ export abstract class BaseMultiCycleSim<
 
             const cp = this.createCycleProcessor({
                 stats: set.computedStats,
+                medicine: set.medicineForSim,
                 totalTime: this.cycleSettings.totalTime,
                 cycleTime: rot.cycleTime,
                 allBuffs: allBuffs,
@@ -243,6 +244,7 @@ export abstract class BaseMultiCycleSim<
             stats.weaponDelay,
             stats.gearHaste,
             stats.job,
+            set.medicineForSim?.id ?? 0,
         ];
     }
 

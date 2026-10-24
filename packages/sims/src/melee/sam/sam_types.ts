@@ -26,6 +26,11 @@ export type SamGcdAbility = GcdAbility & SamAbility;
 export type SamOgcdAbility = OgcdAbility & SamAbility;
 
 /**
+ * Action token replaced with the equipped medicine by the simulator.
+ */
+export type SamRotationAction = SamAbility | 'potion';
+
+/**
  * Represents an Ability that costs Kenki
  */
 export type KenkiAbility = SamOgcdAbility & Readonly<{
@@ -70,10 +75,10 @@ export type SAMRotationData = {
         /**
          * The opener for the rotation
          */
-        opener: SamAbility[],
+        opener: SamRotationAction[],
         /**
          * The optional rotation loop
          */
-        loop: SamAbility[],
+        loop: SamRotationAction[],
     }
 };

@@ -60,6 +60,11 @@ export const Shifu: SamGcdAbility = {
     },
 };
 
+/**
+ * Placeholder replaced by the medicine equipped on the gear set when the sim runs.
+ */
+export const PotionMarker = 'potion' as const;
+
 export const Gekko: SamGcdAbility = {
     type: 'gcd',
     name: "Gekko",

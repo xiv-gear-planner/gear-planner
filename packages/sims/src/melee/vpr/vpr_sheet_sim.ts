@@ -20,7 +20,6 @@ import {
     ReadyToReawaken,
     Swiftscaled
 } from "./vpr_buffs";
-import {potionMaxDex} from "@xivgear/sims/common/potion";
 import {sum} from "@xivgear/util/array_utils";
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import {BaseMultiCycleSim} from "@xivgear/sims/processors/sim_processors";
@@ -317,8 +316,10 @@ export class VprCycleProcessor extends CycleProcessor {
         this.useDualWieldCombo(); // Will be Swifstkin's Sting because it is first to be used
         this.useGcd(Actions.Vicewinder);
 
-        this.advanceForLateWeave([potionMaxDex]);
-        this.useOgcd(potionMaxDex);
+        if (this.medicinePotion) {
+            this.advanceForLateWeave([this.medicinePotion]);
+            this.useOgcd(this.medicinePotion);
+        }
 
         this.useHuntersCoil();
         this.useSwiftskinsCoil();
@@ -429,9 +430,9 @@ export class VprCycleProcessor extends CycleProcessor {
                 this.useDualWieldCombo();
             }
 
-            if (this.canUseWithoutClipping(potionMaxDex)) {
-                this.advanceForLateWeave([potionMaxDex]);
-                this.useOgcd(potionMaxDex);
+            if (this.medicinePotion && this.canUseWithoutClipping(this.medicinePotion)) {
+                this.advanceForLateWeave([this.medicinePotion]);
+                this.useOgcd(this.medicinePotion);
             }
 
             this.useDoubleReawaken();

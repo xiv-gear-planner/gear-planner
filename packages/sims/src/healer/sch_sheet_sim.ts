@@ -2,7 +2,6 @@ import {Chain} from "@xivgear/sims/buffs";
 import {Ability, BuffController, GcdAbility, LevelModifiable, OgcdAbility, PersonalBuff, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
 import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation, PreDmgAbilityUseRecordUnf, AbilityUseResult} from "@xivgear/sims/cycle_sim";
 import {rangeInc} from "@xivgear/util/array_utils";
-//import {potionMaxMind} from "@xivgear/sims/common/potion";
 import {BaseMultiCycleSim} from "@xivgear/sims/processors/sim_processors";
 
 type SchAbility = Ability & Readonly<LevelModifiable<{

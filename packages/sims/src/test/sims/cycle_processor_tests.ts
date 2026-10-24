@@ -1467,6 +1467,26 @@ describe('gcd clipping check', () => {
 });
 
 describe('potion logic', () => {
+    it('uses the medicine configured for the processor through usePotion', () => {
+        const cp = new CycleProcessor({
+            ...defaultSettings,
+            medicine: {
+                id: 12345,
+                nameTranslation: {asCurrentLang: 'Test Medicine'},
+                bonuses: {},
+            } as NonNullable<MultiCycleSettings['medicine']>,
+        });
+
+        assert.equal(cp.usePotion(), 'full');
+        assert.equal(cp.finalizedRecords.some(record => 'ability' in record && record.ability.itemId === 12345), true);
+    });
+
+    it('does nothing when there is no medicine configured', () => {
+        const cp = new CycleProcessor(defaultSettings);
+
+        assert.equal(cp.usePotion(), 'none');
+    });
+
     it('reflects potions', () => {
         const cp = new CycleProcessor({
             ...defaultSettings,

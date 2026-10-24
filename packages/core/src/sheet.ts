@@ -5,6 +5,7 @@ import {
     ALL_COMBAT_SUB_STATS,
     ALL_JOBS,
     CURRENT_MAX_LEVEL,
+    DEFAULT_MATERIA_ACCEPTABLE_OVERCAP_LOSS,
     defaultItemDisplaySettings,
     DefaultMateriaFillPrio,
     DOH_STATS,
@@ -16,7 +17,6 @@ import {
     JobName,
     LEVEL_ITEMS,
     MAIN_STATS,
-    DEFAULT_MATERIA_ACCEPTABLE_OVERCAP_LOSS,
     MateriaSubstat,
     RaceName,
     SPECIAL_STAT_KEYS,
@@ -40,12 +40,12 @@ import {
     JobDataConst,
     JobDataExport,
     Materia,
-    MedicineItem,
     MateriaAutoFillController,
     MateriaAutoFillPrio,
     MateriaFillMode,
     MateriaSlot,
     MateriaWasteLimits,
+    MedicineItem,
     MeldableMateriaSlot,
     NormalOccGearSlotKey,
     OccGearSlotKey,
@@ -486,7 +486,7 @@ export class GearPlanSheet {
                 }
             }
         }
-        this._dmRelevantFood = this.dataManager.allFoodItems.filter(food => this.isStatRelevant(food.primarySubStat) || this.isStatRelevant(food.secondarySubStat));
+        this._dmRelevantFood = this.dataManager.allFoodItems.filter(food => this.isStatRelevant(food.primaryStat) || this.isStatRelevant(food.secondaryStat));
         // This is set when importing - but it needs to know about items first. Thus we have to redo this now.
         this.activeSpecialStat = this._activeSpecialStat;
         this._setupDone = true;
@@ -1159,11 +1159,12 @@ export class GearPlanSheet {
      *
      * @param stat
      */
-    isStatRelevant(stat: RawStatKey | undefined): boolean {
+    isStatRelevant(stat: RawStatKey | undefined, job: JobName = this.classJobName): boolean {
         if (stat === undefined) {
             return false;
         }
-        if (!this.classJobEarlyStats) {
+        const classJobEarlyStats = getClassJobStats(job);
+        if (!classJobEarlyStats) {
             // Not sure what the best way to handle this is
             return true;
         }
@@ -1171,20 +1172,20 @@ export class GearPlanSheet {
         if (stat === 'vitality') {
             return true;
         }
-        switch (this.classJobEarlyStats.type) {
+        switch (classJobEarlyStats.type) {
             case "Combat":
                 if (DOH_STATS.includes(stat as typeof DOH_STATS[number]) || DOL_STATS.includes(stat as typeof DOL_STATS[number])) {
                     return false;
                 }
                 if (MAIN_STATS.includes(stat as typeof MAIN_STATS[number])) {
-                    return (stat === this.classJobEarlyStats.mainStat);
+                    return (stat === classJobEarlyStats.mainStat);
                 }
                 if (stat === 'gearHaste') {
                     const specialStat = this.activeSpecialStat;
                     return SPECIAL_STATS_MAPPING[specialStat]?.showHaste ?? false;
                 }
-                if (this.classJobEarlyStats.irrelevantSubstats) {
-                    return !this.classJobEarlyStats.irrelevantSubstats.includes(stat as Substat);
+                if (classJobEarlyStats.irrelevantSubstats) {
+                    return !classJobEarlyStats.irrelevantSubstats.includes(stat as Substat);
                 }
                 else {
                     return ALL_COMBAT_STATS.includes(stat as typeof ALL_COMBAT_STATS[number]);
@@ -1194,6 +1195,16 @@ export class GearPlanSheet {
             case "DoL":
                 return DOL_STATS.includes(stat as typeof DOL_STATS[number]);
         }
+    }
+
+    /**
+     * Determine if a stat is relevant for medicine items. This is the same as
+     * {@link #isStatRelevant} but returns false for vitality.
+     *
+     * @param stat The medicine stat
+     */
+    isStatRelevantForMedicine(stat: RawStatKey | undefined) {
+        return stat !== 'vitality' && this.isStatRelevant(stat);
     }
 
     /**
@@ -1397,7 +1408,7 @@ export class GearPlanSheet {
             return item.ilvl >= settings.minILvlFood && item.ilvl <= settings.maxILvlFood
                 // Unless the user has opted into showing one-stat-relevant food, only show food with two relevant substats.
                 // _dmRelevantFood is already filtered to food which has at least one relevant stat.
-                && (settings.showOneStatFood || (this.isStatRelevant(item.primarySubStat) && this.isStatRelevant(item.secondarySubStat)));
+                && (settings.showOneStatFood || (this.isStatRelevant(item.primaryStat) && this.isStatRelevant(item.secondaryStat)));
         }), ...this._customFoods].filter(item => {
             return settings.showHidden || !this.isItemHidden(item);
         });
@@ -1410,7 +1421,7 @@ export class GearPlanSheet {
         return [...this._dmRelevantFood.filter(item => {
             return item.ilvl >= defaultItemDisplaySettings.minILvlFood
                 // Filter to only two relevant substats (i.e. no tenacity for healers)
-                && (this.isStatRelevant(item.primarySubStat) && this.isStatRelevant(item.secondarySubStat));
+                && (this.isStatRelevant(item.primaryStat) && this.isStatRelevant(item.secondaryStat));
         }), ...this._customFoods];
     }
 
@@ -1486,7 +1497,7 @@ export class GearPlanSheet {
         return this.dataManager.allMedicineItems.filter(item =>
             item.ilvl >= settings.minILvlFood
             && item.ilvl <= settings.maxILvlFood
-            && (this.isStatRelevant(item.primarySubStat) || this.isStatRelevant(item.secondarySubStat))
+            && (this.isStatRelevantForMedicine(item.primaryStat) || this.isStatRelevantForMedicine(item.secondaryStat))
             && (settings.showHidden || !this.isItemHidden(item))
         );
     }

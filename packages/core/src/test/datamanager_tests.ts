@@ -105,8 +105,8 @@ describe('New Datamanager', () => {
         eq(food.name, "Vegetable Soup");
         eq(food.nameTranslation.en, "Vegetable Soup");
         eq(food.nameTranslation.de, "Gemüsesuppe");
-        eq(food.primarySubStat, 'dhit');
-        eq(food.secondarySubStat, 'determination');
+        eq(food.primaryStat, 'dhit');
+        eq(food.secondaryStat, 'determination');
         eq(food.bonuses.dhit.max, 121);
         eq(food.bonuses.dhit.percentage, 10);
         eq(food.bonuses.determination.max, 73);

@@ -128,7 +128,7 @@ export class GearSetViewer extends HTMLElement {
         }
 
         const medicine = this.gearSet.medicine;
-        if (medicine && this.gearSet.classJobStats.type !== 'Combat') {
+        if (medicine) {
             const medicineTable = new MedicineItemViewTable(this.sheet, this.gearSet, medicine);
             medicineTable.classList.add('food-view-table');
             this.appendChild(medicineTable);

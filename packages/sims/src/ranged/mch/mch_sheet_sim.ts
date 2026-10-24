@@ -1,7 +1,6 @@
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import type {CharacterGearSet} from "@xivgear/core/gear";
 import {CycleProcessor, type AbilityUseResult, type CycleSimResult, type ExternalCycleSettings, type MultiCycleSettings, type PreDmgAbilityUseRecordUnf, type Rotation} from "@xivgear/sims/cycle_sim";
-import {potionMaxDex} from "@xivgear/sims/common/potion";
 import {BaseMultiCycleSim} from "../../processors/sim_processors";
 import type {Ability, DamagingAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
 import {AirAnchor, AutomatonQueen, AutomatonQueenArmPunch, AutomatonQueenCrownedCollider, AutomatonQueenPileBunker, BarrelStabilizer, BlazingShot, Chainsaw, Checkmate, Detonator, DoubleCheck, Drill, Excavator, FullMetalField, HeatedCleanShot, HeatedSlugShot, HeatedSplitShot, Hypercharge, Reassemble, Wildfire} from "./mch_actions";
@@ -84,7 +83,7 @@ export class MchCycleProcessor extends CycleProcessor {
     gauge = new MchGauge();
     comboState = 0;
     ogcdsRemaining = 0;
-    potAbility: MchOgcdAbility;
+    potAbility: MchOgcdAbility | undefined;
     constants: RotationConstants;
     /**
      * How many times Hypercharge can be used before next burst
@@ -102,12 +101,10 @@ export class MchCycleProcessor extends CycleProcessor {
     constructor(settings: MultiCycleSettings, private simSettings: MchSimSettings) {
         super(settings);
         this.gcdCalculated = this.gcdTime(HeatedCleanShot);
-        this.potAbility = {
-            ...potionMaxDex,
-            cooldown: {
-                time: 360,
-            },
-        };
+        this.potAbility = this.medicinePotion ? {
+            ...this.medicinePotion,
+            cooldown: {time: 360},
+        } as MchOgcdAbility : undefined;
         switch (this.stats.level) {
             case 100:
                 this.constants = ROTATION_CONSTANTS['100'];
@@ -329,7 +326,7 @@ export class MchCycleProcessor extends CycleProcessor {
 
     private canPot(): boolean {
         // only use as "last" ogcd because we're gonna advance to the latest possible usage time
-        if (this.ogcdsRemaining !== 1) {
+        if (this.ogcdsRemaining !== 1 || !this.simSettings.usePots || !this.potAbility) {
             return false;
         }
         return this.cdTracker.canUse(this.potAbility, this.currentTime);
@@ -414,7 +411,7 @@ export class MchCycleProcessor extends CycleProcessor {
         }
         if (this.canPot()) {
             // this.advanceTo(this.nextGcdTime - STANDARD_ANIMATION_LOCK);
-            return this.potAbility;
+            return this.potAbility!;
         }
 
         if (!advanced && this.currentTime + STANDARD_ANIMATION_LOCK < this.nextGcdTime) {
@@ -449,7 +446,7 @@ export class MchCycleProcessor extends CycleProcessor {
 
     private executeLevel100Opener() {
         this.use(Reassemble);
-        if (this.simSettings.usePots) {
+        if (this.simSettings.usePots && this.potAbility) {
             if (!this.simSettings.skipOpenerPot) {
                 this.advanceTo(5 - STANDARD_ANIMATION_LOCK * 2, true);
                 this.use(this.potAbility);

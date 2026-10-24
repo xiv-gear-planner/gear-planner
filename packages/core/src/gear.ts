@@ -335,6 +335,27 @@ export class CharacterGearSet {
     }
 
     /**
+     * Like {@link medicine}, but will try to auto-select a medicine item if none is selected.
+     */
+    get medicineForSim(): MedicineItem | undefined {
+        if (this._medicine) {
+            return this._medicine;
+        }
+
+        // Nothing explicitly selected
+        let best: MedicineItem | undefined;
+        for (const medicine of this.sheet.allMedicineItems) {
+            if (!this.isStatRelevant(medicine.primaryStat) && !this.isStatRelevant(medicine.secondaryStat)) {
+                continue;
+            }
+            if (!best || medicine.ilvl > best.ilvl) {
+                best = medicine;
+            }
+        }
+        return best;
+    }
+
+    /**
      * The sheet of which this set is a member.
      */
     get sheet(): GearPlanSheet {
@@ -652,6 +673,7 @@ export class CharacterGearSet {
         this._dirtyComp = false;
         // Add BLU weapon damage modifier
         combinedStats.wdMag += classJob === "BLU" ? bluWdfromInt(gearIntStat) : 0;
+        const medicineBonuses = classJobStats.type === 'Combat' ? {} : this._medicine?.bonuses ?? {};
         const computedStats = finalizeStats(
             combinedStats,
             this._food?.bonuses ?? {},
@@ -661,7 +683,7 @@ export class CharacterGearSet {
             classJobStats,
             this._sheet.partyBonus,
             raceStats,
-            this._medicine?.bonuses ?? {}
+            medicineBonuses
         );
         const leftRing = this.getItemInSlot('RingLeft');
         const rightRing = this.getItemInSlot('RingRight');
@@ -1039,8 +1061,8 @@ export class CharacterGearSet {
      * Whether a stat is relevant to this set.
      * @param stat
      */
-    isStatRelevant(stat: RawStatKey) {
-        return this._sheet.isStatRelevant(stat);
+    isStatRelevant(stat: RawStatKey | undefined) {
+        return this._sheet.isStatRelevant(stat, this.job);
     }
 
     /**

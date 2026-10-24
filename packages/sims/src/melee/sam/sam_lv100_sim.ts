@@ -13,11 +13,11 @@ import {CharacterGearSet} from "@xivgear/core/gear";
 import {formatDuration} from "@xivgear/util/strutils";
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import SAMGauge from "./sam_gauge";
-import {SamAbility, SAMExtraData, SAMRotationData} from "./sam_types";
+import {SamAbility, SAMExtraData, SamRotationAction, SAMRotationData} from "./sam_types";
 import * as SlowSamRotation from './rotations/sam_lv100_214';
 import * as MidSamRotation from './rotations/sam_lv100_207';
 import * as FastSamRotation from './rotations/sam_lv100_200';
-import {HissatsuShinten, MeikyoShisui} from './sam_actions';
+import {HissatsuShinten, MeikyoShisui, PotionMarker} from './sam_actions';
 import {BaseMultiCycleSim} from "@xivgear/sims/processors/sim_processors";
 
 export interface SamSimResult extends CycleSimResult {
@@ -72,11 +72,12 @@ class SAMCycleProcessor extends CycleProcessor {
         this.gauge = new SAMGauge(settings.stats.level);
     }
 
-    shouldUseShinten(rotation: SamAbility[], idx: number): boolean {
+    shouldUseShinten(rotation: SamRotationAction[], idx: number): boolean {
         // If the fight is ending soon, we should use up our remaining gauge.
         const numShintens = Math.floor(this.gauge.kenkiGauge / 25);
-        const remainingGcds = rotation.slice(idx).filter(action => action.type === 'gcd').length;
-        return rotation[idx].type === 'gcd' && numShintens === remainingGcds;
+        const remainingGcds = rotation.slice(idx).filter(action => action !== PotionMarker && action.type === 'gcd').length;
+        const action = rotation[idx];
+        return action !== PotionMarker && action.type === 'gcd' && numShintens === remainingGcds;
     }
 
     override addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf) {
@@ -130,12 +131,22 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
         };
     }
 
-    use(cp: SAMCycleProcessor, ability: Ability): AbilityUseResult {
+    use(cp: SAMCycleProcessor, ability: Ability | typeof PotionMarker): AbilityUseResult {
+        let resolvedAbility: Ability;
+        if (ability === PotionMarker) {
+            if (!cp.medicinePotion) {
+                return 'none';
+            }
+            resolvedAbility = cp.medicinePotion;
+        }
+        else {
+            resolvedAbility = ability;
+        }
         if (cp.currentTime >= cp.totalTime) {
             return null;
         }
 
-        const samAbility = ability as SamAbility;
+        const samAbility = resolvedAbility as SamAbility;
         // Log when we try to use more gauge than what we currently have
         if (samAbility.kenkiCost > cp.gauge.kenkiGauge) {
             console.warn(`[${formatDuration(cp.currentTime)}][SAM Sim] Attempted to use ${samAbility.kenkiCost} kenki with ${samAbility.name} when you only have ${cp.gauge.kenkiGauge}`);
@@ -143,28 +154,28 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
         }
 
         // If an Ogcd isn't ready yet, but it can still be used without clipping, advance time until ready.
-        if (ability.type === 'ogcd' && cp.canUseWithoutClipping(ability)) {
-            const readyAt = cp.cdTracker.statusOf(ability).readyAt.absolute;
+        if (resolvedAbility.type === 'ogcd' && cp.canUseWithoutClipping(resolvedAbility)) {
+            const readyAt = cp.cdTracker.statusOf(resolvedAbility).readyAt.absolute;
             if (cp.totalTime > readyAt) {
                 cp.advanceTo(readyAt);
             }
         }
 
         // Only use potion if enabled in settings
-        if (!this.settings.usePotion && ability.name.includes(' of Strength')) {
+        if (!this.settings.usePotion && resolvedAbility.attackType === 'Item') {
             return null;
         }
 
         // Update gauge from the ability itself
         if (samAbility.updateGaugeLegacy !== undefined) {
             // Prevent gauge updates showing incorrectly on autos before this ability
-            if (ability.type === 'gcd' && cp.nextGcdTime > cp.currentTime) {
+            if (resolvedAbility.type === 'gcd' && cp.nextGcdTime > cp.currentTime) {
                 cp.advanceTo(cp.nextGcdTime);
             }
             samAbility.updateGaugeLegacy(cp.gauge);
         }
 
-        const abilityUseResult = cp.use(ability);
+        const abilityUseResult = cp.use(resolvedAbility);
         return abilityUseResult;
     }
 
@@ -210,15 +221,15 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
             cycleTime: 120,
             apply(cp: SAMCycleProcessor) {
                 // Pre-pull Meikyo timing
-                const first = rotation.opener.shift();
-                cp.use(first);
-                if (first.name === MeikyoShisui.name && settings.prePullMeikyo > STANDARD_ANIMATION_LOCK) {
+                const first = rotation.opener.shift()!;
+                outer.use(cp, first);
+                if (first !== PotionMarker && first.name === MeikyoShisui.name && settings.prePullMeikyo > STANDARD_ANIMATION_LOCK) {
                     cp.advanceTo(settings.prePullMeikyo - STANDARD_ANIMATION_LOCK);
                 }
 
                 // Opener
                 rotation.opener.forEach((action, idx) => {
-                    if (action.type === 'gcd' && cp.shouldUseShinten(rotation.opener, idx)) {
+                    if (action !== PotionMarker && action.type === 'gcd' && cp.shouldUseShinten(rotation.opener, idx)) {
                         outer.use(cp, HissatsuShinten);
                     }
                     outer.use(cp, action);
@@ -228,7 +239,7 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
                 if (rotation.loop?.length) {
                     cp.remainingCycles(() => {
                         rotation.loop.forEach((action, idx) => {
-                            if (action.type === 'gcd' && cp.shouldUseShinten(rotation.loop, idx)) {
+                            if (action !== PotionMarker && action.type === 'gcd' && cp.shouldUseShinten(rotation.loop, idx)) {
                                 outer.use(cp, HissatsuShinten);
                             }
                             outer.use(cp, action);

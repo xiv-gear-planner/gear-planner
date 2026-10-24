@@ -442,17 +442,14 @@ export class NewApiDataManager implements DataManager {
             })
             .then((processedFoods) => processedFoods.filter(food => Object.keys(food.bonuses).length > 1))
             .then((foods) => this._allFoodItems = foods);
-        const hasNonCombatJob = this._allJobs.some(job => JOB_DATA[job].type !== 'Combat');
-        const medicinePromise = hasNonCombatJob
-            ? this.apiClient.medicine.medicineItems()
-                .then((response) => {
-                    checkResponse(response);
-                    console.log(`Got ${response.data.items.length} Medicine Items`);
-                    return response.data.items;
-                })
-                .then(rawMedicine => rawMedicine.map(item => new DataApiMedicineInfo(item)))
-                .then(medicine => this._allMedicineItems = medicine)
-            : Promise.resolve(this._allMedicineItems = []);
+        const medicinePromise = this.apiClient.medicine.medicineItems()
+            .then((response) => {
+                checkResponse(response);
+                console.log(`Got ${response.data.items.length} Medicine Items`);
+                return response.data.items;
+            })
+            .then(rawMedicine => rawMedicine.map(item => new DataApiMedicineInfo(item)))
+            .then(medicine => this._allMedicineItems = medicine);
         console.log("Loading jobs");
         const jobsPromise = this.apiClient.jobs.jobs()
             .then(response => {
@@ -995,8 +992,8 @@ export class DataApiFoodInfo implements FoodItem {
     name: string;
     readonly nameTranslation: TranslatableString;
     ilvl: number;
-    primarySubStat: RawStatKey | undefined;
-    secondarySubStat: RawStatKey | undefined;
+    primaryStat: RawStatKey | undefined;
+    secondaryStat: RawStatKey | undefined;
 
     constructor(data: ApiFoodData) {
         this.id = requireNumber(data.rowId);
@@ -1013,10 +1010,10 @@ export class DataApiFoodInfo implements FoodItem {
         }
         const sortedStats = Object.entries(this.bonuses).sort((entryA, entryB) => entryB[1].max - entryA[1].max).map(entry => entry[0] as RawStatKey).filter(stat => stat !== 'vitality');
         if (sortedStats.length >= 1) {
-            this.primarySubStat = sortedStats[0];
+            this.primaryStat = sortedStats[0];
         }
         if (sortedStats.length >= 2) {
-            this.secondarySubStat = sortedStats[1];
+            this.secondaryStat = sortedStats[1];
         }
     }
 }
@@ -1033,8 +1030,8 @@ export class DataApiMedicineInfo implements MedicineItem {
     name: string;
     readonly nameTranslation: TranslatableString;
     ilvl: number;
-    primarySubStat: RawStatKey | undefined;
-    secondarySubStat: RawStatKey | undefined;
+    primaryStat: RawStatKey | undefined;
+    secondaryStat: RawStatKey | undefined;
 
     constructor(data: ApiMedicineData) {
         this.id = requireNumber(data.rowId);
@@ -1051,10 +1048,10 @@ export class DataApiMedicineInfo implements MedicineItem {
         }
         const sortedStats = Object.entries(this.bonuses).sort((entryA, entryB) => entryB[1].max - entryA[1].max).map(entry => entry[0] as RawStatKey).filter(stat => stat !== 'vitality');
         if (sortedStats.length >= 1) {
-            this.primarySubStat = sortedStats[0];
+            this.primaryStat = sortedStats[0];
         }
         if (sortedStats.length >= 2) {
-            this.secondarySubStat = sortedStats[1];
+            this.secondaryStat = sortedStats[1];
         }
     }
 }

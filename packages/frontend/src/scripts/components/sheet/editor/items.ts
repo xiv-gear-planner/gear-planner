@@ -56,7 +56,7 @@ import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {recordSheetEvent} from "../../../analytics/analytics";
 import {hideIcon, makeTrashIcon, showIcon} from "@xivgear/common-ui/components/icons";
 import {sortItemsInPlace} from "../../items/item_utils";
-import {bold, p} from "@xivgear/common-ui/components/templates";
+import {bold, elt, p} from "@xivgear/common-ui/components/templates";
 
 function removeStatCellStyles(cell: CustomCell<GearSlotItem, unknown>) {
     cell.classList.remove("secondary");
@@ -148,13 +148,12 @@ function statCellTitle(value: ItemSingleStatDetail): string {
  * @param stat The stat
  */
 function foodStatCellStyler(cell: CustomCell<FoodItem, unknown>, stat: keyof RawStats) {
-
     cell.classList.add("food-stat-cell");
     cell.classList.add("stat-" + stat);
-    if (cell.dataItem.primarySubStat === stat) {
+    if (cell.dataItem.primaryStat === stat) {
         cell.classList.add("primary");
     }
-    else if (cell.dataItem.secondarySubStat === stat) {
+    else if (cell.dataItem.secondaryStat === stat) {
         cell.classList.add("secondary");
     }
     if (cell._cellValue === 0) {
@@ -210,7 +209,7 @@ function foodTableStatViewColumn(sheet: GearPlanSheet, set: CharacterGearSet, it
     const wrapped = foodTableStatColumn(sheet, set, stat, highlightPrimarySecondary);
     return {
         ...wrapped,
-        condition: () => (item.primarySubStat === stat || item.secondarySubStat === stat),
+        condition: () => (item.primaryStat === stat || item.secondaryStat === stat),
     };
 }
 
@@ -266,7 +265,7 @@ function medicineTableStatViewColumn(sheet: GearPlanSheet, set: CharacterGearSet
     const wrapped = medicineTableStatColumn(sheet, set, stat, highlightPrimarySecondary);
     return {
         ...wrapped,
-        condition: () => item.primarySubStat === stat || item.secondarySubStat === stat,
+        condition: () => item.primaryStat === stat || item.secondaryStat === stat,
     };
 }
 
@@ -517,6 +516,14 @@ export class MedicineItemsTable extends CustomTable<MedicineItem, TableSelection
                     return quickElement('div', ['food-name-holder-editable'], [quickElement('span', [], [name]), buttonsArea]);
                 },
             },
+            // DoW/DoM
+            medicineTableStatColumn(sheet, gearSet, 'strength', true),
+            medicineTableStatColumn(sheet, gearSet, 'dexterity', true),
+            medicineTableStatColumn(sheet, gearSet, 'intelligence', true),
+            medicineTableStatColumn(sheet, gearSet, 'mind', true),
+            // medicineTableStatColumn(sheet, gearSet, 'vitality'),
+
+            // DoH/DoL
             medicineTableStatColumn(sheet, gearSet, 'craftsmanship', true),
             medicineTableStatColumn(sheet, gearSet, 'control', true),
             medicineTableStatColumn(sheet, gearSet, 'cp', true),
@@ -556,10 +563,13 @@ export class MedicineItemsTable extends CustomTable<MedicineItem, TableSelection
             this.updateShowHide();
         });
         const displayItems = [...sheet.medicineItemsForDisplay];
+        const specialRow = new SpecialRow(() => {
+            return elt('span', {style: {fontWeight: 'normal'}})`Potion bonuses are not reflected in the stats table. They are applied by simulations, but only if enabled in the simulation's settings.`;
+        });
         sortItemsInPlace(displayItems);
         super.data = displayItems.length > 0
-            ? [showHideRow.row, new HeaderRow(), ...displayItems]
-            : [showHideRow.row, new HeaderRow(), new TitleRow('No items available - please check your filters')];
+            ? [showHideRow.row, specialRow, new HeaderRow(), ...displayItems]
+            : [showHideRow.row, specialRow, new HeaderRow(), new TitleRow('No items available - please check your filters')];
         this.updateShowHide();
     }
 
@@ -596,6 +606,18 @@ export class MedicineItemViewTable extends CustomTable<MedicineItem> {
                     node.style.display = 'none';
                 },
             }),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'strength', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'dexterity', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'intelligence', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'mind', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'vitality'),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'crit', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'dhit', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'determination', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'spellspeed', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'skillspeed', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'piety', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'tenacity', highlight),
             medicineTableStatViewColumn(sheet, gearSet, item, 'craftsmanship', highlight),
             medicineTableStatViewColumn(sheet, gearSet, item, 'control', highlight),
             medicineTableStatViewColumn(sheet, gearSet, item, 'cp', highlight),

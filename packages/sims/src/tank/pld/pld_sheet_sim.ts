@@ -6,7 +6,6 @@ import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import {sum} from "@xivgear/util/array_utils";
 import * as Actions from './pld_actions';
 import {BaseMultiCycleSim} from "@xivgear/sims/processors/sim_processors";
-import {potionMaxStr} from "@xivgear/sims/common/potion";
 import {AtonementReadyBuff, BladeOfHonorReadyBuff, ConfiteorReadyBuff, DivineMightBuff, FightOrFlightBuff, GoringBladeReadyBuff, PldExtraData, PldGcdAbility, PldOgcdAbility, RequiescatBuff, SepulchreReadyBuff, SupplicationReadyBuff} from "./pld_types";
 
 export interface PldSimResult extends CycleSimResult {
@@ -465,8 +464,8 @@ export class PldSim extends BaseMultiCycleSim<PldSimResult, PldSettings, PldCycl
             }
         }
 
-        if (cp.shouldPot() && cp.canUseWithoutClipping(potionMaxStr)) {
-            this.use(cp, potionMaxStr);
+        if (cp.medicinePotion && cp.shouldPot() && cp.canUseWithoutClipping(cp.medicinePotion)) {
+            this.use(cp, cp.medicinePotion);
         }
 
         ////////
@@ -500,7 +499,7 @@ export class PldSim extends BaseMultiCycleSim<PldSimResult, PldSettings, PldCycl
         }
 
         // Only use potion if enabled in settings
-        if (!this.settings.usePotion && ability.name.includes("of Strength")) {
+        if (!this.settings.usePotion && ability.attackType === 'Item') {
             return null;
         }
 
@@ -513,8 +512,10 @@ export class PldSim extends BaseMultiCycleSim<PldSimResult, PldSettings, PldCycl
         this.use(cp, Actions.HolySpiritHardcast);
         this.use(cp, cp.getComboToUse());
         this.use(cp, cp.getComboToUse());
-        cp.advanceForLateWeave([potionMaxStr]);
-        this.use(cp, potionMaxStr);
+        if (cp.medicinePotion) {
+            cp.advanceForLateWeave([cp.medicinePotion]);
+            this.use(cp, cp.medicinePotion);
+        }
         this.use(cp, cp.getComboToUse());
         if (cp.shouldWeGoForNineGCDFoFNow()) {
             cp.advanceForLateWeave([Actions.FightOrFlight]);

@@ -1,7 +1,6 @@
 import {ArcaneCircleBuff} from "@xivgear/sims/buffs";
 import {Ability, Buff, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
 import {PreDmgAbilityUseRecordUnf, AbilityUseResult, CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation} from "@xivgear/sims/cycle_sim";
-import {potionMaxStr} from "@xivgear/sims/common/potion";
 import * as Actions from "./rpr_actions";
 import {RprAbility, RprExtraData, RprGcdAbility} from "./rpr_types";
 import {RprGauge} from "./rpr_gauge";
@@ -239,9 +238,11 @@ class RprCycleProcessor extends CycleProcessor {
 
         this.useGcd(Actions.ShadowOfDeath);
 
-        this.advanceForLateWeave([potionMaxStr]);
-        if (pot) {
-            this.useOgcd(potionMaxStr);
+        if (this.medicinePotion) {
+            this.advanceForLateWeave([this.medicinePotion]);
+            if (pot) {
+                this.useOgcd(this.medicinePotion);
+            }
         }
 
         this.useGcd(Actions.SoulSlice);
@@ -281,29 +282,30 @@ class RprCycleProcessor extends CycleProcessor {
 
         }
 
-        if (this.cdTracker.canUse(potionMaxStr)) {
+        const potion = this.medicinePotion;
+        if (potion && this.cdTracker.canUse(potion)) {
 
             /**
              * If we can weave potion between AC and next gcd
              */
-            if (nextReaping - acTime >= animationLock(potionMaxStr)) {
+            if (nextReaping - acTime >= animationLock(potion)) {
                 this.useGcd(Actions.ShadowOfDeath);
                 this.useOgcd(Actions.ArcaneCircle);
-                this.useOgcd(potionMaxStr);
+                this.useOgcd(potion);
             }
             else {
                 /**
                  * If we can weave potion before AC
                  */
-                if (acTime - (this.nextGcdTime + animationLock(Actions.ShadowOfDeath)) >= animationLock(potionMaxStr)) {
+                if (acTime - (this.nextGcdTime + animationLock(Actions.ShadowOfDeath)) >= animationLock(potion)) {
                     this.useGcd(Actions.ShadowOfDeath);
-                    this.useOgcd(potionMaxStr);
+                    this.useOgcd(potion);
                     this.useOgcd(Actions.ArcaneCircle);
                 }
                 else {  /**
                          * We cannot fit both pot and AC, move pot back
                          */
-                    this.useOgcd(potionMaxStr);
+                    this.useOgcd(potion);
                     this.useGcd(Actions.ShadowOfDeath);
                     this.useOgcd(Actions.ArcaneCircle);
                 }

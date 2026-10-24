@@ -30,7 +30,6 @@ import {
 import {sum} from "@xivgear/util/array_utils";
 import * as Actions from './gnb_actions';
 import {BaseMultiCycleSim} from "@xivgear/sims/processors/sim_processors";
-import {potionMaxStr} from "@xivgear/sims/common/potion";
 
 export interface GnbSimResult extends CycleSimResult {
 
@@ -571,8 +570,8 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
             this.use(cp, cp.blastingZoneAbility);
         }
 
-        if (cp.shouldPot() && cp.canUseWithoutClipping(potionMaxStr)) {
-            this.use(cp, potionMaxStr);
+        if (cp.medicinePotion && cp.shouldPot() && cp.canUseWithoutClipping(cp.medicinePotion)) {
+            this.use(cp, cp.medicinePotion);
         }
 
         ////////
@@ -608,7 +607,7 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
         }
 
         // Only use potion if enabled in settings
-        if (!this.settings.usePotion && ability.name.includes("of Strength")) {
+        if (!this.settings.usePotion && ability.attackType === 'Item') {
             return null;
         }
 
@@ -628,8 +627,10 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
         cp.advanceTo(STANDARD_ANIMATION_LOCK);
         this.use(cp, Actions.LightningShot);
         this.use(cp, cp.getComboToUse());
-        cp.advanceForLateWeave([potionMaxStr]);
-        this.use(cp, potionMaxStr);
+        if (cp.medicinePotion) {
+            cp.advanceForLateWeave([cp.medicinePotion]);
+            this.use(cp, cp.medicinePotion);
+        }
         this.use(cp, cp.getComboToUse());
         cp.advanceForLateWeave([Actions.NoMercy]);
         this.use(cp, Actions.NoMercy);
@@ -652,8 +653,10 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
         this.use(cp, cp.getComboToUse());
         if (gcd <= 2.47) {
             this.use(cp, cp.getComboToUse());
-            cp.advanceForLateWeave([potionMaxStr]);
-            this.use(cp, potionMaxStr);
+            if (cp.medicinePotion) {
+                cp.advanceForLateWeave([cp.medicinePotion]);
+                this.use(cp, cp.medicinePotion);
+            }
             this.use(cp, cp.getComboToUse());
             cp.advanceForLateWeave([Actions.NoMercy]);
             this.use(cp, Actions.NoMercy);
@@ -665,8 +668,10 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
             this.use(cp, Actions.Bloodfest);
         }
         else {
-            cp.advanceForLateWeave([potionMaxStr]);
-            this.use(cp, potionMaxStr);
+            if (cp.medicinePotion) {
+                cp.advanceForLateWeave([cp.medicinePotion]);
+                this.use(cp, cp.medicinePotion);
+            }
             this.use(cp, cp.getComboToUse());
             this.use(cp, Actions.NoMercy);
             this.use(cp, Actions.Bloodfest);
@@ -693,12 +698,19 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
         this.use(cp, cp.getComboToUse());
         if (gcd === 2.50) {
             this.use(cp, Actions.NoMercy);
-            cp.advanceForLateWeave([potionMaxStr]);
-            this.use(cp, potionMaxStr);
+            if (cp.medicinePotion) {
+                cp.advanceForLateWeave([cp.medicinePotion]);
+                this.use(cp, cp.medicinePotion);
+            }
         }
         else {
-            cp.advanceForLateWeave([potionMaxStr, Actions.NoMercy]);
-            this.use(cp, potionMaxStr);
+            if (cp.medicinePotion) {
+                cp.advanceForLateWeave([cp.medicinePotion, Actions.NoMercy]);
+                this.use(cp, cp.medicinePotion);
+            }
+            else {
+                cp.advanceForLateWeave([Actions.NoMercy]);
+            }
             this.use(cp, Actions.NoMercy);
         }
         this.use(cp, cp.getGnashingFangComboToUse());
