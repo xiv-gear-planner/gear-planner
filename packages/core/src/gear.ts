@@ -673,6 +673,8 @@ export class CharacterGearSet {
         this._dirtyComp = false;
         // Add BLU weapon damage modifier
         combinedStats.wdMag += classJob === "BLU" ? bluWdfromInt(gearIntStat) : 0;
+        // Since DoH/DoL have long-duration potions, it is reasonable to include them in the real stats.
+        // However, combat job potions have short durations, so simulations decide if and when to use them.
         const medicineBonuses = classJobStats.type === 'Combat' ? {} : this._medicine?.bonuses ?? {};
         const computedStats = finalizeStats(
             combinedStats,
