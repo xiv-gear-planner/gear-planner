@@ -131,8 +131,8 @@ describe('DoH stats tests', () => {
             ...relevantMedicine,
             id: relevantMedicine.id + 2,
             ilvl: relevantMedicine.ilvl + 2,
-            primarySubStat: 'strength' as const,
-            secondarySubStat: 'strength' as const,
+            primaryStat: 'strength' as const,
+            secondaryStat: 'strength' as const,
         };
         medicines.push(higherRelevantMedicine, higherIrrelevantMedicine);
 
