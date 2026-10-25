@@ -10,14 +10,14 @@ import {DrkExtraData, DrkAbility, DrkGcdAbility, ScornBuff, SaltedEarthBuff, Del
 import {sum} from "@xivgear/util/array_utils";
 import * as Actions from './drk_actions';
 import {BaseMultiCycleSim} from "@xivgear/sims/processors/sim_processors";
+import {PotionOptions} from "@xivgear/sims/common/medicine";
 
 export interface DrkSimResult extends CycleSimResult {
 
 }
 
-export interface DrkSettings extends SimSettings {
+export interface DrkSettings extends SimSettings, PotionOptions {
     // If we use potions (used every six minutes).
-    usePotion: boolean;
     // If we use a pre-pull TBN.
     prepullTBN: boolean;
     // the length of the fight in seconds
@@ -300,7 +300,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
 
     override makeDefaultSettings(): DrkSettings {
         return {
-            usePotion: true,
+            usePotion: 'auto',
             prepullTBN: true,
             // 8 minutes and 30s, or 510 seconds
             // This is chosen since it's two pots, five bursts,

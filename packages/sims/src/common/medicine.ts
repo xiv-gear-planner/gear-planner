@@ -3,6 +3,12 @@ import {OgcdAbility} from "@xivgear/core/sims/sim_types";
 import {fl} from "@xivgear/xivmath/xivmath";
 import {camel2title, toRelPct} from "@xivgear/util/strutils";
 
+export type PotionEnableOption = true | false | 'auto';
+
+export type PotionOptions = {
+    usePotion: PotionEnableOption;
+}
+
 /**
  * Build a potion action from the medicine equipped on a gear set.
  */

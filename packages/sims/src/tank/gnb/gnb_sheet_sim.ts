@@ -30,14 +30,14 @@ import {
 import {sum} from "@xivgear/util/array_utils";
 import * as Actions from './gnb_actions';
 import {BaseMultiCycleSim} from "@xivgear/sims/processors/sim_processors";
+import {PotionOptions} from "@xivgear/sims/common/medicine";
 
 export interface GnbSimResult extends CycleSimResult {
 
 }
 
-export interface GnbSettings extends SimSettings {
+export interface GnbSettings extends SimSettings, PotionOptions {
     // If we use potions (used every six minutes).
-    usePotion: boolean;
     // the length of the fight in seconds
     fightTime: number;
     // If the sim should do the unrealistic gcd clip tech for 2.49/2.48.
@@ -332,7 +332,7 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
 
     override makeDefaultSettings(): GnbSettings {
         return {
-            usePotion: true,
+            usePotion: 'auto',
             // 8 minutes and 30s, or 510 seconds
             // This is chosen since it's two pots, five bursts,
             // and is somewhat even between the two main GCDs.

@@ -18,18 +18,20 @@ import {potRatioSimSpec} from '@xivgear/sims/common/potency_ratio';
 import {registerDefaultSims} from '@xivgear/sims/default_sims';
 import {getClassJobStats, JobName, MAX_ILVL, SupportedLevel, SupportedLevels} from "@xivgear/xivmath/xivconstants";
 import {expect} from "chai";
-import {EquipSlotInfo, EquipSlotKey} from "@xivgear/xivmath/geartypes";
+import {EquipSlotInfo, EquipSlotKey, MedicineItem} from "@xivgear/xivmath/geartypes";
 import {FakeLocalStorage} from "@xivgear/core/util/fake_local_storage";
 import {GearPlanSheet, HEADLESS_SHEET_PROVIDER} from "@xivgear/core/sheet";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {whmNewSheetSpec} from "../../healer/whm_new_sheet_sim";
+import {PotionOptions} from "../../common/medicine";
+import {MchSimSettingsExternal, mchSheetSpec} from "../../ranged/mch/mch_sheet_sim";
 
 // Example of end-to-end simulation
 // This one is testing the simulation engine itself, so it copies the full simulation code rather than
 // referencing it. If you wish to test an actual simulation, you would want to reference it directly.
 
 // Set up a simulation
-export interface TestSimSettings extends SimSettings {
+export interface TestSimSettings extends SimSettings, PotionOptions {
 }
 
 export interface TestSimSettingsExternal extends ExternalCycleSettings<TestSimSettings> {
@@ -65,7 +67,7 @@ class TestMultiCycleSim extends BaseMultiCycleSim<TestSimResult, TestSimSettings
     }
 
     makeDefaultSettings(): TestSimSettings {
-        return {};
+        return {usePotion: 'auto'};
     }
 
     getRotationsToSimulate(): Rotation[] {
@@ -141,7 +143,7 @@ class TestCustomMultiCycleSim extends BaseMultiCycleSim<TestSimResult, TestSimSe
     }
 
     makeDefaultSettings(): TestSimSettings {
-        return {};
+        return {usePotion: 'auto'};
     }
 
     protected createCycleProcessor(settings: MultiCycleSettings): CustomCycleProcessor {
@@ -182,6 +184,78 @@ describe('Sim with custom cycle processor', () => {
         // Run simulation
         await inst.simulate(exampleGearSet);
         assert.equal(inst.fillerCount, 1);
+    });
+});
+
+describe('Base multi-cycle sim potion settings', () => {
+    const selectedMedicine = {
+        id: 12345,
+        nameTranslation: {asCurrentLang: 'Selected medicine'},
+        bonuses: {},
+    } as unknown as MedicineItem;
+    const fallbackMedicine = {
+        id: 67890,
+        nameTranslation: {asCurrentLang: 'Fallback medicine'},
+        bonuses: {},
+    } as unknown as MedicineItem;
+
+    function setWithMedicine(medicine?: MedicineItem): CharacterGearSet {
+        return {
+            computedStats: exampleGearSet.computedStats,
+            medicine,
+            medicineForSim: medicine ?? fallbackMedicine,
+            getItemInSlot: (): null => null,
+        } as unknown as CharacterGearSet;
+    }
+
+    function configuredMedicine(medicine: MedicineItem | undefined, usePotion: boolean | 'auto') {
+        const sim = new TestMultiCycleSim();
+        sim.settings.usePotion = usePotion;
+        const processor = sim.generateRotations(setWithMedicine(medicine))[0][1];
+        return processor.medicinePotion?.itemId;
+    }
+
+    it('defaults to selected medicine and does not auto-select a fallback', () => {
+        const sim = new TestMultiCycleSim();
+        assert.equal(sim.settings.usePotion, 'auto');
+        assert.equal(configuredMedicine(selectedMedicine, 'auto'), selectedMedicine.id);
+        assert.equal(configuredMedicine(undefined, 'auto'), undefined);
+    });
+
+    it('supports explicit disable and legacy fallback behavior', () => {
+        assert.equal(configuredMedicine(selectedMedicine, false), undefined);
+        assert.equal(configuredMedicine(undefined, true), fallbackMedicine.id);
+    });
+
+    it('preserves saved boolean potion settings', () => {
+        for (const option of [true, false]) {
+            const savedSettings = new TestMultiCycleSim().exportSettings();
+            savedSettings.customSettings.usePotion = option;
+            const loadedSim = testSimSpec.loadSavedSimInstance(savedSettings);
+            assert.equal(loadedSim.settings.usePotion, option);
+        }
+    });
+});
+
+describe('MCH potion setting migration', () => {
+    it('defaults to auto and preserves saved usePots booleans', () => {
+        const currentSim = mchSheetSpec.makeNewSimInstance();
+        assert.equal(currentSim.settings.usePotion, 'auto');
+
+        for (const legacyOption of [true, false]) {
+            const exported = currentSim.exportSettings();
+            const {usePotion: _, ...legacyCustomSettings} = exported.customSettings;
+            const oldSettings = {
+                ...exported,
+                customSettings: {
+                    ...legacyCustomSettings,
+                    usePots: legacyOption,
+                },
+            } as unknown as MchSimSettingsExternal;
+            const loadedSim = mchSheetSpec.loadSavedSimInstance(oldSettings);
+            assert.equal(loadedSim.settings.usePotion, legacyOption);
+            assert.equal('usePots' in loadedSim.settings, false);
+        }
     });
 });
 

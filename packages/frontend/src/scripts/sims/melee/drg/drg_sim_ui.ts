@@ -1,4 +1,5 @@
-import {FieldBoundCheckBox, FieldBoundFloatField, labeledCheckbox, quickElement, el, labelFor, nonNegative} from "@xivgear/common-ui/components/util";
+import {FieldBoundFloatField, quickElement, el, labelFor, nonNegative} from "@xivgear/common-ui/components/util";
+import {potionOptionsDropdown} from "../../common/sim_ui_utils";
 import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/sims/cycle_sim";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {CustomColumnSpec} from "@xivgear/common-ui/table/tables";
@@ -29,9 +30,7 @@ export class DrgSimGui extends BaseMultiCycleSimGui<DrgSimResult, DrgSettings> {
     override makeCustomConfigInterface(settings: DrgSettings, _updateCallback: () => void): HTMLElement | null {
         const configDiv = document.createElement("div");
 
-        const potCb = new FieldBoundCheckBox(settings, "usePotion");
-
-        configDiv.appendChild(labeledCheckbox("Use Potion", potCb));
+        configDiv.appendChild(potionOptionsDropdown(settings));
 
         /*
         const useEptOpenerCB = new FieldBoundCheckBox(settings, "useEptOpener");

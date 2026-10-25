@@ -3,9 +3,7 @@ import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {BaseMultiCycleSimGui} from "../../multicyclesim_ui";
 import {
-    FieldBoundCheckBox,
     FieldBoundFloatField,
-    labeledCheckbox,
     labelFor,
     quickElement
 } from "@xivgear/common-ui/components/util";
@@ -13,7 +11,7 @@ import {SamSettings, SamSimResult} from "@xivgear/sims/melee/sam/sam_lv100_sim";
 import {SAMExtraData} from "@xivgear/sims/melee/sam/sam_types";
 import {StyleSwitcher, WritableCssProp} from "@xivgear/common-ui/util/types";
 import {GaugeWithText} from "@xivgear/common-ui/components/gauges";
-import {extraDataDiscreteGaugeRenderer} from "../../common/sim_ui_utils";
+import {extraDataDiscreteGaugeRenderer, potionOptionsDropdown} from "../../common/sim_ui_utils";
 
 export class SamSimGui extends BaseMultiCycleSimGui<SamSimResult, SamSettings> {
 
@@ -98,11 +96,10 @@ export class SamSimGui extends BaseMultiCycleSimGui<SamSimResult, SamSettings> {
         const configDiv = document.createElement("div");
 
         const ppField = new FieldBoundFloatField(settings, "prePullMeikyo", {inputMode: 'number'});
-        const potCb = new FieldBoundCheckBox(settings, "usePotion");
 
         configDiv.appendChild(labelFor("Meikyo Pre-Pull Time:", ppField));
         configDiv.appendChild(ppField);
-        configDiv.appendChild(labeledCheckbox("Use Potion", potCb));
+        configDiv.appendChild(potionOptionsDropdown(settings));
         return configDiv;
     }
 

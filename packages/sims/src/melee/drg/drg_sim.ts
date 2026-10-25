@@ -28,6 +28,7 @@ import {
 //import {Litany} from "@xivgear/sims/buffs"
 import * as Actions from './drg_actions';
 import {BaseMultiCycleSim} from "@xivgear/sims/processors/sim_processors";
+import {PotionOptions} from "@xivgear/sims/common/medicine";
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 
 function formatTime(time: number) {
@@ -43,9 +44,8 @@ export interface DrgSimResult extends CycleSimResult {
 
 }
 
-export interface DrgSettings extends SimSettings {
+export interface DrgSettings extends SimSettings, PotionOptions {
     // If we use potions (used every six minutes).
-    usePotion: boolean;
     // the length of the fight in seconds
     fightTime: number;
     // ePT opener. (false is TT opener)
@@ -208,7 +208,7 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
 
     override makeDefaultSettings(): DrgSettings {
         return {
-            usePotion: true,
+            usePotion: 'auto',
             // 8 minutes and 30s, or 510 seconds
             // This is chosen since it's two pots, five bursts,
             // and is somewhat even between the two main GCDs.

@@ -1,4 +1,4 @@
-import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
+import {potionOptionsDropdown} from "../common/sim_ui_utils";
 import {WarSettings, WarSimResult} from "@xivgear/sims/tank/war/war_sheet_sim";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
 import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/sims/cycle_sim";
@@ -53,9 +53,7 @@ export class WarSimGui extends BaseMultiCycleSimGui<WarSimResult, WarSettings> {
     override makeCustomConfigInterface(settings: WarSettings, _updateCallback: () => void): HTMLElement | null {
         const configDiv = document.createElement("div");
 
-        const potCb = new FieldBoundCheckBox(settings, "usePotion");
-
-        configDiv.appendChild(labeledCheckbox("Use Potion", potCb));
+        configDiv.appendChild(potionOptionsDropdown(settings));
         return configDiv;
     }
 }

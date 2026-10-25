@@ -10,6 +10,7 @@ import {
 import {rangeInc} from "@xivgear/util/array_utils";
 import {animationLock} from "@xivgear/sims/ability_helpers";
 import {BaseMultiCycleSim} from "@xivgear/sims/processors/sim_processors";
+import {PotionOptions} from "@xivgear/sims/common/medicine";
 
 /**
  * Used for all 360p filler abilities
@@ -126,8 +127,7 @@ const psyche: OgcdAbility = {
 export interface SgeSheetSimResult extends CycleSimResult {
 }
 
-export interface SgeNewSheetSettings extends SimSettings {
-    usePotion: boolean
+export interface SgeNewSheetSettings extends SimSettings, PotionOptions {
 }
 
 export interface SgeNewSheetSettingsExternal extends ExternalCycleSettings<SgeNewSheetSettings> {
@@ -231,7 +231,7 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
 
     makeDefaultSettings(): SgeNewSheetSettings {
         return {
-            usePotion: false,
+            usePotion: 'auto',
         };
     }
 

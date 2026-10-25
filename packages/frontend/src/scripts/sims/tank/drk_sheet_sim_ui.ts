@@ -1,4 +1,5 @@
 import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
+import {potionOptionsDropdown} from "../common/sim_ui_utils";
 import {DrkSettings, DrkSimResult} from "@xivgear/sims/tank/drk/drk_sheet_sim";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
 import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/sims/cycle_sim";
@@ -88,9 +89,7 @@ export class DrkSimGui extends BaseMultiCycleSimGui<DrkSimResult, DrkSettings> {
     override makeCustomConfigInterface(settings: DrkSettings, _updateCallback: () => void): HTMLElement | null {
         const configDiv = document.createElement("div");
 
-        const potCb = new FieldBoundCheckBox(settings, "usePotion");
-
-        configDiv.appendChild(labeledCheckbox("Use Potion", potCb));
+        configDiv.appendChild(potionOptionsDropdown(settings));
 
         const prepullTBNCB = new FieldBoundCheckBox(settings, "prepullTBN");
 

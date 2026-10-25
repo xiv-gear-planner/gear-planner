@@ -5,6 +5,7 @@ import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xi
 import {ColDefs, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {MchSimSettings, MchSimResult} from "@xivgear/sims/ranged/mch/mch_sheet_sim";
 import type {MchPreDmgUsedAbility} from "@xivgear/sims/ranged/mch/mch_types";
+import {potionOptionsDropdown} from "../common/sim_ui_utils";
 
 export class MchSimGui extends BaseMultiCycleSimGui<MchSimResult, MchSimSettings> {
     static generateResultColumns(result: CycleSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
@@ -98,11 +99,10 @@ export class MchSimGui extends BaseMultiCycleSimGui<MchSimResult, MchSimSettings
     override makeCustomConfigInterface(settings: MchSimSettings, _updateCallback: () => void): HTMLElement | null {
         const configDiv = document.createElement("div");
 
-        const potCb = new FieldBoundCheckBox(settings, "usePots");
         const skipOpenerPot = new FieldBoundCheckBox(settings, "skipOpenerPot");
         const dontAlignCds = new FieldBoundCheckBox(settings, "dontAlignCds");
 
-        configDiv.appendChild(labeledCheckbox("Use potions", potCb));
+        configDiv.appendChild(potionOptionsDropdown(settings));
         configDiv.appendChild(labeledCheckbox("Skip opener pot and start potting on the first burst", skipOpenerPot));
         configDiv.appendChild(labeledCheckbox("Don't align cooldowns (Air Anchor, ...) on 2-min burst", dontAlignCds));
         return configDiv;

@@ -1,7 +1,6 @@
 import {
     el,
     FieldBoundCheckBox,
-    labeledCheckbox,
     labelFor,
     quickElement
 } from "@xivgear/common-ui/components/util";
@@ -12,7 +11,7 @@ import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {GnbExtraData} from "@xivgear/sims/tank/gnb/gnb_types";
 import {GnbSettings, GnbSimResult} from "@xivgear/sims/tank/gnb/gnb_sheet_sim";
 import {GaugeWithText} from "@xivgear/common-ui/components/gauges";
-import {extraDataDiscreteGaugeRenderer} from "../common/sim_ui_utils";
+import {extraDataDiscreteGaugeRenderer, potionOptionsDropdown} from "../common/sim_ui_utils";
 
 export class GnbSimGui extends BaseMultiCycleSimGui<GnbSimResult, GnbSettings> {
     protected extraAbilityUsedColumns(_: GnbSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
@@ -69,13 +68,12 @@ export class GnbSimGui extends BaseMultiCycleSimGui<GnbSimResult, GnbSettings> {
 
     override makeCustomConfigInterface(settings: GnbSettings, _updateCallback: () => void): HTMLElement | null {
 
-        const potCb = new FieldBoundCheckBox(settings, "usePotion");
         const unrealisticGcdClip = new FieldBoundCheckBox(settings, 'unrealisticGcdClipRotation', {id: 'unrealisticGcdClipRotation'});
         const unrealisticGcdClipLabel = labelFor('Unrealistic GCD Clip Rotation for 2.49/2.48', unrealisticGcdClip);
         unrealisticGcdClipLabel.classList.add('non-expanding-block');
 
         return el("div", {}, [
-            labeledCheckbox("Use Potion", potCb),
+            potionOptionsDropdown(settings),
             el('br'),
             unrealisticGcdClip,
             unrealisticGcdClipLabel,

@@ -9,14 +9,14 @@ import {WarExtraData, WarAbility, WarGcdAbility, WrathfulBuff, SurgingTempest, N
 import {sum} from "@xivgear/util/array_utils";
 import * as Actions from './war_actions';
 import {BaseMultiCycleSim} from "@xivgear/sims/processors/sim_processors";
+import {PotionOptions} from "@xivgear/sims/common/medicine";
 
 export interface WarSimResult extends CycleSimResult {
 
 }
 
-export interface WarSettings extends SimSettings {
+export interface WarSettings extends SimSettings, PotionOptions {
     // If we use potions (used every six minutes).
-    usePotion: boolean;
     // the length of the fight in seconds
     fightTime: number;
 }
@@ -249,7 +249,7 @@ export class WarSim extends BaseMultiCycleSim<WarSimResult, WarSettings, WarCycl
 
     override makeDefaultSettings(): WarSettings {
         return {
-            usePotion: true,
+            usePotion: 'auto',
             // 8 minutes and 30s, or 510 seconds
             // This is chosen since it's two pots, five bursts,
             // and is somewhat even between the two main GCDs.

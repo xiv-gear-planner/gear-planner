@@ -1,4 +1,4 @@
-import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
+import {potionOptionsDropdown} from "../common/sim_ui_utils";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
 import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/sims/cycle_sim";
 import {CustomColumnSpec} from "@xivgear/common-ui/table/tables";
@@ -31,9 +31,7 @@ export class PldSimGui extends BaseMultiCycleSimGui<PldSimResult, PldSettings> {
     override makeCustomConfigInterface(settings: PldSettings, _updateCallback: () => void): HTMLElement | null {
         const configDiv = document.createElement("div");
 
-        const potCb = new FieldBoundCheckBox(settings, "usePotion");
-
-        configDiv.appendChild(labeledCheckbox("Use Potion", potCb));
+        configDiv.appendChild(potionOptionsDropdown(settings));
         return configDiv;
     }
 

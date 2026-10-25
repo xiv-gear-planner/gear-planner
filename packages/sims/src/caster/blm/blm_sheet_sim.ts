@@ -14,6 +14,7 @@ import {BlmGaugeManager} from "./blm_gauge";
 import {BlmAbility, BlmGcdAbility, LeyLinesBuff, FirestarterBuff, ThunderheadBuff, TriplecastBuff, SwiftcastBuff} from "./blm_types";
 import * as Actions from './blm_actions';
 import {BaseMultiCycleSim} from "@xivgear/sims/processors/sim_processors";
+import {PotionOptions} from "@xivgear/sims/common/medicine";
 
 function formatTime(time: number) {
     const negative = time < 0;
@@ -28,9 +29,8 @@ export interface BlmSimResult extends CycleSimResult {
 
 }
 
-export interface BlmSettings extends SimSettings {
+export interface BlmSettings extends SimSettings, PotionOptions {
     // If we use potions (used every six minutes).
-    usePotion: boolean;
     // If we use a pre-pull Ley Lines.
     prepullLL: boolean;
     // If we use the ST Flare opener.
@@ -218,7 +218,7 @@ export class BlmSim extends BaseMultiCycleSim<BlmSimResult, BlmSettings, BlmCycl
 
     override makeDefaultSettings(): BlmSettings {
         return {
-            usePotion: true,
+            usePotion: 'auto',
             prepullLL: false,
             useFlareOpener: false,
             transposeFromAstralFire: false,

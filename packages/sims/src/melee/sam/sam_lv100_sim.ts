@@ -19,13 +19,13 @@ import * as MidSamRotation from './rotations/sam_lv100_207';
 import * as FastSamRotation from './rotations/sam_lv100_200';
 import {HissatsuShinten, MeikyoShisui, PotionMarker} from './sam_actions';
 import {BaseMultiCycleSim} from "@xivgear/sims/processors/sim_processors";
+import {PotionOptions} from "@xivgear/sims/common/medicine";
 
 export interface SamSimResult extends CycleSimResult {
 
 }
 
-export interface SamSettings extends SimSettings {
-    usePotion: boolean;
+export interface SamSettings extends SimSettings, PotionOptions {
     prePullMeikyo: number;
 }
 
@@ -126,7 +126,7 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
 
     override makeDefaultSettings(): SamSettings {
         return {
-            usePotion: true,
+            usePotion: 'auto',
             prePullMeikyo: 14,
         };
     }

@@ -18,6 +18,7 @@ import {
     Rotation
 } from "@xivgear/sims/cycle_sim";
 import {BuffSettingsManager} from "@xivgear/sims/common/party_comp_settings";
+import {PotionOptions} from "@xivgear/sims/common/medicine";
 
 export type RotationCacheKey = (number | boolean | string)[];
 
@@ -167,7 +168,7 @@ export abstract class BaseMultiCycleSim<
 
             const cp = this.createCycleProcessor({
                 stats: set.computedStats,
-                medicine: set.medicineForSim,
+                medicine: this.getMedicineForProcessor(set),
                 totalTime: this.cycleSettings.totalTime,
                 cycleTime: rot.cycleTime,
                 allBuffs: allBuffs,
@@ -179,6 +180,18 @@ export abstract class BaseMultiCycleSim<
             rot.apply(cp);
             return [rot.name ?? `Unnamed #${index + 1}`, cp];
         });
+    }
+
+    private getMedicineForProcessor(set: CharacterGearSet) {
+        switch ((this.settings as Partial<PotionOptions>).usePotion) {
+            case true:
+                return set.medicineForSim;
+            case false:
+                return undefined;
+            case 'auto':
+            default:
+                return set.medicine;
+        }
     }
 
     calcDamageSimple(set: CharacterGearSet): number {
@@ -244,7 +257,8 @@ export abstract class BaseMultiCycleSim<
             stats.weaponDelay,
             stats.gearHaste,
             stats.job,
-            set.medicineForSim?.id ?? 0,
+            this.getMedicineForProcessor(set)?.id ?? 0,
+            (this.settings as Partial<PotionOptions>).usePotion ?? 'auto',
         ];
     }
 
