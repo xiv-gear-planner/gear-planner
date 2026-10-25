@@ -121,7 +121,8 @@ export class GearSetViewer extends HTMLElement {
         // Food table TODO make readonly
         const food = this.gearSet.food;
         if (food) {
-            const foodTable = new FoodItemViewTable(this.sheet, this.gearSet, food);
+            const alts = this.gearSet.getAltFoodFor(food);
+            const foodTable = new FoodItemViewTable(this.sheet, this.gearSet, food, alts);
             foodTable.classList.add('food-view-table');
             // foodTable.id = "food-items-table";
             this.appendChild(foodTable);
@@ -129,7 +130,8 @@ export class GearSetViewer extends HTMLElement {
 
         const medicine = this.gearSet.medicine;
         if (medicine) {
-            const medicineTable = new MedicineItemViewTable(this.sheet, this.gearSet, medicine);
+            const alts = this.gearSet.getAltMedicineFor(medicine);
+            const medicineTable = new MedicineItemViewTable(this.sheet, this.gearSet, medicine, alts);
             medicineTable.classList.add('food-view-table');
             this.appendChild(medicineTable);
         }

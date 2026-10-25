@@ -1,4 +1,5 @@
 import {
+    ALL_SUB_STATS,
     bluWdfromInt,
     DEFAULT_MATERIA_ACCEPTABLE_OVERCAP_LOSS,
     EMPTY_STATS,
@@ -40,11 +41,13 @@ import {
     SetDisplaySettingsExport,
     SlotMateriaMemoryExport
 } from "@xivgear/xivmath/geartypes";
+
 import {Inactivitytimer} from "@xivgear/util/inactivitytimer";
 import {addStats, finalizeStats, finalizeStatsInt, getBaseMainStat} from "@xivgear/xivmath/xivstats";
 import {GearPlanSheet} from "./sheet";
 import {isMateriaAllowed} from "./materia/materia_utils";
 
+const ALL_ITEM_BONUS_STATS = [...MAIN_STATS, ...ALL_SUB_STATS];
 
 export function nonEmptyRelicStats(stats: RelicStats | undefined): boolean {
     return (stats && !Object.values(stats).every(val => !val)) ?? false;
@@ -1343,6 +1346,73 @@ export class CharacterGearSet {
             if (otherItem.isUnique && otherItem.displayGearSlotName === 'Ring') {
                 if (this.equipment['RingLeft']?.gearItem.id === otherItem.id
                     || this.equipment['RingRight']?.gearItem.id === otherItem.id) {
+                    return false;
+                }
+            }
+            return true;
+        });
+    }
+
+    /**
+     * Get food items that could replace the given food - either identical in terms of effective stats, or strictly
+     * better with the exception that sps/sks must match exactly. Since food provides % bonuses, this considers the
+     * actual amount it would give. Note that this means that unlike gear, this result may depend on other slots,
+     * i.e. changing a different gear slot may result in a change in what food is considered equivalent.
+     *
+     * @param thisFood
+     */
+    getAltFoodFor(thisFood: FoodItem): FoodItem[] {
+        return this.sheet.allFoodItems.filter(thatFood => {
+            // Cannot be the same food item
+            if (thisFood.id === thatFood.id) {
+                return false;
+            }
+            const thisBonuses = this.getEffectiveFoodBonuses(thisFood);
+            const thatBonuses = this.getEffectiveFoodBonuses(thatFood);
+            for (const stat of ALL_ITEM_BONUS_STATS) {
+                const thisValue = thisBonuses[stat];
+                const thatValue = thatBonuses[stat];
+                if (stat === 'skillspeed' || stat === 'spellspeed') {
+                    // sks/sps requires exact equality
+                    if (thisValue !== thatValue) {
+                        return false;
+                    }
+                }
+                else {
+                    // other stats only require greater than or equal
+                    if (thisValue > thatValue) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        });
+    }
+
+    /**
+     * Get medicine items with equivalent or better effective bonuses than the given medicine. Skill and spell speed
+     * must match exactly, while other stats may be higher. Medicine bonuses depend on the current gear and food.
+     */
+    getAltMedicineFor(thisMedicine: MedicineItem): MedicineItem[] {
+        const thisBonuses = this.getEffectiveMedicineBonuses(thisMedicine);
+        const hasRelevantStats = (medicine: MedicineItem) =>
+            (medicine.primaryStat !== 'vitality' && this.isStatRelevant(medicine.primaryStat))
+            || (medicine.secondaryStat !== 'vitality' && this.isStatRelevant(medicine.secondaryStat));
+
+        return this.sheet.allMedicineItems.filter(thatMedicine => {
+            if (thisMedicine.id === thatMedicine.id || !hasRelevantStats(thatMedicine)) {
+                return false;
+            }
+            const thatBonuses = this.getEffectiveMedicineBonuses(thatMedicine);
+            for (const stat of ALL_ITEM_BONUS_STATS) {
+                const thisValue = thisBonuses[stat];
+                const thatValue = thatBonuses[stat];
+                if (stat === 'skillspeed' || stat === 'spellspeed') {
+                    if (thisValue !== thatValue) {
+                        return false;
+                    }
+                }
+                else if (thisValue > thatValue) {
                     return false;
                 }
             }
