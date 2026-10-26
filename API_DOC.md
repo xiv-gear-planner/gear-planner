@@ -16,6 +16,14 @@ The main changes are:
 
 The API is available to use for retrieving gear sheets and sets.
 
+## API Etiquette
+
+If you are making requests from a non-browser client, please include a User-Agent header describing your application.
+
+Please note that `fulldata` is the heaviest endpoint by far. It runs the same code as the client, including retrieval
+from various APIs. It is intentionally throttled to avoid excessive resource consumption. Please voluntarily limit
+your API consumption to no more than 3 concurrent requests to this endpoint, and no more than 1200 requests per hour.
+
 ## Set/Sheet Retrieval
 
 Ideally, you should ask the user for a full URL (rather than a partial URL), and then use the
@@ -97,3 +105,7 @@ To use `/fulldata/`, specify either a set UUID or a bis link, e.g.:
 The fulldata endpoint returns
 a [SheetStatsExport](https://xivgear.app/docs/interfaces/_xivgear_xivmath.geartypes.SheetStatsExport.html)
 object (even when the original data source was a single set, rather than a full sheet).
+
+# Other APIs (Data API, Accounts, User Data)
+
+All other APIs are not intended for public consumption and do not make any guarantees of backwards compatibility.

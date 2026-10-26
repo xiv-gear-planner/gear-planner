@@ -214,6 +214,7 @@ export class GearPlanSheet {
     // Display settings
     private _showAdvancedStats: boolean = false;
     private readonly _itemDisplaySettings: ItemDisplaySettings = getDefaultDisplaySettings(CURRENT_MAX_LEVEL, 'WHM', undefined);
+    protected customColumns: string[] = [];
 
     // Init related
     private _setupDone: boolean = false;
@@ -251,6 +252,7 @@ export class GearPlanSheet {
         this.classJobName = importedData.job ?? 'WHM';
         this.isMultiJob = importedData.isMultiJob ?? false;
         this._activeSpecialStat = (importedData.specialStats ?? null) as SpecialStatType | null;
+        this.customColumns = [...(importedData.sheetDisplaySettings?.customColumns ?? [])];
         this.altJobs = this.isMultiJob ? [
             ...ALL_JOBS.filter(job => {
                 const thatJobData = JOB_DATA[job];
@@ -628,6 +630,9 @@ export class GearPlanSheet {
             race: this._race,
             sims: simsExport,
             itemDisplaySettings: this._itemDisplaySettings,
+            sheetDisplaySettings: {
+                customColumns: [...this.customColumns],
+            },
             mfm: this.materiaFillMode,
             mfp: this.materiaAutoFillPrio.statPrio,
             mfMinGcd: this.materiaAutoFillPrio.minGcd,

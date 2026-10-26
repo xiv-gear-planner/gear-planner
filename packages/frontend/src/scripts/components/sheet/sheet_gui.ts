@@ -1,11 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // TODO: get back to fixing this at some point
-import {camel2title, capitalizeFirstLetter, toRelPct} from "@xivgear/util/strutils";
+import {camel2title} from "@xivgear/util/strutils";
 import {
-    col,
     CustomCell,
     CustomColumn,
-    CustomColumnSpec,
     CustomRow,
     CustomTable,
     HeaderRow,
@@ -21,30 +19,21 @@ import {
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {
-    ChanceStat,
-    ComputedSetStats,
     MateriaAutoFillController,
     MateriaAutoFillPrio,
     MateriaFillMode,
-    MultiplierMitStat,
-    MultiplierStat,
-    PartyBonusAmount,
-    RawStatKey
+    PartyBonusAmount
 } from "@xivgear/xivmath/geartypes";
 import {CharacterGearSet, SyncInfo} from "@xivgear/core/gear";
 import {
-    getClassJobStats,
     MAX_PARTY_BONUS,
     RACE_STATS,
     RaceName,
     SpecialStatKey,
-    STAT_ABBREVIATIONS, STAT_FULL_NAMES,
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
 import {processNav} from "../../nav_hash";
 import {scrollIntoView} from "@xivgear/common-ui/util/scrollutil";
-import {installDragHelper} from "../../util/draghelpers";
-import {iconForIssues} from "./gear_set_issues";
 import {Inactivitytimer} from "@xivgear/util/inactivitytimer";
 import {startExport} from "../export/export_controller";
 import {startRenameSet, startRenameSheet} from "./rename_dialog";
@@ -59,7 +48,6 @@ import {makeUrlSimple, POPUP_HASH} from "@xivgear/core/nav/common_nav";
 import {ChangePropsModal, SaveAsModal} from "../sheetpicker/new_sheet_form";
 import {DropdownActionMenu} from "../general/dropdown_actions_menu";
 import {CustomFoodPopup, CustomItemPopup} from "./custom_item_manager";
-import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import {SimSettingsUpdateCallback, SimulationGui} from "../../sims/simulation_gui";
 import {makeGui} from "../../sims/registration/sim_guis";
 import {MeldSolverDialog} from "./editor/meld_solver_modal";
@@ -68,31 +56,34 @@ import {SETTINGS} from "@xivgear/common-ui/settings/persistent_settings";
 import {isInIframe} from "@xivgear/common-ui/util/detect_iframe";
 import {recordError, recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {SheetInfoModal} from "./sheet_info_modal";
-import {FramelessJobIcon} from "../job/job_icon";
 import {setDataManagerErrorReporter} from "@xivgear/core/data_api_client";
 import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 import {cleanUrl} from "@xivgear/common-ui/nav/common_frontend_nav";
 import {isSafari} from "@xivgear/common-ui/util/detect_safari";
 import {getNextPopoutContext, MESSAGE_REFRESH_CONTENT, MESSAGE_REFRESH_TOOLBAR} from "../../popout";
 import {
-    makeCopyIcon,
     makeExportIcon,
     makeImportIcon,
-    makeNewSheetIcon,
-    makeTrashIcon
+    makeNewSheetIcon
 } from "@xivgear/common-ui/components/icons";
 import {AddSimDialog} from "../sim/add_sim_dialog";
 import {ImportSetsModal} from "../import/import_sets_modal";
 import {recordSheetEvent} from "../../analytics/analytics";
 import {GearSetViewer} from "./editor/set_viewer";
-import {stringToParagraphs, textWithToolTip} from "../../util/text_utils";
+import {SheetColumnOptionsModal} from "./sheet_column_options_modal";
+import {
+    createSheetColumns,
+    isSheetOptionalColumnKey,
+    SHEET_OPTIONAL_COLUMNS,
+    SheetOptionalColumnKey,
+    SheetOptionalColumnSelection
+} from "./sheet_columns";
+import {stringToParagraphs} from "../../util/text_utils";
 import {GearSetEditor} from "./editor/set_editor";
 import {DataManager} from "@xivgear/core/datamanager";
 import {ASYNC_SIM_LOADER} from "../../sims/asyncloader/async_loader";
 import {HEALER_MP_SIM_STUB_NAME} from "@xivgear/sims/healer/healer_mp_consts";
 import {GearsetGenerationSettings} from "@xivgear/core/solving/gearset_generation";
-
-const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 
 // Set up error reporting for DataManager
 setDataManagerErrorReporter((response, params) => {
@@ -102,79 +93,6 @@ setDataManagerErrorReporter((response, params) => {
         statusText: response.statusText,
     });
 });
-
-function mainStatCol(sheet: GearPlanSheet, stat: RawStatKey): CustomColumnSpec<CharacterGearSet, MultiplierStat> {
-    return {
-        shortName: stat,
-        displayName: STAT_ABBREVIATIONS[stat],
-        getter: gearSet => ({
-            stat: gearSet.computedStats[stat],
-            multiplier: gearSet.computedStats.mainStatMulti,
-        }),
-        condition: () => sheet.isStatRelevant(stat),
-        renderer: multiplierStatTooltip,
-        extraClasses: ['stat-col', 'main-stat-col', 'stat-col-less-important'],
-        rowCondition: noSeparators,
-    };
-}
-
-function tooltipMultiStatCol(sheet: GearPlanSheet, stat: RawStatKey, multiKey: { [K in keyof ComputedSetStats]: ComputedSetStats[K] extends number ? K : never }[keyof ComputedSetStats]): CustomColumnSpec<CharacterGearSet, MultiplierStat> {
-    return {
-        shortName: stat,
-        displayName: STAT_ABBREVIATIONS[stat],
-        getter: gearSet => ({
-            stat: gearSet.computedStats[stat],
-            multiplier: gearSet.computedStats[multiKey],
-        }),
-        condition: () => sheet.isStatRelevant(stat),
-        renderer: multiplierStatTooltip,
-        extraClasses: ['stat-col', 'compact-multiplier-stat-col', 'stat-col-less-important'],
-        rowCondition: noSeparators,
-    };
-}
-
-function multiplierStatTooltip(stats: MultiplierStat) {
-    return textWithToolTip(stats.stat.toString(), 'Multiplier: x' + stats.multiplier.toFixed(3));
-}
-
-function multiplierStatDisplay(stats: MultiplierStat) {
-    const outerDiv = document.createElement("div");
-    outerDiv.classList.add('multiplier-stat-display');
-    const leftSpan = document.createElement("span");
-    leftSpan.textContent = stats.stat.toString();
-    outerDiv.appendChild(leftSpan);
-    const rightSpan = document.createElement("span");
-    rightSpan.textContent = (`(x${stats.multiplier.toFixed(3)})`);
-    rightSpan.classList.add("extra-stat-info");
-    outerDiv.appendChild(rightSpan);
-    return outerDiv;
-}
-
-function chanceStatDisplay(stats: ChanceStat) {
-    const outerDiv = document.createElement("div");
-    outerDiv.classList.add('chance-stat-display');
-    const leftSpan = document.createElement("span");
-    leftSpan.textContent = stats.stat.toString();
-    outerDiv.appendChild(leftSpan);
-    const rightSpan = document.createElement("span");
-    rightSpan.textContent = (`(${(stats.chance * 100.0).toFixed(1)}%x${stats.multiplier.toFixed(3)})`);
-    rightSpan.classList.add("extra-stat-info");
-    outerDiv.appendChild(rightSpan);
-    return outerDiv;
-}
-
-function multiplierMitStatDisplay(stats: MultiplierMitStat) {
-    const outerDiv = document.createElement("div");
-    outerDiv.classList.add('multiplier-mit-stat-display');
-    const leftSpan = document.createElement("span");
-    leftSpan.textContent = stats.stat.toString();
-    outerDiv.appendChild(leftSpan);
-    const rightSpan = document.createElement("span");
-    rightSpan.textContent = (`(x${stats.multiplier.toFixed(3)}, ${toRelPct(stats.incomingMulti - 1, 1)}%)`);
-    rightSpan.classList.add("extra-stat-info");
-    outerDiv.appendChild(rightSpan);
-    return outerDiv;
-}
 
 class SimResultData<ResultType extends SimResult> {
     constructor(
@@ -302,7 +220,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
         this.setupColumns();
     }
 
-    private setupColumns() {
+    setupColumns() {
         const viewOnly = this.sheet.isViewOnly;
         if (viewOnly) {
             this.classList.add('view-only');
@@ -310,347 +228,14 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
         else {
             this.classList.add('editable');
         }
-        const statColWidth = 40;
-        // const chanceStatColWidth = viewOnly ? 110 : 160;
-        // const multiStatColWidth = viewOnly ? 70 : 120;
-
-        const jobData = getClassJobStats(this.sheet.classJobName);
-
-        const gcdColumns: CustomColumnSpec<CharacterGearSet, any>[] = [];
-        const override = jobData.gcdDisplayOverrides?.(this.sheet.level);
-        if (override) {
-            let counter = 0;
-            for (const gcdOver of override) {
-                gcdColumns.push(col({
-                    shortName: "gcd-custom-" + counter++,
-                    displayName: gcdOver.shortLabel,
-                    getter: gearSet => {
-                        const haste = gearSet.computedStats.haste(gcdOver.attackType, gcdOver.buffHaste ?? 0, gcdOver.gaugeHaste ?? 0);
-                        switch (gcdOver.basis) {
-                            case "sks":
-                                return gearSet.computedStats.gcdPhys(2.5, haste);
-                            case "sps":
-                                return gearSet.computedStats.gcdMag(2.5, haste);
-                            default:
-                                return null;
-                        }
-                    },
-                    rowCondition: noSeparators,
-                    renderer: gcd => document.createTextNode(gcd.toFixed(2)),
-                    initialWidth: statColWidth + 10,
-                }));
-            }
-        }
-        else {
-            gcdColumns.push(
-                col({
-                    shortName: "gcd",
-                    displayName: "GCD",
-                    getter: gearSet => {
-                        const magHaste = gearSet.computedStats.haste('Spell', 0, 0);
-                        const physHaste = gearSet.computedStats.haste('Weaponskill', 0, 0);
-                        return Math.min(gearSet.computedStats.gcdMag(2.5, magHaste), gearSet.computedStats.gcdPhys(2.5, physHaste));
-                    },
-                    renderer: gcd => document.createTextNode(gcd.toFixed(2)),
-                    rowCondition: noSeparators,
-                    initialWidth: statColWidth + 10,
-                }));
-        }
-
-        const simColumns: CustomColumnSpec<CharacterGearSet, SimCurrentResult, SimulationGui<any, any, any>>[] = this.simGuis.map(simGui => {
-            return ({
-                dataValue: simGui,
-                shortName: "sim-col-" + simGui.sim.shortName,
-                get displayName() {
-                    return simGui.sim.displayName;
-                },
-                getter: gearSet => this.sheet.getSimResult(simGui.sim, gearSet),
-                renderer: result => new SimResultMiniDisplay(this, simGui, result),
-                // TODO: improve this
-                colStyler: (value, colElement) => {
-                    colElement.classList.add('hoverable');
-                },
-                allowHeaderSelection: true,
-                allowCellSelection: true,
-                // TODO: make this not display if the sim has no settings
-                headerStyler: (value, colHeader) => {
-                    if (!colHeader.querySelector('.header-cell-gear')) {
-                        const span = el('span', {classes: ['header-cell-detail', 'header-cell-gear']}, ['⛭']);
-                        colHeader.firstElementChild?.appendChild(span);
-                    }
-                    // colHeader.append(span);
-                    colHeader.classList.add('hoverable');
-                    colHeader.title = 'Click to configure simulation settings';
-                },
-                rowCondition: noSeparators,
-            });
+        this.columns = createSheetColumns({
+            sheet: this.sheet,
+            table: this,
+            simGuis: this.simGuis,
+            additionalColumns: this.sheet.additionalColumns,
+            cloneGearSet: gearSet => this.sheet.cloneAndAddGearSet(gearSet, true),
+            renderSimResult: (simGui, result) => new SimResultMiniDisplay(this, simGui, result),
         });
-
-        const outer = this;
-        const isCombat = this.sheet.classJobEarlyStats.type === 'Combat';
-
-        function simpleStat(stat: RawStatKey, overrides: Partial<CustomColumnSpec<CharacterGearSet, unknown>> = {}): CustomColumn<CharacterGearSet, unknown, unknown> {
-            const sheet = outer.sheet;
-            return col({
-                shortName: stat,
-                displayName: STAT_FULL_NAMES[stat] ?? stat,
-                getter: gearSet => gearSet.computedStats[stat],
-                initialWidth: statColWidth,
-                condition: () => sheet.isStatRelevant(stat),
-                rowCondition: noSeparators,
-                extraClasses: ['stat-col'],
-                ...overrides,
-            });
-        }
-
-        this.columns = [
-            {
-                shortName: "actions",
-                displayName: "",
-                getter: gearSet => gearSet,
-                renderer: (gearSet: CharacterGearSet) => {
-                    const div = document.createElement("div");
-                    div.appendChild(makeActionButton([makeTrashIcon()], (ev) => {
-                        if (confirmDelete(ev, `Delete gear set '${gearSet.name}'?`)) {
-                            this.sheet.delGearSet(gearSet);
-                        }
-                    }, 'Delete this set'));
-                    div.appendChild(makeActionButton([makeCopyIcon()], () => this.sheet.cloneAndAddGearSet(gearSet, true), 'Clone this set'));
-                    const dragger = document.createElement('button');
-                    dragger.title = 'Drag to re-order this set';
-                    dragger.textContent = '≡';
-                    dragger.classList.add('drag-handle');
-                    let rowBeingDragged: null | CustomRow<CharacterGearSet> = null;
-                    let lastDelta: number = 0;
-                    installDragHelper({
-                        dragHandle: dragger,
-                        dragOuter: outer,
-                        downHandler: (ev) => {
-                            let target = ev.target;
-                            while (target) {
-                                if (target instanceof CustomRow) {
-                                    console.log('Drag start: ' + target);
-                                    rowBeingDragged = target;
-                                    rowBeingDragged.classList.add('dragging');
-                                    return;
-                                }
-                                else if (target instanceof Node) {
-                                    target = target["parentElement"] as EventTarget;
-                                }
-                                else {
-                                    break;
-                                }
-                            }
-                            rowBeingDragged = null;
-                        },
-                        moveHandler: (ev) => {
-                            // let target = ev.target;
-                            const dragY = ev.clientY;
-                            const target = this._rows.find(row => {
-                                const el = row.element;
-                                if (!el || el === rowBeingDragged) {
-                                    return false;
-                                }
-                                const br = el.getBoundingClientRect();
-                                return br.y <= dragY && dragY <= (br.y + br.height);
-                            });
-                            if (target instanceof CustomRow) {
-                                const toIndex = this.sheet.sets.indexOf(target.dataItem);
-                                this.sheet.reorderSet(gearSet, toIndex);
-                            }
-                            if (rowBeingDragged) {
-                                const rect = rowBeingDragged.getBoundingClientRect();
-                                const delta = ev.pageY - (rect.y - lastDelta) - (rect.height / 2);
-                                lastDelta = delta;
-                                rowBeingDragged.style.top = `${delta}px`;
-                            }
-                        },
-                        upHandler: () => {
-                            this.sheet.requestSave();
-                            lastDelta = 0;
-                            rowBeingDragged.style.top = '';
-                            rowBeingDragged.classList.remove('dragging');
-                            console.log('Drag end');
-                            rowBeingDragged = null;
-                        },
-                    });
-                    div.appendChild(dragger);
-                    return div;
-                },
-            },
-            {
-                shortName: "setname",
-                displayName: "Set Name",
-                getter: (gearSet => gearSet),
-                renderer: (value: CharacterGearSet) => {
-                    const nameSpan = document.createElement('span');
-                    const elements: Element[] = [nameSpan];
-                    if (value.name.trim().length === 0
-                        && (value.description === undefined || value.description.trim().length === 0)) {
-                        // If length is zero, insert an NBSP so that the row doesn't collapse to 0 pixels when viewing
-                        // a separator with an empty title+desc.
-                        nameSpan.textContent = '\xa0';
-                    }
-                    else {
-                        nameSpan.textContent = value.name;
-                    }
-                    const trimmedDesc = value.description?.trim();
-                    let title = value.name;
-                    // Description is only on view-only mode
-                    if (viewOnly) {
-                        const descSpan = document.createElement('span');
-                        elements.push(descSpan);
-                        if (trimmedDesc) {
-                            descSpan.textContent = trimmedDesc;
-                        }
-                    }
-                    if (trimmedDesc) {
-                        title += '\n' + trimmedDesc;
-                    }
-                    const issues = value.results.issues;
-                    if (issues.length > 0) {
-                        const icon = iconForIssues(...issues);
-                        icon.classList.add('gear-set-issue-icon');
-                        nameSpan.prepend(icon);
-                        title += '\nThis set has problems:';
-                        for (const issue of issues) {
-                            let titlePart = `${capitalizeFirstLetter(issue.severity)}: ${issue.description}`;
-                            if (issue.affectedSlots) {
-                                titlePart += ` (${issue.affectedSlots.join(', ')})`;
-                            }
-                            title += '\n - ' + titlePart;
-                        }
-                    }
-                    if (!value.isSeparator && this.sheet.isMultiJob) {
-                        const jobIcon = new FramelessJobIcon(value.job);
-                        jobIcon.style.display = 'inline';
-                        nameSpan.prepend(jobIcon);
-                    }
-                    const div = document.createElement('div');
-                    div.classList.add('set-name-desc-holder');
-                    div.replaceChildren(...elements);
-                    div.title = title;
-                    if (value.isSeparator) {
-                        nameSpan.style.fontWeight = 'bold';
-                    }
-                    return div;
-                },
-            },
-            ...simColumns,
-            ...gcdColumns,
-            {
-                shortName: "wd",
-                displayName: "WD",
-                getter: gearSet => ({
-                    stat: Math.max(gearSet.computedStats.wdMag, gearSet.computedStats.wdPhys),
-                    multiplier: gearSet.computedStats.wdMulti,
-                }),
-                initialWidth: statColWidth,
-                renderer: multiplierStatTooltip,
-                extraClasses: ['stat-col', 'stat-col-less-important'],
-                rowCondition: noSeparators,
-                condition: () => isCombat,
-            } as CustomColumnSpec<CharacterGearSet, MultiplierStat>,
-            {
-                shortName: "hp",
-                displayName: "HP",
-                getter: gearSet => gearSet.computedStats.hp,
-                extraClasses: ['stat-col', 'stat-col-hp', 'stat-col-less-important'],
-                rowCondition: noSeparators,
-                condition: () => isCombat,
-            },
-            {
-                ...mainStatCol(this.sheet, 'dexterity'),
-                shortName: 'dex',
-            },
-            {
-                ...mainStatCol(this.sheet, 'strength'),
-            },
-            {
-                ...mainStatCol(this.sheet, 'mind'),
-            },
-            {
-                ...mainStatCol(this.sheet, 'intelligence'),
-                shortName: 'int',
-            },
-            {
-                shortName: "crit",
-                displayName: "CRT",
-                getter: gearSet => ({
-                    stat: gearSet.computedStats.crit,
-                    chance: gearSet.computedStats.critChance,
-                    multiplier: gearSet.computedStats.critMulti,
-                }) as ChanceStat,
-                renderer: chanceStatDisplay,
-                condition: () => this.sheet.isStatRelevant('crit'),
-                extraClasses: ['stat-col', 'chance-stat-col', 'stat-col-less-important'],
-                rowCondition: noSeparators,
-            },
-            {
-                shortName: "dhit",
-                displayName: "DHT",
-                getter: gearSet => ({
-                    stat: gearSet.computedStats.dhit,
-                    chance: gearSet.computedStats.dhitChance,
-                    multiplier: gearSet.computedStats.dhitMulti,
-                }) as ChanceStat,
-                renderer: chanceStatDisplay,
-                condition: () => this.sheet.isStatRelevant('dhit'),
-                extraClasses: ['stat-col', 'chance-stat-col', 'stat-col-less-important'],
-                rowCondition: noSeparators,
-            },
-            {
-                shortName: "det",
-                displayName: "DET",
-                getter: gearSet => ({
-                    stat: gearSet.computedStats.determination,
-                    multiplier: gearSet.computedStats.detMulti,
-                }) as MultiplierStat,
-                renderer: multiplierStatDisplay,
-                condition: () => this.sheet.isStatRelevant('determination'),
-                extraClasses: ['stat-col', 'multiplier-stat-col', 'stat-col-less-important'],
-                rowCondition: noSeparators,
-            },
-            {
-                ...tooltipMultiStatCol(this.sheet, 'skillspeed', 'sksDotMulti'),
-                shortName: "sks",
-                displayName: "SKS",
-            },
-            {
-                ...tooltipMultiStatCol(this.sheet, 'spellspeed', 'spsDotMulti'),
-                shortName: "sps",
-                displayName: "SPS",
-            },
-            col({
-                shortName: "piety",
-                displayName: "PIE",
-                getter: gearSet => gearSet.computedStats.piety,
-                initialWidth: statColWidth,
-                condition: () => this.sheet.isStatRelevant('piety'),
-                rowCondition: noSeparators,
-                extraClasses: ['stat-col-less-important'],
-            }),
-            col({
-                shortName: "tenacity",
-                displayName: "TNC",
-                getter: gearSet => ({
-                    stat: gearSet.computedStats.tenacity,
-                    multiplier: gearSet.computedStats.tncMulti,
-                    incomingMulti: gearSet.computedStats.tncIncomingMulti,
-                }) satisfies MultiplierMitStat,
-                renderer: multiplierMitStatDisplay,
-                condition: () => this.sheet.isStatRelevant('tenacity'),
-                extraClasses: ['stat-col', 'multiplier-mit-stat-col', 'stat-col-less-important'],
-                rowCondition: noSeparators,
-            }),
-            simpleStat('cp', {displayName: 'CP'}),
-            simpleStat('control', {displayName: 'Ctrl.'}),
-            simpleStat('craftsmanship', {displayName: 'Cms.'}),
-
-            simpleStat('gp', {displayName: 'GP'}),
-            simpleStat('gathering', {initialWidth: 80}),
-            simpleStat('perception', {initialWidth: 80}),
-        ];
     }
 
     // TODO: this is kinda bad, cross-talk between columns despite there being no reason to do so,
@@ -1034,6 +619,23 @@ export class GearPlanSheetGui extends GearPlanSheet {
         return this._simGuis;
     }
 
+    get additionalColumns(): SheetOptionalColumnSelection[] {
+        return Object.values(SHEET_OPTIONAL_COLUMNS).map(column => ({
+            ...column,
+            show: this.customColumns.includes(column.key),
+        }));
+    }
+
+    get shownAdditionalColumns(): SheetOptionalColumnKey[] {
+        return [...this.customColumns] as SheetOptionalColumnKey[];
+    }
+
+    set shownAdditionalColumns(columns: SheetOptionalColumnKey[]) {
+        this.customColumns = [...columns];
+        this.requestSave();
+        this._gearPlanTable?.setupColumns();
+    }
+
     toolbarNode: Node | undefined;
     // TODO: SimResult alone might not be enough since we'd want it to refresh automatically if settings are changed
     private _editorItem: CharacterGearSet | SimulationGui<any, any, any> | SimResultData<SimResult> | undefined;
@@ -1041,6 +643,11 @@ export class GearPlanSheetGui extends GearPlanSheet {
     // Can't make ctor private for custom element, but DO NOT call this directly - use fromSaved or fromScratch
     constructor(...args: ConstructorParameters<typeof GearPlanSheet>) {
         super(...args);
+        for (const key of this.customColumns) {
+            if (!isSheetOptionalColumnKey(key)) {
+                console.warn(`Unknown custom sheet column '${key}' will be ignored.`);
+            }
+        }
         this._simGuis = super.sims.map(sim => makeGui(sim));
         this.element = new GearPlanSheetElement();
         const element = this.element;
@@ -1249,6 +856,13 @@ export class GearPlanSheetGui extends GearPlanSheet {
             });
             buttonsArea.appendChild(sheetOptions);
         }
+        sheetOptions.addAction({
+            label: 'Customize Columns...',
+            action: () => new SheetColumnOptionsModal(
+                this.additionalColumns,
+                columns => this.shownAdditionalColumns = columns
+            ).attachAndShowExclusively(),
+        });
         sheetOptions.addAction({
             label: 'Sheet/Set Info...',
             action: () => {

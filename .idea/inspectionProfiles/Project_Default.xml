@@ -19,7 +19,7 @@
     <inspection_tool class="HtmlUnknownTag" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="myValues">
         <value>
-          <list size="67">
+          <list size="68">
             <item index="0" class="java.lang.String" itemvalue="nobr" />
             <item index="1" class="java.lang.String" itemvalue="noembed" />
             <item index="2" class="java.lang.String" itemvalue="comment" />
@@ -87,6 +87,7 @@
             <item index="64" class="java.lang.String" itemvalue="alt-foods-modal" />
             <item index="65" class="java.lang.String" itemvalue="materia-autofill-settings-modal" />
             <item index="66" class="java.lang.String" itemvalue="alt-medicines-modal" />
+            <item index="67" class="java.lang.String" itemvalue="sheet-column-options-modal" />
           </list>
         </value>
       </option>
