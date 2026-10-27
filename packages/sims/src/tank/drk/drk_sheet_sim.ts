@@ -10,15 +10,14 @@ import {DrkExtraData, DrkAbility, DrkGcdAbility, ScornBuff, SaltedEarthBuff, Del
 import {sum} from "@xivgear/util/array_utils";
 import * as Actions from './drk_actions';
 import {BaseMultiCycleSim} from "@xivgear/sims/processors/sim_processors";
-import {potionMaxStr} from "@xivgear/sims/common/potion";
+import {PotionOptions} from "@xivgear/sims/common/medicine";
 
 export interface DrkSimResult extends CycleSimResult {
 
 }
 
-export interface DrkSettings extends SimSettings {
+export interface DrkSettings extends SimSettings, PotionOptions {
     // If we use potions (used every six minutes).
-    usePotion: boolean;
     // If we use a pre-pull TBN.
     prepullTBN: boolean;
     // the length of the fight in seconds
@@ -301,7 +300,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
 
     override makeDefaultSettings(): DrkSettings {
         return {
-            usePotion: true,
+            usePotion: 'auto',
             prepullTBN: true,
             // 8 minutes and 30s, or 510 seconds
             // This is chosen since it's two pots, five bursts,
@@ -403,8 +402,8 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             }
         }
 
-        if (cp.shouldPot() && cp.canUseWithoutClipping(potionMaxStr)) {
-            this.use(cp, potionMaxStr);
+        if (cp.medicinePotion && cp.shouldPot() && cp.canUseWithoutClipping(cp.medicinePotion)) {
+            this.use(cp, cp.medicinePotion);
         }
 
         if (cp.stats.level >= 90) {
@@ -557,7 +556,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         }
 
         // Only use potion if enabled in settings
-        if (!this.settings.usePotion && ability.name.includes("of Strength")) {
+        if (!this.settings.usePotion && ability.attackType === 'Item') {
             return null;
         }
 
@@ -610,7 +609,9 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             cp.advanceTo(1 - STANDARD_ANIMATION_LOCK);
         }
         this.use(cp, Actions.Unmend);
-        this.use(cp, potionMaxStr);
+        if (cp.medicinePotion) {
+            this.use(cp, cp.medicinePotion);
+        }
         this.use(cp, cp.getEdgeAction());
         this.use(cp, Actions.HardSlash);
         if (cp.stats.level >= 80) {
@@ -654,7 +655,9 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             cp.advanceTo(1 - STANDARD_ANIMATION_LOCK);
         }
         this.use(cp, Actions.Unmend);
-        this.use(cp, potionMaxStr);
+        if (cp.medicinePotion) {
+            this.use(cp, cp.medicinePotion);
+        }
         this.use(cp, Actions.EdgeOfShadow);
         this.use(cp, Actions.HardSlash);
         this.use(cp, Actions.LivingShadow);
@@ -699,7 +702,9 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             cp.advanceTo(1 - STANDARD_ANIMATION_LOCK);
         }
         this.use(cp, Actions.Unmend);
-        this.use(cp, potionMaxStr);
+        if (cp.medicinePotion) {
+            this.use(cp, cp.medicinePotion);
+        }
         this.use(cp, Actions.EdgeOfShadow);
         this.use(cp, Actions.HardSlash);
         this.use(cp, Actions.LivingShadow);

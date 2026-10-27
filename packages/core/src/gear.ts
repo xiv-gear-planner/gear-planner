@@ -1,4 +1,5 @@
 import {
+    ALL_SUB_STATS,
     bluWdfromInt,
     DEFAULT_MATERIA_ACCEPTABLE_OVERCAP_LOSS,
     EMPTY_STATS,
@@ -40,11 +41,13 @@ import {
     SetDisplaySettingsExport,
     SlotMateriaMemoryExport
 } from "@xivgear/xivmath/geartypes";
+
 import {Inactivitytimer} from "@xivgear/util/inactivitytimer";
 import {addStats, finalizeStats, finalizeStatsInt, getBaseMainStat} from "@xivgear/xivmath/xivstats";
 import {GearPlanSheet} from "./sheet";
 import {isMateriaAllowed} from "./materia/materia_utils";
 
+const ALL_ITEM_BONUS_STATS = [...MAIN_STATS, ...ALL_SUB_STATS];
 
 export function nonEmptyRelicStats(stats: RelicStats | undefined): boolean {
     return (stats && !Object.values(stats).every(val => !val)) ?? false;
@@ -332,6 +335,27 @@ export class CharacterGearSet {
      */
     get medicine(): MedicineItem | undefined {
         return this._medicine;
+    }
+
+    /**
+     * Like {@link medicine}, but will try to auto-select a medicine item if none is selected.
+     */
+    get medicineForSim(): MedicineItem | undefined {
+        if (this._medicine) {
+            return this._medicine;
+        }
+
+        // Nothing explicitly selected
+        let best: MedicineItem | undefined;
+        for (const medicine of this.sheet.allMedicineItems) {
+            if (!this.isStatRelevant(medicine.primaryStat) && !this.isStatRelevant(medicine.secondaryStat)) {
+                continue;
+            }
+            if (!best || medicine.ilvl > best.ilvl) {
+                best = medicine;
+            }
+        }
+        return best;
     }
 
     /**
@@ -652,6 +676,9 @@ export class CharacterGearSet {
         this._dirtyComp = false;
         // Add BLU weapon damage modifier
         combinedStats.wdMag += classJob === "BLU" ? bluWdfromInt(gearIntStat) : 0;
+        // Since DoH/DoL have long-duration potions, it is reasonable to include them in the real stats.
+        // However, combat job potions have short durations, so simulations decide if and when to use them.
+        const medicineBonuses = classJobStats.type === 'Combat' ? {} : this._medicine?.bonuses ?? {};
         const computedStats = finalizeStats(
             combinedStats,
             this._food?.bonuses ?? {},
@@ -661,7 +688,7 @@ export class CharacterGearSet {
             classJobStats,
             this._sheet.partyBonus,
             raceStats,
-            this._medicine?.bonuses ?? {}
+            medicineBonuses
         );
         const leftRing = this.getItemInSlot('RingLeft');
         const rightRing = this.getItemInSlot('RingRight');
@@ -1039,8 +1066,8 @@ export class CharacterGearSet {
      * Whether a stat is relevant to this set.
      * @param stat
      */
-    isStatRelevant(stat: RawStatKey) {
-        return this._sheet.isStatRelevant(stat);
+    isStatRelevant(stat: RawStatKey | undefined) {
+        return this._sheet.isStatRelevant(stat, this.job);
     }
 
     /**
@@ -1319,6 +1346,73 @@ export class CharacterGearSet {
             if (otherItem.isUnique && otherItem.displayGearSlotName === 'Ring') {
                 if (this.equipment['RingLeft']?.gearItem.id === otherItem.id
                     || this.equipment['RingRight']?.gearItem.id === otherItem.id) {
+                    return false;
+                }
+            }
+            return true;
+        });
+    }
+
+    /**
+     * Get food items that could replace the given food - either identical in terms of effective stats, or strictly
+     * better with the exception that sps/sks must match exactly. Since food provides % bonuses, this considers the
+     * actual amount it would give. Note that this means that unlike gear, this result may depend on other slots,
+     * i.e. changing a different gear slot may result in a change in what food is considered equivalent.
+     *
+     * @param thisFood
+     */
+    getAltFoodFor(thisFood: FoodItem): FoodItem[] {
+        return this.sheet.allFoodItems.filter(thatFood => {
+            // Cannot be the same food item
+            if (thisFood.id === thatFood.id) {
+                return false;
+            }
+            const thisBonuses = this.getEffectiveFoodBonuses(thisFood);
+            const thatBonuses = this.getEffectiveFoodBonuses(thatFood);
+            for (const stat of ALL_ITEM_BONUS_STATS) {
+                const thisValue = thisBonuses[stat];
+                const thatValue = thatBonuses[stat];
+                if (stat === 'skillspeed' || stat === 'spellspeed') {
+                    // sks/sps requires exact equality
+                    if (thisValue !== thatValue) {
+                        return false;
+                    }
+                }
+                else {
+                    // other stats only require greater than or equal
+                    if (thisValue > thatValue) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        });
+    }
+
+    /**
+     * Get medicine items with equivalent or better effective bonuses than the given medicine. Skill and spell speed
+     * must match exactly, while other stats may be higher. Medicine bonuses depend on the current gear and food.
+     */
+    getAltMedicineFor(thisMedicine: MedicineItem): MedicineItem[] {
+        const thisBonuses = this.getEffectiveMedicineBonuses(thisMedicine);
+        const hasRelevantStats = (medicine: MedicineItem) =>
+            (medicine.primaryStat !== 'vitality' && this.isStatRelevant(medicine.primaryStat))
+            || (medicine.secondaryStat !== 'vitality' && this.isStatRelevant(medicine.secondaryStat));
+
+        return this.sheet.allMedicineItems.filter(thatMedicine => {
+            if (thisMedicine.id === thatMedicine.id || !hasRelevantStats(thatMedicine)) {
+                return false;
+            }
+            const thatBonuses = this.getEffectiveMedicineBonuses(thatMedicine);
+            for (const stat of ALL_ITEM_BONUS_STATS) {
+                const thisValue = thisBonuses[stat];
+                const thatValue = thatBonuses[stat];
+                if (stat === 'skillspeed' || stat === 'spellspeed') {
+                    if (thisValue !== thatValue) {
+                        return false;
+                    }
+                }
+                else if (thisValue > thatValue) {
                     return false;
                 }
             }

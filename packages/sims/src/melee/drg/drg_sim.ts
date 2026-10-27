@@ -28,7 +28,7 @@ import {
 //import {Litany} from "@xivgear/sims/buffs"
 import * as Actions from './drg_actions';
 import {BaseMultiCycleSim} from "@xivgear/sims/processors/sim_processors";
-import {potionMaxStr} from "@xivgear/sims/common/potion";
+import {PotionOptions} from "@xivgear/sims/common/medicine";
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 
 function formatTime(time: number) {
@@ -44,9 +44,8 @@ export interface DrgSimResult extends CycleSimResult {
 
 }
 
-export interface DrgSettings extends SimSettings {
+export interface DrgSettings extends SimSettings, PotionOptions {
     // If we use potions (used every six minutes).
-    usePotion: boolean;
     // the length of the fight in seconds
     fightTime: number;
     // ePT opener. (false is TT opener)
@@ -209,7 +208,7 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
 
     override makeDefaultSettings(): DrgSettings {
         return {
-            usePotion: true,
+            usePotion: 'auto',
             // 8 minutes and 30s, or 510 seconds
             // This is chosen since it's two pots, five bursts,
             // and is somewhat even between the two main GCDs.
@@ -370,8 +369,8 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
             needsLsNextGcd = cp.canUseWithoutClipping(cp.lifeSurgeAction);
         }
 
-        if (cp.shouldPot() && cp.canUseWithoutClipping(potionMaxStr)) {
-            this.use(cp, potionMaxStr);
+        if (cp.medicinePotion && cp.shouldPot() && cp.canUseWithoutClipping(cp.medicinePotion)) {
+            this.use(cp, cp.medicinePotion);
         }
 
         // Priority: Can we fit WWT in buffs?
@@ -473,7 +472,10 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
         this.useComboGCD(cp);
     }
 
-    use(cp: DrgCycleProcessor, ability: Ability): AbilityUseResult {
+    use(cp: DrgCycleProcessor, ability: Ability | undefined): AbilityUseResult {
+        if (!ability) {
+            return null;
+        }
         if (cp.currentTime >= cp.totalTime) {
             return null;
         }
@@ -487,7 +489,7 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
         }
 
         // Only use potion if enabled in settings
-        if (!this.settings.usePotion && ability.name.includes("of Strength")) {
+        if (!this.settings.usePotion && ability.attackType === 'Item') {
             return null;
         }
 
@@ -495,7 +497,10 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
     }
 
     // Use oGCD within acceptable clipping margin.
-    private useWithClipping(cp: DrgCycleProcessor, ability: OgcdAbility): AbilityUseResult {
+    private useWithClipping(cp: DrgCycleProcessor, ability: OgcdAbility | undefined): AbilityUseResult {
+        if (!ability) {
+            return null;
+        }
         if (cp.currentTime >= cp.totalTime) {
             return null;
         }
@@ -508,7 +513,7 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
         }
 
         // Only use potion if enabled in settings
-        if (!this.settings.usePotion && ability.name.includes("of Strength")) {
+        if (!this.settings.usePotion && ability.attackType === 'Item') {
             return null;
         }
 
@@ -571,7 +576,7 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
         this.useComboGCD(cp);
         if (canDo9Gsk) {
             cp.advanceTo(cp.currentTime + lcDelay);
-            this.use(cp, potionMaxStr);
+            this.use(cp, cp.medicinePotion);
             this.useComboGCD(cp);
             cp.advanceTo(cp.currentTime + lcDelay);
             this.use(cp, Actions.BattleLitany);
@@ -588,10 +593,10 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
                 if (canDoubleWeaveLc) {
                     cp.advanceTo(cp.currentTime + lcDelay);
                     this.use(cp, Actions.LanceCharge);
-                    this.use(cp, potionMaxStr);
+                    this.use(cp, cp.medicinePotion);
                 }
                 else {
-                    this.use(cp, potionMaxStr);
+                    this.use(cp, cp.medicinePotion);
                     cp.advanceTo(cp.currentTime + lcDelay - STANDARD_ANIMATION_LOCK);
                     this.use(cp, Actions.LanceCharge);
                 }
@@ -601,7 +606,7 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
                     cp.advanceTo(cp.currentTime + lcDelay);
                 }
                 this.use(cp, Actions.LanceCharge);
-                this.use(cp, potionMaxStr);
+                this.use(cp, cp.medicinePotion);
             }
             this.useComboGCD(cp);
             this.use(cp, Actions.BattleLitany);

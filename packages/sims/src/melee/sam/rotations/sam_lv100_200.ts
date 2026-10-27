@@ -1,12 +1,11 @@
-import {potionMaxStr} from "@xivgear/sims/common/potion";
 import * as Actions from '../sam_actions';
-import {SamAbility} from "../sam_types";
+import {SamRotationAction} from "../sam_types";
 
-export const Opener: SamAbility[] = [
+export const Opener: SamRotationAction[] = [
     Actions.MeikyoShisui,
     Actions.Gekko,
     Actions.Ikishoten,
-    potionMaxStr,
+    Actions.PotionMarker,
     Actions.Kasha,
     Actions.Yukikaze,
     Actions.TendoSetsugekka,
@@ -74,7 +73,7 @@ export const Opener: SamAbility[] = [
     Actions.Jinpu,
 ];
 
-export const Loop: SamAbility[] = [
+export const Loop: SamRotationAction[] = [
     Actions.Gekko,
     Actions.MidareSetsugekka,
     Actions.Gyofu,

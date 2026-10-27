@@ -14,7 +14,7 @@ import {BlmGaugeManager} from "./blm_gauge";
 import {BlmAbility, BlmGcdAbility, LeyLinesBuff, FirestarterBuff, ThunderheadBuff, TriplecastBuff, SwiftcastBuff} from "./blm_types";
 import * as Actions from './blm_actions';
 import {BaseMultiCycleSim} from "@xivgear/sims/processors/sim_processors";
-import {potionMaxInt} from "@xivgear/sims/common/potion";
+import {PotionOptions} from "@xivgear/sims/common/medicine";
 
 function formatTime(time: number) {
     const negative = time < 0;
@@ -29,9 +29,8 @@ export interface BlmSimResult extends CycleSimResult {
 
 }
 
-export interface BlmSettings extends SimSettings {
+export interface BlmSettings extends SimSettings, PotionOptions {
     // If we use potions (used every six minutes).
-    usePotion: boolean;
     // If we use a pre-pull Ley Lines.
     prepullLL: boolean;
     // If we use the ST Flare opener.
@@ -219,7 +218,7 @@ export class BlmSim extends BaseMultiCycleSim<BlmSimResult, BlmSettings, BlmCycl
 
     override makeDefaultSettings(): BlmSettings {
         return {
-            usePotion: true,
+            usePotion: 'auto',
             prepullLL: false,
             useFlareOpener: false,
             transposeFromAstralFire: false,
@@ -340,8 +339,8 @@ export class BlmSim extends BaseMultiCycleSim<BlmSimResult, BlmSettings, BlmCycl
             }
         }
 
-        if (cp.shouldPot() && cp.canUseWithoutClipping(potionMaxInt)) {
-            this.use(cp, potionMaxInt);
+        if (cp.medicinePotion && cp.shouldPot() && cp.canUseWithoutClipping(cp.medicinePotion)) {
+            this.use(cp, cp.medicinePotion);
         }
 
         // Amplifier (lv.86 or higher)
@@ -444,7 +443,10 @@ export class BlmSim extends BaseMultiCycleSim<BlmSimResult, BlmSettings, BlmCycl
         this.use(cp, gcdToUse);
     }
 
-    use(cp: BlmCycleProcessor, ability: Ability): AbilityUseResult {
+    use(cp: BlmCycleProcessor, ability: Ability | undefined): AbilityUseResult {
+        if (!ability) {
+            return null;
+        }
         if (cp.currentTime >= cp.totalTime) {
             return null;
         }
@@ -463,7 +465,7 @@ export class BlmSim extends BaseMultiCycleSim<BlmSimResult, BlmSettings, BlmCycl
         }
 
         // Only use potion if enabled in settings
-        if (!this.settings.usePotion && ability.name.includes("of Intelligence")) {
+        if (!this.settings.usePotion && ability.attackType === 'Item') {
             return null;
         }
 
@@ -478,7 +480,7 @@ export class BlmSim extends BaseMultiCycleSim<BlmSimResult, BlmSettings, BlmCycl
         this.use(cp, Actions.Thunder3);
         this.use(cp, Actions.Swiftcast);
         this.use(cp, Actions.Fire4);
-        this.use(cp, potionMaxInt);
+        this.use(cp, cp.medicinePotion);
         if (!prepullLL) {
             this.use(cp, Actions.LeyLines);
         }
@@ -509,7 +511,7 @@ export class BlmSim extends BaseMultiCycleSim<BlmSimResult, BlmSettings, BlmCycl
         this.use(cp, Actions.Swiftcast);
         this.use(cp, Actions.Amplifier);
         this.use(cp, Actions.Fire4);
-        this.use(cp, potionMaxInt);
+        this.use(cp, cp.medicinePotion);
         if (!prepullLL) {
             this.use(cp, Actions.LeyLines);
         }
@@ -542,7 +544,7 @@ export class BlmSim extends BaseMultiCycleSim<BlmSimResult, BlmSettings, BlmCycl
         this.use(cp, Actions.Swiftcast);
         this.use(cp, Actions.Amplifier);
         this.use(cp, Actions.Fire4);
-        this.use(cp, potionMaxInt);
+        this.use(cp, cp.medicinePotion);
         if (!prepullLL) {
             this.use(cp, Actions.LeyLines);
         }
@@ -580,7 +582,7 @@ export class BlmSim extends BaseMultiCycleSim<BlmSimResult, BlmSettings, BlmCycl
         this.use(cp, Actions.Swiftcast);
         this.use(cp, Actions.Amplifier);
         this.use(cp, Actions.Fire4);
-        this.use(cp, potionMaxInt);
+        this.use(cp, cp.medicinePotion);
         if (!prepullLL) {
             this.use(cp, Actions.LeyLines);
         }
@@ -620,7 +622,7 @@ export class BlmSim extends BaseMultiCycleSim<BlmSimResult, BlmSettings, BlmCycl
         this.use(cp, Actions.Swiftcast);
         this.use(cp, Actions.Amplifier);
         this.use(cp, Actions.Fire4);
-        this.use(cp, potionMaxInt);
+        this.use(cp, cp.medicinePotion);
         if (!prepullLL) {
             this.use(cp, Actions.LeyLines);
         }

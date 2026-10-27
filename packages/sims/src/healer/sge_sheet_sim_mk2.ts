@@ -7,10 +7,10 @@ import {
     MultiCycleSettings,
     Rotation
 } from "@xivgear/sims/cycle_sim";
-import {potionMaxMind} from "@xivgear/sims/common/potion";
 import {rangeInc} from "@xivgear/util/array_utils";
 import {animationLock} from "@xivgear/sims/ability_helpers";
 import {BaseMultiCycleSim} from "@xivgear/sims/processors/sim_processors";
+import {PotionOptions} from "@xivgear/sims/common/medicine";
 
 /**
  * Used for all 360p filler abilities
@@ -127,8 +127,7 @@ const psyche: OgcdAbility = {
 export interface SgeSheetSimResult extends CycleSimResult {
 }
 
-export interface SgeNewSheetSettings extends SimSettings {
-    usePotion: boolean
+export interface SgeNewSheetSettings extends SimSettings, PotionOptions {
 }
 
 export interface SgeNewSheetSettingsExternal extends ExternalCycleSettings<SgeNewSheetSettings> {
@@ -232,7 +231,7 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
 
     makeDefaultSettings(): SgeNewSheetSettings {
         return {
-            usePotion: false,
+            usePotion: 'auto',
         };
     }
 
@@ -242,8 +241,8 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
             name: 'Normal DoT',
             cycleTime: 120,
             apply(cp: SageCycleProcessor) {
-                if (outer.settings.usePotion) {
-                    cp.useOgcd(potionMaxMind);
+                if (outer.settings.usePotion && cp.medicinePotion) {
+                    cp.useOgcd(cp.medicinePotion);
                 }
                 cp.useGcd(filler);
                 cp.remainingCycles(cycle => {
@@ -265,8 +264,8 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
             name: `DoT clip ${i}s`,
             cycleTime: 120,
             apply(cp: SageCycleProcessor) {
-                if (outer.settings.usePotion) {
-                    cp.useOgcd(potionMaxMind);
+                if (outer.settings.usePotion && cp.medicinePotion) {
+                    cp.useOgcd(cp.medicinePotion);
                 }
                 const DOT_CLIP_AMOUNT = i;
                 cp.useGcd(filler);

@@ -19,7 +19,6 @@ import {
 } from "@xivgear/sims/cycle_sim";
 import {rangeInc} from "@xivgear/util/array_utils";
 import {BaseMultiCycleSim} from "@xivgear/sims/processors/sim_processors";
-//import {potionMaxMind} from "@xivgear/sims/common/potion";
 
 type AstAbility = Ability & Readonly<LevelModifiable<{
     /**

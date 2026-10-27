@@ -9,15 +9,14 @@ import {WarExtraData, WarAbility, WarGcdAbility, WrathfulBuff, SurgingTempest, N
 import {sum} from "@xivgear/util/array_utils";
 import * as Actions from './war_actions';
 import {BaseMultiCycleSim} from "@xivgear/sims/processors/sim_processors";
-import {potionMaxStr} from "@xivgear/sims/common/potion";
+import {PotionOptions} from "@xivgear/sims/common/medicine";
 
 export interface WarSimResult extends CycleSimResult {
 
 }
 
-export interface WarSettings extends SimSettings {
+export interface WarSettings extends SimSettings, PotionOptions {
     // If we use potions (used every six minutes).
-    usePotion: boolean;
     // the length of the fight in seconds
     fightTime: number;
 }
@@ -250,7 +249,7 @@ export class WarSim extends BaseMultiCycleSim<WarSimResult, WarSettings, WarCycl
 
     override makeDefaultSettings(): WarSettings {
         return {
-            usePotion: true,
+            usePotion: 'auto',
             // 8 minutes and 30s, or 510 seconds
             // This is chosen since it's two pots, five bursts,
             // and is somewhat even between the two main GCDs.
@@ -316,8 +315,8 @@ export class WarSim extends BaseMultiCycleSim<WarSimResult, WarSettings, WarCycl
             this.use(cp, Actions.InnerRelease);
         }
 
-        if (cp.shouldPot() && cp.canUseWithoutClipping(potionMaxStr)) {
-            this.use(cp, potionMaxStr);
+        if (cp.medicinePotion && cp.shouldPot() && cp.canUseWithoutClipping(cp.medicinePotion)) {
+            this.use(cp, cp.medicinePotion);
         }
 
         if (cp.isWrathfulActive() && cp.canUseWithoutClipping(Actions.PrimalWrath)){
@@ -397,7 +396,7 @@ export class WarSim extends BaseMultiCycleSim<WarSimResult, WarSettings, WarCycl
         }
 
         // Only use potion if enabled in settings
-        if (!this.settings.usePotion && ability.name.includes("of Strength")) {
+        if (!this.settings.usePotion && ability.attackType === 'Item') {
             return null;
         }
 
@@ -431,8 +430,10 @@ export class WarSim extends BaseMultiCycleSim<WarSimResult, WarSettings, WarCycl
         this.use(cp, Actions.Maim);
         this.use(cp, Actions.StormsEye);
         this.use(cp, Actions.InnerRelease);
-        cp.advanceForLateWeave([potionMaxStr]);
-        this.use(cp, potionMaxStr);
+        if (cp.medicinePotion) {
+            cp.advanceForLateWeave([cp.medicinePotion]);
+            this.use(cp, cp.medicinePotion);
+        }
         if (level >= 80) {
             this.use(cp, Actions.InnerChaos);
         }

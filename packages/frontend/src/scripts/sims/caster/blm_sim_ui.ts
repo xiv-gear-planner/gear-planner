@@ -1,4 +1,5 @@
 import {FieldBoundCheckBox, labeledCheckbox, quickElement} from "@xivgear/common-ui/components/util";
+import {potionOptionsDropdown} from "../common/sim_ui_utils";
 import {BlmSettings, BlmSimResult} from "@xivgear/sims/caster/blm/blm_sheet_sim";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
 import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/sims/cycle_sim";
@@ -153,9 +154,7 @@ export class BlmSimGui extends BaseMultiCycleSimGui<BlmSimResult, BlmSettings> {
 
         configDiv.appendChild(labeledCheckbox("Pre-pull Ley Lines", prepullLLCB));
 
-        const potCb = new FieldBoundCheckBox(settings, "usePotion");
-
-        configDiv.appendChild(labeledCheckbox("Use Potion", potCb));
+        configDiv.appendChild(potionOptionsDropdown(settings));
 
         const flareOpenerCB = new FieldBoundCheckBox(settings, "useFlareOpener");
 

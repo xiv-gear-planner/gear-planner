@@ -71,22 +71,22 @@ export class CustomFood implements FoodItem {
         const out: FoodBonuses = {
             vitality: this._data.vitalityBonus,
         };
-        if (this.secondarySubStat) {
+        if (this.secondaryStat) {
             out[this._data.secondaryStat] = this._data.secondaryStatBonus;
         }
         // Primary is done after so that it will take priority in the event that the user specifies the same
         // stat for both.
-        if (this.primarySubStat) {
+        if (this.primaryStat) {
             out[this._data.primaryStat] = this._data.primaryStatBonus;
         }
         return out;
     }
 
-    get primarySubStat(): Substat | undefined {
+    get primaryStat(): Substat | undefined {
         return this._data.primaryStat;
     }
 
-    get secondarySubStat(): Substat | undefined {
+    get secondaryStat(): Substat | undefined {
         return this._data.secondaryStat;
     }
 

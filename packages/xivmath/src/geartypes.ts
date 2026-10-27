@@ -257,15 +257,15 @@ export type FoodBonuses = {
 export interface FoodItem extends XivItem {
     ilvl: number,
     bonuses: FoodBonuses,
-    primarySubStat: RawStatKey | undefined,
-    secondarySubStat: RawStatKey | undefined
+    primaryStat: RawStatKey | undefined,
+    secondaryStat: RawStatKey | undefined
 }
 
 export interface MedicineItem extends XivItem {
     ilvl: number,
     bonuses: FoodBonuses,
-    primarySubStat: RawStatKey | undefined,
-    secondarySubStat: RawStatKey | undefined
+    primaryStat: RawStatKey | undefined,
+    secondaryStat: RawStatKey | undefined
 }
 
 export interface Materia extends XivCombatItem {

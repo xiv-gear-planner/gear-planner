@@ -1,7 +1,6 @@
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import type {CharacterGearSet} from "@xivgear/core/gear";
 import {CycleProcessor, type AbilityUseResult, type CycleSimResult, type ExternalCycleSettings, type MultiCycleSettings, type PreDmgAbilityUseRecordUnf, type Rotation} from "@xivgear/sims/cycle_sim";
-import {potionMaxDex} from "@xivgear/sims/common/potion";
 import {BaseMultiCycleSim} from "../../processors/sim_processors";
 import type {Ability, DamagingAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
 import {AirAnchor, AutomatonQueen, AutomatonQueenArmPunch, AutomatonQueenCrownedCollider, AutomatonQueenPileBunker, BarrelStabilizer, BlazingShot, Chainsaw, Checkmate, Detonator, DoubleCheck, Drill, Excavator, FullMetalField, HeatedCleanShot, HeatedSlugShot, HeatedSplitShot, Hypercharge, Reassemble, Wildfire} from "./mch_actions";
@@ -11,6 +10,7 @@ import type {MchAbility, MchGcdAbility, MchOgcdAbility} from "./mch_types";
 import {combineBuffEffects} from "@xivgear/core/sims/sim_utils";
 import {formatDuration} from "@xivgear/util/strutils";
 import type {CycleSettings} from "../../cycle_settings";
+import {PotionOptions} from "@xivgear/sims/common/medicine";
 
 interface RotationConstants {
     toolGcds: number,
@@ -48,8 +48,11 @@ const ROTATION_CONSTANTS: Record<'100' /* | '90' | '80' | '70' */, RotationConst
     },
 } as const;
 
-export interface MchSimSettings extends SimSettings {
-    usePots: boolean;
+export interface MchSimSettings extends SimSettings, PotionOptions {
+    /**
+     * @deprecated Old saved sims used this field; it is migrated to usePotion when loaded.
+     */
+    usePots?: boolean;
     // if set to true, the opener pot is skipped and the first pot will happen at 2
     skipOpenerPot: boolean;
     killTime: number;
@@ -84,7 +87,7 @@ export class MchCycleProcessor extends CycleProcessor {
     gauge = new MchGauge();
     comboState = 0;
     ogcdsRemaining = 0;
-    potAbility: MchOgcdAbility;
+    potAbility: MchOgcdAbility | undefined;
     constants: RotationConstants;
     /**
      * How many times Hypercharge can be used before next burst
@@ -102,12 +105,10 @@ export class MchCycleProcessor extends CycleProcessor {
     constructor(settings: MultiCycleSettings, private simSettings: MchSimSettings) {
         super(settings);
         this.gcdCalculated = this.gcdTime(HeatedCleanShot);
-        this.potAbility = {
-            ...potionMaxDex,
-            cooldown: {
-                time: 360,
-            },
-        };
+        this.potAbility = this.medicinePotion ? {
+            ...this.medicinePotion,
+            cooldown: {time: 360},
+        } as MchOgcdAbility : undefined;
         switch (this.stats.level) {
             case 100:
                 this.constants = ROTATION_CONSTANTS['100'];
@@ -329,7 +330,7 @@ export class MchCycleProcessor extends CycleProcessor {
 
     private canPot(): boolean {
         // only use as "last" ogcd because we're gonna advance to the latest possible usage time
-        if (this.ogcdsRemaining !== 1) {
+        if (this.ogcdsRemaining !== 1 || !this.simSettings.usePotion || !this.potAbility) {
             return false;
         }
         return this.cdTracker.canUse(this.potAbility, this.currentTime);
@@ -414,7 +415,7 @@ export class MchCycleProcessor extends CycleProcessor {
         }
         if (this.canPot()) {
             // this.advanceTo(this.nextGcdTime - STANDARD_ANIMATION_LOCK);
-            return this.potAbility;
+            return this.potAbility!;
         }
 
         if (!advanced && this.currentTime + STANDARD_ANIMATION_LOCK < this.nextGcdTime) {
@@ -449,7 +450,7 @@ export class MchCycleProcessor extends CycleProcessor {
 
     private executeLevel100Opener() {
         this.use(Reassemble);
-        if (this.simSettings.usePots) {
+        if (this.simSettings.usePotion && this.potAbility) {
             if (!this.simSettings.skipOpenerPot) {
                 this.advanceTo(5 - STANDARD_ANIMATION_LOCK * 2, true);
                 this.use(this.potAbility);
@@ -675,12 +676,17 @@ export class MchSheetSim extends BaseMultiCycleSim<MchSimResult, MchSimSettings,
 
     constructor(settings?: MchSimSettingsExternal) {
         super('MCH', settings);
+        const savedSettings = settings?.customSettings ?? settings as unknown as Partial<MchSimSettings> | undefined;
+        if (savedSettings?.usePotion === undefined && typeof savedSettings?.usePots === 'boolean') {
+            this.settings.usePotion = savedSettings.usePots;
+        }
+        delete this.settings.usePots;
     }
 
     override makeDefaultSettings(): MchSimSettings {
         return {
             killTime: 510, // 8m30s
-            usePots: true,
+            usePotion: 'auto',
             skipOpenerPot: false,
             dontAlignCds: false,
         };

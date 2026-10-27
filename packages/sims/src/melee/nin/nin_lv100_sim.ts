@@ -10,7 +10,6 @@ import {
 } from "@xivgear/sims/cycle_sim";
 import {CycleSettings} from "@xivgear/sims/cycle_settings";
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
-import {potionMaxDex} from "@xivgear/sims/common/potion";
 import {Dokumori} from "@xivgear/sims/buffs";
 import NINGauge from "./nin_gauge";
 import {MudraStep, NinAbility, NINExtraData, NinGcdAbility, NinjutsuAbility} from "./nin_types";
@@ -328,7 +327,9 @@ class NINCycleProcessor extends CycleProcessor {
         this.useOgcd(Actions.Kassatsu);
 
         this.useCombo();
-        this.useOgcd(potionMaxDex);
+        if (this.medicinePotion) {
+            this.useOgcd(this.medicinePotion);
+        }
 
         this.useCombo();
         this.useOgcd(Actions.DokumoriAbility);

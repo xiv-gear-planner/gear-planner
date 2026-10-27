@@ -6,16 +6,15 @@ import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import {sum} from "@xivgear/util/array_utils";
 import * as Actions from './pld_actions';
 import {BaseMultiCycleSim} from "@xivgear/sims/processors/sim_processors";
-import {potionMaxStr} from "@xivgear/sims/common/potion";
+import {PotionOptions} from "@xivgear/sims/common/medicine";
 import {AtonementReadyBuff, BladeOfHonorReadyBuff, ConfiteorReadyBuff, DivineMightBuff, FightOrFlightBuff, GoringBladeReadyBuff, PldExtraData, PldGcdAbility, PldOgcdAbility, RequiescatBuff, SepulchreReadyBuff, SupplicationReadyBuff} from "./pld_types";
 
 export interface PldSimResult extends CycleSimResult {
 
 }
 
-export interface PldSettings extends SimSettings {
+export interface PldSettings extends SimSettings, PotionOptions {
     // If we use potions (used every six minutes).
-    usePotion: boolean;
     // the length of the fight in seconds
     fightTime: number;
 }
@@ -311,7 +310,7 @@ export class PldSim extends BaseMultiCycleSim<PldSimResult, PldSettings, PldCycl
 
     override makeDefaultSettings(): PldSettings {
         return {
-            usePotion: true,
+            usePotion: 'auto',
             // 8 minutes and 30s, or 510 seconds
             // This is chosen since it's two pots, five bursts,
             // and is somewhat even between the two main GCDs.
@@ -465,8 +464,8 @@ export class PldSim extends BaseMultiCycleSim<PldSimResult, PldSettings, PldCycl
             }
         }
 
-        if (cp.shouldPot() && cp.canUseWithoutClipping(potionMaxStr)) {
-            this.use(cp, potionMaxStr);
+        if (cp.medicinePotion && cp.shouldPot() && cp.canUseWithoutClipping(cp.medicinePotion)) {
+            this.use(cp, cp.medicinePotion);
         }
 
         ////////
@@ -500,7 +499,7 @@ export class PldSim extends BaseMultiCycleSim<PldSimResult, PldSettings, PldCycl
         }
 
         // Only use potion if enabled in settings
-        if (!this.settings.usePotion && ability.name.includes("of Strength")) {
+        if (!this.settings.usePotion && ability.attackType === 'Item') {
             return null;
         }
 
@@ -513,8 +512,10 @@ export class PldSim extends BaseMultiCycleSim<PldSimResult, PldSettings, PldCycl
         this.use(cp, Actions.HolySpiritHardcast);
         this.use(cp, cp.getComboToUse());
         this.use(cp, cp.getComboToUse());
-        cp.advanceForLateWeave([potionMaxStr]);
-        this.use(cp, potionMaxStr);
+        if (cp.medicinePotion) {
+            cp.advanceForLateWeave([cp.medicinePotion]);
+            this.use(cp, cp.medicinePotion);
+        }
         this.use(cp, cp.getComboToUse());
         if (cp.shouldWeGoForNineGCDFoFNow()) {
             cp.advanceForLateWeave([Actions.FightOrFlight]);

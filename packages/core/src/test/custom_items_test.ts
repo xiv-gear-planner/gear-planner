@@ -314,8 +314,8 @@ describe('Custom items support', () => {
         expect(custom.bonuses.dhit.max).to.eq(100);
         expect(custom.bonuses.dhit.percentage).to.eq(10);
 
-        expect(custom.primarySubStat).to.eq('crit');
-        expect(custom.secondarySubStat).to.eq('dhit');
+        expect(custom.primaryStat).to.eq('crit');
+        expect(custom.secondaryStat).to.eq('dhit');
 
         const foodItem = sheet.foodById(custom.id);
         // Should be exactly the same object, there's no cloning going on

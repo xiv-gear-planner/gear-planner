@@ -56,7 +56,7 @@ import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {recordSheetEvent} from "../../../analytics/analytics";
 import {hideIcon, makeTrashIcon, showIcon} from "@xivgear/common-ui/components/icons";
 import {sortItemsInPlace} from "../../items/item_utils";
-import {bold, p} from "@xivgear/common-ui/components/templates";
+import {bold, elt, p} from "@xivgear/common-ui/components/templates";
 
 function removeStatCellStyles(cell: CustomCell<GearSlotItem, unknown>) {
     cell.classList.remove("secondary");
@@ -148,13 +148,12 @@ function statCellTitle(value: ItemSingleStatDetail): string {
  * @param stat The stat
  */
 function foodStatCellStyler(cell: CustomCell<FoodItem, unknown>, stat: keyof RawStats) {
-
     cell.classList.add("food-stat-cell");
     cell.classList.add("stat-" + stat);
-    if (cell.dataItem.primarySubStat === stat) {
+    if (cell.dataItem.primaryStat === stat) {
         cell.classList.add("primary");
     }
-    else if (cell.dataItem.secondarySubStat === stat) {
+    else if (cell.dataItem.secondaryStat === stat) {
         cell.classList.add("secondary");
     }
     if (cell._cellValue === 0) {
@@ -210,7 +209,7 @@ function foodTableStatViewColumn(sheet: GearPlanSheet, set: CharacterGearSet, it
     const wrapped = foodTableStatColumn(sheet, set, stat, highlightPrimarySecondary);
     return {
         ...wrapped,
-        condition: () => (item.primarySubStat === stat || item.secondarySubStat === stat),
+        condition: () => (item.primaryStat === stat || item.secondaryStat === stat),
     };
 }
 
@@ -266,7 +265,7 @@ function medicineTableStatViewColumn(sheet: GearPlanSheet, set: CharacterGearSet
     const wrapped = medicineTableStatColumn(sheet, set, stat, highlightPrimarySecondary);
     return {
         ...wrapped,
-        condition: () => item.primarySubStat === stat || item.secondarySubStat === stat,
+        condition: () => item.primaryStat === stat || item.secondaryStat === stat,
     };
 }
 
@@ -420,8 +419,65 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
     }
 }
 
+class FoodViewHeaderSpec extends HeaderRow {
+    constructor(readonly item: FoodItem, readonly alts: ReturnType<(thisItem: FoodItem) => FoodItem[]>, readonly sheet: GearPlanSheet) {
+        super();
+    }
+}
+
+class FoodViewHeaderRow extends CustomTableHeaderRow<FoodItem> {
+    private readonly _spec: FoodViewHeaderSpec;
+
+    constructor(table: CustomTable<FoodItem, TableSelectionModel<unknown>>, spec: FoodViewHeaderSpec) {
+        // const adjustedColumns = table.columns.map(col => {
+        //     return col;
+        // });
+        super(table);
+        this._spec = spec;
+        const firstCell = this._cells[0];
+        const headerSpec = spec;
+        const headingTextSlot = quickElement('span', ['wide-only'], ['Food: ']);
+        const foodItem = headerSpec.item;
+        const headingTextItem = `i${foodItem.ilvl}`;
+        const alts = headerSpec.alts;
+        const out = quickElement('div', ['gear-items-view-item-header'], [headingTextSlot, headingTextItem]);
+        if (alts.length > 0) {
+            const narrowSpan = makeSpan(`${alts.length} alts`, ['narrow-only']);
+            const wideSpan = makeSpan(`+${alts.length} alt items`, ['wide-only']);
+            const altButton = makeActionButton([narrowSpan, wideSpan], () => {
+                const modal = new AltFoodsModal(foodItem, alts, spec.sheet);
+                modal.attachAndShowExclusively();
+            });
+            altButton.classList.add('gear-items-view-alts-button');
+            out.appendChild(altButton);
+        }
+        firstCell.replaceChildren(out);
+        firstCell.colSpan = 2;
+        const secondCell = this._cells[1];
+        secondCell.style.display = 'none';
+    }
+
+    headerSpec(): FoodViewHeaderSpec {
+        return this._spec;
+    }
+
+}
+
+/**
+ * Table for viewing a food item. If no food is equipped, then do not display a table at all.
+ */
 export class FoodItemViewTable extends CustomTable<FoodItem> {
-    constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet, item: FoodItem) {
+
+    protected makeHeaderRow(headerSpec: HeaderRow): CustomTableHeaderRow<FoodItem> {
+        if (headerSpec instanceof FoodViewHeaderSpec) {
+            return new FoodViewHeaderRow(this, headerSpec);
+        }
+        else {
+            return super.makeHeaderRow(headerSpec);
+        }
+    }
+
+    constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet, item: FoodItem, alts: FoodItem[]) {
         super();
         this.classList.add("food-items-table");
         this.classList.add("food-items-view-table");
@@ -473,7 +529,7 @@ export class FoodItemViewTable extends CustomTable<FoodItem> {
             foodTableStatViewColumn(sheet, gearSet, item, 'control', highlightDohDol),
             foodTableStatViewColumn(sheet, gearSet, item, 'cp', highlightDohDol),
         ];
-        super.data = [new HeaderRow(), item];
+        super.data = [new FoodViewHeaderSpec(item, alts, sheet), item];
     }
 }
 
@@ -517,6 +573,14 @@ export class MedicineItemsTable extends CustomTable<MedicineItem, TableSelection
                     return quickElement('div', ['food-name-holder-editable'], [quickElement('span', [], [name]), buttonsArea]);
                 },
             },
+            // DoW/DoM
+            medicineTableStatColumn(sheet, gearSet, 'strength', true),
+            medicineTableStatColumn(sheet, gearSet, 'dexterity', true),
+            medicineTableStatColumn(sheet, gearSet, 'intelligence', true),
+            medicineTableStatColumn(sheet, gearSet, 'mind', true),
+            // medicineTableStatColumn(sheet, gearSet, 'vitality'),
+
+            // DoH/DoL
             medicineTableStatColumn(sheet, gearSet, 'craftsmanship', true),
             medicineTableStatColumn(sheet, gearSet, 'control', true),
             medicineTableStatColumn(sheet, gearSet, 'cp', true),
@@ -556,10 +620,23 @@ export class MedicineItemsTable extends CustomTable<MedicineItem, TableSelection
             this.updateShowHide();
         });
         const displayItems = [...sheet.medicineItemsForDisplay];
+        const specialRow = new SpecialRow(() => {
+            return elt('span', {style: {fontWeight: 'normal'}})`Potion bonuses are not reflected in the stats table. They are applied by simulations, but only if enabled in the simulation's settings.`;
+        });
         sortItemsInPlace(displayItems);
-        super.data = displayItems.length > 0
-            ? [showHideRow.row, new HeaderRow(), ...displayItems]
-            : [showHideRow.row, new HeaderRow(), new TitleRow('No items available - please check your filters')];
+        const data: typeof this.data = [showHideRow.row];
+        if (sheet.classJobEarlyStats.type === 'Combat') {
+            data.push(specialRow);
+        }
+        data.push(new HeaderRow());
+        if (displayItems.length > 0) {
+            data.push(...displayItems);
+        }
+        else {
+            data.push(new TitleRow('No items available - please check your filters'));
+        }
+
+        super.data = data;
         this.updateShowHide();
     }
 
@@ -572,7 +649,16 @@ export class MedicineItemsTable extends CustomTable<MedicineItem, TableSelection
 }
 
 export class MedicineItemViewTable extends CustomTable<MedicineItem> {
-    constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet, item: MedicineItem) {
+    protected makeHeaderRow(headerSpec: HeaderRow): CustomTableHeaderRow<MedicineItem> {
+        if (headerSpec instanceof MedicineViewHeaderSpec) {
+            return new MedicineViewHeaderRow(this, headerSpec);
+        }
+        else {
+            return super.makeHeaderRow(headerSpec);
+        }
+    }
+
+    constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet, item: MedicineItem, alts: MedicineItem[]) {
         super();
         this.classList.add("medicine-items-table", "medicine-items-view-table");
         const highlight = true;
@@ -596,6 +682,18 @@ export class MedicineItemViewTable extends CustomTable<MedicineItem> {
                     node.style.display = 'none';
                 },
             }),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'strength', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'dexterity', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'intelligence', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'mind', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'vitality'),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'crit', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'dhit', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'determination', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'spellspeed', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'skillspeed', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'piety', highlight),
+            medicineTableStatViewColumn(sheet, gearSet, item, 'tenacity', highlight),
             medicineTableStatViewColumn(sheet, gearSet, item, 'craftsmanship', highlight),
             medicineTableStatViewColumn(sheet, gearSet, item, 'control', highlight),
             medicineTableStatViewColumn(sheet, gearSet, item, 'cp', highlight),
@@ -603,7 +701,43 @@ export class MedicineItemViewTable extends CustomTable<MedicineItem> {
             medicineTableStatViewColumn(sheet, gearSet, item, 'perception', highlight),
             medicineTableStatViewColumn(sheet, gearSet, item, 'gp', highlight),
         ];
-        super.data = [new HeaderRow(), item];
+        super.data = [new MedicineViewHeaderSpec(item, alts), item];
+    }
+}
+
+class MedicineViewHeaderSpec extends HeaderRow {
+    constructor(readonly item: MedicineItem, readonly alts: MedicineItem[]) {
+        super();
+    }
+}
+
+class MedicineViewHeaderRow extends CustomTableHeaderRow<MedicineItem> {
+    private readonly _spec: MedicineViewHeaderSpec;
+
+    constructor(table: CustomTable<MedicineItem>, spec: MedicineViewHeaderSpec) {
+        super(table);
+        this._spec = spec;
+        const firstCell = this._cells[0];
+        const headingTextSlot = quickElement('span', ['wide-only'], ['Medicine: ']);
+        const medicineItem = spec.item;
+        const out = quickElement('div', ['gear-items-view-item-header'], [headingTextSlot, `i${medicineItem.ilvl}`]);
+        if (spec.alts.length > 0) {
+            const narrowSpan = makeSpan(`${spec.alts.length} alts`, ['narrow-only']);
+            const wideSpan = makeSpan(`+${spec.alts.length} alt items`, ['wide-only']);
+            const altButton = makeActionButton([narrowSpan, wideSpan], () => {
+                const modal = new AltMedicinesModal(medicineItem, spec.alts);
+                modal.attachAndShowExclusively();
+            });
+            altButton.classList.add('gear-items-view-alts-button');
+            out.appendChild(altButton);
+        }
+        firstCell.replaceChildren(out);
+        firstCell.colSpan = 2;
+        this._cells[1].style.display = 'none';
+    }
+
+    headerSpec(): MedicineViewHeaderSpec {
+        return this._spec;
     }
 }
 
@@ -1196,7 +1330,6 @@ class GearViewHeaderRow extends CustomTableHeaderRow<GearSlotItem> {
 
 }
 
-customElements.define('gear-view-header-row', GearViewHeaderRow, {extends: 'tr'});
 
 /**
  * Table for displaying only equipped items, read-only
@@ -1426,6 +1559,94 @@ export class AltItemsModal extends BaseModal {
     }
 }
 
+export class AltFoodsModal extends BaseModal {
+    constructor(baseItem: FoodItem, altItems: FoodItem[], sheet: GearPlanSheet) {
+        super();
+        this.headerText = 'Alternative Items';
+
+        let text: HTMLParagraphElement;
+        if (sheet.ilvlSync) {
+            text = p`These food items are ${bold`equivalent to`} ${baseItem.nameTranslation.asCurrentLang} when synced to i${sheet.ilvlSync}:`;
+        }
+        else {
+            text = p`These food items are ${bold`equivalent to or better than`} ${baseItem.nameTranslation.asCurrentLang}:`;
+        }
+        this.contentArea.appendChild(el('div', {class: 'alt-items-text-holder'}, [text]));
+
+        const table: CustomTable<FoodItem> = new CustomTable<FoodItem>();
+        table.columns = [
+            {
+                shortName: "ilvl",
+                displayName: "iLv",
+                getter: item => {
+                    return item.ilvl.toString();
+                },
+            },
+            col({
+                shortName: "icon",
+                displayName: "",
+                getter: item => {
+                    return item;
+                },
+                renderer: itemIconRenderer(),
+            }),
+            {
+                shortName: "itemname",
+                displayName: "Name",
+                getter: item => {
+                    return item.nameTranslation.asCurrentLang;
+                },
+            },
+        ];
+        sortItemsInPlace(altItems);
+        // Now that this respects ilvl sort order, including the reverse order setting, it is awkward to include the
+        // base item as if it were any other item. Instead, there are two options - either show it at the top with
+        // a separator between the base item and the other items, or omit it entirely.
+        // Possible UI option - show a separator row.
+        // table.data = [new HeaderRow(), baseItem, new SpecialRow(() => document.createTextNode(' ')), ...altItems];
+        // Other UI option - don't show the base item at all.
+        table.data = [new HeaderRow(), ...altItems];
+        this.contentArea.appendChild(table);
+
+        this.addCloseButton();
+    }
+}
+
+export class AltMedicinesModal extends BaseModal {
+    constructor(baseItem: MedicineItem, altItems: MedicineItem[]) {
+        super();
+        this.headerText = 'Alternative Items';
+
+        const text = p`These medicine items are ${bold`equivalent to or better than`} ${baseItem.nameTranslation.asCurrentLang} for this gear set:`;
+        this.contentArea.appendChild(el('div', {class: 'alt-items-text-holder'}, [text]));
+
+        const table: CustomTable<MedicineItem> = new CustomTable<MedicineItem>();
+        table.columns = [
+            {
+                shortName: "ilvl",
+                displayName: "iLv",
+                getter: item => item.ilvl.toString(),
+            },
+            col({
+                shortName: "icon",
+                displayName: "",
+                getter: item => item,
+                renderer: itemIconRenderer(),
+            }),
+            {
+                shortName: "itemname",
+                displayName: "Name",
+                getter: item => item.nameTranslation.asCurrentLang,
+            },
+        ];
+        sortItemsInPlace(altItems);
+        table.data = [new HeaderRow(), ...altItems];
+        this.contentArea.appendChild(table);
+
+        this.addCloseButton();
+    }
+}
+
 /**
  * Component for an ilvl range picker. Binds to an object with a minimum and maximum field, but defers updates to
  * the underlying object until input validation passes.
@@ -1554,10 +1775,15 @@ export function itemIconRenderer<RowType>(): CellRenderer<RowType, XivItem> {
 
 customElements.define("gear-items-table", GearItemsTable, {extends: "table"});
 customElements.define("gear-items-view-table", GearItemsViewTable, {extends: "table"});
+customElements.define('gear-view-header-row', GearViewHeaderRow, {extends: 'tr'});
 customElements.define("food-items-table", FoodItemsTable, {extends: "table"});
 customElements.define("food-items-view-table", FoodItemViewTable, {extends: "table"});
 customElements.define("medicine-items-table", MedicineItemsTable, {extends: "table"});
 customElements.define("medicine-items-view-table", MedicineItemViewTable, {extends: "table"});
+customElements.define('food-view-header-row', FoodViewHeaderRow, {extends: 'tr'});
+customElements.define('medicine-view-header-row', MedicineViewHeaderRow, {extends: 'tr'});
 customElements.define("ilvl-range-picker", ILvlRangePicker);
 customElements.define("food-stat-bonus", FoodStatBonusDisplay);
 customElements.define("alt-items-modal", AltItemsModal);
+customElements.define("alt-foods-modal", AltFoodsModal);
+customElements.define("alt-medicines-modal", AltMedicinesModal);
