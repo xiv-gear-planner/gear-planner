@@ -1484,8 +1484,6 @@ gear-plan {
   }
 
   .gear-sheet-editor-area {
-    // TODO: ???
-    flex-basis: var(--bottom-flex-basis);
     flex-basis: 100%;
     flex-shrink: 99999;
     flex-grow: 0;
@@ -1687,7 +1685,7 @@ table {
   }
 }
 
-.left-side-gear-table, .right-side-gear-table {
+.left-side-gear-table, .right-side-gear-table, .food-medicine-table-side {
   display: inline-block;
   flex-basis: var(--item-table-max-width);
   flex-shrink: 1;
@@ -2822,7 +2820,7 @@ food-stat-bonus {
 table.food-items-table, table.medicine-items-table {
 
   .food-stat-col {
-    --food-stat-col-width: 80px;
+    --food-stat-col-width: 75px;
     min-width: var(--food-stat-col-width);
     max-width: var(--food-stat-col-width);
     width: var(--food-stat-col-width);
@@ -2868,6 +2866,20 @@ table.food-items-table, table.medicine-items-table {
       > * {
         text-align: left;
         line-height: normal;
+      }
+    }
+  }
+  @media screen and (width > 900px) {
+
+    // Shift the bottom of the fraction down a bit and make it smaller.
+    // Healers/Tanks have 6 relevant food stats, so need to make this a bit more narrow to fit into the same
+    // width as a gear table.
+    food-stat-bonus.food-undercapped {
+      .food-cap {
+        font-size: 80%;
+        vertical-align: bottom;
+        position: relative;
+        top: 5px;
       }
     }
   }
