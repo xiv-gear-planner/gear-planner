@@ -145,33 +145,26 @@ export class GearSetEditor extends HTMLElement {
             rightSideDiv.appendChild(table);
             this.gearTables.push(table);
         }
-        // const leftSideTable = new GearItemsTable(this.sheet, this.gearSet, itemMapping, ['Head', 'Body', 'Hand', 'Legs', 'Feet']);
-        // const rightSideTable = new GearItemsTable(this.sheet, this.gearSet, itemMapping, ['Ears', 'Neck', 'Wrist', 'RingLeft', 'RingRight']);
 
-        const gearTableSet = document.createElement('div');
         weaponTable.classList.add('weapon-table');
-        gearTableSet.classList.add('gear-table-sides-holder');
         leftSideDiv.classList.add('left-side-gear-table');
         rightSideDiv.classList.add('right-side-gear-table');
 
-        gearTableSet.appendChild(leftSideDiv);
-        gearTableSet.appendChild(rightSideDiv);
         this.appendChild(weaponTable);
+        const gearTableSet = el('div', {class: 'gear-table-sides-holder'}, [leftSideDiv, rightSideDiv]);
         this.appendChild(gearTableSet);
-        // this.appendChild(rightSideDiv);
-
-        // // Gear table
-        // const gearTable = new GearItemsTable(sheet, gearSet, itemMapping);
-        // // gearTable.id = "gear-items-table";
-        // this.appendChild(gearTable);
 
         // Food table
         this.foodTable = new FoodItemsTable(this.sheet, this.gearSet);
         this.foodTable.classList.add('food-table');
         // foodTable.id = "food-items-table";
-        this.appendChild(this.foodTable);
+        const foodTableSide = el('div', {class: 'food-medicine-table-side'}, [this.foodTable]);
+
         this.medicineTable = new MedicineItemsTable(this.sheet, this.gearSet);
-        this.appendChild(this.medicineTable);
+        const medicineTableSide = el('div', {class: 'food-medicine-table-side'}, [this.medicineTable]);
+        const foodMedicineTableSet = el('div', {class: 'gear-table-sides-holder'}, [foodTableSide, medicineTableSide]);
+
+        this.appendChild(foodMedicineTableSet);
         this.checkIssues();
     }
 

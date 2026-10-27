@@ -379,6 +379,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
         const oneStatFoodWithLabel = labeledCheckbox('Show Food with One Relevant Stat', osfCb);
         // This should not trigger the show/hide control
         oneStatFoodWithLabel.addEventListener('click', e => e.stopPropagation());
+        osfCb.addListener(_ => gearSet.sheet.gearDisplaySettingsUpdateNow());
         // Chrome has weird behavior, this is a workaround
         osfCb.addEventListener('click', e => e.stopPropagation());
 
@@ -390,6 +391,10 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
             this.updateShowHide();
         }, [oneStatFoodWithLabel]);
         const displayItems = [...sheet.foodItemsForDisplay];
+        const selectedFood = this.gearSet.food;
+        if (selectedFood && !displayItems.includes(selectedFood)) {
+            displayItems.push(selectedFood);
+        }
         sortItemsInPlace(displayItems);
         if (displayItems.length > 0) {
             super.data = [showHideRow.row, new HeaderRow(), ...displayItems];
@@ -620,6 +625,10 @@ export class MedicineItemsTable extends CustomTable<MedicineItem, TableSelection
             this.updateShowHide();
         });
         const displayItems = [...sheet.medicineItemsForDisplay];
+        const selectedMedicine = this.gearSet.medicine;
+        if (selectedMedicine && !displayItems.includes(selectedMedicine)) {
+            displayItems.push(selectedMedicine);
+        }
         const specialRow = new SpecialRow(() => {
             return elt('span', {style: {fontWeight: 'normal'}})`Potion bonuses are not reflected in the stats table. They are applied by simulations, but only if enabled in the simulation's settings.`;
         });
