@@ -1535,7 +1535,7 @@ export class GearPlanSheet {
         else {
             if (levelSync !== null) {
                 // Implicit ilvl sync
-                const implicitSync = this.dataManager.getImplicitIlvlSync(levelSync, true);
+                const implicitSync = this.dataManager.getImplicitIlvlSync(levelSync, false);
                 if (implicitSync === undefined) {
                     return {
                         lvlSync: levelSync,

@@ -394,6 +394,9 @@ export class NewApiDataManager implements DataManager {
                 if (this._ilvlSync && this._ilvlSync < item.ilvl) {
                     isyncLvl = this._ilvlSync;
                 }
+                // If no explicit ilvl sync is specified, but the sheet level is less than the item's level, then
+                // sync to the max ilvl for a gear piece of that level. This theoretically corresponds to
+                // ParamGrow.ItemLevelSync.
                 else if (this._level < item.equipLvl) { // Downsync by equip lvl, infer correct ilvl
                     isyncLvl = this._maxIlvlForEquipLevel.get(this._level);
                 }
