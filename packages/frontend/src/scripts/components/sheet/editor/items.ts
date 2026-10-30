@@ -910,12 +910,30 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
     };
 }
 
-function makeShowHideRow(label: string, initiallyHidden: boolean = false, setter: ShowHideCallback, extraElements: HTMLElement[] = []): {
+/**
+ * Make a table row that shows/hides something when clicked.
+ *
+ * @param label The label for the row - NOT the literal text "Show/Hide", but rather a descriptive label for what is
+ * shown/hidden when the row is clicked.
+ * @param initiallyHidden The initial state of the row.
+ * @param callback A callback that is called when the row is clicked, which is passed into the ShowHideButton. The
+ * parameters are whether the row is hidden or shown (after processing the click), and the click count, allowing you to
+ * add additional behavior to 2+ clicks.
+ * @param extraElements Extra elements to append to the row.
+ * @param preservePositionOnDoubleClick Whether to keep the row at the same viewport position after a double click.
+ */
+function makeShowHideRow(
+    label: string,
+    initiallyHidden: boolean = false,
+    callback: ShowHideCallback,
+    extraElements: HTMLElement[] = [],
+    preservePositionOnDoubleClick: boolean = false
+): {
     row: SpecialRow<CustomTable<GearSlotItem>>,
     setState: (hidden: boolean) => void,
 } {
 
-    const showHide = new ShowHideButton(initiallyHidden, setter);
+    const showHide = new ShowHideButton(initiallyHidden, callback);
 
     return {
         row: new SpecialRow<CustomTable<GearSlotItem>>(
@@ -933,7 +951,12 @@ function makeShowHideRow(label: string, initiallyHidden: boolean = false, setter
                 return div;
             }, row => {
                 row.addEventListener('click', (e) => {
-                    showHide.toggle(e.detail);
+                    if (preservePositionOnDoubleClick && e.detail === 2) {
+                        preserveScreenPosition(row, () => showHide.toggle(e.detail));
+                    }
+                    else {
+                        showHide.toggle(e.detail);
+                    }
                 });
                 if (row.cells.length) {
                     row.cells.item(0).classList.add('hoverable');
@@ -941,6 +964,33 @@ function makeShowHideRow(label: string, initiallyHidden: boolean = false, setter
             }),
         setState: hidden => showHide.isHidden = hidden,
     };
+}
+
+function preserveScreenPosition(element: HTMLElement, callback: () => void) {
+    const top = element.getBoundingClientRect().top;
+    callback();
+
+    requestAnimationFrame(() => {
+        if (!element.isConnected) {
+            return;
+        }
+
+        let remainingOffset = element.getBoundingClientRect().top - top;
+        for (let parent = element.parentElement; parent && Math.abs(remainingOffset) > 0.5; parent = parent.parentElement) {
+            if (parent === document.body || parent === document.documentElement) {
+                continue;
+            }
+            const overflowY = getComputedStyle(parent).overflowY;
+            if ((overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay') && parent.scrollHeight > parent.clientHeight) {
+                parent.scrollTop += remainingOffset;
+                remainingOffset = element.getBoundingClientRect().top - top;
+            }
+        }
+
+        if (Math.abs(remainingOffset) > 0.5) {
+            window.scrollBy(0, remainingOffset);
+        }
+    });
 }
 
 /**
@@ -1018,7 +1068,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                     });
                     afterShowHideAll();
                 }
-            }, extras);
+            }, extras, true);
             data.push(showHideRow.row);
             this.showHideCallbacks.set(slotId, showHideRow.setState);
             let itemsInSlot = itemMapping.get(slot.gearSlot);
