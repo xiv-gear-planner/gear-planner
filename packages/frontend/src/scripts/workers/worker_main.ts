@@ -11,7 +11,6 @@ import {
     WorkerToMainMessage,
     WorkResponseDone
 } from "@xivgear/core/workers/worker_types";
-import {registerDefaultSims} from "@xivgear/sims/default_sims";
 
 const originalConsoleValues = {
     log: console.log,
@@ -48,7 +47,16 @@ function resetConsoleToDefault() {
     Object.assign(console, originalConsoleValues);
 }
 
-registerDefaultSims();
+let workerSimsReady: Promise<void> | null = null;
+
+function loadWorkerSims(): Promise<void> {
+    if (workerSimsReady === null) {
+        workerSimsReady = import(/* webpackChunkName: "sims", webpackPreload: true */ "@xivgear/sims/default_sims")
+            .then(({registerDefaultSims}) => registerDefaultSims());
+    }
+    return workerSimsReady;
+}
+
 let dataManager: DataManager | null = null;
 onmessage = async function (event) {
 
@@ -89,7 +97,7 @@ onmessage = async function (event) {
             await sheet.loadFromDataManager(dataManager);
             let gearsetGen = new GearsetGenerationWorker(sheet, jobInfo);
             await gearsetGen.execute(request);
-            // TODO
+            // TODO - not sure why this works to reduce memory but it does
             gearsetGen = undefined;
             return;
         }
@@ -97,7 +105,10 @@ onmessage = async function (event) {
             blockConsoleSpam();
             // This sheet is fresh for each work request, but it re-uses an already-loaded DataManager.
             const sheet = HEADLESS_SHEET_PROVIDER.fromExport(request.sheet);
-            await sheet.loadFromDataManager(dataManager);
+            await Promise.all([
+                sheet.loadFromDataManager(dataManager),
+                loadWorkerSims(),
+            ]);
             await new SolverSimulationRunner(sheet, jobInfo).execute(request);
             return;
         }
