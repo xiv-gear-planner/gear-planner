@@ -1686,6 +1686,19 @@
       ],
       "type": "object"
     },
+    "SheetDisplaySettings": {
+      "additionalProperties": false,
+      "properties": {
+        "customColumns": {
+          "description": "The keys of custom columns to display on the sheet.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
     "SheetExport": {
       "additionalProperties": false,
       "description": "Represents an exported set. Many of the fields fill the same role as the fields on GearPlanSheet.\n\nSome of the fields are only relevant for local saves, while others are only relevant for external (API) saves.",
@@ -1776,6 +1789,10 @@
             "$ref": "#/definitions/SetExport"
           },
           "type": "array"
+        },
+        "sheetDisplaySettings": {
+          "$ref": "#/definitions/SheetDisplaySettings",
+          "description": "Settings for displaying sheet columns and other sheet-level UI."
         },
         "sims": {
           "description": "The simulations on this sheet.",
@@ -1892,6 +1909,10 @@
             "$ref": "#/definitions/SetStatsExport"
           },
           "type": "array"
+        },
+        "sheetDisplaySettings": {
+          "$ref": "#/definitions/SheetDisplaySettings",
+          "description": "Settings for displaying sheet columns and other sheet-level UI."
         },
         "sims": {
           "description": "The simulations on this sheet.",
