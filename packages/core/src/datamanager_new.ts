@@ -20,7 +20,7 @@ import {
     FoodItem,
     GearAcquisitionSource,
     GearItem,
-    IlvlSyncInfo,
+    IlvlSyncInfo, ItemQuality,
     JobMultipliers,
     Materia,
     MateriaSlot,
@@ -695,6 +695,7 @@ export class DataApiGearInfo implements GearItem {
     stats: RawStats;
     readonly slotMapping: DataApiEquipSlotMap;
     readonly meldParamIndex: number;
+    readonly quality: ItemQuality;
 
     constructor(data: ApiItemData, forceNq: boolean = false) {
         this.jobs = data.classJobs as JobName[];
@@ -707,6 +708,12 @@ export class DataApiGearInfo implements GearItem {
         else {
             this.name = data.name;
             this.nameTranslation = toTranslatable(data.name, data.nameTranslations);
+        }
+        if (data.canBeHq) {
+            this.quality = forceNq ? 'nq' : 'hq';
+        }
+        else {
+            this.quality = 'none';
         }
         this.equipLvl = data.equipLevel;
         this.ilvl = data.ilvl;
@@ -997,6 +1004,8 @@ export class DataApiFoodInfo implements FoodItem {
     ilvl: number;
     primaryStat: RawStatKey | undefined;
     secondaryStat: RawStatKey | undefined;
+    // We only deal with HQ food
+    readonly quality: ItemQuality = 'hq';
 
     constructor(data: ApiFoodData) {
         this.id = requireNumber(data.rowId);
@@ -1035,6 +1044,8 @@ export class DataApiMedicineInfo implements MedicineItem {
     ilvl: number;
     primaryStat: RawStatKey | undefined;
     secondaryStat: RawStatKey | undefined;
+    // We only deal with HQ medicine
+    readonly quality: ItemQuality = 'hq';
 
     constructor(data: ApiMedicineData) {
         this.id = requireNumber(data.rowId);
@@ -1084,6 +1095,7 @@ export function processRawMateriaInfo(data: ApiMateriaData): Materia[] {
             materiaGrade: grade,
             isHighGrade: (grade % 2) === 0 && grade >= 6,
             ilvl: itemData.ilvl ?? 0,
+            quality: 'none',
         });
     }
     return out;

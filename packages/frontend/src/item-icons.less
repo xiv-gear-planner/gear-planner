@@ -1,0 +1,52 @@
+*[col-id="icon"] {
+  .item-icon-wrapper {
+    height: var(--item-icon-size, 100%);
+    aspect-ratio: 1;
+
+    img {
+      height: 100%;
+    }
+  }
+}
+
+img.item-icon {
+  border-radius: 10%;
+
+  &.loaded {
+    border-radius: unset;
+    background: unset;
+  }
+}
+
+img.item-rarity-normal, img.item-rarity-unknown {
+  background: radial-gradient(#7a7b70, #4b4d4a);
+}
+
+img.item-rarity-green {
+  background: linear-gradient(#494842, #29d281);
+}
+
+img.item-rarity-blue {
+  background: radial-gradient(circle at 35% 35%, #63a0c9, #203c8b 50%);
+}
+
+img.item-rarity-relic {
+  background: radial-gradient(#7550a7, #693971);
+}
+
+.item-icon-wrapper {
+  &:has(img.item-quality-hq) {
+    position: relative;
+
+    &::after {
+      content: '';
+      inset: 0;
+      background: red;
+      position: absolute;
+      z-index: 10;
+
+      background: radial-gradient(ellipse 28% 19.95% at 29% 7%, rgba(255, 255, 210, .95) 0%, rgba(255, 245, 100, .75) 30%, rgba(255, 200, 30, .25) 65%, transparent 100%), radial-gradient(ellipse 65% 29.4% at 48% 0%, rgba(255, 240, 75, .75) 0%, rgba(255, 190, 40, .35) 55%, transparent 100%), radial-gradient(ellipse 25% 26.25% at 0% 27%, rgba(255, 235, 210, .85) 0%, rgba(255, 175, 130, .5) 40%, transparent 100%), radial-gradient(ellipse 38% 29.4% at 79% 18%, rgba(255, 175, 55, .45) 0%, rgba(255, 130, 35, .2) 55%, transparent 100%);
+      opacity: 0.9;
+    }
+  }
+}

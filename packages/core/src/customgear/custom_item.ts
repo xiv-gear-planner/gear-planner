@@ -8,7 +8,7 @@ import {
     EquipSlotValue,
     GearAcquisitionSource,
     GearItem,
-    IlvlSyncInfo,
+    IlvlSyncInfo, ItemQuality,
     MateriaSlot,
     NormalOccGearSlotKey,
     RawStatKey,
@@ -78,10 +78,12 @@ export class CustomItem implements GearItem {
     secondarySubstat: keyof RawStats = null;
     statCaps: RawStatsPart = {};
     // TODO: pull this out into a constant somewhere
-    iconUrl: URL = new URL(xivApiIconUrl(26270));
     syncedDownTo: number | null;
     private _data: CustomItemExport;
     readonly slotMapping: EquipSlotMap;
+
+    readonly iconUrl: URL = new URL(xivApiIconUrl(26270));
+    readonly quality: ItemQuality = 'none';
 
     private constructor(exportedData: CustomItemExport, private readonly sheet: GearPlanSheet, private readonly isUnsyncCopy: boolean = false) {
         this._data = exportedData;
