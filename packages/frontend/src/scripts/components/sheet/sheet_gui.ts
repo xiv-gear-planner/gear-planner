@@ -1186,6 +1186,8 @@ export class GearPlanSheetGui extends GearPlanSheet {
     }
 
     async loadFromDataManager(dataManager: DataManager): Promise<void> {
+        // At this point, it is expected that the DataManager has been loaded, so this is the last chance to wait
+        // for sims to load.
         if (!this.isEmbed) {
             await ASYNC_SIM_LOADER.load();
         }
