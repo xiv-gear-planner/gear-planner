@@ -54,9 +54,6 @@ import {BluF2PSpec} from "@xivgear/sims/blu/blu_free_trial";
 import {mchSheetSpec} from "@xivgear/sims/ranged/mch/mch_sheet_sim";
 import {MchSimGui} from "../ranged/mch_sim_gui";
 import {registerGui} from "./sim_guis";
-import {registerDefaultSims} from "@xivgear/sims/default_sims";
-
-export const registerSims = registerDefaultSims;
 
 export function registerDefaultSimGuis() {
 

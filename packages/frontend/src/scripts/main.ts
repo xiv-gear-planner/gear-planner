@@ -22,7 +22,7 @@ declare global {
 window.xivgearLoadStarted = true;
 
 // Main entry point for actual browsers
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     try {
         // Sim configuration
         // Just kick off the async loading - don't wait
@@ -54,6 +54,8 @@ document.addEventListener("DOMContentLoaded", () => {
         setupAccountUi();
         startSizeAnalytics();
         setupVersionChecker();
+        // Unlikely that the user will need the workers immediately, so defer them a bit
+        await new Promise(r => setTimeout(r, 1000));
         initWebWorkers();
 
     }

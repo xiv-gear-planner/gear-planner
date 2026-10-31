@@ -23,7 +23,23 @@ module.exports = (env, argv) => {
             // Minimize for the 'npm run buildprod' mode but not the normal 'npm run build'.
             minimize: prod,
             chunkIds: 'named',
-            splitChunks: false,
+            splitChunks: {
+                // Split the actual simulation code into its own chunk. This lets us load the sims only once between
+                // the document and the workers, despite the fact that the worker must explicitly not load any DOM code
+                // since DOM types don't exist in a worker context.
+                chunks: 'async',
+                cacheGroups: {
+                    simRuntime: {
+                        test: /[\\/]sims[\\/]src[\\/]/,
+                        chunks: 'async',
+                        minChunks: 2,
+                        minSize: 0,
+                        name: 'shared-sim-runtime',
+                        priority: 20,
+                        reuseExistingChunk: true,
+                    },
+                },
+            },
         },
         // devtool: prod ? 'nosources-source-map' : 'source-map',
         devtool: 'source-map',
