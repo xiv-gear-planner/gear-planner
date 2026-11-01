@@ -1,4 +1,4 @@
-import {CustomFoodExport, FoodBonuses, FoodItem, FoodStatBonus, Substat} from "@xivgear/xivmath/geartypes";
+import {CustomFoodExport, FoodBonuses, FoodItem, FoodStatBonus, ItemQuality, Substat} from "@xivgear/xivmath/geartypes";
 import {CURRENT_MAX_LEVEL, LEVEL_ITEMS} from "@xivgear/xivmath/xivconstants";
 import {xivApiIconUrl} from "../external/xivapi";
 import {toTranslatable, TranslatableString} from "@xivgear/i18n/translation";
@@ -13,7 +13,8 @@ function defaultBonus(): FoodStatBonus {
 export class CustomFood implements FoodItem {
 
     private _data: CustomFoodExport;
-    iconUrl: URL = new URL(xivApiIconUrl(26270));
+    readonly iconUrl: URL = new URL(xivApiIconUrl(26270));
+    readonly quality: ItemQuality = 'none';
 
     private constructor(exportedData: CustomFoodExport) {
         this._data = exportedData;

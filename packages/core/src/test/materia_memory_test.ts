@@ -34,6 +34,7 @@ describe("Materia Memory", () => {
                 determination: 50,
             }),
             ilvl: 690,
+            quality: 'none',
         };
         const mat2: Materia = {
             iconUrl: undefined,
@@ -48,6 +49,7 @@ describe("Materia Memory", () => {
                 dhit: 10,
             }),
             ilvl: 690,
+            quality: 'none',
         };
         // TODO: when 'locked' becomes part of the export, update this test
         const slots1: MeldableMateriaSlot[] = [

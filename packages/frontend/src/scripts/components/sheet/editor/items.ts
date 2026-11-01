@@ -1800,11 +1800,16 @@ export function itemIconRenderer<RowType>(): CellRenderer<RowType, XivItem> {
         const hr = item.iconUrl.toString();
         // TODO: move server side
         const lr = hr.replaceAll("_hr1", "");
-        const image = document.createElement('img');
-        image.setAttribute('intrinsicsize', '40x40');
-        image.src = lr;
-        image.srcset = `${lr} 1.3x, ${hr} 2x`;
-        image.classList.add('item-icon');
+        const image = el('img', {
+            attributes: {
+                'intrinsicsize': '40x40',
+            },
+            props: {
+                src: lr,
+                srcset : `${lr} 1.3x, ${hr} 2x`,
+            },
+            class: 'item-icon',
+        });
         if ('rarity' in item) {
             const rarity = item.rarity as number;
             switch (rarity) {
@@ -1825,10 +1830,17 @@ export function itemIconRenderer<RowType>(): CellRenderer<RowType, XivItem> {
         else {
             image.classList.add('item-rarity-unknown');
         }
+        if (item.quality === 'hq') {
+            image.classList.add('item-quality-hq');
+        }
+        else if (item.quality === 'nq') {
+            image.classList.add('item-quality-nq');
+        }
         image.addEventListener('load', () => {
             image.classList.add('loaded');
         });
-        return image;
+        const wrapper = el('div', {class: 'item-icon-wrapper'}, [image]);
+        return wrapper;
     };
 }
 

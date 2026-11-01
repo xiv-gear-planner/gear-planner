@@ -161,6 +161,10 @@ export type EquipSlotMap = {
     getBlockedSlots(): EquipSlotKey[];
 }
 
+/**
+ * The quality of an item. 'none' means the item does not support NQ/HQ. 'nq'/'hq' mean what you would expect.
+ */
+export type ItemQuality = 'none' | 'nq' | 'hq';
 
 export interface XivItem {
     /**
@@ -179,6 +183,10 @@ export interface XivItem {
      * Item icon URL
      */
     iconUrl: URL;
+    /**
+     * Item quality
+     */
+    quality: ItemQuality;
 }
 
 export interface XivCombatItem extends XivItem {
