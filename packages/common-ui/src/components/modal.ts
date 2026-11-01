@@ -122,6 +122,10 @@ export abstract class BaseModal extends HTMLElement {
         }
     }
 
+    /**
+     * This path handles when the dialog is closed by normal means.
+     * @private
+     */
     private handleDialogClosed() {
         if (this.closedByControl || this.dialog.open) {
             return;

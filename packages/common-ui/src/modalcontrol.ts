@@ -179,23 +179,14 @@ export class ModalControl {
     }
 
     private handleKeyDown(ev: KeyboardEvent) {
+        // We only care about Esc
+        // If the Esc is captured by something like an open dropdown, then we never actually get this event.
         if (ev.key !== 'Escape' || ev.defaultPrevented) {
             return;
         }
         const modal = this.topmostModal;
         if (!modal) {
             return;
-        }
-        if (ev.target instanceof HTMLElement && ev.target.tagName === 'SELECT') {
-            try {
-                if (ev.target.matches(':open')) {
-                    return;
-                }
-            }
-            catch {
-                // If the select's open state cannot be queried, let the native menu handle Escape.
-                return;
-            }
         }
         ev.preventDefault();
         ev.stopPropagation();

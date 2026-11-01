@@ -122,8 +122,8 @@ export class MeldSolverDialog extends FormModal {
         this.settingsDiv.setEnabled(true);
 
         this.contentArea.replaceChildren(
-            this.descriptionText, document.createElement('br'),
-            this.setNameText, document.createElement('br'),
+            this.descriptionText, el('br'),
+            this.setNameText, el('br'),
             this.settingsDiv
         );
         this.submitButton.hidden = false;
