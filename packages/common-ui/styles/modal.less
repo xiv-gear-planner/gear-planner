@@ -1,0 +1,121 @@
+.modal-dialog {
+  display: contents;
+
+  > dialog {
+    position: fixed;
+    inset: 0;
+    width: auto;
+    height: auto;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    border: 0;
+    padding: 0;
+    overflow: visible;
+    color: inherit;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:not([open]) {
+      display: none;
+    }
+
+    &::backdrop {
+      background-color: var(--modal-backdrop-color);
+      backdrop-filter: saturate(20%) blur(2px);
+    }
+  }
+
+  .modal-inner {
+    position: relative;
+    max-height: 95vh;
+    max-width: 95vw;
+    display: flex;
+    flex-direction: column;
+    margin: auto;
+    background-color: var(--table-bg-color);
+    .standard-round-border();
+    .shadow-big();
+    text-align: center;
+    padding: 10px;
+
+    .modal-header {
+      margin-top: 10px;
+      margin-left: 40px;
+      margin-right: 40px;
+    }
+
+    .modal-content-area {
+      overflow: auto;
+      margin-bottom: 10px;
+      // Padding keeps focus glows from being clipped.
+      padding: 5px;
+    }
+
+    > form.base-modal-form {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      min-height: 0;
+
+      > .modal-content-area {
+        flex: 1;
+        min-height: 0;
+      }
+    }
+
+    .modal-close-button {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      font-size: 30px;
+      .borderless-button();
+    }
+
+    input[type='text'] {
+      width: 300px;
+    }
+
+    div.lower-button-area {
+      > button {
+        display: inline-block;
+        margin: 5px;
+        min-width: var(--modal-bottom-button-width);
+      }
+    }
+  }
+}
+
+body.modern .modal-dialog .modal-inner {
+  background-color: var(--bg-color);
+}
+
+loading-blocker.base-modal-loading-blocker .loading-spinner {
+  position: relative;
+  top: calc(50% - 50px);
+}
+
+rename-dialog {
+  .modal-dialog();
+
+  textarea {
+    margin: 10px;
+    resize: none;
+  }
+
+  .modal-inner > * {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  form {
+    width: min-content;
+  }
+}
+
+shortlink-modal {
+  .modal-dialog();
+}
