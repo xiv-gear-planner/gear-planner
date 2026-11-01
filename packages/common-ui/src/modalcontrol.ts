@@ -13,7 +13,7 @@ export interface Modal {
     modalElement: HTMLElement;
 
     /**
-     * If true, does not allow the modal to be closed by clicking off of the modal.
+     * If true, does not allow the modal to be closed with Escape or by clicking off of the modal.
      */
     explicitCloseOnly?: boolean;
 }
@@ -36,9 +36,11 @@ export class ModalControl {
     private modalStack: Modal[] = [];
 
     private readonly listener: (ev: MouseEvent) => void;
+    private readonly keyListener: (ev: KeyboardEvent) => void;
 
     constructor() {
         this.listener = (ev: MouseEvent) => this.handleMouseClick(ev);
+        this.keyListener = (ev: KeyboardEvent) => this.handleKeyDown(ev);
     }
 
     /**
@@ -76,6 +78,20 @@ export class ModalControl {
         const index = this.modalStack.lastIndexOf(modal);
         if (index >= 0) {
             this.modalStack[index].close();
+            const currentIndex = this.modalStack.lastIndexOf(modal);
+            if (currentIndex >= 0) {
+                this.modalStack.splice(currentIndex, 1);
+            }
+        }
+        this.resetListenerState();
+    }
+
+    /**
+     * Remove a modal that was closed outside of ModalControl, without calling its close callback.
+     */
+    removeClosedModal(modal: Modal) {
+        const index = this.modalStack.lastIndexOf(modal);
+        if (index >= 0) {
             this.modalStack.splice(index, 1);
         }
         this.resetListenerState();
@@ -87,7 +103,7 @@ export class ModalControl {
      * @returns The topmost modal, or undefined if there are no modals.
      *
      */
-    get topmostModal(): Modal | undefined {
+    private get topmostModal(): Modal | undefined {
         return this.modalStack.length > 0 ? this.modalStack[this.modalStack.length - 1] : undefined;
     }
 
@@ -107,7 +123,7 @@ export class ModalControl {
      * @returns The modal that was popped off the stack, or undefined if there were no modals.
      *
      */
-    popModal(): Modal | undefined {
+    private popModal(): Modal | undefined {
         const modal = this.modalStack.pop();
         if (modal !== undefined) {
             modal.close();
@@ -119,8 +135,10 @@ export class ModalControl {
     private resetListenerState() {
         // Reset to known good state
         document.removeEventListener('mousedown', this.listener);
+        document.removeEventListener('keydown', this.keyListener);
         if (this.topmostModal) {
             document.addEventListener('mousedown', this.listener);
+            document.addEventListener('keydown', this.keyListener);
         }
     }
 
@@ -134,6 +152,14 @@ export class ModalControl {
                 return;
             }
             const modalElement = modal.modalElement;
+            if (modalElement.tagName === 'DIALOG') {
+                if (ev.target === modalElement) {
+                    // A click on a native dialog itself is a click on its backdrop.
+                    this.popModal();
+                    ev.stopPropagation();
+                }
+                return;
+            }
             if (!(ev.target instanceof HTMLElement)) {
                 return;
             }
@@ -149,6 +175,32 @@ export class ModalControl {
             }
             this.popModal();
             ev.stopPropagation();
+        }
+    }
+
+    private handleKeyDown(ev: KeyboardEvent) {
+        if (ev.key !== 'Escape' || ev.defaultPrevented) {
+            return;
+        }
+        const modal = this.topmostModal;
+        if (!modal) {
+            return;
+        }
+        if (ev.target instanceof HTMLElement && ev.target.tagName === 'SELECT') {
+            try {
+                if (ev.target.matches(':open')) {
+                    return;
+                }
+            }
+            catch {
+                // If the select's open state cannot be queried, let the native menu handle Escape.
+                return;
+            }
+        }
+        ev.preventDefault();
+        ev.stopPropagation();
+        if (!modal.explicitCloseOnly && !ev.repeat) {
+            this.popModal();
         }
     }
 }

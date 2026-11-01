@@ -12,7 +12,7 @@ import {CharacterGearSet} from "@xivgear/core/gear";
 import {GearPlanSheetGui} from "../sheet_gui";
 import {SimResult, Simulation} from "@xivgear/core/sims/sim_types";
 import {MAX_GCD, STAT_ABBREVIATIONS} from "@xivgear/xivmath/xivconstants";
-import {BaseModal} from "@xivgear/common-ui/components/modal";
+import {BaseModal, ChoiceDialog, FormModal} from "@xivgear/common-ui/components/modal";
 import {EquipSlots, FoodItem, Materia} from "@xivgear/xivmath/geartypes";
 import {MeldSolver} from "../../solver/meldsolver";
 import {GearsetGenerationSettings} from "@xivgear/core/solving/gearset_generation";
@@ -20,16 +20,14 @@ import {SolverSimulationSettings} from "@xivgear/core/solving/sim_runner";
 import {recordSheetEvent} from "../../../analytics/analytics";
 import {PersistentSettings, SETTINGS} from "@xivgear/common-ui/settings/persistent_settings";
 import {GearsetGenerationStatusUpdate, MeldSolvingStatusUpdate} from "@xivgear/core/solving/types";
+import {elt} from "@xivgear/common-ui/components/templates";
 
-export class MeldSolverDialog extends BaseModal {
+export class MeldSolverDialog extends FormModal {
     private _sheet: GearPlanSheetGui;
     private _set: CharacterGearSet;
 
-    private form: HTMLFormElement;
     private descriptionText: HTMLDivElement;
     private setNameText: HTMLDivElement;
-    private solveMeldsButton: HTMLButtonElement;
-    private cancelButton: HTMLButtonElement;
     readonly settingsDiv: MeldSolverSettingsMenu;
     private progressDisplay: MeldSolverProgressDisplay;
     private inProgress: boolean = false;
@@ -37,80 +35,78 @@ export class MeldSolverDialog extends BaseModal {
     private solver: MeldSolver;
 
     constructor(sheet: GearPlanSheetGui, set: CharacterGearSet) {
-        super();
+        super('Solve Melds');
         this._sheet = sheet;
         this._set = set;
         this.id = 'meld-solver-dialog';
         this.headerText = 'Meld and Food Solver';
-        this.form = document.createElement("form");
-        this.form.method = 'dialog';
 
         this.classList.add('meld-solver-area');
-        this.descriptionText = document.createElement('div');
-        this.descriptionText.textContent = "Solve for the highest-dps set of melds/food for this gearset.\r\n"
-            + "Computation will be much slower without a target GCD.";
+        this.descriptionText = elt('div')`Solve for the highest-dps set of melds/food for this gearset.\r\n\
+        Computation will be much slower without a target GCD.`;
 
-        this.setNameText = el('div', {class: 'meld-solver-set'}, [
-            "Solving for ", el('span', {class: 'meld-solver-set-name'}, [set.name]),
-        ]);
-        // this.setNameText.textContent = `"${set.name}"`;
-        // this.setNameText.classList.add('meld-solver-set');
+        this.setNameText = elt('div', {class: 'meld-solver-set'})`Solving for ${elt('span', {class: 'meld-solver-set-name'})`${set.name}`}`;
 
         const gearsetGenSettings = sheet.getDefaultSolverSettings(set);
         this.settingsDiv = new MeldSolverSettingsMenu(sheet, set, gearsetGenSettings);
 
 
-        this.solveMeldsButton = makeActionButton("Solve Melds", async () => {
-            this.solver = new MeldSolver(sheet);
-            const meldSolveStart: number = Date.now();
-            this.buttonArea.removeChild(this.solveMeldsButton);
-            this.showProgress();
-            this.progressDisplay.reset();
-
-            const solverPromise = this.solver.solveMelds(
-                this.settingsDiv.gearsetGenSettings,
-                this.settingsDiv.simSettings,
-                update => {
-                    this.progressDisplay.displayUpdate(update);
-
-                }, async (count: number) => {
-                    if (!SETTINGS.generatorWarnIfAbove) {
-                        return true;
-                    }
-                    else if (count < SETTINGS.generatorWarnThreshold) {
-                        return true;
-                    }
-                    return await ConfirmLargeSolveDialog.askConfirmation(count);
-                });
-            solverPromise.then((result) => {
-                if (result === 'cancelled') {
-                    this.cancel();
-                }
-                else {
-                    const [set, dps] = result;
-                    this.solveResultReceived(set, dps);
-                }
-            });
-            const timeTaken = Date.now() - (meldSolveStart);
-            console.log("Time taken: " + timeTaken);
-            recordSheetEvent("SolveMelds", sheet, {
-                "time": timeTaken,
-            });
-        });
-
-        this.cancelButton = makeActionButton("Cancel", async () => {
-            await this.cancel();
-        });
-
         this.showSettings();
-        this.contentArea.append(this.form);
     }
 
-    async cancel() {
-        await this.solver.cancel();
-        this.buttonArea.removeChild(this.cancelButton);
-        this.inProgress = false;
+    protected submit(): void {
+        if (this.inProgress) {
+            return;
+        }
+        this.solver = new MeldSolver(this._sheet);
+        const meldSolveStart: number = Date.now();
+        this.showProgress();
+        this.progressDisplay.reset();
 
+        const solverPromise = this.solver.solveMelds(
+            this.settingsDiv.gearsetGenSettings,
+            this.settingsDiv.simSettings,
+            update => {
+                this.progressDisplay.displayUpdate(update);
+            }, async (count: number) => {
+                if (!SETTINGS.generatorWarnIfAbove) {
+                    return true;
+                }
+                else if (count < SETTINGS.generatorWarnThreshold) {
+                    return true;
+                }
+                return await ConfirmLargeSolveDialog.askConfirmation(count).catch(() => false);
+            });
+        solverPromise.then((result) => {
+            if (result === 'cancelled') {
+                this.finishCancellation();
+            }
+            else {
+                const [set, dps] = result;
+                this.solveResultReceived(set, dps);
+            }
+        });
+        const timeTaken = Date.now() - meldSolveStart;
+        console.log("Time taken: " + timeTaken);
+        recordSheetEvent("SolveMelds", this._sheet, {
+            "time": timeTaken,
+        });
+    }
+
+    override async cancel() {
+        if (!this.inProgress) {
+            this.close();
+            return;
+        }
+        await this.solver.cancel();
+        this.finishCancellation();
+    }
+
+    private finishCancellation() {
+        if (!this.inProgress) {
+            return;
+        }
+        this.inProgress = false;
         this.showSettings();
     }
 
@@ -125,12 +121,13 @@ export class MeldSolverDialog extends BaseModal {
         this.closeButton.disabled = false;
         this.settingsDiv.setEnabled(true);
 
-        this.form.replaceChildren(
+        this.contentArea.replaceChildren(
             this.descriptionText, document.createElement('br'),
             this.setNameText, document.createElement('br'),
             this.settingsDiv
         );
-        this.addButton(this.solveMeldsButton);
+        this.submitButton.hidden = false;
+        this.submitButton.disabled = false;
     }
 
     showProgress() {
@@ -139,10 +136,11 @@ export class MeldSolverDialog extends BaseModal {
 
         this.closeButton.disabled = true;
         this.settingsDiv.setEnabled(false);
+        this.submitButton.hidden = true;
+        this.submitButton.disabled = true;
 
         this.progressDisplay = new MeldSolverProgressDisplay();
-        this.form.replaceChildren(this.progressDisplay);
-        this.addButton(this.cancelButton);
+        this.contentArea.replaceChildren(this.progressDisplay);
     }
 
     // Block accidental closing once in progress
@@ -155,23 +153,18 @@ export class MeldSolverDialog extends BaseModal {
     }
 }
 
-class ConfirmLargeSolveDialog extends BaseModal {
-    constructor(count: number, onAnswer: (answer: boolean) => void) {
-        super();
+class ConfirmLargeSolveDialog extends ChoiceDialog<boolean> {
+    constructor(count: number) {
+        super([
+            {label: 'Yes, Continue', value: true},
+            {label: 'No, Cancel', value: false},
+        ]);
         this.headerText = 'Confirm Large Solve';
         const p = el('p', {}, [
             'A total of ',
             el('span', {class: 'large-solve-confirmation-count'}, [count.toString()]),
             ' unique combinations have been identified. Are you sure you wish to proceed?',
         ]);
-        this.addActionButton('Yes, Continue', () => {
-            onAnswer(true);
-            this.close();
-        });
-        this.addActionButton('No, Cancel', () => {
-            onAnswer(false);
-            this.close();
-        });
         this.contentArea.replaceChildren(p);
     }
 
@@ -180,10 +173,7 @@ class ConfirmLargeSolveDialog extends BaseModal {
     }
 
     static askConfirmation(count: number): Promise<boolean> {
-        return new Promise(resolve => {
-            const dialog = new ConfirmLargeSolveDialog(count, resolve);
-            dialog.attachAndShowTop();
-        });
+        return ChoiceDialog.ask(() => new ConfirmLargeSolveDialog(count));
     }
 }
 
