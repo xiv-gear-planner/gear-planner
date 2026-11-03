@@ -88,7 +88,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                         }
                         if (!ability.noIcon) {
                             if (ability.itemId) {
-                                out.appendChild(new ItemIcon(ability.itemId));
+                                out.appendChild(ItemIcon.forItemId(ability.itemId));
                                 out.classList.add('ability-item');
                             }
                             else if (ability.id) {

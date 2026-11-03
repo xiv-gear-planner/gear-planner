@@ -782,6 +782,7 @@ export class GearPlanSheet {
             items: items,
             food: set.food ? set.food.id : undefined,
             medicine: set.medicine ? set.medicine.id : undefined,
+            specialistBonusEnabled: set.specialistBonusEnabled || undefined,
             description: set.description,
             isSeparator: set.isSeparator,
         };
@@ -1073,6 +1074,9 @@ export class GearPlanSheet {
             if (importedSet.medicine) {
                 set.medicine = this.medicineById(importedSet.medicine);
             }
+            if (importedSet.specialistBonusEnabled) {
+                set.specialistBonusEnabled = true;
+            }
             if (importedSet.relicStatMemory) {
                 set.relicStatMemory.import(importedSet.relicStatMemory);
             }
@@ -1163,8 +1167,10 @@ export class GearPlanSheet {
      * * If it is gear haste, it is only relevant if we have an active special stat which cares about haste.
      *
      * @param stat
+     * @param job overrides the job, useful for multi-job sheets
      */
     isStatRelevant(stat: RawStatKey | undefined, job: JobName = this.classJobName): boolean {
+        // TODO: more things should
         if (stat === undefined) {
             return false;
         }

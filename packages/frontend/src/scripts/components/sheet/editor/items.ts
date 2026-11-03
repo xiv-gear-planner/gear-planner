@@ -57,6 +57,7 @@ import {recordSheetEvent} from "../../../analytics/analytics";
 import {hideIcon, makeTrashIcon, showIcon} from "@xivgear/common-ui/components/icons";
 import {sortItemsInPlace} from "../../items/item_utils";
 import {bold, elt, p} from "@xivgear/common-ui/components/templates";
+import {ItemIcon} from "../../items/item_icon";
 
 function removeStatCellStyles(cell: CustomCell<GearSlotItem, unknown>) {
     cell.classList.remove("secondary");
@@ -167,6 +168,114 @@ function makeSpan(text: string, classes: string[] = []) {
     span.classList.add(...classes);
     return span;
 }
+
+const SPECIALIST_BONUS_ROW = 'Specialist';
+
+/**
+ * Gear-table-style control for the DoH specialist bonus.
+ */
+export class SpecialistBonusTable extends CustomTable<string, TableSelectionModel<string, never, never, boolean>> {
+    constructor(private readonly gearSet: CharacterGearSet, private readonly readOnly: boolean = false) {
+        super();
+        this.classList.add('gear-items-table', 'specialist-bonus-table');
+        if (readOnly) {
+            this.classList.add('gear-items-view-table');
+        }
+        else {
+            this.classList.add('gear-items-edit-table', 'hoverable');
+        }
+        this.rowTitleSetter = () => '+20 Craftsmanship, +20 Control, +15 CP';
+
+        this.selectionModel = {
+            getSelection: () => !this.readOnly && this.gearSet.specialistBonusEnabled,
+            clickCell() {
+            },
+            clickColumnHeader() {
+            },
+            clickRow: row => {
+                if (!this.readOnly && row.dataItem === SPECIALIST_BONUS_ROW) {
+                    this.gearSet.specialistBonusEnabled = !this.gearSet.specialistBonusEnabled;
+                    this.refreshRowData(row);
+                }
+            },
+            isCellSelectedDirectly() {
+                return false;
+            },
+            isRowSelected: row => !this.readOnly && row.dataItem === SPECIALIST_BONUS_ROW && this.gearSet.specialistBonusEnabled,
+            isColumnHeaderSelected() {
+                return false;
+            },
+            clearSelection: () => {
+                if (!this.readOnly) {
+                    this.gearSet.specialistBonusEnabled = false;
+                    this.refreshRowData(SPECIALIST_BONUS_ROW);
+                }
+            },
+        };
+
+        this.columns = [
+            col({
+                shortName: 'specialist-enabled',
+                displayName: '',
+                getter: () => this.gearSet.specialistBonusEnabled,
+                renderer: () => {
+                    const checkbox = new FieldBoundCheckBox(this.gearSet, 'specialistBonusEnabled');
+                    checkbox.disabled = this.readOnly;
+                    checkbox.setAttribute('aria-label', 'Enable specialist bonus');
+                    checkbox.addListener(() => this.refreshSelection());
+                    return checkbox;
+                },
+                fixedWidth: 32,
+                condition: () => !this.readOnly,
+            }),
+            col({
+                shortName: 'icon',
+                displayName: '',
+                // Use fixed item icon, they're all the same
+                getter: () => 26048,
+                renderer: () => ItemIcon.forIconId(26048),
+                fixedWidth: 23,
+                fixedData: true,
+            }),
+            {
+                shortName: 'itemname',
+                displayName: 'Name',
+                getter: item => item,
+            },
+            {
+                shortName: 'cp',
+                displayName: STAT_ABBREVIATIONS.cp,
+                getter: () => 15,
+                fixedWidth: 36,
+            },
+            {
+                shortName: 'craftsmanship',
+                displayName: STAT_ABBREVIATIONS.craftsmanship,
+                getter: () => 20,
+                fixedWidth: 36,
+            },
+            {
+                shortName: 'control',
+                displayName: STAT_ABBREVIATIONS.control,
+                getter: () => 20,
+                fixedWidth: 36,
+            },
+        ];
+
+        this.data = [
+            new SpecialRow<CustomTable<string>>(_tbl => quickElement('div', ['special-row-holder'], [quickElement('span', [], ['Specialist'])])),
+            new HeaderRow(),
+            SPECIALIST_BONUS_ROW,
+        ];
+    }
+
+    refresh(): void {
+        this.refreshRowData(SPECIALIST_BONUS_ROW);
+        this.refreshSelection();
+    }
+}
+
+customElements.define('specialist-bonus-table', SpecialistBonusTable, {extends: 'table'});
 
 class FoodStatBonusDisplay extends HTMLElement {
     constructor(value: FoodStatBonusWithEffective) {

@@ -8,30 +8,58 @@ export interface XivApiItemData {
     }
 }
 
-const itemIconMap = new Map<number, Promise<XivApiItemData>>();
+const itemIconMap = new Map<number, Promise<number>>();
 
 // TODO: can this be consolidated with other job loading stuff in DataManager?
-async function getDataFor(itemId: number): Promise<XivApiItemData> {
-    if (itemIconMap.has(itemId)) {
-        return itemIconMap.get(itemId);
+function getDataFor(itemId: number): Promise<number> {
+    const cached = itemIconMap.get(itemId);
+    if (cached) {
+        return cached;
     }
     else {
         const out = xivApiSingleCols('Item', itemId, ['ID', 'Icon'] as const) as Promise<XivApiItemData>;
-        itemIconMap.set(itemId, out);
-        return out;
+        const iconId = out.then(data => requireNumber(data.Icon['id']));
+        itemIconMap.set(itemId, iconId);
+        return iconId;
     }
 }
 
-// This ItemIcon class is NOT used for general item icons - only potion icons in the abilities used table!
+type IdLookup = (id: number) => Promise<number>;
+
+/**
+ * ItemIcon is an extension of HTMLImageElement specifically for xivapi icon URLs. It handles switching between the
+ * normal resolution and high resolution versions of the icon using the srcset attribute. Also, it displays the
+ * placeholder background for a normal-rarity icon while the data loads.
+ */
 export class ItemIcon extends HTMLImageElement {
-    constructor(itemId: number) {
+    /**
+     * Construct an ItemIcon from an icon ID.
+     *
+     * @param iconId
+     */
+    static forIconId(iconId: number): ItemIcon {
+        return new ItemIcon(iconId, async id => id);
+    }
+
+    /**
+     * Construct an ItemIcon from an item ID. This requires two roundtrips: one to lookup the icon ID for the item,
+     * and then the actual image load. However, IDs are cached, so the next ItemIcon for the same item ID will be
+     * much faster.
+     *
+     * @param itemId
+     */
+    static forItemId(itemId: number): ItemIcon {
+        return new ItemIcon(itemId, getDataFor);
+    }
+
+    constructor(id: number, idLookup: IdLookup) {
         super();
+        // Simulation result tables display item uses like abilities, so they use the ability icon styling.
         this.classList.add('ffxiv-ability-icon');
         this.classList.add('item-rarity-normal');
         this.setAttribute('intrinsicsize', '40x40');
         // We do not want alt text on these because it will appear as the image is loaded
-        getDataFor(itemId).then(data => {
-            const iconId = requireNumber(data.Icon['id']);
+        idLookup(id).then(iconId => {
             const lr = xivApiIconUrl(iconId, false);
             const hr = xivApiIconUrl(iconId, true);
             this.src = lr;

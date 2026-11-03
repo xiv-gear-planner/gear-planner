@@ -247,6 +247,7 @@ type GearSetCheckpoint = {
     equipment: EquipmentSet;
     food: FoodItem | undefined;
     medicine: MedicineItem | undefined;
+    specialistBonusEnabled: boolean;
     jobOverride: JobName | null;
     name: string;
     description: string | undefined;
@@ -273,6 +274,7 @@ export class CharacterGearSet {
     private _raceOverride: RaceName | null = null;
     private _food: FoodItem | undefined;
     private _medicine: MedicineItem | undefined;
+    private _specialistBonusEnabled: boolean = false;
     private readonly _sheet: GearPlanSheet;
     private readonly refresher = new Inactivitytimer(0, () => {
         this._notifyListeners();
@@ -377,6 +379,18 @@ export class CharacterGearSet {
 
     set medicine(medicine: MedicineItem | undefined) {
         this._medicine = medicine;
+        this.forceRecalc();
+    }
+
+    get specialistBonusEnabled(): boolean {
+        return this._specialistBonusEnabled;
+    }
+
+    set specialistBonusEnabled(enabled: boolean) {
+        if (this._specialistBonusEnabled === enabled) {
+            return;
+        }
+        this._specialistBonusEnabled = enabled;
         this.forceRecalc();
     }
 
@@ -654,6 +668,14 @@ export class CharacterGearSet {
                 addStats(combinedStats, slotEffectiveStatsFull.stats);
                 issues.push(...slotEffectiveStatsFull.issues);
             }
+        }
+
+        if (classJobStats.type === 'DoH' && this._specialistBonusEnabled) {
+            addStats(combinedStats, {
+                craftsmanship: 20,
+                control: 20,
+                cp: 15,
+            });
         }
 
         // Intelligence stat from gear only (no modifiers) for BLU
@@ -1119,6 +1141,7 @@ export class CharacterGearSet {
             equipment: cloneEquipmentSet(this.equipment),
             food: this._food,
             medicine: this._medicine,
+            specialistBonusEnabled: this._specialistBonusEnabled,
             jobOverride: this._jobOverride,
             name: this._name,
             description: this._description,
@@ -1184,6 +1207,7 @@ export class CharacterGearSet {
         Object.assign(this.equipment, newEquipment);
         this._food = checkpoint.food;
         this._medicine = checkpoint.medicine;
+        this._specialistBonusEnabled = checkpoint.specialistBonusEnabled;
         this._name = checkpoint.name;
         this._description = checkpoint.description;
         if (checkpoint.jobOverride !== this._jobOverride) {
