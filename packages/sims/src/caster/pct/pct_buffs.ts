@@ -123,28 +123,43 @@ const HYPERPHANTASIA_ACTIONS: number[] = [
  * which tracks the five stacks. Since Inspiration ends as soon as the last Hyperphantasia stack is consumed,
  * it is simpler to collapse both into a single stacking buff.
  *
- * Consuming the final stack grants Rainbow Bright.
+ * @param grantsRainbowBright Whether consuming the final stack grants Rainbow Bright (Enhanced Pictomancy III,
+ * level 92).
  */
-export const HyperphantasiaBuff: Buff = {
-    name: "Hyperphantasia",
-    duration: 30,
-    effects: {
-        haste: 25,
-    },
-    selfOnly: true,
-    descriptionOverride: "Aetherhue spells have reduced cast and recast times. Consuming all stacks grants Rainbow Bright.",
-    appliesTo: ability => HYPERPHANTASIA_ACTIONS.includes(ability.id),
-    beforeSnapshot<X>(controller: BuffController, ability: X): X | void {
-        const isLastStack = (this as Buff).stacks === 1;
-        controller.subtractStacksSelf(1);
-        if (isLastStack) {
-            const existing = (ability as {activatesBuffs?: readonly Buff[]}).activatesBuffs ?? [];
-            return {
-                ...ability,
-                activatesBuffs: [...existing, RainbowBrightBuff],
-            };
-        }
-    },
-    stacks: 5,
-    statusId: Consts.HyperphantasiaStatusID,
-};
+function makeHyperphantasiaBuff(grantsRainbowBright: boolean): Buff {
+    return {
+        name: "Hyperphantasia",
+        duration: 30,
+        effects: {
+            haste: 25,
+        },
+        selfOnly: true,
+        descriptionOverride: grantsRainbowBright
+            ? "Aetherhue spells have reduced cast and recast times. Consuming all stacks grants Rainbow Bright."
+            : "Aetherhue spells have reduced cast and recast times.",
+        appliesTo: ability => HYPERPHANTASIA_ACTIONS.includes(ability.id),
+        beforeSnapshot<X>(controller: BuffController, ability: X): X | void {
+            const isLastStack = (this as Buff).stacks === 1;
+            controller.subtractStacksSelf(1);
+            if (isLastStack && grantsRainbowBright) {
+                const existing = (ability as {activatesBuffs?: readonly Buff[]}).activatesBuffs ?? [];
+                return {
+                    ...ability,
+                    activatesBuffs: [...existing, RainbowBrightBuff],
+                };
+            }
+        },
+        stacks: 5,
+        statusId: Consts.HyperphantasiaStatusID,
+    };
+}
+
+/**
+ * Hyperphantasia at level 92 and above, where consuming all stacks grants Rainbow Bright.
+ */
+export const HyperphantasiaBuff: Buff = makeHyperphantasiaBuff(true);
+
+/**
+ * Hyperphantasia from level 82 to 91, before Rainbow Bright is available.
+ */
+export const HyperphantasiaBuffNoRainbow: Buff = makeHyperphantasiaBuff(false);

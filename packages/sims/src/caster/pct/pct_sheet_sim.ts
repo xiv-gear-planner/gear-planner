@@ -15,7 +15,7 @@ import {Swiftcast} from "@xivgear/sims/common/swiftcast";
 import {PctGaugeManager} from "./pct_gauge";
 import * as Actions from "./pct_actions";
 import * as Buffs from "./pct_buffs";
-import {PctGaugeState} from "./pct_types";
+import {PctCreatureMotif, PctGaugeState} from "./pct_types";
 
 export interface PctSimResult extends CycleSimResult<PctGaugeState> {
 }
@@ -73,6 +73,13 @@ const BURST_PREP_WINDOW = 20;
  * free one from Starry Muse would overwrite any remaining stacks.
  */
 const PRE_BURST_WINDOW = 12;
+
+/**
+ * How far ahead of Starry Muse coming off cooldown we hold a portrait (Mog of the Ages / Retribution of the
+ * Madeen) so that it lands inside the buff window. Portraits are produced every other Living Muse, i.e. roughly
+ * every 80 seconds, so holding for up to this long gets one into nearly every two-minute window.
+ */
+const PORTRAIT_HOLD_WINDOW = 60;
 
 class PctCycleProcessor extends CycleProcessor<PctGaugeManager> {
 
@@ -144,15 +151,37 @@ class PctCycleProcessor extends CycleProcessor<PctGaugeManager> {
         return this.remainingTime < time;
     }
 
+    /**
+     * The ability with its level modifiers applied. Cooldown queries must use this, since traits change the
+     * number of charges.
+     */
+    leveled<X extends Ability>(ability: X): X {
+        return this.applyLevelModifiers(ability) as X;
+    }
+
     charges(ability: OgcdAbility): number {
-        return this.cdTracker.statusOf(ability).currentCharges;
+        return this.cdTracker.statusOf(this.leveled(ability)).currentCharges;
     }
 
     /**
      * Whether an oGCD will have a charge available within the given number of seconds.
      */
     readyWithin(ability: OgcdAbility, time: number): boolean {
-        return this.cdTracker.statusOf(ability).readyAt.relative <= time;
+        return this.cdTracker.statusOf(this.leveled(ability)).readyAt.relative <= time;
+    }
+
+    /**
+     * Whether an oGCD is ready now.
+     */
+    readyNow(ability: OgcdAbility): boolean {
+        return this.isReady(this.leveled(ability));
+    }
+
+    /**
+     * Whether an oGCD can be weaved before the next GCD without clipping it.
+     */
+    canWeave(ability: OgcdAbility): boolean {
+        return this.canUseWithoutClipping(this.leveled(ability));
     }
 
     /**
@@ -211,13 +240,23 @@ class PctCycleProcessor extends CycleProcessor<PctGaugeManager> {
     }
 
     /**
-     * Whether we want to use the available portrait now. Hold it for the burst window when the window is close.
+     * Whether we want to use the available portrait now. Portraits are held for the burst window if it is
+     * close enough, so that nearly every window gets a Mog or Madeen.
      */
     wantPortrait(): boolean {
         if (this.gaugeManager.portrait === null) {
             return false;
         }
-        return this.inBurst() || !this.burstSoon();
+        return this.inBurst() || this.timeUntilStarry() > PORTRAIT_HOLD_WINDOW;
+    }
+
+    /**
+     * Whether using the given creature muse would overwrite a portrait that we are holding for the burst window.
+     */
+    museWouldOverwritePortrait(motif: PctCreatureMotif): boolean {
+        return (motif === 'wing' || motif === 'maw')
+            && this.gaugeManager.portrait !== null
+            && !this.wantPortrait();
     }
 }
 
@@ -256,8 +295,9 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
             return 'none';
         }
         if (ability.type === 'ogcd') {
-            const readyAt = cp.cdTracker.statusOf(ability).readyAt.absolute;
-            if (readyAt > cp.currentTime && cp.canUseWithoutClipping(ability)) {
+            const leveled = cp.leveled(ability);
+            const readyAt = cp.cdTracker.statusOf(leveled).readyAt.absolute;
+            if (readyAt > cp.currentTime && cp.canUseWithoutClipping(leveled)) {
                 cp.advanceTo(readyAt);
             }
         }
@@ -347,7 +387,7 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
     private chooseOgcd(cp: PctCycleProcessor): [OgcdAbility, boolean] | null {
         const gauge = cp.gaugeManager;
         // Starry Muse is the top priority, and is worth a small clip.
-        if (gauge.starryCanvas && (cp.isReady(Actions.StarryMuseAction) || cp.canUseWithoutClipping(Actions.StarryMuseAction))) {
+        if (gauge.starryCanvas && (cp.readyNow(Actions.StarryMuseAction) || cp.canWeave(Actions.StarryMuseAction))) {
             return [Actions.StarryMuseAction, true];
         }
         // The free Subtractive Palette from Starry Muse. Wait until any existing black paint has been used, otherwise
@@ -357,20 +397,23 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
         }
         // Potion in burst, or right before it.
         if (cp.medicinePotion
-            && cp.canUseWithoutClipping(cp.medicinePotion)
+            && cp.canWeave(cp.medicinePotion)
             && (cp.inBurst() || cp.timeUntilStarry() <= 4)) {
             return [cp.medicinePotion, false];
         }
         // Striking Muse
-        if (gauge.hammerCanvas && cp.wantStrikingMuse() && cp.canUseWithoutClipping(Actions.StrikingMuse)) {
+        if (gauge.hammerCanvas && cp.wantStrikingMuse() && cp.canWeave(Actions.StrikingMuse)) {
             return [Actions.StrikingMuse, false];
         }
         // Mog / Madeen
-        if (gauge.portrait !== null && cp.wantPortrait() && cp.canUseWithoutClipping(Actions.Mog)) {
+        if (gauge.portrait !== null && cp.wantPortrait() && cp.canWeave(Actions.Mog)) {
             return [gauge.portrait === 'mog' ? Actions.Mog : Actions.Madeen, false];
         }
         // Living Muse
-        if (gauge.creatureCanvas !== null && cp.wantCreatureMuse() && cp.canUseWithoutClipping(Actions.PomMuse)) {
+        if (gauge.creatureCanvas !== null
+            && cp.wantCreatureMuse()
+            && !cp.museWouldOverwritePortrait(gauge.creatureCanvas)
+            && cp.canWeave(Actions.PomMuse)) {
             return [Actions.CreatureMuses[gauge.creatureCanvas], false];
         }
         // Subtractive Palette from gauge. Don't overwrite existing stacks, don't waste the Monochrome Tones if black
@@ -396,7 +439,7 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
                 return;
             }
             const [ability, allowClip] = choice;
-            if (!allowClip && !cp.canUseWithoutClipping(ability)) {
+            if (!allowClip && !cp.canWeave(ability)) {
                 return;
             }
             if (this.use(cp, ability) === 'none') {

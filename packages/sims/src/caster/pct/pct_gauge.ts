@@ -110,18 +110,26 @@ export class PctGaugeManager implements GaugeManager<PctGaugeState> {
     }
 
     /**
-     * Spend 50 palette and activate Monochrome Tones (Subtractive Palette).
+     * Spend 50 palette on Subtractive Palette.
+     *
+     * @param grantMonochrome Whether Monochrome Tones is granted (Enhanced Palette, level 90).
      */
-    useSubtractivePalette(): void {
+    useSubtractivePalette(grantMonochrome: boolean): void {
         this.palette -= SUBTRACTIVE_PALETTE_COST;
-        this.monochrome = true;
+        if (grantMonochrome) {
+            this.monochrome = true;
+        }
     }
 
     /**
-     * Activate Monochrome Tones without spending palette (Subtractive Palette under Subtractive Spectrum).
+     * Subtractive Palette without the palette cost (under Subtractive Spectrum).
+     *
+     * @param grantMonochrome Whether Monochrome Tones is granted (Enhanced Palette, level 90).
      */
-    useFreeSubtractivePalette(): void {
-        this.monochrome = true;
+    useFreeSubtractivePalette(grantMonochrome: boolean): void {
+        if (grantMonochrome) {
+            this.monochrome = true;
+        }
     }
 
     /**
