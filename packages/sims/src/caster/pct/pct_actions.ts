@@ -5,7 +5,9 @@ import * as Consts from "./pct_consts";
 import {PctCreatureMotif, PctGcdAbility, PctOgcdAbility} from "./pct_types";
 
 /**
- * Pictomancer actions. Potencies are the level 100 values.
+ * Pictomancer actions. Potencies are the level 100 values as of Patch 7.55 (verified against live game data):
+ * the 7.2 rebalance lowered the muses, portraits and Star Prism, and 7.3 adjusted the filler spells, Holy in
+ * White, Comet in Black and the hammer combo to their current values.
  */
 
 export const Red: PctGcdAbility = {
@@ -13,7 +15,7 @@ export const Red: PctGcdAbility = {
     name: "Fire in Red",
     id: Consts.RedID,
     attackType: "Spell",
-    potency: 440,
+    potency: 490,
     gcd: 2.5,
     cast: 1.5,
     appDelay: 0.84,
@@ -25,7 +27,7 @@ export const Green: PctGcdAbility = {
     name: "Aero in Green",
     id: Consts.GreenID,
     attackType: "Spell",
-    potency: 480,
+    potency: 530,
     gcd: 2.5,
     cast: 1.5,
     appDelay: 0.89,
@@ -37,7 +39,7 @@ export const Blue: PctGcdAbility = {
     name: "Water in Blue",
     id: Consts.BlueID,
     attackType: "Spell",
-    potency: 520,
+    potency: 570,
     gcd: 2.5,
     cast: 1.5,
     appDelay: 0.98,
@@ -52,7 +54,7 @@ export const Cyan: PctGcdAbility = {
     name: "Blizzard in Cyan",
     id: Consts.CyanID,
     attackType: "Spell",
-    potency: 800,
+    potency: 860,
     gcd: 3.3,
     cast: 2.3,
     appDelay: 0.75,
@@ -64,7 +66,7 @@ export const Yellow: PctGcdAbility = {
     name: "Stone in Yellow",
     id: Consts.YellowID,
     attackType: "Spell",
-    potency: 840,
+    potency: 900,
     gcd: 3.3,
     cast: 2.3,
     appDelay: 0.80,
@@ -76,7 +78,7 @@ export const Magenta: PctGcdAbility = {
     name: "Thunder in Magenta",
     id: Consts.MagentaID,
     attackType: "Spell",
-    potency: 880,
+    potency: 940,
     gcd: 3.3,
     cast: 2.3,
     appDelay: 0.85,
@@ -90,7 +92,7 @@ export const Holy: PctGcdAbility = {
     name: "Holy in White",
     id: Consts.HolyID,
     attackType: "Spell",
-    potency: 520,
+    potency: 570,
     gcd: 2.5,
     cast: 0,
     appDelay: 1.34,
@@ -102,7 +104,7 @@ export const Comet: PctGcdAbility = {
     name: "Comet in Black",
     id: Consts.CometID,
     attackType: "Spell",
-    potency: 880,
+    potency: 940,
     gcd: 3.3,
     cast: 0,
     appDelay: 1.87,
@@ -128,7 +130,7 @@ export const StarPrism: PctGcdAbility = {
     name: "Star Prism",
     id: Consts.StarPrismID,
     attackType: "Spell",
-    potency: 1400,
+    potency: 1100,
     gcd: 2.5,
     cast: 0,
     appDelay: 1.25,
@@ -213,7 +215,7 @@ export const Mog: PctOgcdAbility & OriginCdAbility = {
     name: "Mog of the Ages",
     id: Consts.MogID,
     attackType: "Ability",
-    potency: 1300,
+    potency: 1000,
     appDelay: 1.15,
     cooldown: {
         time: 30,
@@ -226,7 +228,7 @@ export const Madeen: PctOgcdAbility & SharedCdAbility = {
     name: "Retribution of the Madeen",
     id: Consts.MadeenID,
     attackType: "Ability",
-    potency: 1400,
+    potency: 1100,
     appDelay: 1.30,
     cooldown: {
         time: 30,
@@ -242,7 +244,7 @@ export const PomMuse: PctOgcdAbility & OriginCdAbility = {
     name: "Pom Muse",
     id: Consts.PomMuseID,
     attackType: "Ability",
-    potency: 1100,
+    potency: 800,
     appDelay: 0.62,
     cooldown: {
         time: 40,
@@ -256,7 +258,7 @@ export const WingedMuse: PctOgcdAbility & SharedCdAbility = {
     name: "Winged Muse",
     id: Consts.WingMuseID,
     attackType: "Ability",
-    potency: 1100,
+    potency: 800,
     appDelay: 0.98,
     cooldown: {
         time: 40,
@@ -271,7 +273,7 @@ export const ClawedMuse: PctOgcdAbility & SharedCdAbility = {
     name: "Clawed Muse",
     id: Consts.ClawMuseID,
     attackType: "Ability",
-    potency: 1100,
+    potency: 800,
     appDelay: 0.98,
     cooldown: {
         time: 40,
@@ -286,7 +288,7 @@ export const FangedMuse: PctOgcdAbility & SharedCdAbility = {
     name: "Fanged Muse",
     id: Consts.FangMuseID,
     attackType: "Ability",
-    potency: 1100,
+    potency: 800,
     appDelay: 1.16,
     cooldown: {
         time: 40,
@@ -384,7 +386,7 @@ export const HammerBrush: PctGcdAbility = {
     name: "Hammer Brush",
     id: Consts.HBrushID,
     attackType: "Spell",
-    potency: 620,
+    potency: 580,
     gcd: 2.5,
     cast: 0,
     appDelay: 1.25,
@@ -397,7 +399,7 @@ export const PolishingHammer: PctGcdAbility = {
     name: "Polishing Hammer",
     id: Consts.HPolishID,
     attackType: "Spell",
-    potency: 680,
+    potency: 600,
     gcd: 2.5,
     cast: 0,
     appDelay: 2.10,
