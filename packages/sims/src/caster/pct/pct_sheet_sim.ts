@@ -52,6 +52,14 @@ If a potion is enabled, it is used in the opener and again in each burst window 
     supportedJobs: ['PCT'],
     supportedLevels: [100],
     isDefaultSim: true,
+    maintainers: [{
+        name: 'Quantumly',
+        contact: [{
+            type: 'discord',
+            discordTag: 'quantumly',
+            discordUid: '126321762483830785',
+        }],
+    }],
 };
 
 /**
