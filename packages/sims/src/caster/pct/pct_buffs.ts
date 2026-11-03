@@ -14,15 +14,16 @@ const HAMMER_ACTIONS: number[] = [
 
 export const HammerTimeBuff: Buff = {
     name: "Hammer Time",
+    duration: 30,
     effects: {},
     selfOnly: true,
-    descriptionOverride: "Able to execute Hammer combo GCDs",
+    descriptionOverride: "Able to execute the Hammer combo",
     appliesTo: ability => HAMMER_ACTIONS.includes(ability.id),
     beforeSnapshot(controller: BuffController): void {
         controller.subtractStacksSelf(1);
     },
     stacks: 3,
-    statusId: 3680,
+    statusId: Consts.HammerTimeStatusID,
 };
 
 export const RainbowBrightBuff: Buff = {
@@ -32,15 +33,15 @@ export const RainbowBrightBuff: Buff = {
     selfOnly: true,
     descriptionOverride: "Next Rainbow Drip has no cast time and a reduced recast time.",
     appliesTo: ability => ability.id === Consts.RainbowDripID,
-    beforeAbility<PctGcdAbility>(controller: BuffController, ability: PctGcdAbility): PctGcdAbility | null {
-        controller.removeStatus(RainbowBrightBuff);
+    beforeAbility<X>(controller: BuffController, ability: X): X {
+        controller.removeSelf();
         return {
             ...ability,
             gcd: 2.5,
             cast: 0,
         };
     },
-    statusId: 3679,
+    statusId: Consts.RainbowBrightStatusID,
 };
 
 export const StarstruckBuff: Buff = {
@@ -51,7 +52,7 @@ export const StarstruckBuff: Buff = {
     descriptionOverride: "Able to execute Star Prism",
     appliesTo: ability => ability.id === Consts.StarPrismID,
     beforeSnapshot: removeSelf,
-    statusId: 3681,
+    statusId: Consts.StarstruckStatusID,
 };
 
 const SUBTRACTIVE_ACTIONS: number[] = [
@@ -70,33 +71,22 @@ export const SubtractivePaletteBuff: Buff = {
         controller.subtractStacksSelf(1);
     },
     stacks: 3,
-    statusId: 3674,
+    statusId: Consts.SubtractivePaletteStatusID,
 };
 
-export const MonochromeBuff: Buff = {
-    name: "Monochrome Tones",
-    effects: {},
-    selfOnly: true,
-    descriptionOverride: "Able to execute Comet in Black",
-    appliesTo: ability => ability.id === Consts.CometID,
-    beforeSnapshot: removeSelf,
-    statusId: 3691,
-};
-
+/**
+ * Grants a free Subtractive Palette. The cost reduction itself is handled by the cycle processor, which swaps
+ * in the costless version of the ability when this buff is active.
+ */
 export const SubtractiveSpectrumBuff: Buff = {
     name: "Subtractive Spectrum",
+    duration: 30,
     effects: {},
     selfOnly: true,
     descriptionOverride: "Able to execute Subtractive Palette without cost.",
     appliesTo: ability => ability.id === Consts.SubtractivePaletteID,
-    beforeAbility<PctPaletteAbility>(controller: BuffController, ability: PctPaletteAbility): PctPaletteAbility {
-        controller.removeSelf();
-        return {
-            ...ability,
-            updateGauge: null,
-        };
-    },
-    statusId: 3690,
+    beforeSnapshot: removeSelf,
+    statusId: Consts.SubtractiveSpectrumStatusID,
 };
 
 export const AetherhuesGYBuff: Buff = {
@@ -107,7 +97,7 @@ export const AetherhuesGYBuff: Buff = {
     descriptionOverride: "Able to cast green and yellow magicks.",
     appliesTo: ability => (ability.id === Consts.GreenID || ability.id === Consts.YellowID),
     beforeSnapshot: removeSelf,
-    statusId: 3675,
+    statusId: Consts.AetherhuesStatusID,
 };
 
 export const AetherhuesBMBuff: Buff = {
@@ -118,24 +108,22 @@ export const AetherhuesBMBuff: Buff = {
     descriptionOverride: "Able to cast blue and magenta magicks.",
     appliesTo: ability => (ability.id === Consts.BlueID || ability.id === Consts.MagentaID),
     beforeSnapshot: removeSelf,
-    statusId: 3676,
+    statusId: Consts.AetherhuesIIStatusID,
 };
 
 const HYPERPHANTASIA_ACTIONS: number[] = [
-    // You are going to be very sad when using these.
     Consts.RedID, Consts.GreenID, Consts.BlueID,
-    Consts.HolyID,
-    // Standard Starry Muse window spells.
     Consts.CyanID, Consts.YellowID, Consts.MagentaID,
-    Consts.CometID, Consts.StarPrismID,
+    Consts.HolyID, Consts.CometID,
+    Consts.StarPrismID,
 ];
 
 /**
- * Technically it is the Inspiration buff that grants haste, however, it's
- * easier to just collapse both buffs into a single buff.
+ * Technically it is the Inspiration buff that grants the 25% cast/recast reduction, and Hyperphantasia
+ * which tracks the five stacks. Since Inspiration ends as soon as the last Hyperphantasia stack is consumed,
+ * it is simpler to collapse both into a single stacking buff.
  *
- * If it turns out in a future patch that they make inspiration and/or
- * hyperphantasia do more distinct things, then reconsider this.
+ * Consuming the final stack grants Rainbow Bright.
  */
 export const HyperphantasiaBuff: Buff = {
     name: "Hyperphantasia",
@@ -144,19 +132,19 @@ export const HyperphantasiaBuff: Buff = {
         haste: 25,
     },
     selfOnly: true,
-    descriptionOverride: "Aetherhue spells have reduced cast and recast times.",
+    descriptionOverride: "Aetherhue spells have reduced cast and recast times. Consuming all stacks grants Rainbow Bright.",
     appliesTo: ability => HYPERPHANTASIA_ACTIONS.includes(ability.id),
-    beforeAbility<PctGcdAbility>(controller: BuffController, ability: PctGcdAbility): PctGcdAbility {
+    beforeSnapshot<X>(controller: BuffController, ability: X): X | void {
+        const isLastStack = (this as Buff).stacks === 1;
         controller.subtractStacksSelf(1);
-        const activatesBuffs = [];
-        if (this.stacks === 0) {
-            activatesBuffs.push(RainbowBrightBuff);
+        if (isLastStack) {
+            const existing = (ability as {activatesBuffs?: readonly Buff[]}).activatesBuffs ?? [];
+            return {
+                ...ability,
+                activatesBuffs: [...existing, RainbowBrightBuff],
+            };
         }
-        return {
-            ...ability,
-            activatesBuffs: [...activatesBuffs],
-        };
     },
     stacks: 5,
-    statusId: 3688,
+    statusId: Consts.HyperphantasiaStatusID,
 };

@@ -1,11 +1,14 @@
 import {OriginCdAbility, SharedCdAbility} from "@xivgear/core/sims/sim_types";
 import {StarryMuse} from "@xivgear/sims/buffs";
-import PCTGauge from "./pct_gauge";
 import * as Buffs from "./pct_buffs";
 import * as Consts from "./pct_consts";
-import {PctGcdAbility, PctOgcdAbility, PctPaletteAbility, PctPaintAbility} from "./pct_types";
+import {PctCreatureMotif, PctGcdAbility, PctOgcdAbility} from "./pct_types";
 
-export const Red : PctGcdAbility = {
+/**
+ * Pictomancer actions. Potencies are the level 100 values.
+ */
+
+export const Red: PctGcdAbility = {
     type: 'gcd',
     name: "Fire in Red",
     id: Consts.RedID,
@@ -13,10 +16,11 @@ export const Red : PctGcdAbility = {
     potency: 440,
     gcd: 2.5,
     cast: 1.5,
+    appDelay: 0.84,
     activatesBuffs: [Buffs.AetherhuesGYBuff],
-    updateGauge: (gauge: PCTGauge) => {},
 };
-export const Green : PctGcdAbility = {
+
+export const Green: PctGcdAbility = {
     type: 'gcd',
     name: "Aero in Green",
     id: Consts.GreenID,
@@ -24,10 +28,11 @@ export const Green : PctGcdAbility = {
     potency: 480,
     gcd: 2.5,
     cast: 1.5,
+    appDelay: 0.89,
     activatesBuffs: [Buffs.AetherhuesBMBuff],
-    updateGauge: (gauge: PCTGauge) => {},
 };
-export const Blue : PctGcdAbility = {
+
+export const Blue: PctGcdAbility = {
     type: 'gcd',
     name: "Water in Blue",
     id: Consts.BlueID,
@@ -35,17 +40,14 @@ export const Blue : PctGcdAbility = {
     potency: 520,
     gcd: 2.5,
     cast: 1.5,
-    updateGauge: (gauge: PCTGauge) => {
-        if (gauge.level > 60) {
-            gauge.paletteGauge += 25;
-        }
-        if (gauge.level > 80) {
-            gauge.whitePaintCharges += 1;
-        }
+    appDelay: 0.98,
+    updateGauge: gauge => {
+        gauge.palette += 25;
+        gauge.paint += 1;
     },
 };
 
-export const Cyan : PctGcdAbility = {
+export const Cyan: PctGcdAbility = {
     type: 'gcd',
     name: "Blizzard in Cyan",
     id: Consts.CyanID,
@@ -53,10 +55,11 @@ export const Cyan : PctGcdAbility = {
     potency: 800,
     gcd: 3.3,
     cast: 2.3,
+    appDelay: 0.75,
     activatesBuffs: [Buffs.AetherhuesGYBuff],
-    updateGauge: (gauge: PCTGauge) => {},
 };
-export const Yellow : PctGcdAbility = {
+
+export const Yellow: PctGcdAbility = {
     type: 'gcd',
     name: "Stone in Yellow",
     id: Consts.YellowID,
@@ -64,10 +67,11 @@ export const Yellow : PctGcdAbility = {
     potency: 840,
     gcd: 3.3,
     cast: 2.3,
+    appDelay: 0.80,
     activatesBuffs: [Buffs.AetherhuesBMBuff],
-    updateGauge: (gauge: PCTGauge) => {},
 };
-export const Magenta : PctGcdAbility = {
+
+export const Magenta: PctGcdAbility = {
     type: 'gcd',
     name: "Thunder in Magenta",
     id: Consts.MagentaID,
@@ -75,14 +79,13 @@ export const Magenta : PctGcdAbility = {
     potency: 880,
     gcd: 3.3,
     cast: 2.3,
-    updateGauge: (gauge: PCTGauge) => {
-        if (gauge.level > 80) {
-            gauge.whitePaintCharges += 1;
-        }
+    appDelay: 0.85,
+    updateGauge: gauge => {
+        gauge.paint += 1;
     },
 };
 
-export const Holy : PctPaintAbility = {
+export const Holy: PctGcdAbility = {
     type: 'gcd',
     name: "Holy in White",
     id: Consts.HolyID,
@@ -91,10 +94,10 @@ export const Holy : PctPaintAbility = {
     gcd: 2.5,
     cast: 0,
     appDelay: 1.34,
-    paintCost: 1,
-    updateGauge: gauge => gauge.whitePaintCharges -= 1,
+    updateGauge: gauge => gauge.useWhitePaint(),
 };
-export const Comet : PctPaintAbility = {
+
+export const Comet: PctGcdAbility = {
     type: 'gcd',
     name: "Comet in Black",
     id: Consts.CometID,
@@ -103,11 +106,10 @@ export const Comet : PctPaintAbility = {
     gcd: 3.3,
     cast: 0,
     appDelay: 1.87,
-    paintCost: 1,
-    updateGauge: gauge => gauge.whitePaintCharges -= 1,
+    updateGauge: gauge => gauge.useBlackPaint(),
 };
 
-export const RainbowDrip : PctGcdAbility = {
+export const RainbowDrip: PctGcdAbility = {
     type: 'gcd',
     name: "Rainbow Drip",
     id: Consts.RainbowDripID,
@@ -116,10 +118,12 @@ export const RainbowDrip : PctGcdAbility = {
     gcd: 6,
     cast: 4,
     appDelay: 1.24,
-    updateGauge: gauge => gauge.whitePaintCharges += 1,
+    updateGauge: gauge => {
+        gauge.paint += 1;
+    },
 };
 
-export const StarPrism : PctGcdAbility = {
+export const StarPrism: PctGcdAbility = {
     type: 'gcd',
     name: "Star Prism",
     id: Consts.StarPrismID,
@@ -128,11 +132,11 @@ export const StarPrism : PctGcdAbility = {
     gcd: 2.5,
     cast: 0,
     appDelay: 1.25,
-    updateGauge: gauge => (gauge: PCTGauge) => {},
 };
 
-// TODO : Add logic to simplify the Creature motif into a single action.
-export const PomMotif : PctGcdAbility = {
+// Motifs
+
+export const PomMotif: PctGcdAbility = {
     type: 'gcd',
     name: "Pom Motif",
     id: Consts.PomMotifID,
@@ -140,9 +144,10 @@ export const PomMotif : PctGcdAbility = {
     potency: null,
     gcd: 4.0,
     cast: 3.0,
-    updateGauge: (gauge: PCTGauge) => {},
+    updateGauge: gauge => gauge.paintCreatureMotif('pom'),
 };
-export const WingMotif : PctGcdAbility = {
+
+export const WingMotif: PctGcdAbility = {
     type: 'gcd',
     name: "Wing Motif",
     id: Consts.WingMotifID,
@@ -150,9 +155,10 @@ export const WingMotif : PctGcdAbility = {
     potency: null,
     gcd: 4.0,
     cast: 3.0,
-    updateGauge: (gauge: PCTGauge) => {},
+    updateGauge: gauge => gauge.paintCreatureMotif('wing'),
 };
-export const ClawMotif : PctGcdAbility = {
+
+export const ClawMotif: PctGcdAbility = {
     type: 'gcd',
     name: "Claw Motif",
     id: Consts.ClawMotifID,
@@ -160,9 +166,10 @@ export const ClawMotif : PctGcdAbility = {
     potency: null,
     gcd: 4.0,
     cast: 3.0,
-    updateGauge: (gauge: PCTGauge) => {},
+    updateGauge: gauge => gauge.paintCreatureMotif('claw'),
 };
-export const MawMotif : PctGcdAbility = {
+
+export const MawMotif: PctGcdAbility = {
     type: 'gcd',
     name: "Maw Motif",
     id: Consts.MawMotifID,
@@ -170,9 +177,10 @@ export const MawMotif : PctGcdAbility = {
     potency: null,
     gcd: 4.0,
     cast: 3.0,
-    updateGauge: (gauge: PCTGauge) => {},
+    updateGauge: gauge => gauge.paintCreatureMotif('maw'),
 };
-export const HammerMotif : PctGcdAbility = {
+
+export const HammerMotif: PctGcdAbility = {
     type: 'gcd',
     name: "Hammer Motif",
     id: Consts.HammerMotifID,
@@ -180,9 +188,12 @@ export const HammerMotif : PctGcdAbility = {
     potency: null,
     gcd: 4.0,
     cast: 3.0,
-    updateGauge: (gauge: PCTGauge) => {},
+    updateGauge: gauge => {
+        gauge.hammerCanvas = true;
+    },
 };
-export const StarryMotif : PctGcdAbility = {
+
+export const StarryMotif: PctGcdAbility = {
     type: 'gcd',
     name: "Starry Sky Motif",
     id: Consts.StarryMotifID,
@@ -190,10 +201,14 @@ export const StarryMotif : PctGcdAbility = {
     potency: null,
     gcd: 4.0,
     cast: 3.0,
-    updateGauge: (gauge: PCTGauge) => {},
+    updateGauge: gauge => {
+        gauge.starryCanvas = true;
+    },
 };
 
-export const Mog : PctOgcdAbility & OriginCdAbility = {
+// Portraits
+
+export const Mog: PctOgcdAbility & OriginCdAbility = {
     type: 'ogcd',
     name: "Mog of the Ages",
     id: Consts.MogID,
@@ -203,35 +218,40 @@ export const Mog : PctOgcdAbility & OriginCdAbility = {
     cooldown: {
         time: 30,
     },
-    updateGauge: (gauge: PCTGauge) => {},
+    updateGauge: gauge => gauge.usePortrait(),
 };
-export const Madeen : PctOgcdAbility & SharedCdAbility = {
+
+export const Madeen: PctOgcdAbility & SharedCdAbility = {
     type: 'ogcd',
     name: "Retribution of the Madeen",
     id: Consts.MadeenID,
     attackType: "Ability",
     potency: 1400,
-    appDelay: 1.3,
+    appDelay: 1.30,
     cooldown: {
         time: 30,
         sharesCooldownWith: Mog,
     },
-    updateGauge: (gauge: PCTGauge) => {},
+    updateGauge: gauge => gauge.usePortrait(),
 };
-// TODO: Since all creature Muses are the same potency and effect (other than the buff) can these be collapsed into a single action?
-export const Pom : PctOgcdAbility & OriginCdAbility = {
+
+// Living Muses
+
+export const PomMuse: PctOgcdAbility & OriginCdAbility = {
     type: 'ogcd',
     name: "Pom Muse",
     id: Consts.PomMuseID,
     attackType: "Ability",
     potency: 1100,
+    appDelay: 0.62,
     cooldown: {
         time: 40,
         charges: 3,
     },
-    updateGauge: (gauge: PCTGauge) => {},
+    updateGauge: gauge => gauge.useCreatureMuse(),
 };
-export const Wing : PctOgcdAbility & SharedCdAbility = {
+
+export const WingedMuse: PctOgcdAbility & SharedCdAbility = {
     type: 'ogcd',
     name: "Winged Muse",
     id: Consts.WingMuseID,
@@ -241,11 +261,12 @@ export const Wing : PctOgcdAbility & SharedCdAbility = {
     cooldown: {
         time: 40,
         charges: 3,
-        sharesCooldownWith: Pom,
+        sharesCooldownWith: PomMuse,
     },
-    updateGauge: (gauge: PCTGauge) => {},
+    updateGauge: gauge => gauge.useCreatureMuse(),
 };
-export const Claw : PctOgcdAbility & SharedCdAbility = {
+
+export const ClawedMuse: PctOgcdAbility & SharedCdAbility = {
     type: 'ogcd',
     name: "Clawed Muse",
     id: Consts.ClawMuseID,
@@ -255,11 +276,12 @@ export const Claw : PctOgcdAbility & SharedCdAbility = {
     cooldown: {
         time: 40,
         charges: 3,
-        sharesCooldownWith: Pom,
+        sharesCooldownWith: PomMuse,
     },
-    updateGauge: (gauge: PCTGauge) => {},
+    updateGauge: gauge => gauge.useCreatureMuse(),
 };
-export const Fang : PctOgcdAbility & SharedCdAbility = {
+
+export const FangedMuse: PctOgcdAbility & SharedCdAbility = {
     type: 'ogcd',
     name: "Fanged Muse",
     id: Consts.FangMuseID,
@@ -269,12 +291,26 @@ export const Fang : PctOgcdAbility & SharedCdAbility = {
     cooldown: {
         time: 40,
         charges: 3,
-        sharesCooldownWith: Pom,
+        sharesCooldownWith: PomMuse,
     },
-    updateGauge: (gauge: PCTGauge) => {},
+    updateGauge: gauge => gauge.useCreatureMuse(),
 };
 
-export const Striking : PctOgcdAbility = {
+export const CreatureMotifs: Record<PctCreatureMotif, PctGcdAbility> = {
+    pom: PomMotif,
+    wing: WingMotif,
+    claw: ClawMotif,
+    maw: MawMotif,
+};
+
+export const CreatureMuses: Record<PctCreatureMotif, PctOgcdAbility> = {
+    pom: PomMuse,
+    wing: WingedMuse,
+    claw: ClawedMuse,
+    maw: FangedMuse,
+};
+
+export const StrikingMuse: PctOgcdAbility = {
     type: 'ogcd',
     name: "Striking Muse",
     id: Consts.StrikingMuseID,
@@ -285,41 +321,52 @@ export const Striking : PctOgcdAbility = {
         time: 60,
         charges: 2,
     },
-    updateGauge: (gauge: PCTGauge) => {},
+    updateGauge: gauge => {
+        gauge.hammerCanvas = false;
+    },
 };
 
-export const Starry : PctOgcdAbility = {
+export const StarryMuseAction: PctOgcdAbility = {
     type: 'ogcd',
     name: "Starry Muse",
     id: Consts.StarryMuseID,
     attackType: "Ability",
     potency: null,
     activatesBuffs: [
-        Buffs.HyperphantasiaBuff,
-        Buffs.RainbowBrightBuff,
-        Buffs.SubtractiveSpectrumBuff,
         StarryMuse,
+        Buffs.HyperphantasiaBuff,
+        Buffs.StarstruckBuff,
+        Buffs.SubtractiveSpectrumBuff,
     ],
-    updateGauge: (gauge: PCTGauge) => {},
     cooldown: {
         time: 120,
     },
+    updateGauge: gauge => {
+        gauge.starryCanvas = false;
+    },
 };
 
-export const SubtractivePalette : PctPaletteAbility = {
+export const SubtractivePalette: PctOgcdAbility = {
     type: 'ogcd',
     name: "Subtractive Palette",
     id: Consts.SubtractivePaletteID,
     attackType: "Ability",
     potency: null,
-    activatesBuffs: [Buffs.SubtractivePaletteBuff, Buffs.MonochromeBuff],
-    paletteCost: 50,
-    updateGauge: gauge => gauge.paletteGauge -= 50,
+    activatesBuffs: [Buffs.SubtractivePaletteBuff],
+    updateGauge: gauge => gauge.useSubtractivePalette(),
 };
 
-// TODO: Add the hidden buffs for tracking the Hammer Combo since it doens't
-//       drop when the hammer stamp buff drops.
-export const HStamp : PctGcdAbility = {
+/**
+ * Subtractive Palette as used under Subtractive Spectrum, i.e. without the palette cost.
+ */
+export const FreeSubtractivePalette: PctOgcdAbility = {
+    ...SubtractivePalette,
+    updateGauge: gauge => gauge.useFreeSubtractivePalette(),
+};
+
+// Hammer combo
+
+export const HammerStamp: PctGcdAbility = {
     type: 'gcd',
     name: "Hammer Stamp",
     id: Consts.HStampID,
@@ -330,9 +377,9 @@ export const HStamp : PctGcdAbility = {
     appDelay: 1.38,
     autoDh: true,
     autoCrit: true,
-    updateGauge: (gauge: PCTGauge) => {},
 };
-export const HBrush : PctGcdAbility = {
+
+export const HammerBrush: PctGcdAbility = {
     type: 'gcd',
     name: "Hammer Brush",
     id: Consts.HBrushID,
@@ -343,9 +390,9 @@ export const HBrush : PctGcdAbility = {
     appDelay: 1.25,
     autoDh: true,
     autoCrit: true,
-    updateGauge: (gauge: PCTGauge) => {},
 };
-export const HPolish : PctGcdAbility = {
+
+export const PolishingHammer: PctGcdAbility = {
     type: 'gcd',
     name: "Polishing Hammer",
     id: Consts.HPolishID,
@@ -353,8 +400,12 @@ export const HPolish : PctGcdAbility = {
     potency: 680,
     gcd: 2.5,
     cast: 0,
-    appDelay: 2.1,
+    appDelay: 2.10,
     autoDh: true,
     autoCrit: true,
-    updateGauge: (gauge: PCTGauge) => {},
 };
+
+/**
+ * The hammer combo, in order.
+ */
+export const HammerCombo: readonly PctGcdAbility[] = [HammerStamp, HammerBrush, PolishingHammer];
