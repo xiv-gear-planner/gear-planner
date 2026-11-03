@@ -5,7 +5,7 @@ import {makeUrl, NavState, ONLY_SET_QUERY_PARAM} from "@xivgear/core/nav/common_
 import {recordSheetEvent} from "../../../analytics/analytics";
 import {MateriaTotalsDisplay} from "./materia";
 import {EquipSlotKey, EquipSlots, GearItem} from "@xivgear/xivmath/geartypes";
-import {FoodItemViewTable, GearItemsViewTable, MedicineItemViewTable} from "./items";
+import {FoodItemViewTable, GearItemsViewTable, MedicineItemViewTable, SpecialistBonusTable} from "./items";
 import {SetViewToolbar} from "../toolbar/totals_display";
 import {ExpandableText} from "@xivgear/common-ui/components/expandy_text";
 import {el} from "@xivgear/common-ui/components/util";
@@ -143,6 +143,10 @@ export class GearSetViewer extends HTMLElement {
 
         if (foodMedicineTableSet.childElementCount > 0) {
             this.appendChild(foodMedicineTableSet);
+        }
+
+        if (this.gearSet.classJobStats.type === 'DoH' && this.gearSet.specialistBonusEnabled) {
+            this.appendChild(new SpecialistBonusTable(this.gearSet, true));
         }
     }
 

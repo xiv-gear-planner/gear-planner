@@ -1078,6 +1078,10 @@ export interface SetExport {
      */
     medicine?: number,
     /**
+     * Whether the crafter specialist bonus is enabled. Only applicable to DoH.
+     */
+    specialistBonusEnabled?: boolean,
+    /**
      * When a relic is de-selected, its former stats are remembered here so that they can be recalled if the
      * relic is selected again. They keys are item IDs, and the values are {@link RelicStats}.
      */

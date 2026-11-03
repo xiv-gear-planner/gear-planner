@@ -1,5 +1,5 @@
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {FoodItemsTable, GearItemsTable, MedicineItemsTable} from "./items";
+import {FoodItemsTable, GearItemsTable, MedicineItemsTable, SpecialistBonusTable} from "./items";
 import {ExpandableText} from "@xivgear/common-ui/components/expandy_text";
 import {stringToParagraphs} from "../../../util/text_utils";
 import {iconForIssues, SetIssuesModal} from "../gear_set_issues";
@@ -25,6 +25,7 @@ export class GearSetEditor extends HTMLElement {
     private issuesButtonContent: HTMLSpanElement;
     private foodTable: FoodItemsTable;
     private medicineTable: MedicineItemsTable | undefined;
+    private specialistBonusTable: SpecialistBonusTable | null = null;
 
     constructor(sheet: GearPlanSheetGui, gearSet: CharacterGearSet) {
         super();
@@ -165,6 +166,12 @@ export class GearSetEditor extends HTMLElement {
         const foodMedicineTableSet = el('div', {class: 'gear-table-sides-holder'}, [foodTableSide, medicineTableSide]);
 
         this.appendChild(foodMedicineTableSet);
+
+        if (this.gearSet.classJobStats.type === 'DoH') {
+            this.specialistBonusTable = new SpecialistBonusTable(this.gearSet);
+            this.appendChild(this.specialistBonusTable);
+        }
+
         this.checkIssues();
     }
 
@@ -181,6 +188,7 @@ export class GearSetEditor extends HTMLElement {
         this.checkIssues();
         this.foodTable.refreshFull();
         this.medicineTable?.refreshFull();
+        this.specialistBonusTable?.refresh();
     }
 
     private undoRedoHotkeyHandler = (ev: KeyboardEvent) => {
