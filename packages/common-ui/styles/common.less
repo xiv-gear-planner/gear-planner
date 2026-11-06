@@ -42,7 +42,6 @@ body {
   //--thick-border: 2px solid var(--border-color);
   --selected-outline: 3px solid var(--table-selected-outline-color);
   --stat-color: var(--fg-color);
-  --modal-backdrop-color: #7c7cbb33;
   --error-border-color: #9c0000;
   --standard-border-radius: 5px;
   --optional-border-radius: 0;
@@ -68,7 +67,6 @@ body {
   --multi-mit-stat-col-width: 170px;
   --hp-stat-col-width: 60px;
   --bottom-flex-basis: 60%;
-  --modal-bottom-button-width: 70px;
   --materia-box-shadow-spread: 2px;
   --input-background-color: var(--bg-color);
   --relic-stat-input-background-color: var(--bg-color);
@@ -93,6 +91,8 @@ body {
   --issue-error-color: #9c0000;
   --toolbar-button-size: 40px;
   --toolbar-border-radius: 8px;
+  --modal-backdrop-color: #7c7cbb33;
+  --modal-bottom-button-width: 70px;
   --role-color-tank: #4848ff;
   --role-color-healer: #13a813;;
   --role-color-dps: #ff0000;
@@ -109,6 +109,7 @@ body {
   --default-table-row-height: 23px;
 
   &.light-mode {
+    --modal-backdrop-color: #372a2733;
     --bg-color: #e7dcd9;
     --fg-color: #000000;
     --border-color: #a59083;
@@ -134,8 +135,6 @@ body {
     --sim-color-mix-percent: 50%;
     --shadow-color: #888;
     --tiering-color-mix: 5%;
-    --modal-backdrop-color: #372a2733;
-
     .melded-cell-extra-style {
       background-color: var(--stat-color);
     }
@@ -369,7 +368,6 @@ body {
   --zi-loading-blocker: 190;
   --zi-privacy-link: 195;
   --zi-add-sim-dialog: 200;
-  --zi-true-modal: 300;
 }
 
 .flex-transition {
@@ -2640,10 +2638,6 @@ select.gear-items-table-relic-stat-input {
   -webkit-appearance: none;
 }
 
-body:has(> .backdrop-active) > *:not(.backdrop-active) {
-  filter: saturate(20%) blur(2px);
-}
-
 .special-row-holder {
   > * {
     float: right;
@@ -2663,108 +2657,7 @@ show-hide-button {
   }
 }
 
-.modal-dialog {
-  position: absolute;
-  margin: 0;
-  bottom: 0;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: var(--zi-true-modal);
-  display: flex;
-  background-color: var(--modal-backdrop-color);
-  //transition: background-color 2s linear;
-
-  //&.backdrop-active {
-  //}
-
-  .modal-inner {
-    max-height: 95vh;
-    max-width: 95vw;
-    display: flex;
-    flex-direction: column;
-
-    .modal-header {
-      margin-top: 10px;
-      margin-left: 40px;
-      margin-right: 40px;
-    }
-
-    .modal-content-area {
-      overflow: auto;
-      margin-bottom: 10px;
-      // Padding to make sure that glow around input doesn't get cut off
-      padding: 5px;
-    }
-
-    .modal-close-button {
-      position: absolute;
-      right: 10px;
-      top: 10px;
-      font-size: 30px;
-      .borderless-button();
-    }
-  }
-
-  > div {
-    margin: auto;
-    position: relative;
-    background-color: var(--table-bg-color);
-    .standard-round-border();
-    // TODO: ?
-    border-radius: var(10px);
-    .shadow-big();
-    text-align: center;
-    padding: 10px;
-
-    //> button {
-    //  display: block;
-    //  margin: 5px auto auto auto;
-    //}
-
-    //loading-blocker {
-    //  position: unset;
-    //  background-color: unset;
-    //}
-
-    input[type='text'] {
-      width: 300px;
-    }
-  }
-
-  div.lower-button-area {
-    > button {
-      display: inline-block;
-      margin: 5px 5px 5px 5px;
-      min-width: var(--modal-bottom-button-width);
-    }
-  }
-
-}
-
-rename-dialog {
-  .modal-dialog();
-
-  textarea {
-    margin: 10px;
-    resize: none;
-  }
-
-  .modal-inner > * {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  form {
-    width: min-content;
-  }
-}
-
-
-shortlink-modal {
-  .modal-dialog();
-}
+@import "modal.less";
 
 food-stat-bonus {
   display: flex;
@@ -3258,12 +3151,6 @@ loading-blocker {
     }
   }
 
-  &.base-modal-loading-blocker {
-    .loading-spinner {
-      position: relative;
-      top: calc(50% - 50px);
-    }
-  }
 }
 
 
@@ -3426,7 +3313,7 @@ fieldset {
     padding-bottom: 8px;
   }
 
-  > div {
+  .modal-inner {
     width: min-content;
   }
 }
