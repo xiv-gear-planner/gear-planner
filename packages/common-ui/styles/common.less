@@ -93,6 +93,8 @@ body {
   --issue-error-color: #9c0000;
   --toolbar-button-size: 40px;
   --toolbar-border-radius: 8px;
+  --side-menu-collapsed-width: 48px;
+  --side-menu-expanded-width: 232px;
   --role-color-tank: #4848ff;
   --role-color-healer: #13a813;;
   --role-color-dps: #ff0000;
@@ -173,104 +175,6 @@ body {
 
     button {
       margin: 10px;
-    }
-  }
-
-  // TODO: this one and the one under the gear sets table have weird alignment
-  div#show-hide-menu-button-area {
-    z-index: var(--zi-show-hide-menu-button);
-    position: absolute;
-    left: 5px;
-    top: 5px;
-    width: 29px;
-    height: 29px;
-
-    button#show-hide-menu-button {
-      width: 100%;
-      height: 100%;
-      font-size: 19px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-  }
-
-  div#help-button-area {
-    z-index: var(--zi-show-hide-menu-button);
-    position: absolute;
-    right: 5px;
-    top: 5px;
-    width: 29px;
-    height: 29px;
-
-    button#help-button {
-      width: 100%;
-      height: 100%;
-      font-size: 19px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-
-    }
-
-    * {
-      text-decoration: none;
-    }
-  }
-
-  div#main-menu-area {
-    //border-bottom: 2px solid var(--border-color);
-    text-align: center;
-    padding-left: 40px;
-    padding-right: 40px;
-    //margin-bottom: 10px;
-    background-color: var(--table-bg-color);
-    //background-image: linear-gradient(var(--table-bg-color) 80%, var(--bg-color));
-    //border-image: linear-gradient(pink 50%, green);
-    //border-bottom-width: 10px;
-    .shadow-big();
-    margin-bottom: 5px;
-
-    a,
-    a:link,
-    a:visited,
-    a:hover {
-      color: var(--fg-color);
-      .button-font-style();
-      //height: 20px;
-      box-sizing: border-box;
-      //background-color: var(--fg-color);
-      padding: 8px 8px 12px 8px;
-      margin: 0;
-      text-decoration: none;
-      display: inline-block;
-      .button-auto-transition();
-
-      span {
-        white-space: nowrap;
-      }
-    }
-
-    a:hover {
-      //background-image: linear-gradient(var(--table-bg-color-selected) 80%, var(--bg-color));
-      background-color: var(--table-bg-color-selected);
-    }
-
-    a.current-page {
-      //background-image: linear-gradient(var(--input-hover-background-color) 80%, var(--bg-color));
-      background-color: var(--input-hover-background-color);
-    }
-
-    a:active {
-      //background-image: linear-gradient(var(--button-active-background-color) 80%, var(--bg-color));
-      background-color: var(--button-active-background-color);
-    }
-  }
-
-  &.top-menu-hidden {
-    div#main-menu-area {
-      display: none;
     }
   }
 
@@ -361,13 +265,14 @@ body {
   --zi-sets-table-header-row-pinned: 95;
   --zi-sets-table-buttons-area: 99;
   --zi-midbar: 100;
-  --zi-show-hide-menu-button: 120;
   --zi-slot-materia-popup: 150;
   --zi-slot-materia-popup-cell: 180;
   --zi-tiering-expansion: 185;
   --zi-toolbar-popout: 186;
   --zi-loading-blocker: 190;
   --zi-privacy-link: 195;
+  --zi-show-hide-menu-button: 197;
+  --zi-show-hide-menu-button-new: 198;
   --zi-add-sim-dialog: 200;
   --zi-true-modal: 300;
 }
@@ -2916,7 +2821,7 @@ table.food-items-table, table.medicine-items-table {
 gear-set-viewer {
   padding-left: 5px;
   padding-right: 5px;
-  // Users have reported privacy thing blocking the bottom
+  // Keep the bottom clear for the privacy links.
   padding-bottom: 100px;
   display: block;
   --standard-border-radius: 10px;

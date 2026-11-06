@@ -197,81 +197,6 @@ body.modern {
     background-color: var(--bg-color);
   }
 
-  // Estimated top nav size including shadow and borders, because we can't directly transition on a computed value.
-  --top-nav-size: 40px;
-  --transition-props: 0.1s linear;
-
-  &.top-menu-hidden {
-    div#main-menu-area {
-      display: initial;
-      max-height: 0;
-      margin-bottom: 0;
-
-      div#main-menu-area-inner {
-        bottom: var(--top-nav-size);
-      }
-    }
-  }
-
-  div#main-menu-area {
-    background: none;
-    box-shadow: none;
-
-    transition: max-height var(--transition-props);
-
-    max-height: var(--top-nav-size);
-
-
-    div#main-menu-area-inner {
-
-      .shadow();
-      width: fit-content;
-      display: flex;
-      align-items: normal;
-      margin-left: auto;
-      margin-right: auto;
-      background-color: var(--table-bg-color);
-      --mmai-border-radius: 10px;
-      border-bottom-left-radius: var(--mmai-border-radius);
-      border-bottom-right-radius: var(--mmai-border-radius);
-      padding-left: var(--mmai-border-radius);
-      padding-right: var(--mmai-border-radius);
-      position: relative;
-      transition: bottom var(--transition-props);
-      bottom: 0;
-
-
-      @media (width < 650px) {
-        a span {
-          display: none;
-        }
-
-        .svg-glyph {
-          padding-left: 0 !important;
-          padding-right: 0 !important;
-        }
-      }
-
-      .svg-glyph {
-        //height: 1.3em;
-        //width: 1.3em;
-        scale: 1.5;
-        padding-left: 5px;
-        padding-right: 5px;
-
-        &:only-child {
-          padding-left: 0;
-          padding-right: 0;
-        }
-
-        &.svg-bigger {
-          scale: 2.0;
-        }
-      }
-
-    }
-  }
-
   .gear-sheet-table-holder-outer {
     padding: 5px 5px;
     border-radius: 10px;
@@ -285,7 +210,7 @@ body.modern {
     margin-bottom: 5px;
   }
 
-  button#show-hide-menu-button, button#help-button {
+  button#show-hide-menu-button {
     .shadow();
   }
 

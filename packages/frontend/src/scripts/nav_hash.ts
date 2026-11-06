@@ -15,7 +15,7 @@ import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
 import {DEFAULT_BIS_SERVICE, DEFAULT_SHORTLINK_SERVICE} from "./services/default_services";
 
 import {
-    formatTopMenu,
+    formatSideMenu,
     hideWelcomeArea,
     openExport,
     openSheetByKey,
@@ -61,7 +61,7 @@ export async function processHashLegacy() {
     const osIndex = tryParseOptionalIntParam(qp.get(ONLY_SET_QUERY_PARAM));
     const selIndex = tryParseOptionalIntParam(qp.get(SELECTION_INDEX_QUERY_PARAM));
     const state = new NavState(split, osIndex, selIndex);
-    formatTopMenu(state);
+    formatSideMenu(state);
     if (split.length > 0) {
         console.log('processHashLegacy', state, newHash);
         // This path allows certain things such as /viewset/<json> to continue to use the old-style hash, since the
@@ -116,7 +116,7 @@ export async function processNav() {
         window.history.replaceState(null, '', canonicalUrl);
     }
     const newNav = new NavState(pathParts, osIndex, selIndex);
-    formatTopMenu(newNav);
+    formatSideMenu(newNav);
     console.info("processQuery", newNav);
     if (pathParts.length > 0) {
         hideWelcomeArea();
@@ -318,7 +318,7 @@ export function setNav(newState: NavState) {
     console.log("New hash parts", hashParts);
     setUrlPath(hashParts);
     // TODO: there are redundant calls to this
-    formatTopMenu(newState);
+    formatSideMenu(newState);
     if (hashParts.length > 0) {
         hideWelcomeArea();
     }

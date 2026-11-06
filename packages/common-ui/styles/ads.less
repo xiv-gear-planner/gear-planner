@@ -51,16 +51,23 @@ body:not(.light-mode) {
   }
 }
 
+// Let each privacy link keep a row in its parent menu group through the display: contents wrapper.
+#nav-privacy-links > a {
+  flex: 0 0 42px;
+}
+
+// The generic extra-information rule uses block layout; keep sidebar privacy links on the grid.
+#nav-privacy-links > a:not(:empty) {
+  display: grid;
+}
+
 #fallback-privacy-area {
   position: absolute;
   left: 0;
   bottom: 0;
   background-color: var(--table-bg-color);
-
   padding: 2px 4px 2px 2px;
-
   border-top-right-radius: 6px;
-
   z-index: var(--zi-privacy-link);
 
   >* {
@@ -78,7 +85,23 @@ body:not(.light-mode) {
       }
     }
   }
+}
 
+body.side-menu-mode-auto:not(.side-menu-auto-expanded) #fallback-privacy-area {
+  left: var(--side-menu-collapsed-width);
+}
+
+body.side-menu-mode-auto.side-menu-auto-expanded #fallback-privacy-area,
+body.side-menu-mode-sticky #fallback-privacy-area {
+  display: none;
+}
+
+body.side-menu-mode-hidden #fallback-privacy-area {
+  left: 0;
+}
+
+body.side-menu-mode-hidden.side-menu-narrow-expanded #fallback-privacy-area {
+  display: none;
 }
 
 .collapse-vertical {
