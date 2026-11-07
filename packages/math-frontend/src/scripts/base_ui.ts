@@ -1,7 +1,7 @@
-import {goPath, processNav, setPath} from "./nav_hash";
+import {goPath, processNav} from "./nav_hash";
 import {DISPLAY_SETTINGS} from "@xivgear/common-ui/settings/display_settings";
 import {showSettingsModal} from "@xivgear/common-ui/settings/settings_modal";
-import {splitLegacyPipePath, splitUrlPath} from "@xivgear/core/nav/common_nav";
+import {splitUrlPath} from "@xivgear/core/nav/common_nav";
 import {applyCommonSideMenuFormatting} from "@xivgear/common-ui/components/menu_items";
 import {arrayEq} from "@xivgear/util/array_utils";
 import {setupSideNavigation} from "@xivgear/common-ui/components/side_navigation";

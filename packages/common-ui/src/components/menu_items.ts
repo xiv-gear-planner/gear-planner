@@ -63,7 +63,7 @@ export function applyCommonSideMenuFormatting(link: HTMLAnchorElement) {
                 link.title = 'Account';
                 break;
             }
-            const label = link.textContent ?? '';
+            // const label = link.textContent ?? '';
             // link.replaceChildren(makeCalcIcon(), textSpan(label));
             break;
         }
