@@ -112,7 +112,7 @@ div#show-hide-menu-button-area {
 
 // In Hidden mode, the entire menu row is replaced with a small standalone hamburger menu button, that you click
 // to open the menu.
-&.side-menu-mode-hidden:not(.side-menu-narrow-expanded) {
+&.side-menu-mode-hidden {
   div#show-hide-menu-button-area {
     left: 8px;
     top: 8px;
@@ -205,7 +205,8 @@ body {
   &.side-menu-mode-hidden {
     --side-menu-reserved-width: 0;
     div#main-menu-area {
-      display: none;
+      //display: none;
+      visibility: hidden;
     }
   }
 
@@ -233,29 +234,62 @@ body {
 
   // Narrow screens use a temporarily-shown side menu instead of the persistent wide-screen tri-state modes.
   @media (max-width: 674px) {
-    // On very narrow screens, it looks better to just have the menu take the full width.
-    @media (max-width: 350px) {
-      --side-menu-expanded-width: 100vw;
-    }
+    // The expanded narrow menu fills the viewport at every narrow screen size.
+    --side-menu-expanded-width: 100vw;
+    --mobile-menu-button-height: 48px;
+    --mobile-menu-menu-height: calc(100dvh - var(--mobile-menu-button-height));
 
-    // Keep the narrow drawer rendered at zero width so opening and closing can animate instead of toggling display.
-    &:not(.side-menu-narrow-expanded) {
-      div#main-menu-area {
-        display: block;
-        width: 0;
-        visibility: hidden;
-        transition: width 0.12s ease-out, visibility 0s linear 0.12s;
+    // On narrow screens the menu toggle returns to document flow as a full-width top row. This reserves its height
+    // above the page content, like the previous horizontal menu, and keeps its label visible in every state.
+    &.side-menu-mode-hidden {
+      div#show-hide-menu-button-area {
+        position: relative;
+        left: auto;
+        top: auto;
+        width: 100%;
+        height: var(--mobile-menu-button-height);
+        flex: 0 0 var(--mobile-menu-button-height);
+        padding: 0;
+
+        button#show-hide-menu-button {
+          width: 100%;
+          padding: 8px 10px;
+          border-radius: 0;
+        }
       }
     }
 
-    // The expanded narrow drawer overlays the page and widens the fixed toggle to match it.
+
+    // The narrow drawer opens below the in-flow toggle row, so it no longer needs to reserve space for a fixed toggle.
+    div#main-menu-area {
+      top: var(--mobile-menu-button-height);
+      width: 100vw;
+      bottom: auto;
+
+      div#main-menu-area-inner {
+        // Keep the full menu layout behind the clipping shell so its sections do not move during the vertical wipe.
+        padding-top: 12px;
+      }
+    }
+
+
+    // Keep the narrow drawer rendered at zero height so opening and closing can animate instead of toggling display.
+    &:not(.side-menu-narrow-expanded) {
+      div#main-menu-area {
+        height: 0;
+        visibility: hidden;
+        transition: height 0.12s ease-out, visibility 0s linear 0.12s;
+      }
+    }
+
+    // The narrow drawer reveals downward from beneath the full-width toggle row.
     &.side-menu-mode-hidden.side-menu-narrow-expanded {
       --side-menu-current-width: var(--side-menu-expanded-width);
 
       div#main-menu-area {
-        display: block;
+        height: var(--mobile-menu-menu-height);
         visibility: visible;
-        transition: width 0.12s ease-out, visibility 0s;
+        transition: height 0.12s ease-out, visibility 0s;
       }
     }
   }
