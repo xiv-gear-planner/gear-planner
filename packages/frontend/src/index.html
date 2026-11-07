@@ -67,31 +67,44 @@
     <link rel="preload" href="https://data.xivgear.app/ItemLevel" as="fetch" crossorigin/>
     <link rel="dns-prefetch" href="https://accountsvc.xivgear.app/" crossorigin/>
     <link rel="dns-prefetch" href="https://v2.xivapi.com/" crossorigin/>
+    <!--    TODO remove -->
+    <script async="" src="https://s.nitropay.com/ads-2008.js"></script>
 </head>
 <body class="modern account-state-not-loaded token-state-not-loaded" data-accountstate="not-loaded"
       data-tokenstate="not-loaded">
 
-<div id="dev-menu-area" style="display: none;"></div>
 <div id="show-hide-menu-button-area">
-    <button id="show-hide-menu-button"><span>≡</span></button>
+    <button id="show-hide-menu-button" type="button" aria-label="Menu" title="Menu">
+        <span class="nav-menu-icon" aria-hidden="true"></span><span class="menu-label">Menu</span>
+    </button>
 </div>
-<div id="help-button-area">
-    <a target="_blank" href="https://github.com/xiv-gear-planner/gear-planner/blob/main/docs/README.md">
-        <button id="help-button">?</button>
-    </a>
-</div>
-<div id="main-menu-area">
+<div id="main-menu-area" role="navigation" aria-label="Main navigation">
     <div id="main-menu-area-inner">
-        <a href="/">My Sheets</a>
-        <a href="/newsheet" id="new-sheet-button">New Sheet</a>
-        <a href="/importsheet">Import</a>
-        <a href="" id="settings-button">Settings</a>
-        <a href="" id="account-button"><span id="account-text">Log In</span></a>
-        <a href="https://math.xivgear.app/">Math</a><!--    <a href="." id="dev-menu-button">Dev Menu</a>-->
-        <a href="https://github.com/xiv-gear-planner/gear-planner/" id="github-button" target="_blank">GitHub</a>
-        <a href="https://ko-fi.com/wynnxiv" id="kofi-button" target="_blank">Ko-Fi</a>
-        <a href="https://patreon.com/xivgearapp?utm_medium=unknown&utm_source=join_link&utm_campaign=creatorshare_creator&utm_content=copyLink"
-           id="patreon-button" target="_blank">Patreon</a>
+        <div class="menu-link-sections">
+            <div class="menu-link-group menu-link-group-internal">
+                <a href="/"><span>My Sheets</span></a>
+                <a href="/newsheet" id="new-sheet-button"><span>New Sheet</span></a>
+                <a href="/importsheet"><span>Import</span></a>
+                <a href="" id="settings-button"><span>Settings</span></a>
+                <a href="" id="account-button"><span id="account-text">Log In/Create Account</span></a>
+            </div>
+            <div class="menu-link-group menu-link-group-sites">
+                <div class="menu-section-heading"><span>Other Apps</span></div>
+                <a href="https://math.xivgear.app/math"><span>Math</span></a>
+            </div>
+            <div class="menu-link-group menu-link-group-external">
+                <div class="menu-section-heading"><span>Help &amp; About</span></div>
+                <a href="https://github.com/xiv-gear-planner/gear-planner/" id="github-button" target="_blank"><span>GitHub</span></a>
+                <a href="https://ko-fi.com/wynnxiv" id="kofi-button" target="_blank"><span>Ko-Fi</span></a>
+                <a href="https://patreon.com/xivgearapp?utm_medium=unknown&utm_source=join_link&utm_campaign=creatorshare_creator&utm_content=copyLink"
+                   id="patreon-button" target="_blank"><span>Patreon</span></a>
+                <a id="help-button" href="https://github.com/xiv-gear-planner/gear-planner/blob/main/docs/README.md"
+                   target="_blank"
+                   title="Help" formatted="true">
+                    <span class="nav-menu-icon" aria-hidden="true">?</span><span class="menu-label">Help</span>
+                </a>
+            </div>
+        </div>
     </div>
 </div>
 <div id="content-area"></div>
@@ -100,7 +113,7 @@
         <noscript>
             <h1 class="js-warning">Please enable JS. This site will not function without it.</h1>
         </noscript>
-        <button id="welcome-close-button">Close</button>
+        <button id="welcome-close-button" type="button" aria-label="Dismiss welcome message">Close</button>
         <h1>Welcome to XivGear!</h1>
         <p>xivgear.app is an advanced FFXIV gear planner and calculator. Build, compare, calculate, and simulate your
             sets without complicated spreadsheets.</p>

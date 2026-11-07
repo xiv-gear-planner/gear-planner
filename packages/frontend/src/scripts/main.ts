@@ -1,8 +1,8 @@
 import './early_init';
 import '@ungap/custom-elements';
 import {processHashLegacy, processNav} from "./nav_hash";
-import {earlyUiSetup, initialLoad, initTopMenu, showFatalError} from "./base_ui";
-import {installFallbackPrivacyArea} from "./components/general/ads";
+import {earlyUiSetup, initialLoad, initSideMenu, showFatalError} from "./base_ui";
+import {installFallbackPrivacyArea, installNavPrivacyLinks} from "./components/general/ads";
 import {installDoubleClickHandler} from "@xivgear/common-ui/util/stop_double_click";
 import {ACCOUNT_STATE_TRACKER} from "./account/account_state";
 import {setupAccountUi} from "./account/components/account_components";
@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // Early UI stuff
         earlyUiSetup();
-        initTopMenu();
+        initSideMenu();
 
         // SPA stuff
         // Handles use of the browser back/forward buttons
@@ -45,8 +45,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Initial page load behavior
         initialLoad();
 
-        // Normally, the "Privacy" link is in the left-hand ad area. But if there is no ad showing (because the screen is
-        // too small, or ads are blocked), this acts as a fallback area to hold the privacy link.
+        installNavPrivacyLinks();
         installFallbackPrivacyArea();
 
         ACCOUNT_STATE_TRACKER.init();

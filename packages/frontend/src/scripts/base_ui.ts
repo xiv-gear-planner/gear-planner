@@ -8,7 +8,7 @@ import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 import {SheetPickerTable} from "./components/sheetpicker/saved_sheet_picker";
 import {GearPlanSheetGui} from "./components/sheet/sheet_gui";
 import {makeUrl, NavState, splitUrlPath} from "@xivgear/core/nav/common_nav";
-import {applyCommonTopMenuFormatting} from "@xivgear/common-ui/components/top_menu";
+import {applyCommonSideMenuFormatting} from "@xivgear/common-ui/components/menu_items";
 import {WORKER_POOL} from "./workers/worker_pool";
 import {showSettingsModal} from "@xivgear/common-ui/settings/settings_modal";
 import {SETTINGS} from "@xivgear/common-ui/settings/persistent_settings";
@@ -25,6 +25,7 @@ import {ACCOUNT_STATE_TRACKER} from "./account/account_state";
 import {SHEET_MANAGER} from "./saved_sheet_impl";
 import {USER_DATA_SYNCER} from "./account/user_data";
 import {GRAPHICAL_SHEET_PROVIDER} from "./components/sheet/provider";
+import {setupSideNavigation} from "@xivgear/common-ui/components/side_navigation";
 
 declare global {
     interface Document {
@@ -50,13 +51,11 @@ export async function initialLoad() {
     handleWelcomeArea();
 }
 
-export const contentArea = document.getElementById("content-area");
+const contentArea = document.getElementById("content-area");
 // export const midBarArea = document.getElementById("mid-controls-area");
-export const devMenuArea = document.getElementById("dev-menu-area");
-export const topMenuArea = document.getElementById("main-menu-area");
-export const welcomeArea = document.getElementById("welcome-message");
-export const welcomeCloseButton = document.getElementById("welcome-close-button");
-const body = document.querySelector('body');
+const sideMenuArea = document.getElementById("main-menu-area");
+const welcomeArea = document.getElementById("welcome-message");
+const welcomeCloseButton = document.getElementById("welcome-close-button");
 
 export function handleWelcomeArea() {
     if (getHash()?.length > 0) {
@@ -123,15 +122,9 @@ export function showFatalError(errorText: string, errorElementContents?: Paramet
     }
 }
 
-export function initTopMenu() {
-    topMenuArea.querySelectorAll('a').forEach(link => {
+export function initSideMenu() {
+    sideMenuArea.querySelectorAll('a').forEach(link => {
         const href = link.getAttribute('href');
-        // if (href?.startsWith('?page=')) {
-        //     link.addEventListener('click', e => {
-        //         e.preventDefault();
-        //         goPath(...splitPath(href.slice(6)));
-        //     });
-        // }
         if (href?.startsWith('/')) {
             link.addEventListener('click', e => {
                 e.preventDefault();
@@ -141,12 +134,11 @@ export function initTopMenu() {
     });
 }
 
-export function formatTopMenu(nav: NavState) {
+export function formatSideMenu(nav: NavState) {
     const hash = nav.path;
-    topMenuArea.querySelectorAll('a').forEach(link => {
+    sideMenuArea.querySelectorAll('a').forEach(link => {
         const href = link.getAttribute('href');
-        applyCommonTopMenuFormatting(link);
-        // if (href?.startsWith('?page=') || href?.startsWith('/')) {
+        applyCommonSideMenuFormatting(link);
         if (href?.startsWith('/')) {
             const expected = splitUrlPath(href);
             console.debug(`Expected: ${expected}, actual: ${hash}`);
@@ -376,37 +368,10 @@ export function showSheetPickerMenu() {
 
 
 export function earlyUiSetup() {
-    const devMenu = devMenuArea;
-    document.getElementById('dev-menu-button')?.addEventListener('click', (ev) => {
-        ev.preventDefault();
-        if (devMenu.style.display === 'none') {
-            devMenu.style.display = '';
-        }
-        else {
-            devMenu.style.display = 'none';
-        }
-    });
     DISPLAY_SETTINGS.loadSettings();
+    setupSideNavigation();
     document.getElementById('settings-button').addEventListener('click', (ev) => {
         ev.preventDefault();
         showSettingsModal();
     });
-    document.getElementById('show-hide-menu-button').addEventListener('click', (ev) => {
-        ev.preventDefault();
-        body.classList.toggle("top-menu-hidden");
-        // topMenuArea.style.display = topMenuArea.style.display === 'none' ? '' : 'none';
-    });
-    const header = document.createElement("span");
-    header.textContent = "Dev Menu";
-    devMenu.appendChild(header);
-    const nukeButton = document.createElement("button");
-    nukeButton.addEventListener('click', (ev) => {
-        if (confirm('This will DELETE ALL sheets, sets, and settings.')) {
-            localStorage.clear();
-            setPath();
-            location.reload();
-        }
-    });
-    nukeButton.textContent = "Nuke Local Storage";
-    devMenu.appendChild(nukeButton);
 }
