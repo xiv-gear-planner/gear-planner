@@ -21,8 +21,8 @@ function getRequiredElementById(id: string): HTMLElement {
     return out;
 }
 
-export const contentArea = getRequiredElementById("content-area");
-export const topMenuArea = getRequiredElementById("main-menu-area");
+const contentArea = getRequiredElementById("content-area");
+const topMenuArea = getRequiredElementById("main-menu-area");
 export const welcomeArea = getRequiredElementById("welcome-message");
 
 export function setMainContent(title: string, ...nodes: Parameters<ParentNode['replaceChildren']>) {

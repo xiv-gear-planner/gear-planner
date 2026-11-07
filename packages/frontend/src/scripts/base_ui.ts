@@ -51,11 +51,11 @@ export async function initialLoad() {
     handleWelcomeArea();
 }
 
-export const contentArea = document.getElementById("content-area");
+const contentArea = document.getElementById("content-area");
 // export const midBarArea = document.getElementById("mid-controls-area");
-export const sideMenuArea = document.getElementById("main-menu-area");
-export const welcomeArea = document.getElementById("welcome-message");
-export const welcomeCloseButton = document.getElementById("welcome-close-button");
+const sideMenuArea = document.getElementById("main-menu-area");
+const welcomeArea = document.getElementById("welcome-message");
+const welcomeCloseButton = document.getElementById("welcome-close-button");
 
 export function handleWelcomeArea() {
     if (getHash()?.length > 0) {
