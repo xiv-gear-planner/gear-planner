@@ -204,6 +204,7 @@ body {
   // Hidden mode displays only the button to open the menu and does not reserve any sidebar width.
   &.side-menu-mode-hidden {
     --side-menu-reserved-width: 0;
+
     div#main-menu-area {
       //display: none;
       visibility: hidden;
@@ -233,7 +234,7 @@ body {
 
 
   // Narrow screens use a temporarily-shown side menu instead of the persistent wide-screen tri-state modes.
-  @media (max-width: 674px) {
+  @media (width < 675px) {
     // The expanded narrow menu fills the viewport at every narrow screen size.
     --side-menu-expanded-width: 100vw;
     --mobile-menu-button-height: 48px;
@@ -268,13 +269,14 @@ body {
 
       div#main-menu-area-inner {
         // Keep the full menu layout behind the clipping shell so its sections do not move during the vertical wipe.
+        height: var(--mobile-menu-menu-height);
         padding-top: 12px;
       }
     }
 
 
-    // Keep the narrow drawer rendered at zero height so opening and closing can animate instead of toggling display.
-    &:not(.side-menu-narrow-expanded) {
+    // Keep the inner menu at full size and animate the outer shell's height to clip it, like the desktop width wipe.
+    &:not(.side-menu-mobile-expanded) {
       div#main-menu-area {
         height: 0;
         visibility: hidden;
@@ -283,13 +285,33 @@ body {
     }
 
     // The narrow drawer reveals downward from beneath the full-width toggle row.
-    &.side-menu-mode-hidden.side-menu-narrow-expanded {
+    &.side-menu-mobile-expanded {
       --side-menu-current-width: var(--side-menu-expanded-width);
 
       div#main-menu-area {
         height: var(--mobile-menu-menu-height);
         visibility: visible;
         transition: height 0.12s ease-out, visibility 0s;
+
+      }
+
+      div#show-hide-menu-button-area {
+        #show-hide-menu-button {
+          box-shadow: none;
+        }
+      }
+    }
+  }
+}
+
+// Workaround to make the hamburger button not cover the "Set Name" text
+@media (width >= 675px) {
+  body.side-menu-mode-hidden {
+    gear-plan:not(.show-header) {
+      table.gear-plan-table.view-only {
+        th[col-id="setname"] {
+          padding-left: 30px;
+        }
       }
     }
   }

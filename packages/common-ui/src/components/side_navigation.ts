@@ -43,7 +43,7 @@ export function setupSideNavigation() {
     function updateButton(): void {
         const mode = DISPLAY_SETTINGS.sideMenuMode;
         // On narrow screens the persisted wide mode is ignored; only the temporary drawer class controls expansion.
-        const narrowExpanded = narrowDisplay.matches && body.classList.contains('side-menu-narrow-expanded');
+        const narrowExpanded = narrowDisplay.matches && body.classList.contains('side-menu-mobile-expanded');
         const expanded = narrowExpanded || (!narrowDisplay.matches && (mode === 'sticky' || (mode === 'auto' && document.body.classList.contains('side-menu-auto-expanded'))));
         button.ariaExpanded = String(expanded);
     }
@@ -54,7 +54,7 @@ export function setupSideNavigation() {
         const mode = narrowDisplay.matches ? 'hidden' : DISPLAY_SETTINGS.sideMenuMode;
         body.classList.add(`side-menu-mode-${mode}`);
         // A breakpoint or mode change closes any transient hover expansion or narrow drawer.
-        body.classList.remove('side-menu-auto-expanded', 'side-menu-auto-suppressed', 'side-menu-narrow-expanded');
+        body.classList.remove('side-menu-auto-expanded', 'side-menu-auto-suppressed', 'side-menu-mobile-expanded');
         updateButton();
     }
 
@@ -62,7 +62,7 @@ export function setupSideNavigation() {
         event.preventDefault();
         if (narrowDisplay.matches) {
             // Narrow mode only toggles a temporary drawer; it never changes the persisted tri-state setting.
-            body.classList.toggle('side-menu-narrow-expanded');
+            body.classList.toggle('side-menu-mobile-expanded');
             updateButton();
             return;
         }
@@ -108,9 +108,9 @@ export function setupSideNavigation() {
     menu.addEventListener('click', event => {
         const target = event.target;
         if (target instanceof Element && target.closest('a, button, .extra-information-link')) {
-            if (narrowDisplay.matches && body.classList.contains('side-menu-narrow-expanded')) {
+            if (narrowDisplay.matches && body.classList.contains('side-menu-mobile-expanded')) {
                 // Selecting a narrow-screen item closes the temporary drawer without persisting that state.
-                body.classList.remove('side-menu-narrow-expanded');
+                body.classList.remove('side-menu-mobile-expanded');
                 updateButton();
             }
             else if (!narrowDisplay.matches && DISPLAY_SETTINGS.sideMenuMode === 'auto') {
@@ -123,13 +123,13 @@ export function setupSideNavigation() {
     });
 
     document.addEventListener('click', event => {
-        if (!narrowDisplay.matches || !body.classList.contains('side-menu-narrow-expanded')) {
+        if (!narrowDisplay.matches || !body.classList.contains('side-menu-mobile-expanded')) {
             return;
         }
         const target = event.target;
         if (target instanceof Node && !menu.contains(target) && !toggleArea?.contains(target)) {
             // Clicking outside the temporary narrow drawer closes it without changing the saved wide mode.
-            body.classList.remove('side-menu-narrow-expanded');
+            body.classList.remove('side-menu-mobile-expanded');
             updateButton();
         }
     });

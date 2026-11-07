@@ -31,25 +31,27 @@ body:not(.embed-view) {
       display: none;
     }
 
+    .gear-sheet-table-area, .gear-sheet-table-holder {
+      width: 100%;
+    }
 
-    &.side-menu-mode-hidden {
+    --set-name-col-min-width: 160px;
 
-      gear-plan {
-        &.view-only {
+    gear-plan {
+      &.view-only {
 
-          .gear-sheet-table-holder-outer {
-            padding: 0;
-            margin: 0;
-          }
+        .gear-sheet-table-holder-outer {
+          padding: 0;
+          margin: 0;
+        }
 
-          .gear-sheet-table-area {
-            padding: 0;
-            margin: 0;
-          }
+        .gear-sheet-table-area {
+          padding: 0;
+          margin: 0;
+        }
 
-          .gear-plan-table {
-            --action-col-width: 30px;
-          }
+        .gear-plan-table {
+          --action-col-width: 30px;
 
         }
       }

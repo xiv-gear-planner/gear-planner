@@ -47,7 +47,8 @@ body {
   --standard-border-radius: 5px;
   --optional-border-radius: 0;
   --action-col-width: 73px;
-  --set-name-col-width: ~"min(300px, max(calc(30vw - 100px), 160px))";
+  --set-name-col-min-width: 200px;
+  --set-name-col-max-width: 500px;
   //--item-name-col-width: 300px;
   --item-name-col-width: 100%;
   --item-name-col-max-width: 300px;
@@ -497,10 +498,26 @@ table {
 
       &[col-id="setname"] {
         border-left: none;
+        // CSS doesn't give us a great way to express this.
+        // The idea is that the column should be between 160 and 500 px, but based on the amount of free horizontal
+        // space (i.e. how much space we can take before the table will start to scroll horizontally) rather than the
+        // width of the column contents.
+        max-width: var(--set-name-col-max-width);
+        width: var(--set-name-col-max-width);
+        min-width: var(--set-name-col-min-width);
 
         > div {
           overflow: hidden;
           text-overflow: ellipsis;
+          display: flex;
+          flex-direction: column;
+          min-width: 100%;
+          width: 0;
+
+          >span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
         }
 
         .gear-set-issue-icon {
@@ -711,9 +728,7 @@ table.gear-plan-table {
       //left: calc(var(--action-col-width) + var(--cell-padding-left) + var(--cell-padding-right));
       border-right: var(--standard-border);
       white-space: nowrap;
-      width: var(--set-name-col-width);
-      max-width: var(--set-name-col-width);
-      min-width: var(--set-name-col-width);
+      //width: var(--set-name-col-width);
     }
 
     td:nth-child(3) {
@@ -1398,6 +1413,15 @@ gear-plan {
     border-top: 2px var(--standard-border-part);
     padding-left: var(--editor-sides-padding);
     padding-right: var(--editor-sides-padding);
+  }
+
+  .header-area {
+    display: none;
+  }
+  &.show-header {
+    .header-area {
+      display: initial;
+    }
   }
 }
 
