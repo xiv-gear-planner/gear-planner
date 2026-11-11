@@ -10,7 +10,6 @@ import {pctSpec, PctSim} from "../../caster/pct/pct_sheet_sim";
 import {PctGaugeState} from "../../caster/pct/pct_types";
 import * as Actions from "../../caster/pct/pct_actions";
 import {StarryMuse} from "../../buffs";
-import {Swiftcast} from "../../common/swiftcast";
 
 type PctUse = FinalizedAbility<PctGaugeState>;
 
@@ -59,6 +58,31 @@ const pctSet: CharacterGearSet = makeFakeSet(makeStats(420));
 const SUBTRACTIVE_SPELLS = [Actions.Cyan, Actions.Yellow, Actions.Magenta].map(a => a.name);
 const LIVING_MUSES = [Actions.PomMuse, Actions.WingedMuse, Actions.ClawedMuse, Actions.FangedMuse].map(a => a.name);
 const PORTRAITS = [Actions.Mog, Actions.Madeen].map(a => a.name);
+
+/**
+ * Equip a potion on a fake set.
+ */
+function medicated(set: CharacterGearSet): CharacterGearSet {
+    const medicine = {
+        id: 44165,
+        name: 'Grade 3 Gemdraught of Intelligence',
+        nameTranslation: {
+            asCurrentLang: 'Grade 3 Gemdraught of Intelligence',
+        },
+        ilvl: 730,
+        bonuses: {
+            intelligence: {
+                percentage: 10,
+                max: 461,
+            },
+        },
+    } as unknown as MedicineItem;
+    const copy = makeFakeSet(set.computedStats);
+    Object.defineProperty(copy, 'medicine', {
+        get: () => medicine,
+    });
+    return copy;
+}
 
 async function runSim(totalTime: number, set: CharacterGearSet = pctSet, sim: PctSim = new PctSim()): Promise<PctUse[]> {
     sim.cycleSettings.totalTime = totalTime;
@@ -128,7 +152,7 @@ describe('PCT sim', () => {
             Actions.PolishingHammer,
             Actions.RainbowDrip,
             Actions.Red,
-            Swiftcast,
+            Actions.Swiftcast,
             Actions.Green,
         ].map(a => a.name);
         expect(names(uses).slice(0, expectedOpener.length)).to.deep.equal(expectedOpener);
@@ -177,7 +201,7 @@ describe('PCT sim', () => {
             Actions.PolishingHammer,
             Actions.RainbowDrip,
             Actions.Red,
-            Swiftcast,
+            Actions.Swiftcast,
             Actions.ClawMotif,
             Actions.ClawedMuse,
         ].map(a => a.name);
@@ -193,7 +217,7 @@ describe('PCT sim', () => {
         const starry = usesOf(uses, Actions.StarryMuseAction.name);
         expect(starry.length).to.equal(5);
         for (let i = 1; i < starry.length; i++) {
-            expect(starry[i].usedAt - starry[i - 1].usedAt).to.be.within(120, 121.5);
+            expect(starry[i].usedAt - starry[i - 1].usedAt).to.be.within(120, 121);
         }
 
         // Two Striking Muses per 2 minutes
@@ -249,25 +273,60 @@ describe('PCT sim', () => {
                     const buffed = cycle.after.filter(u => hasBuff(u, StarryMuse.name));
                     const buffedGcds = names(buffed.filter(isGcd));
                     expect(buffedGcds.length).to.equal(9);
-                    // Five aetherhue spells including Star Prism, then the hammer combo and Rainbow Drip
-                    expect(buffedGcds.slice(4)).to.deep.equal([
-                        Actions.StarPrism, Actions.HammerStamp, Actions.HammerBrush, Actions.PolishingHammer, Actions.RainbowDrip,
-                    ].map(a => a.name));
-                    buffedGcds.slice(0, 4).forEach(name => {
-                        expect([...SUBTRACTIVE_SPELLS, Actions.Comet.name]).to.include(name);
-                    });
-                    expect(buffedGcds).to.include(Actions.Comet.name);
+                    const count = (...abilityNames: string[]) => buffedGcds.filter(name => abilityNames.includes(name)).length;
+                    // 2-3 subtractive spells, 1-2 Comets, Star Prism and Rainbow Drip
+                    expect(count(...SUBTRACTIVE_SPELLS)).to.be.within(2, 3);
+                    expect(count(Actions.Comet.name)).to.be.within(1, 2);
+                    expect(count(Actions.StarPrism.name)).to.equal(1);
+                    expect(count(Actions.RainbowDrip.name)).to.equal(1);
+                    // The hammer combo. Hammer Stamp may be used right before the window instead, to line up Starry
+                    // Muse, in which case a Comet or subtractive spell takes its place.
+                    expect(count(Actions.HammerBrush.name)).to.equal(1);
+                    expect(count(Actions.PolishingHammer.name)).to.equal(1);
+                    if (count(Actions.HammerStamp.name) === 0) {
+                        const stamps = usesOf(cycle.before, Actions.HammerStamp.name);
+                        expect(cycle.starry.usedAt - stamps[stamps.length - 1].usedAt).to.be.lessThan(10);
+                    }
                     // A portrait and a Living Muse in every window
                     expect(buffed.filter(u => PORTRAITS.includes(u.ability.name)).length).to.equal(1);
                     expect(buffed.filter(u => LIVING_MUSES.includes(u.ability.name)).length).to.be.at.least(1);
                 });
-                // Holy in White is only used to line things up, never in burst
-                const holy = usesOf(uses, Actions.Holy.name);
-                holy.forEach(u => expect(hasBuff(u, StarryMuse.name)).to.equal(false));
-                expect(holy.length).to.be.lessThan(usesOf(uses, Actions.Comet.name).length);
                 // Madeen is the portrait in most windows
                 const buffedMadeens = usesOf(uses, Actions.Madeen.name).filter(u => hasBuff(u, StarryMuse.name));
                 expect(buffedMadeens.length).to.be.at.least(3);
+            });
+
+            it('only uses Holy in White at the end of the fight', async () => {
+                const uses = await runSim(720, set);
+                usesOf(uses, Actions.Holy.name).forEach(u => expect(u.usedAt).to.be.greaterThan(720 - 30));
+            });
+
+            it('keeps 50 gauge in reserve for the next burst window', async () => {
+                const uses = await runSim(720, set);
+                const starryTimes = usesOf(uses, Actions.StarryMuseAction.name).map(u => u.usedAt);
+                uses.forEach((u, i) => {
+                    if (u.ability.name !== Actions.SubtractivePalette.name || i === 0) {
+                        return;
+                    }
+                    const paletteBefore = uses[i - 1].original.gaugeAfter.palette;
+                    const paletteAfter = u.original.gaugeAfter.palette;
+                    const nextStarry = starryTimes.find(time => time > u.usedAt);
+                    // If this dips into the reserve, then it is the one for the upcoming window
+                    if (paletteAfter < paletteBefore && paletteAfter < 50 && nextStarry !== undefined) {
+                        expect(nextStarry - u.usedAt).to.be.lessThan(24);
+                    }
+                });
+            });
+
+            it('only uses Swiftcast to get a spell into a buff', async () => {
+                const uses = await runSim(720, medicated(set));
+                const swiftcasts = uses.flatMap((u, i) => u.ability.name === Actions.Swiftcast.name ? [i] : []);
+                // The first one is part of the opener
+                swiftcasts.forEach(index => {
+                    const next = uses.slice(index + 1).find(isGcd);
+                    expect(next.original.castTimeFromStart ?? 0).to.equal(0);
+                    expect(hasBuff(next, StarryMuse.name) || hasBuff(next, 'Medicated')).to.equal(true);
+                });
             });
 
             it('never uses Subtractive Palette while it is still active', async () => {
@@ -331,25 +390,7 @@ describe('PCT sim', () => {
     });
 
     it('uses the potion right before the burst window', async () => {
-        const stats = makeStats(420);
-        const set = makeFakeSet(stats);
-        const medicine = {
-            id: 44165,
-            name: 'Grade 3 Gemdraught of Intelligence',
-            nameTranslation: {
-                asCurrentLang: 'Grade 3 Gemdraught of Intelligence',
-            },
-            ilvl: 730,
-            bonuses: {
-                intelligence: {
-                    percentage: 10,
-                    max: 461,
-                },
-            },
-        } as unknown as MedicineItem;
-        Object.defineProperty(set, 'medicine', {
-            get: () => medicine,
-        });
+        const set = medicated(pctSet);
         const uses = await runSim(420, set);
         const potions = uses.filter(u => u.ability.attackType === 'Item');
         // Opener and six minutes

@@ -1,5 +1,6 @@
 import {OriginCdAbility, SharedCdAbility} from "@xivgear/core/sims/sim_types";
 import {StarryMuse} from "@xivgear/sims/buffs";
+import {Swiftcast as BaseSwiftcast} from "@xivgear/sims/common/swiftcast";
 import * as Buffs from "./pct_buffs";
 import * as Consts from "./pct_consts";
 import {PctCreatureMotif, PctGcdAbility, PctOgcdAbility} from "./pct_types";
@@ -17,6 +18,21 @@ import {PctGaugeManager} from "./pct_gauge";
  * Other traits: Enhanced Pictomancy (82, Hyperphantasia), II (86, hammer combo and second Striking Muse charge),
  * III (92, Rainbow Bright), IV (96, third Living Muse charge, Claw and Maw), V (100, Starstruck).
  */
+
+/**
+ * Swiftcast, with the recast reduction from Enhanced Swiftcast (level 94).
+ */
+export const Swiftcast: PctOgcdAbility = {
+    ...BaseSwiftcast,
+    levelModifiers: [
+        {
+            minLevel: 94,
+            cooldown: {
+                time: 40,
+            },
+        },
+    ],
+};
 
 const gainPalette = (gauge: PctGaugeManager) => {
     gauge.palette += 25;

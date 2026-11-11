@@ -1,4 +1,6 @@
 import {Ability, Buff, GcdAbility, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
+import {combineBuffEffects} from "@xivgear/core/sims/sim_utils";
+import {CAST_SNAPSHOT_PRE, CASTER_TAX, STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import {
     AbilityUseResult,
     CycleProcessor,
@@ -11,7 +13,6 @@ import {CharacterGearSet} from "@xivgear/core/gear";
 import {BaseMultiCycleSim} from "@xivgear/sims/processors/sim_processors";
 import {PotionOptions} from "@xivgear/sims/common/medicine";
 import {StarryMuse} from "@xivgear/sims/buffs";
-import {Swiftcast} from "@xivgear/sims/common/swiftcast";
 import {animationLock} from "@xivgear/sims/ability_helpers";
 import {PctGaugeManager} from "./pct_gauge";
 import * as Actions from "./pct_actions";
@@ -45,8 +46,9 @@ Starry Muse window is set up the way The Balance recommends: Subtractive Palette
 the window starts with a hardcast subtractive spell, and nine GCDs are fit inside the buff, with a portrait and a
 Living Muse.
 
-Holy in White is only used to line up Starry Muse or to avoid overcapping the palette gauge, since there is no
-movement to account for.
+50 palette gauge is always kept in reserve for the next window. Holy in White is only used at the end of the fight,
+since there is no movement to account for. Swiftcast is used when it gets a spell into a raid buff or potion which
+it would otherwise miss.
 
 If a potion is enabled, it is used in the opener and again right before each burst window where it is available.`,
     makeNewSimInstance: function (): PctSim {
@@ -107,14 +109,28 @@ const MAX_WEAVES = 2;
 const STARRY_MAX_LEAD = 1.25;
 
 /**
- * How far ahead of the burst window we start planning the exact GCDs leading into it.
+ * How far ahead of the burst window we start planning the exact GCDs leading into it. The further ahead, the more
+ * combinations of GCD lengths there are to choose from, and so the closer Starry Muse can be lined up.
  */
-const ENTRY_HORIZON = 10;
+const ENTRY_HORIZON = 24;
 
 /**
- * Maximum number of GCDs to plan ahead when lining up the burst window.
+ * How many seconds of Starry Muse delay it is considered to be worth to avoid overcapping the palette gauge when
+ * lining up the burst window.
  */
-const MAX_ENTRY_DEPTH = 5;
+const ENTRY_OVERCAP_COST = 1.5;
+
+/**
+ * How many seconds of Starry Muse delay one Holy in White is considered to be worth when lining up the burst
+ * window. Holy in White generates no gauge, so it is only used for this if it makes a real difference.
+ */
+const ENTRY_HOLY_COST = 1;
+
+/**
+ * The longest that Striking Muse can be used ahead of the burst window, if part of the hammer combo is to be
+ * used inside the window. Hammer Time lasts 30 seconds, and the hammers come last in the window.
+ */
+const MAX_STRIKING_LEAD = 13;
 
 /**
  * How far ahead of Starry Muse coming off cooldown the potion is used.
@@ -122,16 +138,12 @@ const MAX_ENTRY_DEPTH = 5;
 const POTION_LEAD = 7;
 
 /**
- * Motifs have a fixed recast.
- */
-const MOTIF_RECAST = 4;
-
-/**
  * The kinds of GCD which can be used while lining up the burst window.
  */
 type EntryAction = 'subtractive' | 'aetherhue' | 'holy' | 'comet' | 'hammer' | 'motif';
 
-const ENTRY_ACTIONS: readonly EntryAction[] = ['subtractive', 'aetherhue', 'holy', 'comet', 'hammer', 'motif'];
+// In order of preference, if they work out equally well
+const ENTRY_ACTIONS: readonly EntryAction[] = ['hammer', 'motif', 'subtractive', 'comet', 'aetherhue', 'holy'];
 
 /**
  * A lightweight copy of the state which matters when lining up the burst window.
@@ -160,6 +172,26 @@ type EntryState = {
      * Motifs which still need to be painted for the window
      */
     motifs: number,
+    /**
+     * Whether one of those is the Hammer Motif. It gets painted first.
+     */
+    hammerMotif: boolean,
+    /**
+     * Whether Striking Muse can be used
+     */
+    striking: boolean,
+    /**
+     * When Striking Muse was used as part of the plan, if it was
+     */
+    strikingAt: number | null,
+};
+
+/**
+ * How long a kind of GCD takes: its recast, and how much of that is spent casting or animation locked.
+ */
+type EntryTiming = {
+    recast: number,
+    lock: number,
 };
 
 type EntryStep = {
@@ -169,9 +201,17 @@ type EntryStep = {
      */
     usedPalette: boolean,
     /**
+     * Whether Striking Muse has to be weaved before this GCD.
+     */
+    usedStriking: boolean,
+    /**
      * Whether the GCD is instant, i.e. leaves room for a double weave.
      */
     instant: boolean,
+    /**
+     * How long there is to weave between the GCD's cast or animation lock and the next GCD.
+     */
+    weaveTime: number,
     cost: number,
 };
 
@@ -184,9 +224,19 @@ type EntryPlan = {
      * Whether Subtractive Palette should be weaved before that GCD.
      */
     paletteBeforeFirst: boolean,
+    /**
+     * Whether Striking Muse should be weaved before that GCD.
+     */
+    strikingBeforeFirst: boolean,
 };
 
 class PctCycleProcessor extends CycleProcessor<PctGaugeManager> {
+
+    /**
+     * If Striking Muse was used as part of the lead-up to a burst window, the time of the GCD it was used before.
+     * In that case, only Hammer Stamp is used before the window, with the rest of the combo inside of it.
+     */
+    burstStrikingAt: number | null = null;
 
     constructor(settings: MultiCycleSettings) {
         super(settings);
@@ -364,16 +414,6 @@ class PctCycleProcessor extends CycleProcessor<PctGaugeManager> {
     }
 
     /**
-     * How many Living Muse charges will be available after the given number of seconds, if none are used.
-     */
-    livingMuseChargesIn(time: number): number {
-        const muse = this.leveled(Actions.PomMuse);
-        const untilCapped = this.cdTracker.statusOf(muse).cappedAt.relative;
-        const missing = Math.ceil(Math.max(0, untilCapped - time) / muse.cooldown.time);
-        return Math.max(0, muse.cooldown.charges - missing);
-    }
-
-    /**
      * Whether we want to use Striking Muse now (assuming the hammer motif is painted). We want one usage in each
      * burst window, and the other roughly a minute later. Outside of that, only use it if we would otherwise
      * overcap charges.
@@ -503,7 +543,7 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
         this.use(cp, Actions.PolishingHammer);
         this.use(cp, Actions.RainbowDrip);
         this.use(cp, Actions.Red);
-        this.use(cp, Swiftcast);
+        this.use(cp, Actions.Swiftcast);
     }
 
     private useStandardOpener(cp: PctCycleProcessor) {
@@ -556,13 +596,14 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
         const gauge = cp.gaugeManager;
         const untilStarry = cp.timeUntilStarry();
         const motifs: GcdAbility[] = [];
-        if (!gauge.starryCanvas) {
-            motifs.push(Actions.StarryMotif);
-        }
+        // The hammer goes first, since that allows Striking Muse to be used in the lead-up to the window.
         if (!gauge.hammerCanvas
             && !cp.hasBuff(Buffs.HammerTimeBuff, cp.gcdDecisionTime)
             && cp.readyWithin(Actions.StrikingMuse, untilStarry + 10)) {
             motifs.push(Actions.HammerMotif);
+        }
+        if (!gauge.starryCanvas) {
+            motifs.push(Actions.StarryMotif);
         }
         if (gauge.creatureCanvas === null && cp.readyWithin(Actions.PomMuse, untilStarry + 10)) {
             motifs.push(Actions.CreatureMotifs[gauge.nextCreature]);
@@ -575,24 +616,27 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
      *
      * @param state The state before the GCD
      * @param action The kind of GCD
-     * @param durations The recast of each kind of GCD
-     * @param canWeavePalette Whether Subtractive Palette can be weaved before this GCD
+     * @param timings The recast and cast/lock time of each kind of GCD
+     * @param canWeave Whether an oGCD (Subtractive Palette or Striking Muse) can be weaved before this GCD
+     * @param strikingCharge Whether Striking Muse has a charge
      * @returns The resulting step, or null if the GCD cannot be used in this state
      */
-    private applyEntryAction(state: EntryState, action: EntryAction, durations: Record<EntryAction, number>,
-                             canWeavePalette: boolean): EntryStep | null {
+    private applyEntryAction(state: EntryState, action: EntryAction, timings: Record<EntryAction, EntryTiming>,
+                             canWeave: boolean, strikingCharge: boolean): EntryStep | null {
+        const timing = timings[action];
         const next: EntryState = {
             ...state,
-            time: state.time + durations[action],
+            time: state.time + timing.recast,
         };
         let usedPalette = false;
+        let usedStriking = false;
         let instant = false;
         let cost = 0;
         switch (action) {
             case 'subtractive':
                 if (next.stacks === 0) {
                     // Needs Subtractive Palette first. Using it with black paint still held would waste that paint.
-                    if (!canWeavePalette || next.palette < SUBTRACTIVE_PALETTE_COST || next.monochrome) {
+                    if (!canWeave || next.palette < SUBTRACTIVE_PALETTE_COST || next.monochrome) {
                         return null;
                     }
                     next.palette -= SUBTRACTIVE_PALETTE_COST;
@@ -617,7 +661,8 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
                     next.palette += 25;
                     if (next.palette > MAX_PALETTE) {
                         next.palette = MAX_PALETTE;
-                        cost += 0.3;
+                        // Wasted gauge
+                        cost += ENTRY_OVERCAP_COST;
                     }
                 }
                 break;
@@ -627,8 +672,7 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
                 }
                 next.paint -= 1;
                 instant = true;
-                // All else being equal, prefer something which generates gauge.
-                cost += 0.03;
+                cost += ENTRY_HOLY_COST;
                 break;
             case 'comet':
                 if (!next.monochrome || next.paint < 1) {
@@ -640,7 +684,14 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
                 break;
             case 'hammer':
                 if (next.hammers < 1) {
-                    return null;
+                    // Needs Striking Muse first. The rest of the combo is then used inside the window.
+                    if (!canWeave || !next.striking) {
+                        return null;
+                    }
+                    next.hammers = 3;
+                    next.striking = false;
+                    next.strikingAt = state.time;
+                    usedStriking = true;
                 }
                 next.hammers -= 1;
                 instant = true;
@@ -650,53 +701,79 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
                     return null;
                 }
                 next.motifs -= 1;
+                if (next.hammerMotif) {
+                    next.hammerMotif = false;
+                    next.striking = strikingCharge;
+                }
                 break;
         }
         return {
             state: next,
             usedPalette: usedPalette,
+            usedStriking: usedStriking,
             instant: instant,
+            weaveTime: timing.recast - timing.lock,
             cost: cost,
         };
     }
 
     /**
-     * How undesirable it is to weave Starry Muse after a GCD which leaves us in the given state. Expressed in
-     * seconds of Starry Muse delay which would be an acceptable price for avoiding it.
+     * How undesirable it is to weave Starry Muse after a GCD which leaves us in the given state. The penalty is
+     * expressed in seconds of Starry Muse delay which would be an acceptable price for avoiding it.
      *
      * The ideal is to have Subtractive Palette stacks left, so that the window starts with a hardcast subtractive
      * spell, as well as a Comet in Black after which the free Subtractive Palette can be weaved.
      *
      * @param state The state after the last GCD before the window
      * @param instant Whether that GCD was instant
+     * @returns The penalty, and whether Subtractive Palette would have to be weaved together with Starry Muse
      */
-    private entryPenalty(state: EntryState, instant: boolean): number {
+    private entryOutcome(state: EntryState, instant: boolean): { penalty: number, doubleWeave: boolean } {
+        const single = (penalty: number) => ({
+            penalty: penalty,
+            doubleWeave: false,
+        });
         let penalty = 0;
+        // Everything for the window has to be painted
         if (state.motifs > 0) {
+            penalty += 20;
+        }
+        // Hammer Time must not run out, so a hammer combo from earlier has to be finished first. If Striking Muse
+        // is used as part of the lead-up, then only Hammer Stamp goes before the window, and the other two go inside
+        // of it. Any fewer, and there would not be enough instant GCDs to fill the window.
+        if (state.strikingAt === null) {
+            if (state.hammers > 0) {
+                penalty += 20;
+            }
+        }
+        else if (state.hammers !== 2 || state.time - state.strikingAt > MAX_STRIKING_LEAD) {
             penalty += 20;
         }
         if (state.stacks > 0) {
             // Will there be black paint once the stacks have been used?
             const castsUntilMagenta = 3 - state.hue;
             if (!state.monochrome || (state.paint < 1 && castsUntilMagenta > state.stacks)) {
-                return penalty + 1.5;
+                return single(penalty + 1.5);
             }
             // Two stacks left means that two Comets and the two strongest subtractive spells fit in the window.
             switch (state.stacks) {
                 case 2:
-                    return penalty;
+                    return single(penalty);
                 case 1:
-                    return penalty + 0.02;
+                    return single(penalty + 0.02);
                 default:
-                    return penalty + 0.04;
+                    return single(penalty + 0.04);
             }
         }
         // After an instant GCD, Subtractive Palette and Starry Muse can be double weaved.
         if (instant && state.palette >= SUBTRACTIVE_PALETTE_COST && !state.monochrome) {
-            return penalty + 0.04;
+            return {
+                penalty: penalty + 0.04,
+                doubleWeave: true,
+            };
         }
         // Otherwise the window has to start with an instant GCD, to weave the free Subtractive Palette.
-        return penalty + 3;
+        return single(penalty + 3);
     }
 
     /**
@@ -720,18 +797,30 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
         }
         // The earliest that the first GCD of the window can start
         const earliest = cp.starryReadyAt() + animationLock(Actions.StarryMuseAction) + WEAVE_MARGIN;
-        if (earliest - start > ENTRY_HORIZON) {
+        if (earliest - cp.gcdDecisionTime > ENTRY_HORIZON) {
             return null;
         }
-        const instantRecast = cp.gcdTime(Actions.Holy);
-        const durations: Record<EntryAction, number> = {
-            subtractive: cp.gcdTime(Actions.Cyan),
-            aetherhue: cp.gcdTime(Actions.Red),
-            holy: instantRecast,
-            comet: cp.gcdTime(Actions.Comet),
-            hammer: instantRecast,
-            motif: MOTIF_RECAST,
+        const noEffects = combineBuffEffects([]);
+        const hardcast = (ability: GcdAbility): EntryTiming => ({
+            recast: cp.gcdTime(ability),
+            lock: cp.castTime(ability, noEffects) + CASTER_TAX,
+        });
+        const instant = (ability: GcdAbility): EntryTiming => ({
+            recast: cp.gcdTime(ability),
+            lock: STANDARD_ANIMATION_LOCK,
+        });
+        const timings: Record<EntryAction, EntryTiming> = {
+            subtractive: hardcast(Actions.Cyan),
+            aetherhue: hardcast(Actions.Red),
+            holy: instant(Actions.Holy),
+            comet: instant(Actions.Comet),
+            hammer: instant(Actions.HammerStamp),
+            motif: hardcast(Actions.StarryMotif),
         };
+        const starryReady = cp.starryReadyAt();
+        const weaveLock = animationLock(Actions.StarryMuseAction);
+        const pendingMotifs = this.pendingBurstMotifs(cp);
+        const strikingCharge = cp.charges(Actions.StrikingMuse) >= 1;
         const initial: EntryState = {
             time: start,
             stacks: cp.buffStacks(Buffs.SubtractivePaletteBuff, start),
@@ -740,39 +829,61 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
             monochrome: gauge.monochrome,
             hue: cp.aetherhue(start),
             hammers: cp.buffStacks(Buffs.HammerTimeBuff, start),
-            motifs: this.pendingBurstMotifs(cp).length,
+            motifs: pendingMotifs.length,
+            hammerMotif: pendingMotifs[0] === Actions.HammerMotif,
+            striking: gauge.hammerCanvas && strikingCharge && !cp.hasBuff(Buffs.HammerTimeBuff, start),
+            strikingAt: cp.hasBuff(Buffs.HammerTimeBuff, start) ? cp.burstStrikingAt : null,
         };
-        const canWeavePaletteNow = cp.canWeave(Actions.SubtractivePalette);
-        const result: { plan: EntryPlan | null, cost: number } = {
-            plan: null,
-            cost: Number.MAX_VALUE,
+        // Cost of a step, including the best way to continue after it
+        const memo = new Map<string, number>();
+        const stepTotal = (step: EntryStep): number => {
+            if (step.state.time >= earliest) {
+                // Starry Muse gets weaved after this GCD. What matters is how soon it can actually be used: as late
+                // as possible in the weave window, but no later than is needed for nine GCDs to fit.
+                const outcome = this.entryOutcome(step.state, step.instant);
+                const weaveTime = step.weaveTime - (outcome.doubleWeave ? weaveLock : 0);
+                const usedAt = Math.max(starryReady, step.state.time - Math.min(weaveTime, STARRY_MAX_LEAD));
+                return step.cost + usedAt + outcome.penalty;
+            }
+            return step.cost + bestFrom(step.state);
         };
-        const search = (state: EntryState, plan: EntryPlan | null, cost: number, depth: number) => {
+        const bestFrom = (state: EntryState): number => {
+            const key = [state.time.toFixed(2), state.stacks, state.palette, state.paint, state.monochrome ? 1 : 0,
+                state.hue, state.hammers, state.motifs, state.hammerMotif ? 1 : 0, state.striking ? 1 : 0,
+                state.strikingAt?.toFixed(2)].join('|');
+            const known = memo.get(key);
+            if (known !== undefined) {
+                return known;
+            }
+            let best = Number.MAX_VALUE;
             for (const action of ENTRY_ACTIONS) {
-                const step = this.applyEntryAction(state, action, durations, depth > 0 || canWeavePaletteNow);
-                if (step === null) {
-                    continue;
-                }
-                const stepPlan: EntryPlan = plan ?? {
-                    first: action,
-                    paletteBeforeFirst: step.usedPalette,
-                };
-                const stepCost = cost + step.cost;
-                if (step.state.time >= earliest) {
-                    // Starry Muse gets weaved after this GCD. The sooner, the better.
-                    const total = step.state.time + stepCost + this.entryPenalty(step.state, step.instant);
-                    if (total < result.cost) {
-                        result.plan = stepPlan;
-                        result.cost = total;
-                    }
-                }
-                else if (depth + 1 < MAX_ENTRY_DEPTH) {
-                    search(step.state, stepPlan, stepCost, depth + 1);
+                const step = this.applyEntryAction(state, action, timings, true, strikingCharge);
+                if (step !== null) {
+                    best = Math.min(best, stepTotal(step));
                 }
             }
+            memo.set(key, best);
+            return best;
         };
-        search(initial, null, 0, 0);
-        return result.plan;
+        const canWeaveNow = cp.canWeave(Actions.SubtractivePalette);
+        let plan: EntryPlan | null = null;
+        let planCost = Number.MAX_VALUE;
+        for (const action of ENTRY_ACTIONS) {
+            const step = this.applyEntryAction(initial, action, timings, canWeaveNow, strikingCharge);
+            if (step === null) {
+                continue;
+            }
+            const total = stepTotal(step);
+            if (total < planCost) {
+                planCost = total;
+                plan = {
+                    first: action,
+                    paletteBeforeFirst: step.usedPalette,
+                    strikingBeforeFirst: step.usedStriking,
+                };
+            }
+        }
+        return plan;
     }
 
     /**
@@ -796,45 +907,35 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
     }
 
     /**
-     * Whether Subtractive Palette can be used from the gauge now, and still have 50 gauge banked again by the time
-     * the next burst window needs it.
+     * Whether Subtractive Palette can be used from the gauge now. 50 gauge is always kept in reserve for the next
+     * burst window, so that the window can start with a hardcast subtractive spell.
      */
     private canSpendPalette(cp: PctCycleProcessor): boolean {
-        const gauge = cp.gaugeManager;
         if (!cp.burstComing()) {
             return true;
         }
-        const untilStarry = cp.timeUntilStarry();
-        const subtractiveRecast = cp.gcdTime(Actions.Cyan);
-        const instantRecast = cp.gcdTime(Actions.Holy);
-        // Three subtractive spells and a Comet in Black
-        let needed = 4 * subtractiveRecast;
-        // Then, getting back to 50 gauge, with a little time to spare for the lead-up to the window. If there
-        // would still be 50 gauge left, then it does not matter if the subtractive spells run into the lead-up.
-        const paletteAfter = gauge.palette - SUBTRACTIVE_PALETTE_COST;
-        if (paletteAfter < SUBTRACTIVE_PALETTE_COST) {
-            needed += cp.rgbCastsToGain(SUBTRACTIVE_PALETTE_COST - paletteAfter) * cp.gcdTime(Actions.Red);
-            needed += subtractiveRecast;
+        return cp.gaugeManager.palette - SUBTRACTIVE_PALETTE_COST >= SUBTRACTIVE_PALETTE_COST;
+    }
+
+    /**
+     * Whether using Swiftcast on the given GCD would let it snapshot a raid buff or potion which it would
+     * otherwise miss, because the buff runs out during the cast.
+     */
+    private swiftcastHelps(cp: PctCycleProcessor, gcd: GcdAbility): boolean {
+        if (gcd.potency === null || !gcd.cast) {
+            return false;
         }
-        // Motifs for the window: Starry Sky, the hammer, and one for each Living Muse charge until then
-        let motifs = 0;
-        if (!gauge.starryCanvas) {
-            motifs++;
+        const start = cp.gcdDecisionTime;
+        // Already instant
+        if (gcd.id === Actions.RainbowDrip.id && cp.hasBuff(Buffs.RainbowBrightBuff, start)) {
+            return false;
         }
-        if (!gauge.hammerCanvas) {
-            motifs++;
-        }
-        motifs += Math.max(0, cp.livingMuseChargesIn(untilStarry) - (gauge.creatureCanvas === null ? 0 : 1));
-        // Hammer combos which will happen before the window
-        let hammers = cp.buffStacks(Buffs.HammerTimeBuff);
-        if (hammers === 0 && cp.wantStrikingMuse()) {
-            hammers = 3;
-            if (gauge.hammerCanvas) {
-                motifs++;
-            }
-        }
-        needed += motifs * MOTIF_RECAST + hammers * instantRecast;
-        return untilStarry > needed;
+        const castTime = cp.castTime(gcd, combineBuffEffects(cp.getActiveBuffsFor(gcd, start)));
+        const snapshot = start + Math.max(0, castTime - CAST_SNAPSHOT_PRE);
+        const buffsAtSnapshot = cp.getActiveBuffs(snapshot);
+        return cp.getActiveBuffs(start)
+            .filter(buff => 'cooldown' in buff || buff.name === 'Medicated')
+            .some(buff => !buffsAtSnapshot.some(other => other.statusId === buff.statusId));
     }
 
     /**
@@ -892,14 +993,23 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
             }
             return null;
         }
-        // Subtractive Palette as part of the lead-up to the burst window
+        // Subtractive Palette or Striking Muse as part of the lead-up to the burst window
         if (plan !== null && plan.paletteBeforeFirst && canWeavePalette) {
             return Actions.SubtractivePalette;
+        }
+        if (plan !== null
+            && plan.strikingBeforeFirst
+            && gauge.hammerCanvas
+            && !cp.hasBuff(Buffs.HammerTimeBuff)
+            && cp.canWeave(Actions.StrikingMuse)) {
+            return Actions.StrikingMuse;
         }
         if (potion && this.wantPotion(cp) && cp.canWeave(potion)) {
             return potion;
         }
-        if (gauge.hammerCanvas && cp.wantStrikingMuse() && cp.canWeave(Actions.StrikingMuse)) {
+        // In the lead-up to the burst window, Striking Muse is only used if the plan calls for it, since it is
+        // about to be used in the window anyway.
+        if (plan === null && gauge.hammerCanvas && cp.wantStrikingMuse() && cp.canWeave(Actions.StrikingMuse)) {
             return Actions.StrikingMuse;
         }
         if (gauge.portrait !== null && cp.wantPortrait() && cp.canWeave(Actions.Mog)) {
@@ -924,13 +1034,17 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
     /**
      * Weave the oGCDs which we want to use and which fit before the next GCD.
      */
-    private useOgcds(cp: PctCycleProcessor, plan: EntryPlan | null) {
+    private useOgcds(cp: PctCycleProcessor, plan: EntryPlan | null): number {
         for (let i = 0; i < MAX_WEAVES; i++) {
             const ability = this.chooseOgcd(cp, plan);
             if (ability === null || this.use(cp, ability) === 'none') {
-                return;
+                return i;
+            }
+            if (ability === Actions.StrikingMuse) {
+                cp.burstStrikingAt = plan !== null && plan.strikingBeforeFirst ? cp.nextGcdTime : null;
             }
         }
+        return MAX_WEAVES;
     }
 
     /**
@@ -970,11 +1084,13 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
         if (cp.hasBuff(Buffs.RainbowBrightBuff, time)) {
             return Actions.RainbowDrip;
         }
-        if (stacks > 0) {
-            return cp.nextAetherhueSpell(true);
-        }
+        // Anything after that is at the very end of the window, where an instant spell is more likely to still
+        // get the buff than a hardcast.
         if (gauge.hasBlackPaint) {
             return Actions.Comet;
+        }
+        if (stacks > 0) {
+            return cp.nextAetherhueSpell(true);
         }
         return cp.nextAetherhueSpell(false);
     }
@@ -1053,11 +1169,16 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
      */
     private rotationStep(cp: PctCycleProcessor) {
         const plan = this.planBurstEntry(cp);
-        this.useOgcds(cp, plan);
+        const weaves = this.useOgcds(cp, plan);
         if (cp.remainingGcdTime <= 0) {
             return;
         }
-        this.use(cp, this.chooseGcd(cp, plan));
+        const gcd = this.chooseGcd(cp, plan);
+        // Swiftcast, if it gets this spell into a buff
+        if (weaves < MAX_WEAVES && cp.canWeave(Actions.Swiftcast) && this.swiftcastHelps(cp, gcd)) {
+            this.use(cp, Actions.Swiftcast);
+        }
+        this.use(cp, gcd);
     }
 
     getRotationsToSimulate(set: CharacterGearSet): Rotation<PctCycleProcessor>[] {
