@@ -1,6 +1,7 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "types": ["mocha", "node", "umami"],
     "strict": false
   },
   "include": [

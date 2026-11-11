@@ -1515,6 +1515,10 @@
         "relicStatMemory": {
           "$ref": "#/definitions/RelicStatMemoryExport",
           "description": "When a relic is de-selected, its former stats are remembered here so that they can be recalled if the relic is selected again. They keys are item IDs, and the values are  {@link  RelicStats } ."
+        },
+        "specialistBonusEnabled": {
+          "description": "Whether the crafter specialist bonus is enabled. Only applicable to DoH.",
+          "type": "boolean"
         }
       },
       "required": [
@@ -1617,6 +1621,10 @@
             "null"
           ]
         },
+        "specialistBonusEnabled": {
+          "description": "Whether the crafter specialist bonus is enabled. Only applicable to DoH.",
+          "type": "boolean"
+        },
         "timestamp": {
           "description": "Unix timestamp",
           "type": "number"
@@ -1677,6 +1685,10 @@
         "relicStatMemory": {
           "$ref": "#/definitions/RelicStatMemoryExport",
           "description": "When a relic is de-selected, its former stats are remembered here so that they can be recalled if the relic is selected again. They keys are item IDs, and the values are  {@link  RelicStats } ."
+        },
+        "specialistBonusEnabled": {
+          "description": "Whether the crafter specialist bonus is enabled. Only applicable to DoH.",
+          "type": "boolean"
         }
       },
       "required": [

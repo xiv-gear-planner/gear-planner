@@ -1,6 +1,7 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "types": ["mocha", "node"],
     "strict": false,
     "strictBindCallApply": true,
     "strictFunctionTypes": true,
