@@ -1,6 +1,6 @@
 import {CALC_HASH, getUrlNavigationPath, HASH_QUERY_PARAM, makeUrlPath} from "@xivgear/core/nav/common_nav";
 
-import {formatTopMenu} from "./base_ui";
+import {formatSideMenu} from "./base_ui";
 import {openMath} from "./mathpage/math_ui";
 import {arrayEq} from "@xivgear/util/array_utils";
 import {cleanUrlParams, getQueryParams} from "@xivgear/common-ui/nav/common_frontend_nav";
@@ -29,7 +29,7 @@ export async function processNav() {
         canonicalUrl.hash = '';
         window.history.replaceState(null, '', canonicalUrl);
     }
-    formatTopMenu(pathParts);
+    formatSideMenu(pathParts);
     console.info("processPath", pathParts);
     if (arrayEq(pathParts, expectedPath)) {
         console.info("Ignoring internal path change");
@@ -99,7 +99,7 @@ export function setPath(...pathParts: string[]) {
     expectedPath = [...pathParts];
     console.log("New path parts", pathParts);
     setUrlPath(pathParts);
-    formatTopMenu(expectedPath);
+    formatSideMenu(expectedPath);
 }
 
 /**

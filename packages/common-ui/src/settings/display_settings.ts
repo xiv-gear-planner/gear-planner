@@ -1,16 +1,29 @@
+import type {SideMenuMode} from "./persistent_settings";
 import {SETTINGS} from "./persistent_settings";
 import {isValidLanguage, Language, setCurrentLanguage} from "@xivgear/i18n/translation";
 import {writeProxy} from "@xivgear/util/proxies";
 
+// This is declared as a custom event since it really works like a resize, so we want to track it
+// in much the same way.
+declare global {
+    interface CustomEventMap {
+        'side-menu-mode-change': Event;
+    }
+
+    interface WindowEventMap extends CustomEventMap {
+    }
+}
 
 const DEFAULT_LIGHT_MODE = false;
 const DEFAULT_MODERN_THEME = true;
+const WIDE_SIDE_MENU_DEFAULT: SideMenuMode = 'auto';
 
 class DisplaySettingsImpl implements DisplaySettings {
     private _lightMode!: boolean;
     private _modernTheme!: boolean;
     private _languageOverride: Language | undefined;
     private _reverseSort!: boolean;
+    private _sideMenuMode!: SideMenuMode;
 
     loadSettings() {
         const settings = SETTINGS;
@@ -18,8 +31,10 @@ class DisplaySettingsImpl implements DisplaySettings {
         this._modernTheme = settings.modernTheme ?? DEFAULT_MODERN_THEME;
         this._languageOverride = settings.languageOverride;
         this._reverseSort = settings.reverseItemSort ?? false;
+        this._sideMenuMode = SETTINGS.wideSideMenuMode ?? WIDE_SIDE_MENU_DEFAULT;
         this.applyLightMode();
         this.applyModernTheme();
+        this.applySideMenuMode();
         this.applyLanguage();
     }
 
@@ -61,6 +76,36 @@ class DisplaySettingsImpl implements DisplaySettings {
     set reverseItemSort(value: boolean) {
         this._reverseSort = value;
         SETTINGS.reverseItemSort = value;
+    }
+
+    /**
+     * Get the display mode for the side menu. It can be 'hidden', 'auto', or 'sticky'. 'hidden' is where you only get
+     * the button in the top left to open the menu. 'auto' is where you have a narrow persistent bar, and hovering over
+     * it expands it such that it displays above the content. Mousing out or clicking an option collapses it.
+     * 'sticky' is where it is indefinitely shown, and does displace the content beneath it.
+     *
+     * On narrow screens, the menu works differently. It starts in 'hidden' mode, but can be opened by clicking the
+     * button. Clicking an item will cause it to hide again.
+     */
+    get sideMenuMode(): SideMenuMode {
+        return this._sideMenuMode;
+    }
+
+    set sideMenuMode(value: SideMenuMode) {
+        this._sideMenuMode = value;
+        SETTINGS.wideSideMenuMode = value;
+        this.applySideMenuMode();
+    }
+
+    private applySideMenuMode() {
+        const body = document.querySelector('body');
+        if (body === null) {
+            throw Error(`Unable to set side menu mode because body was null!`);
+        }
+        body.classList.remove('side-menu-mode-hidden', 'side-menu-mode-auto', 'side-menu-mode-sticky');
+        body.classList.add(`side-menu-mode-${this._sideMenuMode}`);
+        body.classList.remove('side-menu-auto-expanded', 'side-menu-auto-suppressed');
+        window.dispatchEvent(new Event('side-menu-mode-change'));
     }
 
     private applyLightMode() {

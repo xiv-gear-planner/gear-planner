@@ -1,6 +1,8 @@
 import {recordError, recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {arrayEq} from "@xivgear/util/array_utils";
+import {el} from "@xivgear/common-ui/components/util";
+import {elt} from "@xivgear/common-ui/components/templates";
 
 type DisplayCondition = (width: number, height: number) => boolean;
 
@@ -13,14 +15,13 @@ type AdContainerElements = {
      */
     inner: HTMLDivElement,
     /**
-     * Holds the ad and links. Also used for horizontal positioning relative to the outer.
+     * Holds the ad. Also used for horizontal positioning relative to the outer.
      */
     middle: HTMLDivElement,
     /**
      * The outer, determines vertical position.
      */
     outer: HTMLDivElement,
-
     linksHolder: HTMLDivElement,
 }
 
@@ -63,6 +64,7 @@ class ManagedAd {
         this.adSizes = AdSizes.filter(size => size[0] <= outerSize[0] && size[1] <= outerSize[1]);
         this.condition = condition;
         if (adSide === 'left') {
+            // The ad host sits inside the sheet editor, which is itself sized to #content-area.
             this.adContainer.outer.style.left = '0';
             this.adContainer.middle.style.marginLeft = 'calc(-1 * var(--editor-sides-padding))';
             this.adContainer.middle.style.borderRadius = '0 10px 0 0';
@@ -149,14 +151,14 @@ class ManagedAd {
             this.showing = false;
             return;
         }
-        const width = parentElement.clientWidth;
-        const height = parentElement.clientHeight;
+        const contentArea = document.getElementById('content-area');
+        const width = Math.min(parentElement.clientWidth, contentArea?.clientWidth ?? parentElement.clientWidth);
+        const height = Math.min(parentElement.clientHeight, contentArea?.clientHeight ?? parentElement.clientHeight);
         this.showing = this.condition(width, height) && adsEnabled();
     }
 
     addExtras(extraLinks: HTMLElement[]) {
         if (!arrayEq(extraLinks, Array.from(this.adContainer.linksHolder.childNodes))) {
-            console.debug("New children", extraLinks);
             this.adContainer.linksHolder.replaceChildren(...extraLinks);
         }
     }
@@ -177,7 +179,7 @@ function adsEnabled(): boolean {
 
 
 function makeFixedArea(id: string, width: number, height: number, side: AdSide, useMinSize: boolean): AdContainerElements {
-    const inner = document.createElement('div');
+    const inner = el('div');
     if (useMinSize) {
         inner.style.height = `${height}px`;
         inner.style.width = `${width}px`;
@@ -187,15 +189,17 @@ function makeFixedArea(id: string, width: number, height: number, side: AdSide, 
     }
     inner.id = id;
 
-    const middle = document.createElement('div');
-    middle.appendChild(inner);
-    middle.style.position = 'absolute';
-    middle.style.backgroundColor = 'var(--table-bg-color)';
-    middle.style.display = '';
-    middle.style.zIndex = '-99';
-    middle.style.bottom = '0';
-    middle.style.boxSizing = 'content-box';
-    middle.style.marginBottom = 'calc(-1 * var(--editor-bottom-padding))';
+    const middle = el('div', {
+        style: {
+            position: 'absolute',
+            backgroundColor: 'var(--table-bg-color)',
+            display: '',
+            zIndex: '-99',
+            bottom: '0',
+            boxSizing: 'content-box',
+            marginBottom: 'calc(-1 * var(--editor-bottom-padding))',
+        },
+    }, [inner]);
     if (side === 'left') {
         middle.style.padding = '5px 5px 0 0';
     }
@@ -204,25 +208,25 @@ function makeFixedArea(id: string, width: number, height: number, side: AdSide, 
     }
     middle.classList.add('shadow-big');
 
-    const extraLinksHolder = document.createElement('div');
-    extraLinksHolder.style.display = 'contents';
-    middle.appendChild(extraLinksHolder);
+    const linksHolder = el('div', {class: 'left-ad-links-holder'});
+    middle.appendChild(linksHolder);
 
-    const outer = document.createElement('div');
-    outer.style.position = 'sticky';
-    outer.style.left = '0';
-    outer.style.top = '100%';
-    // outer.style.bottom = `${height}px`;
-    outer.style.width = '0';
-    outer.style.height = '0';
-    outer.style.display = 'none';
-    outer.appendChild(middle);
+    const outer = el('div', {
+        style: {
+            position: 'sticky',
+            left: '0',
+            top: '100%',
+            width: '0',
+            height: '0',
+            display: 'none',
+        },
+    }, [middle]);
 
     return {
         inner: inner,
         middle: middle,
         outer: outer,
-        linksHolder: extraLinksHolder,
+        linksHolder: linksHolder,
     };
 }
 
@@ -259,10 +263,10 @@ type AdContainerSize = typeof AdContainerSizes[number];
 let idCounter = 1;
 
 const currentAds: ManagedAd[] = [];
-const extraLinksHolderInner = document.createElement('div');
-extraLinksHolderInner.style.display = 'content';
+const extraLinksHolderInner = el('div', {class: 'extra-links-holder-inner'});
 
 window.addEventListener('resize', recheckAds);
+window.addEventListener('side-menu-mode-change', recheckAds);
 
 window.currentAds = currentAds;
 
@@ -311,7 +315,6 @@ function recheckAds() {
         else {
             fallbackPrivacyArea.style.display = '';
             moveLinksToFallbackPrivacyArea();
-
         }
     });
 }
@@ -479,6 +482,20 @@ export function insertAds(newElement: HTMLElement) {
 
 // set up extra links
 
+const ccpaLink = el('span', {
+    class: 'ccpa-link',
+    attributes: {
+        'data-ccpa-link': '1',
+    },
+});
+ccpaLink.addEventListener('click', () => recordEvent('openCcpa'));
+
+const gdprLink = el('div', {
+    class: 'gdpr-link',
+    id: 'ncmp-consent-link',
+});
+gdprLink.addEventListener('click', () => recordEvent('openGdpr'));
+
 {
     const extraLinks: HTMLElement[] = [];
     {
@@ -486,6 +503,8 @@ export function insertAds(newElement: HTMLElement) {
         const privacyPolicyLink = document.createElement('a');
         privacyPolicyLink.textContent = 'Privacy';
         privacyPolicyLink.href = "#";
+        privacyPolicyLink.setAttribute('aria-label', 'Privacy policy');
+        privacyPolicyLink.title = 'Privacy policy';
         privacyPolicyLink.addEventListener('click', (ev) => {
             ev.preventDefault();
             showPrivacyPolicyModal();
@@ -495,26 +514,146 @@ export function insertAds(newElement: HTMLElement) {
 
     {
         // CCPA-specific link
-        const ccpaLink = document.createElement('span');
-        ccpaLink.setAttribute('data-ccpa-link', '1');
-        ccpaLink.addEventListener('click', () => recordEvent('openCcpa'));
         extraLinks.push(ccpaLink);
     }
 
     {
         // GDPR-specific link
-        const gdprLink = document.createElement('div');
-        gdprLink.id = 'ncmp-consent-link';
-        gdprLink.addEventListener('click', () => recordEvent('openGdpr'));
         extraLinks.push(gdprLink);
     }
     extraLinks.forEach(el => el.classList.add('extra-information-link'));
     extraLinksHolderInner.replaceChildren(...extraLinks);
 }
 
-// Used as a fallback place to display privacy links if there are no ad areas
-// TODO: this should attach at the top-level rather than as part of the editor, so that the privacy link can appear
-// on all pages.
+const navPrivacyLinks = el('div', {
+    id: 'nav-privacy-links',
+    attributes: {
+        'role': 'group',
+        'aria-label': 'Privacy links',
+    },
+});
+
+const navPrivacyPolicyLink = el('a', {
+    classes: ['extra-information-link', 'privacy-link'],
+    props: {
+        href: '#',
+        ariaLabel: 'Privacy policy',
+    },
+    title: 'Privacy Policy',
+    attributes: {
+        formatted: 'true',
+    },
+});
+
+setNavMenuLabel(navPrivacyPolicyLink, 'Privacy');
+// Plumb clicks through to the original link
+navPrivacyPolicyLink.addEventListener('click', event => {
+    event.preventDefault();
+    showPrivacyPolicyModal();
+});
+
+const navCcpaLink = el('a', {
+    classes: ['extra-information-link', 'ccpa-link'],
+    props: {
+        href: '#',
+        ariaLabel: 'California privacy choicces',
+    },
+    title: 'California privacy choices',
+    attributes: {
+        formatted: 'true',
+    },
+});
+navCcpaLink.addEventListener('click', event => {
+    event.preventDefault();
+    clickConsentControl(ccpaLink);
+});
+
+const navGdprLink = el('a', {
+    classes: ['extra-information-link', 'gdpr-link'],
+    props: {
+        href: '#',
+        ariaLabel: 'GDPR Consent',
+    },
+    title: 'GDPR Consent',
+    attributes: {
+        formatted: 'true',
+    },
+});
+navGdprLink.addEventListener('click', event => {
+    event.preventDefault();
+    clickConsentControl(gdprLink);
+});
+
+navPrivacyLinks.append(navPrivacyPolicyLink);
+
+function clickConsentControl(container: HTMLElement) {
+    const control = container.matches('button, a, [role="button"]')
+        ? container
+        : container.querySelector<HTMLElement>('button, a, [role="button"]');
+    (control ?? container).click();
+}
+
+function setNavMenuLabel(link: HTMLAnchorElement, label: string) {
+    link.replaceChildren(elt('span', {class: 'menu-label'})`${label}`);
+}
+
+function updateNavConsentLinks() {
+    const ccpaElement = ccpaLink;
+    const ccpaText = ccpaElement.textContent?.trim();
+    const hasCcpaLink = Boolean(ccpaText) || ccpaElement.children.length > 0;
+    setNavMenuLabel(navCcpaLink, hasCcpaLink ? (ccpaText || 'California privacy choices') : '');
+
+    const gdprElement = gdprLink;
+    const gdprText = gdprElement.textContent?.trim();
+    const hasGdprLink = Boolean(gdprText) || gdprElement.children.length > 0;
+    setNavMenuLabel(navGdprLink, hasGdprLink ? 'GDPR Consent' : '');
+
+    const availableLinks = [
+        navPrivacyPolicyLink,
+        ...(hasCcpaLink ? [navCcpaLink] : []),
+        ...(hasGdprLink ? [navGdprLink] : []),
+    ];
+    const currentLinks = Array.from(navPrivacyLinks.children);
+    if (currentLinks.length !== availableLinks.length || availableLinks.some((link, index) => currentLinks[index] !== link)) {
+        navPrivacyLinks.replaceChildren(...availableLinks);
+    }
+
+    extraLinksHolderInner.querySelectorAll('button').forEach(button => {
+        const visibleLabel = button.textContent?.trim();
+        const ccpaButton = button.closest('[data-ccpa-link]') !== null;
+        const fallbackLabel = ccpaButton ? 'California privacy choices' : 'Privacy consent choices';
+        if (!button.getAttribute('aria-label') && !button.title && !visibleLabel) {
+            button.setAttribute('aria-label', fallbackLabel);
+        }
+        else if (button.getAttribute('aria-label') === fallbackLabel && (visibleLabel || button.title)) {
+            button.removeAttribute('aria-label');
+        }
+    });
+}
+
+export function installNavPrivacyLinks() {
+    const menuSections = document.querySelector('#main-menu-area-inner .menu-link-sections');
+    if (!menuSections) {
+        return;
+    }
+    const externalLinks = menuSections.querySelector('.menu-link-group-external');
+    if (externalLinks) {
+        if (navPrivacyLinks.parentElement !== externalLinks) {
+            const firstExternalLink = Array.from(externalLinks.children).find(child => child instanceof HTMLAnchorElement);
+            externalLinks.insertBefore(navPrivacyLinks, firstExternalLink ?? null);
+        }
+    }
+    else {
+        menuSections.appendChild(navPrivacyLinks);
+    }
+    new MutationObserver(updateNavConsentLinks).observe(extraLinksHolderInner, {
+        subtree: true,
+        childList: true,
+        characterData: true,
+    });
+    updateNavConsentLinks();
+}
+
 const fallbackPrivacyArea = document.createElement('div');
 fallbackPrivacyArea.id = 'fallback-privacy-area';
 fallbackPrivacyArea.classList.add('shadow');
@@ -526,6 +665,8 @@ function moveLinksToFallbackPrivacyArea() {
 export function installFallbackPrivacyArea() {
     moveLinksToFallbackPrivacyArea();
     document.querySelector('body')?.appendChild(fallbackPrivacyArea);
+    window.__cmp?.('addConsentLink');
+    window.__uspapi?.('addLink', 1);
 }
 
 class PrivacyPolicyModal extends BaseModal {
@@ -536,8 +677,11 @@ class PrivacyPolicyModal extends BaseModal {
         this.contentArea.appendChild(element);
         this.contentArea.style.textAlign = 'left';
         this.contentArea.style.padding = '25px';
-        this.inner.style.maxWidth = '1200px';
-        this.inner.style.maxHeight = '900px';
+        this.inner.style.width = '1200px';
+        this.inner.style.height = '900px';
+        this.inner.style.maxWidth = '100vw';
+        this.inner.style.maxHeight = '100vh';
+        this.inner.style.boxSizing = 'border-box';
         this.addCloseButton();
         element.innerHTML = 'Loading...';
         element.style.width = '1200px';

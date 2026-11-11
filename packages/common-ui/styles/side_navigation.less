@@ -1,0 +1,318 @@
+// Defines a thing on the menu, clickable (menu button, menu items) or not (headers).
+.menu-item() {
+  box-sizing: border-box;
+  display: grid;
+  // Keep the icon column fixed even if there's no icon. The label column gets the remaining width.
+  grid-template-columns: 20px minmax(0, 1fr);
+  column-gap: 14px;
+  align-items: center;
+  color: var(--fg-color);
+  text-align: left;
+  white-space: nowrap;
+  padding: 8px 10px;
+
+  // Try to auto-detect iconless entries so their contents end up in the second column automatically.
+  &:has(> span):not(:has(.nav-menu-icon)):not(:has(.svg-glyph)) {
+    .menu-item-iconless();
+  }
+}
+
+// Place an iconless row's span in the same label column used by icon-bearing rows.
+.menu-item-iconless() {
+  > span {
+    grid-column: 2;
+  }
+}
+
+.menu-section-heading {
+  .menu-item();
+  // Headings align their text with link labels, leaving the icon column empty.
+  font-size: 12px;
+  font-weight: bold;
+  opacity: 0.75;
+}
+
+div#show-hide-menu-button-area button#show-hide-menu-button,
+div#main-menu-area-inner a {
+
+  .menu-item();
+
+  border-radius: 6px;
+  transition: background-color 0.1s ease-out;
+
+  .nav-menu-icon, .svg-glyph {
+    grid-column: 1;
+    text-align: center;
+    width: 20px;
+    height: 20px;
+  }
+
+  .menu-label {
+    // Long labels stay within the menu instead of widening it.
+    // All of the current menu labels fit, so this shouldn't be an issue yet, but just in case.
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+
+  &:hover, &.current-page {
+    background-color: var(--table-bg-color-selected);
+  }
+
+  &:active {
+    background-color: var(--button-active-background-color);
+  }
+}
+
+div#main-menu-area-inner a {
+  // Remove underline from <a>
+  text-decoration: none;
+  // Give each item a fixed height
+  min-height: 42px;
+}
+
+div#show-hide-menu-button-area button#show-hide-menu-button {
+  background-color: var(--table-bg-color);
+}
+
+// The toggle stays fixed in its own row above the independently scrolling menu links.
+// This wrapper shares the panel's width so the whole top row remains clickable when expanded.
+div#show-hide-menu-button-area {
+  // Keep it above the rest of the menu items.
+  z-index: var(--zi-show-hide-menu-button-new);
+  // Fix the position
+  position: fixed;
+  width: var(--side-menu-current-width);
+  height: 48px;
+  box-sizing: border-box;
+  padding: 3px 3px;
+  transition: width 0.12s ease-out;
+
+  // Match the link row dimensions and icon alignment so the toggle stays in place during width changes.
+  button#show-hide-menu-button {
+    width: 100%;
+    height: 100%;
+    font: inherit;
+    border: none;
+    cursor: pointer;
+    box-shadow: none;
+
+    .nav-menu-icon {
+      &::after {
+        // Hamburger menu unicode symbol
+        content: "\2630";
+        font-size: 20px;
+        line-height: 1;
+        position: relative;
+        left: 2px;
+      }
+    }
+  }
+}
+
+// In Hidden mode, the entire menu row is replaced with a small standalone hamburger menu button, that you click
+// to open the menu.
+&.side-menu-mode-hidden {
+  div#show-hide-menu-button-area {
+    left: 8px;
+    top: 8px;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+
+    button#show-hide-menu-button {
+      // Keep the hamburger from moving around while the outer menu width collapses.
+      padding: 0 5px;
+      //background-color: var(--table-bg-color);
+      border: var(--standard-border);
+      border-radius: 5px;
+      box-shadow: 0 2px 6px color-mix(in srgb, var(--shadow-color) 45%, transparent);
+    }
+  }
+}
+
+// This fixed shell anchors the sidebar to the viewport instead of letting it scroll with page content.
+// Its width is the clipping window; the menu inside stays at full width in every state.
+div#main-menu-area {
+  position: fixed;
+  z-index: var(--zi-show-hide-menu-button);
+  inset: 0 auto 0 0;
+  width: var(--side-menu-current-width);
+  overflow: hidden;
+  box-shadow: 2px 0 12px color-mix(in srgb, var(--shadow-color) 35%, transparent);
+  transition: width 0.12s ease-out, box-shadow 0.12s ease-out;
+
+  // This element stays at full width all the time. It just gets clipped by the outer element (main-menu-area) when
+  // not expanded. This avoids us having to worry about things like interior re-layouting, wrapping, or other unwanted
+  // behavior further down the tree.
+  div#main-menu-area-inner {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    width: var(--side-menu-expanded-width);
+    height: 100%;
+    // Keep the first 48px for the fixed menu button; only the link sections scroll below it.
+    padding: 48px 4px 12px;
+    background-color: var(--table-bg-color);
+
+    // Keep the scrolling list and its menu groups in column layout.
+    .menu-link-sections,
+    .menu-link-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    // Privacy container is only so that we know where to put those links in the list. It acts as a passthrough.
+    #nav-privacy-links {
+      display: contents;
+    }
+
+    .menu-link-sections {
+      // Scrolling this flex child keeps the button row fixed while allowing long menus to fit.
+      flex: 1 1 auto;
+      justify-content: space-between;
+      min-width: 0;
+      min-height: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      scrollbar-width: thin;
+
+      &::-webkit-scrollbar {
+        width: 4px;
+      }
+    }
+
+    // Keep menu groups narrow enough for their labels and add a small, even gap between rows.
+    .menu-link-group {
+      gap: 5px;
+    }
+
+
+  }
+}
+
+// The menu state classes are applied to the body.
+body {
+  --side-menu-current-width: var(--side-menu-collapsed-width);
+  --side-menu-reserved-width: var(--side-menu-collapsed-width);
+
+  #content-area {
+    width: calc(100% - var(--side-menu-reserved-width));
+    margin-left: var(--side-menu-reserved-width);
+  }
+
+  // Hidden mode displays only the button to open the menu and does not reserve any sidebar width.
+  &.side-menu-mode-hidden {
+    --side-menu-reserved-width: 0;
+
+    div#main-menu-area {
+      //display: none;
+      visibility: hidden;
+    }
+  }
+
+  &.side-menu-mode-sticky {
+    // Sticky keeps labels visible and offsets the page so it sits beside the full-width menu.
+    --side-menu-current-width: var(--side-menu-expanded-width);
+    --side-menu-reserved-width: var(--side-menu-expanded-width);
+  }
+
+  // Auto widens only the clipping window on hover, leaving the full-width menu contents in place.
+  // Its shadow is on the window itself so it remains visible outside the clipped menu contents.
+  &.side-menu-mode-auto {
+
+    &.side-menu-auto-expanded:not(.side-menu-auto-suppressed) {
+      --side-menu-current-width: var(--side-menu-expanded-width);
+
+      div#main-menu-area {
+        // Auto's expanded shell floats above content, so make its shadow stronger than collapsed form.
+        box-shadow: 14px 0 32px color-mix(in srgb, var(--shadow-color) 75%, transparent),
+        3px 0 10px color-mix(in srgb, var(--shadow-color) 45%, transparent);
+      }
+    }
+  }
+
+
+  // Narrow screens use a temporarily-shown side menu instead of the persistent wide-screen tri-state modes.
+  @media (width < 675px) {
+    // The expanded narrow menu fills the viewport at every narrow screen size.
+    --side-menu-expanded-width: 100vw;
+    --mobile-menu-button-height: 48px;
+    --mobile-menu-menu-height: calc(100dvh - var(--mobile-menu-button-height));
+
+    // On narrow screens the menu toggle returns to document flow as a full-width top row. This reserves its height
+    // above the page content, like the previous horizontal menu, and keeps its label visible in every state.
+    &.side-menu-mode-hidden {
+      div#show-hide-menu-button-area {
+        position: relative;
+        left: auto;
+        top: auto;
+        width: 100%;
+        height: var(--mobile-menu-button-height);
+        flex: 0 0 var(--mobile-menu-button-height);
+        padding: 0;
+
+        button#show-hide-menu-button {
+          width: 100%;
+          padding: 8px 10px;
+          border-radius: 0;
+        }
+      }
+    }
+
+
+    // The narrow drawer opens below the in-flow toggle row, so it no longer needs to reserve space for a fixed toggle.
+    div#main-menu-area {
+      top: var(--mobile-menu-button-height);
+      width: 100vw;
+      bottom: auto;
+
+      div#main-menu-area-inner {
+        // Keep the full menu layout behind the clipping shell so its sections do not move during the vertical wipe.
+        height: var(--mobile-menu-menu-height);
+        padding-top: 12px;
+      }
+    }
+
+
+    // Keep the inner menu at full size and animate the outer shell's height to clip it, like the desktop width wipe.
+    &:not(.side-menu-mobile-expanded) {
+      div#main-menu-area {
+        height: 0;
+        visibility: hidden;
+        transition: height 0.12s ease-out, visibility 0s linear 0.12s;
+      }
+    }
+
+    // The narrow drawer reveals downward from beneath the full-width toggle row.
+    &.side-menu-mobile-expanded {
+      --side-menu-current-width: var(--side-menu-expanded-width);
+
+      div#main-menu-area {
+        height: var(--mobile-menu-menu-height);
+        visibility: visible;
+        transition: height 0.12s ease-out, visibility 0s;
+
+      }
+
+      div#show-hide-menu-button-area {
+        #show-hide-menu-button {
+          box-shadow: none;
+        }
+      }
+    }
+  }
+}
+
+// Workaround to make the hamburger button not cover the "Set Name" text
+@media (width >= 675px) {
+  body.side-menu-mode-hidden {
+    gear-plan:not(.show-header) {
+      table.gear-plan-table.view-only {
+        th[col-id="setname"] {
+          padding-left: 30px;
+        }
+      }
+    }
+  }
+}
