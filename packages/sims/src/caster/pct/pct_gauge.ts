@@ -44,9 +44,8 @@ export class PctGaugeManager implements GaugeManager<PctGaugeState> {
     }
 
     set paint(newPaint: number) {
-        if (newPaint > MAX_PAINT) {
-            console.warn(`[PCT Sim] Overcapped paint by ${newPaint - MAX_PAINT}.`);
-        }
+        // Overcapping paint is not a mistake: Holy in White is weaker than what it would replace, so excess paint
+        // is simply lost.
         if (newPaint < 0) {
             console.error(`[PCT Sim] Used paint with no charges available.`);
         }

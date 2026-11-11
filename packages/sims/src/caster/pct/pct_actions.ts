@@ -191,7 +191,7 @@ export const StarPrism: PctGcdAbility = {
     appDelay: 1.25,
 };
 
-// Motifs
+// Motifs. Their cast and recast times are not affected by spell speed.
 
 export const PomMotif: PctGcdAbility = {
     type: 'gcd',
@@ -201,6 +201,7 @@ export const PomMotif: PctGcdAbility = {
     potency: null,
     gcd: 4.0,
     cast: 3.0,
+    fixedGcd: true,
     updateGauge: gauge => gauge.paintCreatureMotif('pom'),
 };
 
@@ -212,6 +213,7 @@ export const WingMotif: PctGcdAbility = {
     potency: null,
     gcd: 4.0,
     cast: 3.0,
+    fixedGcd: true,
     updateGauge: gauge => gauge.paintCreatureMotif('wing'),
 };
 
@@ -223,6 +225,7 @@ export const ClawMotif: PctGcdAbility = {
     potency: null,
     gcd: 4.0,
     cast: 3.0,
+    fixedGcd: true,
     updateGauge: gauge => gauge.paintCreatureMotif('claw'),
 };
 
@@ -234,6 +237,7 @@ export const MawMotif: PctGcdAbility = {
     potency: null,
     gcd: 4.0,
     cast: 3.0,
+    fixedGcd: true,
     updateGauge: gauge => gauge.paintCreatureMotif('maw'),
 };
 
@@ -245,6 +249,7 @@ export const HammerMotif: PctGcdAbility = {
     potency: null,
     gcd: 4.0,
     cast: 3.0,
+    fixedGcd: true,
     updateGauge: gauge => {
         gauge.hammerCanvas = true;
     },
@@ -258,6 +263,7 @@ export const StarryMotif: PctGcdAbility = {
     potency: null,
     gcd: 4.0,
     cast: 3.0,
+    fixedGcd: true,
     updateGauge: gauge => {
         gauge.starryCanvas = true;
     },

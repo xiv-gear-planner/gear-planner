@@ -26,6 +26,10 @@ export const HammerTimeBuff: Buff = {
     statusId: Consts.HammerTimeStatusID,
 };
 
+/**
+ * Makes the next Rainbow Drip instant. The reduced recast depends on spell speed in a non-standard way, so it is
+ * applied by the cycle processor, which has access to the stats.
+ */
 export const RainbowBrightBuff: Buff = {
     name: "Rainbow Bright",
     duration: 30,
@@ -37,7 +41,6 @@ export const RainbowBrightBuff: Buff = {
         controller.removeSelf();
         return {
             ...ability,
-            gcd: 2.5,
             cast: 0,
         };
     },

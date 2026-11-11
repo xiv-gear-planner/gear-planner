@@ -1,7 +1,7 @@
 import {describe, it} from "mocha";
 import {expect} from "chai";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {JobMultipliers, RawStats} from "@xivgear/xivmath/geartypes";
+import {ComputedSetStats, JobMultipliers, MedicineItem, RawStats} from "@xivgear/xivmath/geartypes";
 import {getClassJobStats, getLevelStats, getRaceStats} from "@xivgear/xivmath/xivconstants";
 import {finalizeStats} from "@xivgear/xivmath/xivstats";
 import {makeFakeSet} from "@xivgear/core/test/test_utils";
@@ -10,6 +10,9 @@ import {pctSpec, PctSim} from "../../caster/pct/pct_sheet_sim";
 import {PctGaugeState} from "../../caster/pct/pct_types";
 import * as Actions from "../../caster/pct/pct_actions";
 import {StarryMuse} from "../../buffs";
+import {Swiftcast} from "../../common/swiftcast";
+
+type PctUse = FinalizedAbility<PctGaugeState>;
 
 const jobStatMultipliers: JobMultipliers = {
     dexterity: 100,
@@ -20,39 +23,76 @@ const jobStatMultipliers: JobMultipliers = {
     vitality: 100,
 };
 
-// Stats roughly in line with a 7.2 BiS set (without party bonus)
-const rawStats = {
-    crit: 3144,
-    determination: 2159,
-    dexterity: 440,
-    dhit: 1646,
-    hp: 0,
-    intelligence: 5053,
-    mind: 440,
-    piety: 440,
-    skillspeed: 420,
-    spellspeed: 420,
-    strength: 440,
-    tenacity: 420,
-    vitality: 4119,
-    wdMag: 146,
-    wdPhys: 146,
-    weaponDelay: 2.80,
-};
-
-const stats = finalizeStats(new RawStats(rawStats), {}, 100, getLevelStats(100), 'PCT', {
-    ...getClassJobStats('PCT'),
-    jobStatMultipliers: jobStatMultipliers,
-}, 5, getRaceStats("Wildwood"));
-
-const pctSet: CharacterGearSet = makeFakeSet(stats);
-
-function abilityUses(result: {abilitiesUsed: readonly FinalizedAbility<PctGaugeState>[]}): FinalizedAbility<PctGaugeState>[] {
-    return [...result.abilitiesUsed];
+/**
+ * Stats roughly in line with a 7.2 BiS set (without party bonus), with the given amount of spell speed.
+ */
+function makeStats(spellspeed: number): ComputedSetStats {
+    const rawStats = {
+        crit: 3144,
+        determination: 2159,
+        dexterity: 440,
+        dhit: 1646,
+        hp: 0,
+        intelligence: 5053,
+        mind: 440,
+        piety: 440,
+        skillspeed: 420,
+        spellspeed: spellspeed,
+        strength: 440,
+        tenacity: 420,
+        vitality: 4119,
+        wdMag: 146,
+        wdPhys: 146,
+        weaponDelay: 2.80,
+    };
+    return finalizeStats(new RawStats(rawStats), {}, 100, getLevelStats(100), 'PCT', {
+        ...getClassJobStats('PCT'),
+        jobStatMultipliers: jobStatMultipliers,
+    }, 5, getRaceStats("Wildwood"));
 }
 
-function usesOf(uses: FinalizedAbility<PctGaugeState>[], name: string): FinalizedAbility<PctGaugeState>[] {
+// 2.50 and 2.38 GCD
+const SPELL_SPEEDS = [420, 1400];
+
+const pctSet: CharacterGearSet = makeFakeSet(makeStats(420));
+
+const SUBTRACTIVE_SPELLS = [Actions.Cyan, Actions.Yellow, Actions.Magenta].map(a => a.name);
+const LIVING_MUSES = [Actions.PomMuse, Actions.WingedMuse, Actions.ClawedMuse, Actions.FangedMuse].map(a => a.name);
+const PORTRAITS = [Actions.Mog, Actions.Madeen].map(a => a.name);
+
+async function runSim(totalTime: number, set: CharacterGearSet = pctSet, sim: PctSim = new PctSim()): Promise<PctUse[]> {
+    sim.cycleSettings.totalTime = totalTime;
+    const result = await sim.simulate(set);
+    expect(result.mainDpsResult).to.be.greaterThan(0);
+    return [...result.best.abilitiesUsed] as PctUse[];
+}
+
+function usesOf(uses: PctUse[], name: string): PctUse[] {
     return uses.filter(u => u.ability.name === name);
+}
+
+function names(uses: PctUse[]): string[] {
+    return uses.map(u => u.ability.name);
+}
+
+function hasBuff(use: PctUse, buffName: string): boolean {
+    return use.buffs.some(b => b.name === buffName);
+}
+
+function isGcd(use: PctUse): boolean {
+    return use.ability.type === 'gcd';
+}
+
+/**
+ * Everything used after each Starry Muse and before the next one.
+ */
+function starryCycles(uses: PctUse[]): { starry: PctUse, before: PctUse[], after: PctUse[] }[] {
+    const starryIndices = uses.flatMap((u, i) => u.ability.name === Actions.StarryMuseAction.name ? [i] : []);
+    return starryIndices.map((index, i) => ({
+        starry: uses[index],
+        before: uses.slice(0, index),
+        after: uses.slice(index + 1, starryIndices[i + 1] ?? uses.length),
+    }));
 }
 
 describe('PCT sim', () => {
@@ -65,12 +105,7 @@ describe('PCT sim', () => {
     });
 
     it('follows the 2nd GCD Starry opener', async () => {
-        const sim = new PctSim();
-        sim.cycleSettings.totalTime = 120;
-        const result = await sim.simulate(pctSet);
-        expect(result.mainDpsResult).to.be.greaterThan(0);
-        const uses = abilityUses(result.best);
-        const names = uses.map(u => u.ability.name);
+        const uses = await runSim(120);
         const expectedOpener = [
             Actions.StarryMotif,
             Actions.HammerMotif,
@@ -80,8 +115,8 @@ describe('PCT sim', () => {
             Actions.StrikingMuse,
             Actions.WingMotif,
             Actions.StarryMuseAction,
-            Actions.SubtractivePalette,
             Actions.HammerStamp,
+            Actions.SubtractivePalette,
             Actions.Cyan,
             Actions.Yellow,
             Actions.Magenta,
@@ -92,8 +127,11 @@ describe('PCT sim', () => {
             Actions.HammerBrush,
             Actions.PolishingHammer,
             Actions.RainbowDrip,
+            Actions.Red,
+            Swiftcast,
+            Actions.Green,
         ].map(a => a.name);
-        expect(names.slice(0, expectedOpener.length)).to.deep.equal(expectedOpener);
+        expect(names(uses).slice(0, expectedOpener.length)).to.deep.equal(expectedOpener);
         // Pre-pull actions are at negative times, Rainbow Drip lands on the pull
         const firstDrip = usesOf(uses, Actions.RainbowDrip.name)[0];
         expect(firstDrip.usedAt).to.be.lessThan(0);
@@ -101,23 +139,61 @@ describe('PCT sim', () => {
         // The second Rainbow Drip in the opener is the instant one from Rainbow Bright, inside the Starry window
         const secondDrip = usesOf(uses, Actions.RainbowDrip.name)[1];
         expect(secondDrip.original.castTimeFromStart ?? 0).to.equal(0);
-        expect(secondDrip.buffs.map(b => b.name)).to.include(StarryMuse.name);
-        // The Comet in the opener consumed the black paint, so no paint should have been overcapped or gone negative
+        expect(hasBuff(secondDrip, StarryMuse.name)).to.equal(true);
+        // Nine GCDs fit inside Starry Muse
+        const buffedGcds = uses.filter(u => isGcd(u) && hasBuff(u, StarryMuse.name));
+        expect(names(buffedGcds)).to.deep.equal(expectedOpener.slice(8, 20).filter(name => ![
+            Actions.SubtractivePalette.name, Actions.WingedMuse.name, Actions.Mog.name,
+        ].includes(name)));
+        // The Comet in the opener consumed the black paint
         const comet = usesOf(uses, Actions.Comet.name)[0];
         expect(comet.original.gaugeAfter.monochrome).to.equal(false);
     });
 
-    it('keeps the major cooldowns rolling over a long fight', async () => {
+    it('supports the 3rd GCD opener', async () => {
         const sim = new PctSim();
-        sim.cycleSettings.totalTime = 600;
-        const result = await sim.simulate(pctSet);
-        const uses = abilityUses(result.best);
+        sim.settings.opener = '3rd-gcd';
+        const uses = await runSim(120, pctSet, sim);
+        const expectedOpener = [
+            Actions.StarryMotif,
+            Actions.HammerMotif,
+            Actions.PomMotif,
+            Actions.RainbowDrip,
+            Actions.StrikingMuse,
+            Actions.Holy,
+            Actions.PomMuse,
+            Actions.WingMotif,
+            Actions.StarryMuseAction,
+            Actions.HammerStamp,
+            Actions.SubtractivePalette,
+            Actions.Cyan,
+            Actions.Yellow,
+            Actions.Magenta,
+            Actions.Comet,
+            Actions.WingedMuse,
+            Actions.Mog,
+            Actions.StarPrism,
+            Actions.HammerBrush,
+            Actions.PolishingHammer,
+            Actions.RainbowDrip,
+            Actions.Red,
+            Swiftcast,
+            Actions.ClawMotif,
+            Actions.ClawedMuse,
+        ].map(a => a.name);
+        expect(names(uses).slice(0, expectedOpener.length)).to.deep.equal(expectedOpener);
+        // Striking Muse cannot be used before the pull
+        expect(usesOf(uses, Actions.StrikingMuse.name)[0].usedAt).to.be.at.least(0);
+    });
 
-        // Starry Muse every ~2 minutes
+    it('keeps the major cooldowns rolling over a long fight', async () => {
+        const uses = await runSim(600);
+
+        // Starry Muse every 2 minutes, with very little drift
         const starry = usesOf(uses, Actions.StarryMuseAction.name);
         expect(starry.length).to.equal(5);
         for (let i = 1; i < starry.length; i++) {
-            expect(starry[i].usedAt - starry[i - 1].usedAt).to.be.closeTo(120, 8);
+            expect(starry[i].usedAt - starry[i - 1].usedAt).to.be.within(120, 121.5);
         }
 
         // Two Striking Muses per 2 minutes
@@ -128,12 +204,11 @@ describe('PCT sim', () => {
         expect(usesOf(uses, Actions.PolishingHammer.name).length).to.equal(striking.length);
 
         // Three Living Muses per 2 minutes
-        const muses = uses.filter(u => [Actions.PomMuse, Actions.WingedMuse, Actions.ClawedMuse, Actions.FangedMuse]
-            .some(m => m.name === u.ability.name));
+        const muses = uses.filter(u => LIVING_MUSES.includes(u.ability.name));
         expect(muses.length).to.be.greaterThanOrEqual(14);
         // Every portrait gets used
-        const portraits = usesOf(uses, Actions.Mog.name).length + usesOf(uses, Actions.Madeen.name).length;
-        expect(portraits).to.be.greaterThanOrEqual(Math.floor(muses.length / 2) - 1);
+        const portraits = uses.filter(u => PORTRAITS.includes(u.ability.name));
+        expect(portraits.length).to.be.greaterThanOrEqual(Math.floor(muses.length / 2) - 1);
 
         // Rainbow Drip is only ever hardcast pre-pull
         const drips = usesOf(uses, Actions.RainbowDrip.name);
@@ -149,27 +224,143 @@ describe('PCT sim', () => {
             expect(gauge.palette).to.be.within(0, 100);
             expect(gauge.paint).to.be.within(0, 5);
         });
-
-        // Opener-level DPS sanity check: well above a pure RGB spam and below any absurd value
-        expect(result.mainDpsResult).to.be.greaterThan(10000);
-        expect(result.mainDpsResult).to.be.lessThan(30000);
     });
 
-    it('supports the 3rd GCD opener', async () => {
-        const sim = new PctSim();
-        sim.settings.opener = '3rd-gcd';
-        sim.cycleSettings.totalTime = 120;
-        const result = await sim.simulate(pctSet);
-        const names = abilityUses(result.best).map(u => u.ability.name);
-        expect(names.slice(0, 7)).to.deep.equal([
-            Actions.StarryMotif,
-            Actions.HammerMotif,
-            Actions.PomMotif,
-            Actions.RainbowDrip,
-            Actions.StrikingMuse,
-            Actions.Holy,
-            Actions.PomMuse,
-        ].map(a => a.name));
-        expect(result.mainDpsResult).to.be.greaterThan(0);
+    SPELL_SPEEDS.forEach(spellspeed => {
+        describe(`with ${spellspeed} spell speed`, () => {
+            const stats = makeStats(spellspeed);
+            const set = makeFakeSet(stats);
+
+            it('sets up every burst window properly', async () => {
+                const uses = await runSim(720, set);
+                const cycles = starryCycles(uses);
+                expect(cycles.length).to.equal(6);
+                // The opener is tested separately
+                cycles.slice(1).forEach(cycle => {
+                    const gcdsAfter = cycle.after.filter(isGcd);
+                    // Subtractive Palette is used before Starry Muse, so that the window starts with a hardcast
+                    // subtractive spell
+                    const first = gcdsAfter[0];
+                    expect(SUBTRACTIVE_SPELLS).to.include(first.ability.name);
+                    expect(first.original.castTimeFromStart).to.be.greaterThan(0);
+                    expect(hasBuff(first, StarryMuse.name)).to.equal(true);
+                    // Starry Muse is weaved late enough for nine GCDs to fit
+                    expect(first.usedAt - cycle.starry.usedAt).to.be.at.most(1.25 + 0.001);
+                    const buffed = cycle.after.filter(u => hasBuff(u, StarryMuse.name));
+                    const buffedGcds = names(buffed.filter(isGcd));
+                    expect(buffedGcds.length).to.equal(9);
+                    // Five aetherhue spells including Star Prism, then the hammer combo and Rainbow Drip
+                    expect(buffedGcds.slice(4)).to.deep.equal([
+                        Actions.StarPrism, Actions.HammerStamp, Actions.HammerBrush, Actions.PolishingHammer, Actions.RainbowDrip,
+                    ].map(a => a.name));
+                    buffedGcds.slice(0, 4).forEach(name => {
+                        expect([...SUBTRACTIVE_SPELLS, Actions.Comet.name]).to.include(name);
+                    });
+                    expect(buffedGcds).to.include(Actions.Comet.name);
+                    // A portrait and a Living Muse in every window
+                    expect(buffed.filter(u => PORTRAITS.includes(u.ability.name)).length).to.equal(1);
+                    expect(buffed.filter(u => LIVING_MUSES.includes(u.ability.name)).length).to.be.at.least(1);
+                });
+                // Holy in White is only used to line things up, never in burst
+                const holy = usesOf(uses, Actions.Holy.name);
+                holy.forEach(u => expect(hasBuff(u, StarryMuse.name)).to.equal(false));
+                expect(holy.length).to.be.lessThan(usesOf(uses, Actions.Comet.name).length);
+                // Madeen is the portrait in most windows
+                const buffedMadeens = usesOf(uses, Actions.Madeen.name).filter(u => hasBuff(u, StarryMuse.name));
+                expect(buffedMadeens.length).to.be.at.least(3);
+            });
+
+            it('never uses Subtractive Palette while it is still active', async () => {
+                const uses = await runSim(720, set);
+                let stacks = 0;
+                uses.forEach(u => {
+                    if (u.ability.name === Actions.SubtractivePalette.name) {
+                        expect(stacks).to.equal(0);
+                        stacks = 3;
+                    }
+                    else if (SUBTRACTIVE_SPELLS.includes(u.ability.name)) {
+                        expect(stacks).to.be.greaterThan(0);
+                        stacks--;
+                    }
+                    else if ([Actions.Red, Actions.Green, Actions.Blue].some(a => a.name === u.ability.name)) {
+                        // RGB cannot be cast under Subtractive Palette
+                        expect(stacks).to.equal(0);
+                    }
+                });
+            });
+
+            it('does not weave more than is realistically possible', async () => {
+                const uses = await runSim(720, set);
+                const inCombat = uses.filter(u => u.usedAt > 0);
+                const gcds = inCombat.filter(isGcd);
+                for (let i = 0; i < gcds.length - 1; i++) {
+                    const gcd = gcds[i];
+                    const weaves = inCombat.filter(u => !isGcd(u) && u.usedAt > gcd.usedAt && u.usedAt < gcds[i + 1].usedAt);
+                    expect(weaves.length).to.be.at.most(2);
+                    // Only a single weave after a hasted Star Prism
+                    if (gcd.ability.name === Actions.StarPrism.name && gcd.combinedEffects.haste > 0) {
+                        expect(weaves.length).to.be.at.most(1);
+                    }
+                    // No GCD clipping
+                    const recast = gcd.original.totalTimeTaken;
+                    expect(gcds[i + 1].usedAt - gcd.usedAt).to.be.closeTo(recast, 0.001);
+                }
+            });
+
+            it('uses fixed recasts for motifs and the correct recast for the instant Rainbow Drip', async () => {
+                const uses = await runSim(300, set);
+                const gcds = uses.filter(isGcd);
+                gcds.forEach((gcd, i) => {
+                    const next = gcds[i + 1];
+                    if (next === undefined) {
+                        return;
+                    }
+                    const interval = next.usedAt - gcd.usedAt;
+                    if (gcd.ability.name.endsWith('Motif') && gcd.original.castTimeFromStart > 0) {
+                        // Motifs are not affected by spell speed
+                        expect(gcd.original.castTimeFromStart).to.be.closeTo(3, 0.001);
+                        expect(interval).to.be.closeTo(4, 0.001);
+                    }
+                    else if (gcd.ability.name === Actions.RainbowDrip.name && gcd.usedAt > 0) {
+                        // The recast of Rainbow Drip, minus 3.5 seconds
+                        expect(interval).to.be.closeTo(stats.gcdMag(6) - 3.5, 0.001);
+                    }
+                });
+            });
+        });
+    });
+
+    it('uses the potion right before the burst window', async () => {
+        const stats = makeStats(420);
+        const set = makeFakeSet(stats);
+        const medicine = {
+            id: 44165,
+            name: 'Grade 3 Gemdraught of Intelligence',
+            nameTranslation: {
+                asCurrentLang: 'Grade 3 Gemdraught of Intelligence',
+            },
+            ilvl: 730,
+            bonuses: {
+                intelligence: {
+                    percentage: 10,
+                    max: 461,
+                },
+            },
+        } as unknown as MedicineItem;
+        Object.defineProperty(set, 'medicine', {
+            get: () => medicine,
+        });
+        const uses = await runSim(420, set);
+        const potions = uses.filter(u => u.ability.attackType === 'Item');
+        // Opener and six minutes
+        expect(potions.length).to.equal(2);
+        expect(potions[0].usedAt).to.be.lessThan(1);
+        const sixMinutes = starryCycles(uses)[3];
+        expect(sixMinutes.starry.usedAt).to.be.within(360, 372);
+        expect(potions[1].usedAt).to.be.within(sixMinutes.starry.usedAt - 8, sixMinutes.starry.usedAt);
+        // It covers the whole window
+        const buffed = sixMinutes.after.filter(u => hasBuff(u, StarryMuse.name));
+        expect(buffed.filter(isGcd).length).to.equal(9);
+        buffed.forEach(u => expect(hasBuff(u, 'Medicated')).to.equal(true));
     });
 });
