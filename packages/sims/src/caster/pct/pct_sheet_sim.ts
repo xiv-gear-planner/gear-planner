@@ -46,9 +46,9 @@ Starry Muse window is set up the way The Balance recommends: Subtractive Palette
 the window starts with a hardcast subtractive spell, and nine GCDs are fit inside the buff, with a portrait and a
 Living Muse.
 
-50 palette gauge is always kept in reserve for the next window. Holy in White is only used at the end of the fight,
-since there is no movement to account for. Swiftcast is used when it gets a spell into a raid buff or potion which
-it would otherwise miss.
+50 palette gauge is always kept in reserve for the next window. Since there is no movement to account for, Holy in
+White is only used at the end of the fight, or occasionally to line up Starry Muse. Swiftcast is used when it gets a
+spell into a raid buff or potion which it would otherwise miss.
 
 If a potion is enabled, it is used in the opener and again right before each burst window where it is available.`,
     makeNewSimInstance: function (): PctSim {
@@ -124,13 +124,7 @@ const ENTRY_OVERCAP_COST = 1.5;
  * How many seconds of Starry Muse delay one Holy in White is considered to be worth when lining up the burst
  * window. Holy in White generates no gauge, so it is only used for this if it makes a real difference.
  */
-const ENTRY_HOLY_COST = 1;
-
-/**
- * The longest that Striking Muse can be used ahead of the burst window, if part of the hammer combo is to be
- * used inside the window. Hammer Time lasts 30 seconds, and the hammers come last in the window.
- */
-const MAX_STRIKING_LEAD = 13;
+const ENTRY_HOLY_COST = 0.4;
 
 /**
  * How far ahead of Starry Muse coming off cooldown the potion is used.
@@ -172,18 +166,6 @@ type EntryState = {
      * Motifs which still need to be painted for the window
      */
     motifs: number,
-    /**
-     * Whether one of those is the Hammer Motif. It gets painted first.
-     */
-    hammerMotif: boolean,
-    /**
-     * Whether Striking Muse can be used
-     */
-    striking: boolean,
-    /**
-     * When Striking Muse was used as part of the plan, if it was
-     */
-    strikingAt: number | null,
 };
 
 /**
@@ -200,10 +182,6 @@ type EntryStep = {
      * Whether Subtractive Palette has to be weaved before this GCD.
      */
     usedPalette: boolean,
-    /**
-     * Whether Striking Muse has to be weaved before this GCD.
-     */
-    usedStriking: boolean,
     /**
      * Whether the GCD is instant, i.e. leaves room for a double weave.
      */
@@ -224,19 +202,9 @@ type EntryPlan = {
      * Whether Subtractive Palette should be weaved before that GCD.
      */
     paletteBeforeFirst: boolean,
-    /**
-     * Whether Striking Muse should be weaved before that GCD.
-     */
-    strikingBeforeFirst: boolean,
 };
 
 class PctCycleProcessor extends CycleProcessor<PctGaugeManager> {
-
-    /**
-     * If Striking Muse was used as part of the lead-up to a burst window, the time of the GCD it was used before.
-     * In that case, only Hammer Stamp is used before the window, with the rest of the combo inside of it.
-     */
-    burstStrikingAt: number | null = null;
 
     constructor(settings: MultiCycleSettings) {
         super(settings);
@@ -596,7 +564,6 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
         const gauge = cp.gaugeManager;
         const untilStarry = cp.timeUntilStarry();
         const motifs: GcdAbility[] = [];
-        // The hammer goes first, since that allows Striking Muse to be used in the lead-up to the window.
         if (!gauge.hammerCanvas
             && !cp.hasBuff(Buffs.HammerTimeBuff, cp.gcdDecisionTime)
             && cp.readyWithin(Actions.StrikingMuse, untilStarry + 10)) {
@@ -617,26 +584,24 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
      * @param state The state before the GCD
      * @param action The kind of GCD
      * @param timings The recast and cast/lock time of each kind of GCD
-     * @param canWeave Whether an oGCD (Subtractive Palette or Striking Muse) can be weaved before this GCD
-     * @param strikingCharge Whether Striking Muse has a charge
+     * @param canWeavePalette Whether Subtractive Palette can be weaved before this GCD
      * @returns The resulting step, or null if the GCD cannot be used in this state
      */
     private applyEntryAction(state: EntryState, action: EntryAction, timings: Record<EntryAction, EntryTiming>,
-                             canWeave: boolean, strikingCharge: boolean): EntryStep | null {
+                             canWeavePalette: boolean): EntryStep | null {
         const timing = timings[action];
         const next: EntryState = {
             ...state,
             time: state.time + timing.recast,
         };
         let usedPalette = false;
-        let usedStriking = false;
         let instant = false;
         let cost = 0;
         switch (action) {
             case 'subtractive':
                 if (next.stacks === 0) {
                     // Needs Subtractive Palette first. Using it with black paint still held would waste that paint.
-                    if (!canWeave || next.palette < SUBTRACTIVE_PALETTE_COST || next.monochrome) {
+                    if (!canWeavePalette || next.palette < SUBTRACTIVE_PALETTE_COST || next.monochrome) {
                         return null;
                     }
                     next.palette -= SUBTRACTIVE_PALETTE_COST;
@@ -684,14 +649,7 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
                 break;
             case 'hammer':
                 if (next.hammers < 1) {
-                    // Needs Striking Muse first. The rest of the combo is then used inside the window.
-                    if (!canWeave || !next.striking) {
-                        return null;
-                    }
-                    next.hammers = 3;
-                    next.striking = false;
-                    next.strikingAt = state.time;
-                    usedStriking = true;
+                    return null;
                 }
                 next.hammers -= 1;
                 instant = true;
@@ -701,16 +659,11 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
                     return null;
                 }
                 next.motifs -= 1;
-                if (next.hammerMotif) {
-                    next.hammerMotif = false;
-                    next.striking = strikingCharge;
-                }
                 break;
         }
         return {
             state: next,
             usedPalette: usedPalette,
-            usedStriking: usedStriking,
             instant: instant,
             weaveTime: timing.recast - timing.lock,
             cost: cost,
@@ -734,19 +687,9 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
             doubleWeave: false,
         });
         let penalty = 0;
-        // Everything for the window has to be painted
-        if (state.motifs > 0) {
-            penalty += 20;
-        }
-        // Hammer Time must not run out, so a hammer combo from earlier has to be finished first. If Striking Muse
-        // is used as part of the lead-up, then only Hammer Stamp goes before the window, and the other two go inside
-        // of it. Any fewer, and there would not be enough instant GCDs to fill the window.
-        if (state.strikingAt === null) {
-            if (state.hammers > 0) {
-                penalty += 20;
-            }
-        }
-        else if (state.hammers !== 2 || state.time - state.strikingAt > MAX_STRIKING_LEAD) {
+        // Everything for the window has to be painted, and a hammer combo from earlier has to be finished first:
+        // Striking Muse is used again inside the window, so that the whole combo is buffed.
+        if (state.motifs > 0 || state.hammers > 0) {
             penalty += 20;
         }
         if (state.stacks > 0) {
@@ -819,8 +762,6 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
         };
         const starryReady = cp.starryReadyAt();
         const weaveLock = animationLock(Actions.StarryMuseAction);
-        const pendingMotifs = this.pendingBurstMotifs(cp);
-        const strikingCharge = cp.charges(Actions.StrikingMuse) >= 1;
         const initial: EntryState = {
             time: start,
             stacks: cp.buffStacks(Buffs.SubtractivePaletteBuff, start),
@@ -829,10 +770,7 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
             monochrome: gauge.monochrome,
             hue: cp.aetherhue(start),
             hammers: cp.buffStacks(Buffs.HammerTimeBuff, start),
-            motifs: pendingMotifs.length,
-            hammerMotif: pendingMotifs[0] === Actions.HammerMotif,
-            striking: gauge.hammerCanvas && strikingCharge && !cp.hasBuff(Buffs.HammerTimeBuff, start),
-            strikingAt: cp.hasBuff(Buffs.HammerTimeBuff, start) ? cp.burstStrikingAt : null,
+            motifs: this.pendingBurstMotifs(cp).length,
         };
         // Cost of a step, including the best way to continue after it
         const memo = new Map<string, number>();
@@ -849,15 +787,14 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
         };
         const bestFrom = (state: EntryState): number => {
             const key = [state.time.toFixed(2), state.stacks, state.palette, state.paint, state.monochrome ? 1 : 0,
-                state.hue, state.hammers, state.motifs, state.hammerMotif ? 1 : 0, state.striking ? 1 : 0,
-                state.strikingAt?.toFixed(2)].join('|');
+                state.hue, state.hammers, state.motifs].join('|');
             const known = memo.get(key);
             if (known !== undefined) {
                 return known;
             }
             let best = Number.MAX_VALUE;
             for (const action of ENTRY_ACTIONS) {
-                const step = this.applyEntryAction(state, action, timings, true, strikingCharge);
+                const step = this.applyEntryAction(state, action, timings, true);
                 if (step !== null) {
                     best = Math.min(best, stepTotal(step));
                 }
@@ -869,7 +806,7 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
         let plan: EntryPlan | null = null;
         let planCost = Number.MAX_VALUE;
         for (const action of ENTRY_ACTIONS) {
-            const step = this.applyEntryAction(initial, action, timings, canWeaveNow, strikingCharge);
+            const step = this.applyEntryAction(initial, action, timings, canWeaveNow);
             if (step === null) {
                 continue;
             }
@@ -879,7 +816,6 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
                 plan = {
                     first: action,
                     paletteBeforeFirst: step.usedPalette,
-                    strikingBeforeFirst: step.usedStriking,
                 };
             }
         }
@@ -993,22 +929,15 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
             }
             return null;
         }
-        // Subtractive Palette or Striking Muse as part of the lead-up to the burst window
+        // Subtractive Palette as part of the lead-up to the burst window
         if (plan !== null && plan.paletteBeforeFirst && canWeavePalette) {
             return Actions.SubtractivePalette;
-        }
-        if (plan !== null
-            && plan.strikingBeforeFirst
-            && gauge.hammerCanvas
-            && !cp.hasBuff(Buffs.HammerTimeBuff)
-            && cp.canWeave(Actions.StrikingMuse)) {
-            return Actions.StrikingMuse;
         }
         if (potion && this.wantPotion(cp) && cp.canWeave(potion)) {
             return potion;
         }
-        // In the lead-up to the burst window, Striking Muse is only used if the plan calls for it, since it is
-        // about to be used in the window anyway.
+        // Striking Muse is not used in the lead-up to the burst window, since it is about to be used inside the
+        // window, where the whole hammer combo gets buffed.
         if (plan === null && gauge.hammerCanvas && cp.wantStrikingMuse() && cp.canWeave(Actions.StrikingMuse)) {
             return Actions.StrikingMuse;
         }
@@ -1039,9 +968,6 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
             const ability = this.chooseOgcd(cp, plan);
             if (ability === null || this.use(cp, ability) === 'none') {
                 return i;
-            }
-            if (ability === Actions.StrikingMuse) {
-                cp.burstStrikingAt = plan !== null && plan.strikingBeforeFirst ? cp.nextGcdTime : null;
             }
         }
         return MAX_WEAVES;

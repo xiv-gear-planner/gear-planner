@@ -274,19 +274,14 @@ describe('PCT sim', () => {
                     const buffedGcds = names(buffed.filter(isGcd));
                     expect(buffedGcds.length).to.equal(9);
                     const count = (...abilityNames: string[]) => buffedGcds.filter(name => abilityNames.includes(name)).length;
-                    // 2-3 subtractive spells, 1-2 Comets, Star Prism and Rainbow Drip
+                    // 2-3 subtractive spells and 1-2 Comets
                     expect(count(...SUBTRACTIVE_SPELLS)).to.be.within(2, 3);
                     expect(count(Actions.Comet.name)).to.be.within(1, 2);
-                    expect(count(Actions.StarPrism.name)).to.equal(1);
-                    expect(count(Actions.RainbowDrip.name)).to.equal(1);
-                    // The hammer combo. Hammer Stamp may be used right before the window instead, to line up Starry
-                    // Muse, in which case a Comet or subtractive spell takes its place.
-                    expect(count(Actions.HammerBrush.name)).to.equal(1);
-                    expect(count(Actions.PolishingHammer.name)).to.equal(1);
-                    if (count(Actions.HammerStamp.name) === 0) {
-                        const stamps = usesOf(cycle.before, Actions.HammerStamp.name);
-                        expect(cycle.starry.usedAt - stamps[stamps.length - 1].usedAt).to.be.lessThan(10);
-                    }
+                    expect(count(...SUBTRACTIVE_SPELLS, Actions.Comet.name)).to.equal(4);
+                    // Then Star Prism, the whole hammer combo, and Rainbow Drip
+                    expect(buffedGcds.slice(4)).to.deep.equal([
+                        Actions.StarPrism, Actions.HammerStamp, Actions.HammerBrush, Actions.PolishingHammer, Actions.RainbowDrip,
+                    ].map(a => a.name));
                     // A portrait and a Living Muse in every window
                     expect(buffed.filter(u => PORTRAITS.includes(u.ability.name)).length).to.equal(1);
                     expect(buffed.filter(u => LIVING_MUSES.includes(u.ability.name)).length).to.be.at.least(1);
@@ -296,9 +291,13 @@ describe('PCT sim', () => {
                 expect(buffedMadeens.length).to.be.at.least(3);
             });
 
-            it('only uses Holy in White at the end of the fight', async () => {
+            it('barely uses Holy in White before the end of the fight', async () => {
                 const uses = await runSim(720, set);
-                usesOf(uses, Actions.Holy.name).forEach(u => expect(u.usedAt).to.be.greaterThan(720 - 30));
+                const holy = usesOf(uses, Actions.Holy.name);
+                // Never in burst
+                holy.forEach(u => expect(hasBuff(u, StarryMuse.name)).to.equal(false));
+                // The odd one to line up Starry Muse is fine
+                expect(holy.filter(u => u.usedAt < 720 - 30).length).to.be.at.most(2);
             });
 
             it('keeps 50 gauge in reserve for the next burst window', async () => {
