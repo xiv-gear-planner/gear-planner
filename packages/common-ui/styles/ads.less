@@ -33,32 +33,45 @@ body:not(.light-mode) {
 
 }
 
+.extra-links-holder-inner {
+  display: contents;
+  .extra-information-link {
+    &:not(:empty) {
+      display: block;
+    }
 
-.extra-information-link {
-  &:not(:empty) {
-    display: block;
-  }
+    &:empty {
+      display: none;
+    }
 
-  &:empty {
-    display: none;
-  }
-
-  button {
-    all: inherit;
-    cursor: pointer;
-    text-decoration: underline;
-    margin: auto;
+    button {
+      all: inherit;
+      cursor: pointer;
+      text-decoration: underline;
+      margin: auto;
+      display: inline;
+    }
   }
 }
 
-// Let each privacy link keep a row in its parent menu group through the display: contents wrapper.
-#nav-privacy-links > a {
-  flex: 0 0 42px;
+
+.left-ad-links-holder {
+  display: contents;
 }
 
-// The generic extra-information rule uses block layout; keep sidebar privacy links on the grid.
-#nav-privacy-links > a:not(:empty) {
-  display: grid;
+#nav-privacy-links {
+  > a {
+    flex: 0 0 42px;
+
+    &:not(:empty) {
+      display: grid;
+    }
+  }
+
+  // This one needs multiple lines
+  .ccpa-link {
+    white-space: normal;
+  }
 }
 
 #fallback-privacy-area {
@@ -80,29 +93,23 @@ body:not(.light-mode) {
         display: none !important;
       }
       &.extra-information-link::before {
-        content: ' - ';
-        padding-left: 5px;
+        //content: ' - ';
+        //padding-left: 5px;
       }
     }
   }
 }
 
-body.side-menu-mode-auto:not(.side-menu-auto-expanded) #fallback-privacy-area {
-  left: var(--side-menu-collapsed-width);
+body {
+  &.side-menu-mode-auto {
+    &:not(.side-menu-auto-expanded) {
+      #fallback-privacy-area {
+        left: var(--side-menu-collapsed-width);
+      }
+    }
+  }
 }
 
-body.side-menu-mode-auto.side-menu-auto-expanded #fallback-privacy-area,
-body.side-menu-mode-sticky #fallback-privacy-area {
-  display: none;
-}
-
-body.side-menu-mode-hidden #fallback-privacy-area {
-  left: 0;
-}
-
-body.side-menu-mode-hidden.side-menu-mobile-expanded #fallback-privacy-area {
-  display: none;
-}
 
 .collapse-vertical {
   min-height: 50px !important;

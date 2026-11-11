@@ -2,6 +2,7 @@ import {recordError, recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {arrayEq} from "@xivgear/util/array_utils";
 import {el} from "@xivgear/common-ui/components/util";
+import {elt} from "@xivgear/common-ui/components/templates";
 
 type DisplayCondition = (width: number, height: number) => boolean;
 
@@ -207,7 +208,7 @@ function makeFixedArea(id: string, width: number, height: number, side: AdSide, 
     }
     middle.classList.add('shadow-big');
 
-    const linksHolder = el('div', {style: {display: 'contents'}});
+    const linksHolder = el('div', {class: 'left-ad-links-holder'});
     middle.appendChild(linksHolder);
 
     const outer = el('div', {
@@ -262,8 +263,7 @@ type AdContainerSize = typeof AdContainerSizes[number];
 let idCounter = 1;
 
 const currentAds: ManagedAd[] = [];
-const extraLinksHolderInner = document.createElement('div');
-extraLinksHolderInner.style.display = 'content';
+const extraLinksHolderInner = el('div', {class: 'extra-links-holder-inner'});
 
 window.addEventListener('resize', recheckAds);
 window.addEventListener('side-menu-mode-change', recheckAds);
@@ -482,13 +482,19 @@ export function insertAds(newElement: HTMLElement) {
 
 // set up extra links
 
-const legacyCcpaLink = document.createElement('span');
-legacyCcpaLink.setAttribute('data-ccpa-link', '1');
-legacyCcpaLink.addEventListener('click', () => recordEvent('openCcpa'));
+const ccpaLink = el('span', {
+    class: 'ccpa-link',
+    attributes: {
+        'data-ccpa-link': '1',
+    },
+});
+ccpaLink.addEventListener('click', () => recordEvent('openCcpa'));
 
-const legacyGdprLink = document.createElement('div');
-legacyGdprLink.id = 'ncmp-consent-link';
-legacyGdprLink.addEventListener('click', () => recordEvent('openGdpr'));
+const gdprLink = el('div', {
+    class: 'gdpr-link',
+    id: 'ncmp-consent-link',
+});
+gdprLink.addEventListener('click', () => recordEvent('openGdpr'));
 
 {
     const extraLinks: HTMLElement[] = [];
@@ -508,54 +514,74 @@ legacyGdprLink.addEventListener('click', () => recordEvent('openGdpr'));
 
     {
         // CCPA-specific link
-        extraLinks.push(legacyCcpaLink);
+        extraLinks.push(ccpaLink);
     }
 
     {
         // GDPR-specific link
-        extraLinks.push(legacyGdprLink);
+        extraLinks.push(gdprLink);
     }
     extraLinks.forEach(el => el.classList.add('extra-information-link'));
     extraLinksHolderInner.replaceChildren(...extraLinks);
 }
 
-const navPrivacyLinks = document.createElement('div');
-navPrivacyLinks.id = 'nav-privacy-links';
-navPrivacyLinks.setAttribute('role', 'group');
-navPrivacyLinks.setAttribute('aria-label', 'Privacy links');
+const navPrivacyLinks = el('div', {
+    id: 'nav-privacy-links',
+    attributes: {
+        'role': 'group',
+        'aria-label': 'Privacy links',
+    },
+});
 
-const navPrivacyPolicyLink = document.createElement('a');
-navPrivacyPolicyLink.href = '#';
+const navPrivacyPolicyLink = el('a', {
+    classes: ['extra-information-link', 'privacy-link'],
+    props: {
+        href: '#',
+        ariaLabel: 'Privacy policy',
+    },
+    title: 'Privacy Policy',
+    attributes: {
+        formatted: 'true',
+    },
+});
+
 setNavMenuLabel(navPrivacyPolicyLink, 'Privacy');
-navPrivacyPolicyLink.classList.add('extra-information-link');
-navPrivacyPolicyLink.title = 'Privacy policy';
-navPrivacyPolicyLink.setAttribute('aria-label', 'Privacy policy');
-navPrivacyPolicyLink.setAttribute('formatted', 'true');
+// Plumb clicks through to the original link
 navPrivacyPolicyLink.addEventListener('click', event => {
     event.preventDefault();
     showPrivacyPolicyModal();
 });
 
-const navCcpaLink = document.createElement('a');
-navCcpaLink.href = '#';
-navCcpaLink.classList.add('extra-information-link');
-navCcpaLink.title = 'California privacy choices';
-navCcpaLink.setAttribute('aria-label', 'California privacy choices');
-navCcpaLink.setAttribute('formatted', 'true');
+const navCcpaLink = el('a', {
+    classes: ['extra-information-link', 'ccpa-link'],
+    props: {
+        href: '#',
+        ariaLabel: 'California privacy choicces',
+    },
+    title: 'California privacy choices',
+    attributes: {
+        formatted: 'true',
+    },
+});
 navCcpaLink.addEventListener('click', event => {
     event.preventDefault();
-    clickConsentControl(document.querySelector<HTMLElement>('[data-ccpa-link="1"]') ?? legacyCcpaLink);
+    clickConsentControl(ccpaLink);
 });
 
-const navGdprLink = document.createElement('a');
-navGdprLink.href = '#';
-navGdprLink.classList.add('extra-information-link');
-navGdprLink.title = 'GDPR Consent';
-navGdprLink.setAttribute('aria-label', 'GDPR Consent');
-navGdprLink.setAttribute('formatted', 'true');
+const navGdprLink = el('a', {
+    classes: ['extra-information-link', 'gdpr-link'],
+    props: {
+        href: '#',
+        ariaLabel: 'GDPR Consent',
+    },
+    title: 'GDPR Consent',
+    attributes: {
+        formatted: 'true',
+    },
+});
 navGdprLink.addEventListener('click', event => {
     event.preventDefault();
-    clickConsentControl(document.getElementById('ncmp-consent-link') ?? legacyGdprLink);
+    clickConsentControl(gdprLink);
 });
 
 navPrivacyLinks.append(navPrivacyPolicyLink);
@@ -568,19 +594,16 @@ function clickConsentControl(container: HTMLElement) {
 }
 
 function setNavMenuLabel(link: HTMLAnchorElement, label: string) {
-    const text = document.createElement('span');
-    text.classList.add('menu-label');
-    text.textContent = label;
-    link.replaceChildren(text);
+    link.replaceChildren(elt('span', {class: 'menu-label'})`${label}`);
 }
 
 function updateNavConsentLinks() {
-    const ccpaElement = document.querySelector<HTMLElement>('[data-ccpa-link="1"]') ?? legacyCcpaLink;
+    const ccpaElement = ccpaLink;
     const ccpaText = ccpaElement.textContent?.trim();
     const hasCcpaLink = Boolean(ccpaText) || ccpaElement.children.length > 0;
     setNavMenuLabel(navCcpaLink, hasCcpaLink ? (ccpaText || 'California privacy choices') : '');
 
-    const gdprElement = document.getElementById('ncmp-consent-link') ?? legacyGdprLink;
+    const gdprElement = gdprLink;
     const gdprText = gdprElement.textContent?.trim();
     const hasGdprLink = Boolean(gdprText) || gdprElement.children.length > 0;
     setNavMenuLabel(navGdprLink, hasGdprLink ? 'GDPR Consent' : '');
