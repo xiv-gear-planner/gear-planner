@@ -164,6 +164,23 @@ const LAST_BURST_ONLY = 30;
 const LAST_BURST_GAUGE = 40;
 
 /**
+ * Like {@link LAST_BURST_ONLY}, but for portraits. Mog of the Ages and Retribution of the Madeen share a 30 second
+ * cooldown, so if one is used inside the window, the other can only be used if the fight goes on for this long.
+ */
+const LAST_BURST_PORTRAIT = 45;
+
+/**
+ * In a fight which ends soon after the next burst window, how long before Starry Muse a held portrait has to be
+ * used for the portrait cooldown to be back in time for a new one inside the window.
+ */
+const PORTRAIT_SWAP_LEAD = 25;
+
+/**
+ * If there are no more burst windows, how long before the end of the fight the potion is used.
+ */
+const POTION_END_LEAD = 32;
+
+/**
  * How far before the end of the fight the remaining GCDs get planned out, so that resources are used up rather
  * than left over. A Living Muse charge takes 40 seconds to come back, so this has to be long enough to see whether
  * a Pom or Claw Motif can still be followed up by the Wing or Maw Motif which gives the portrait.
@@ -618,7 +635,24 @@ class PctCycleProcessor extends CycleProcessor<PctGaugeManager> {
         if (this.inBurst() || !this.burstComing()) {
             return true;
         }
+        // If the fight ends soon after the window, then a second portrait could not be used after it because of
+        // the shared cooldown. So if another one can be made for the window, this one gets out of the way early.
+        if (this.fightEndsAfterBurst(LAST_BURST_PORTRAIT) && this.portraitComingForBurst()) {
+            return this.timeUntilStarry() >= PORTRAIT_SWAP_LEAD;
+        }
         return this.timeUntilStarry() > (portrait === 'madeen' ? MADEEN_HOLD_WINDOW : MOG_HOLD_WINDOW);
+    }
+
+    /**
+     * Whether a new portrait can be made for the next burst window: either the Wing or Maw Motif is next and its
+     * muse will be available, or the Pom or Claw Motif is next and there will be a second Living Muse charge for
+     * the Wing or Maw Motif after it.
+     */
+    portraitComingForBurst(): boolean {
+        const gauge = this.gaugeManager;
+        const motif = gauge.creatureCanvas ?? gauge.nextCreature;
+        const musesNeeded = motif === 'wing' || motif === 'maw' ? 1 : 2;
+        return this.livingMuseChargesIn(this.timeUntilStarry()) >= musesNeeded;
     }
 
     /**
@@ -767,13 +801,31 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
         if (!gauge.starryCanvas) {
             motifs.push(Actions.StarryMotif);
         }
-        // If the fight ends right after the window, a Pom or Claw Motif is not worth painting for it, since there
-        // is no time left for the Wing or Maw Motif which would give the portrait.
-        const leadsNowhere = cp.fightEndsAfterBurst() && (gauge.nextCreature === 'pom' || gauge.nextCreature === 'claw');
-        if (gauge.creatureCanvas === null && !leadsNowhere && cp.readyWithin(Actions.PomMuse, untilStarry + 10)) {
+        if (gauge.creatureCanvas === null
+            && this.creatureMotifPaysOff(cp)
+            && cp.readyWithin(Actions.PomMuse, untilStarry + 10)) {
             motifs.push(Actions.CreatureMotifs[gauge.nextCreature]);
         }
         return motifs;
+    }
+
+    /**
+     * Whether the next creature motif leads to a portrait which gets used. This is only ever not the case in a
+     * fight which ends soon after the next burst window: a motif painted for that window has to be the Wing or Maw
+     * Motif, or be followed by it in time, and the portrait it gives must not be stuck behind the cooldown of one
+     * which is being held for the window.
+     */
+    private creatureMotifPaysOff(cp: PctCycleProcessor): boolean {
+        const untilStarry = cp.timeUntilStarry();
+        // Earlier than this, the Living Muse is used right away, and the next motif is the one for the window
+        const forWindow = untilStarry < MUSE_HOLD_WINDOW + cp.gcdTime(Actions.PomMotif);
+        if (!cp.fightEndsAfterBurst(LAST_BURST_PORTRAIT) || !forWindow) {
+            return true;
+        }
+        if (cp.gaugeManager.portrait !== null && untilStarry < PORTRAIT_SWAP_LEAD) {
+            return false;
+        }
+        return cp.portraitComingForBurst();
     }
 
     /**
@@ -1087,8 +1139,8 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
      */
     private isEnding(cp: PctCycleProcessor): boolean {
         const start = cp.gcdDecisionTime;
+        // What matters is when the next GCD starts: the buff can run out between now and then
         return !cp.burstComing()
-            && !cp.inBurst()
             && !cp.inBurst(start)
             && cp.totalTime - start <= ENDING_HORIZON;
     }
@@ -1128,6 +1180,28 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
             madeen: damage(Actions.Madeen),
         };
         const noPortraitCost = ENDING_NO_PORTRAIT_COST * rgbDamage[0] / cp.leveled(Actions.Red).potency;
+        // The potion covers the last part of the fight, which makes it worth more to have strong GCDs there.
+        const potion = cp.medicinePotion;
+        const medicated = potion?.activatesBuffs?.[0];
+        let potionMultiplier = 1;
+        let potionFrom = Number.POSITIVE_INFINITY;
+        let potionUntil = Number.NEGATIVE_INFINITY;
+        if (potion && medicated) {
+            const withPotion = abilityToDamageNew(cp.stats, cp.leveled(Actions.Red), combineBuffEffects([medicated])).directDamage?.expected ?? 0;
+            potionMultiplier = withPotion / rgbDamage[0];
+            const active = cp.buffHistory.find(usage => usage.buff.statusId === medicated.statusId
+                && usage.start <= start && usage.end > start && !usage.forceEnd);
+            if (active) {
+                potionFrom = start;
+                potionUntil = active.end;
+            }
+            else {
+                const readyAt = cp.cdTracker.statusOf(potion).readyAt.absolute;
+                potionFrom = Math.max(readyAt, totalTime - POTION_END_LEAD);
+                potionUntil = potionFrom + medicated.duration;
+            }
+        }
+        const multiplierAt = (time: number) => time >= potionFrom && time < potionUntil ? potionMultiplier : 1;
         const recasts: Record<EndingAction, number> = {
             hammer: cp.gcdTime(Actions.HammerStamp),
             comet: cp.gcdTime(Actions.Comet),
@@ -1169,15 +1243,15 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
             }
             if (state.weaves > 0 && state.portrait !== null && state.portraitReadyAt <= deadline) {
                 state.weaves -= 1;
-                // Makes up for what was taken off when the Pom or Claw Motif was painted
-                gained += portraitDamage[state.portrait] + noPortraitCost;
+                // The second part makes up for what was taken off when the Pom or Claw Motif was painted
+                gained += portraitDamage[state.portrait] * multiplierAt(deadline) + noPortraitCost;
                 state.portrait = null;
                 state.portraitReadyAt = deadline + portraitCooldown;
             }
             if (state.weaves > 0 && state.creature >= 0 && state.livingCharges > 0
                 && !(givesPortrait(state.creature) && state.portrait !== null)) {
                 state.weaves -= 1;
-                gained += livingDamage;
+                gained += livingDamage * multiplierAt(deadline);
                 if (givesPortrait(state.creature)) {
                     state.portrait = CREATURE_MOTIFS[state.creature] === 'wing' ? 'mog' : 'madeen';
                 }
@@ -1270,14 +1344,14 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
                         return null;
                     }
                     next.creature = next.nextCreature;
-                    if (!givesPortrait(next.creature)) {
-                        gained -= noPortraitCost;
-                    }
                     break;
             }
             const recast = recasts[action];
             // The last GCD only counts for as much of it as fits before the end of the fight
-            gained *= Math.min(1, (totalTime - state.time) / recast);
+            gained *= multiplierAt(state.time) * Math.min(1, (totalTime - state.time) / recast);
+            if (action === 'creatureMotif' && !givesPortrait(next.creature)) {
+                gained -= noPortraitCost;
+            }
             next.time = state.time + recast;
             // Nothing can be used once the last GCD has started
             if (next.time < totalTime) {
@@ -1450,7 +1524,21 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
         if (!cp.burstComing()) {
             return true;
         }
-        return cp.gaugeManager.palette - SUBTRACTIVE_PALETTE_COST >= SUBTRACTIVE_PALETTE_COST;
+        const left = cp.gaugeManager.palette - SUBTRACTIVE_PALETTE_COST;
+        if (left >= SUBTRACTIVE_PALETTE_COST) {
+            return true;
+        }
+        // If the fight ends soon after the window, then gauge which is still left after it is wasted. So rather
+        // than always keeping 50, it is enough for there to be 50 again by the time the window starts.
+        if (cp.fightEndsAfterBurst(LAST_BURST_GAUGE)) {
+            const busy = this.pendingBurstMotifs(cp).length * cp.gcdTime(Actions.StarryMotif)
+                + 3 * cp.gcdTime(Actions.Cyan) + cp.gcdTime(Actions.Comet);
+            // One less, for some margin
+            const casts = Math.floor((cp.timeUntilStarry() - busy) / cp.gcdTime(Actions.Red)) - 1;
+            const gained = Math.floor((casts + cp.aetherhue()) / 3) * 25;
+            return left + gained >= SUBTRACTIVE_PALETTE_COST;
+        }
+        return false;
     }
 
     /**
@@ -1482,7 +1570,7 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
             return cp.timeUntilStarry() <= POTION_LEAD;
         }
         // No more burst windows, so just make sure that it gets used.
-        return cp.fightEndsWithin(32);
+        return cp.fightEndsWithin(POTION_END_LEAD);
     }
 
     /**
@@ -1667,7 +1755,7 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
                 return Actions.HammerMotif;
             }
             // Creature Motif, if a Living Muse charge is available or nearly so.
-            if (gauge.creatureCanvas === null && cp.readyWithin(Actions.PomMuse, 10)) {
+            if (gauge.creatureCanvas === null && this.creatureMotifPaysOff(cp) && cp.readyWithin(Actions.PomMuse, 10)) {
                 return Actions.CreatureMotifs[gauge.nextCreature];
             }
         }

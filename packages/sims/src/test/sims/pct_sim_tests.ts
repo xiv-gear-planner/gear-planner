@@ -62,7 +62,7 @@ const CREATURE_MOTIFS = [Actions.PomMotif, Actions.WingMotif, Actions.ClawMotif,
 
 // From 6 to 12 minutes, so that the fight ends at every point of the two minute cycle
 const FIGHT_LENGTHS: number[] = [];
-for (let totalTime = 360; totalTime <= 720; totalTime += 12) {
+for (let totalTime = 360; totalTime <= 720; totalTime += 6) {
     FIGHT_LENGTHS.push(totalTime);
 }
 
@@ -347,19 +347,16 @@ describe('PCT sim', () => {
                 }
             });
 
-            it('does not paint a Pom or Claw Motif at the end of the fight unless the portrait follows', async () => {
+            it('always follows a Pom or Claw Motif up with a portrait which gets used', async () => {
                 for (const totalTime of FIGHT_LENGTHS) {
                     const uses = await runSim(totalTime, set);
-                    const starry = usesOf(uses, Actions.StarryMuseAction.name);
-                    // Motifs which were painted after the last burst window, rather than for it
-                    const afterBurst = starry[starry.length - 1].usedAt + 25;
-                    uses.forEach((use, index) => {
-                        const pomOrClaw = use.ability.name === Actions.PomMotif.name || use.ability.name === Actions.ClawMotif.name;
-                        if (pomOrClaw && use.usedAt > afterBurst && use.usedAt > totalTime - 60) {
-                            const followedByPortrait = uses.slice(index).some(u => PORTRAITS.includes(u.ability.name));
-                            expect(followedByPortrait, `fight length ${totalTime}, motif at ${use.usedAt}`).to.equal(true);
-                        }
-                    });
+                    const message = `fight length ${totalTime}`;
+                    const muses = uses.filter(u => LIVING_MUSES.includes(u.ability.name));
+                    const givesPortrait = [Actions.WingedMuse.name, Actions.FangedMuse.name];
+                    expect(givesPortrait, message).to.include(muses[muses.length - 1].ability.name);
+                    // No portrait is left unused either
+                    const portraits = uses.filter(u => PORTRAITS.includes(u.ability.name));
+                    expect(portraits.length, message).to.equal(muses.filter(u => givesPortrait.includes(u.ability.name)).length);
                 }
             });
 
