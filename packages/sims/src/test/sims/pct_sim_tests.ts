@@ -58,6 +58,13 @@ const pctSet: CharacterGearSet = makeFakeSet(makeStats(420));
 const SUBTRACTIVE_SPELLS = [Actions.Cyan, Actions.Yellow, Actions.Magenta].map(a => a.name);
 const LIVING_MUSES = [Actions.PomMuse, Actions.WingedMuse, Actions.ClawedMuse, Actions.FangedMuse].map(a => a.name);
 const PORTRAITS = [Actions.Mog, Actions.Madeen].map(a => a.name);
+const CREATURE_MOTIFS = [Actions.PomMotif, Actions.WingMotif, Actions.ClawMotif, Actions.MawMotif].map(a => a.name);
+
+// From 6 to 12 minutes, so that the fight ends at every point of the two minute cycle
+const FIGHT_LENGTHS: number[] = [];
+for (let totalTime = 360; totalTime <= 720; totalTime += 12) {
+    FIGHT_LENGTHS.push(totalTime);
+}
 
 /**
  * Equip a potion on a fake set.
@@ -89,6 +96,14 @@ async function runSim(totalTime: number, set: CharacterGearSet = pctSet, sim: Pc
     const result = await sim.simulate(set);
     expect(result.mainDpsResult).to.be.greaterThan(0);
     return [...result.best.abilitiesUsed] as PctUse[];
+}
+
+/**
+ * Whether the fight ends during the last burst window, or too soon after it to do much else.
+ */
+function endsAfterBurst(uses: PctUse[], totalTime: number): boolean {
+    const starry = usesOf(uses, Actions.StarryMuseAction.name);
+    return totalTime - starry[starry.length - 1].usedAt < 45;
 }
 
 function usesOf(uses: PctUse[], name: string): PctUse[] {
@@ -292,8 +307,67 @@ describe('PCT sim', () => {
             });
 
             it('only uses Holy in White at the end of the fight', async () => {
-                const uses = await runSim(720, set);
-                usesOf(uses, Actions.Holy.name).forEach(u => expect(u.usedAt).to.be.greaterThan(720 - 30));
+                for (const totalTime of FIGHT_LENGTHS) {
+                    const uses = await runSim(totalTime, set);
+                    usesOf(uses, Actions.Holy.name).forEach(u => expect(u.usedAt, `fight length ${totalTime}`).to.be.greaterThan(totalTime - 62));
+                }
+            });
+
+            it('counts the whole fight as time taken', async () => {
+                for (const totalTime of FIGHT_LENGTHS) {
+                    const sim = new PctSim();
+                    sim.cycleSettings.totalTime = totalTime;
+                    const result = await sim.simulate(set);
+                    expect(result.best.totalTime, `fight length ${totalTime}`).to.be.closeTo(totalTime, 0.001);
+                }
+            });
+
+            it('does not leave anything painted at the end of the fight', async () => {
+                for (const totalTime of FIGHT_LENGTHS) {
+                    const uses = await runSim(totalTime, set);
+                    const count = (abilities: string[]) => uses.filter(u => abilities.includes(u.ability.name)).length;
+                    const message = `fight length ${totalTime}`;
+                    expect(count(LIVING_MUSES), message).to.equal(count(CREATURE_MOTIFS));
+                    expect(count([Actions.StrikingMuse.name]), message).to.equal(count([Actions.HammerMotif.name]));
+                    expect(count([Actions.StarryMuseAction.name]), message).to.equal(count([Actions.StarryMotif.name]));
+                    // Every hammer combo gets finished
+                    expect(count(Actions.HammerCombo.map(a => a.name)), message).to.equal(3 * count([Actions.StrikingMuse.name]));
+                }
+            });
+
+            it('spends the gauge before the fight ends', async () => {
+                for (const totalTime of FIGHT_LENGTHS) {
+                    const uses = await runSim(totalTime, set);
+                    // If the fight ends during the last burst window or right after it, there is not always time
+                    if (endsAfterBurst(uses, totalTime)) {
+                        continue;
+                    }
+                    const last = uses[uses.length - 1];
+                    expect(last.original.gaugeAfter.palette, `fight length ${totalTime}`).to.be.lessThan(50);
+                }
+            });
+
+            it('does not paint a Pom or Claw Motif at the end of the fight unless the portrait follows', async () => {
+                for (const totalTime of FIGHT_LENGTHS) {
+                    const uses = await runSim(totalTime, set);
+                    const starry = usesOf(uses, Actions.StarryMuseAction.name);
+                    // Motifs which were painted after the last burst window, rather than for it
+                    const afterBurst = starry[starry.length - 1].usedAt + 25;
+                    uses.forEach((use, index) => {
+                        const pomOrClaw = use.ability.name === Actions.PomMotif.name || use.ability.name === Actions.ClawMotif.name;
+                        if (pomOrClaw && use.usedAt > afterBurst && use.usedAt > totalTime - 60) {
+                            const followedByPortrait = uses.slice(index).some(u => PORTRAITS.includes(u.ability.name));
+                            expect(followedByPortrait, `fight length ${totalTime}, motif at ${use.usedAt}`).to.equal(true);
+                        }
+                    });
+                }
+            });
+
+            it('skips a burst window which the fight would end in the middle of', async () => {
+                // Starry Muse comes back up around the 6 minute mark
+                const uses = await runSim(375, set);
+                expect(usesOf(uses, Actions.StarryMuseAction.name)).to.have.length(3);
+                expect(usesOf(uses, Actions.StarryMotif.name)).to.have.length(3);
             });
 
             it('never overwrites a portrait', async () => {

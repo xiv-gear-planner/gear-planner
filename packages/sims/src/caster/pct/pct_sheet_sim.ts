@@ -1,5 +1,5 @@
 import {Ability, Buff, GcdAbility, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
-import {combineBuffEffects} from "@xivgear/core/sims/sim_utils";
+import {abilityToDamageNew, combineBuffEffects, noBuffEffects} from "@xivgear/core/sims/sim_utils";
 import {CAST_SNAPSHOT_PRE, CASTER_TAX, STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import {
     AbilityUseResult,
@@ -17,8 +17,8 @@ import {animationLock} from "@xivgear/sims/ability_helpers";
 import {PctGaugeManager} from "./pct_gauge";
 import * as Actions from "./pct_actions";
 import * as Buffs from "./pct_buffs";
-import {PctCreatureMotif, PctGaugeState} from "./pct_types";
-import {MAX_PALETTE, SUBTRACTIVE_PALETTE_COST} from "./pct_consts";
+import {CREATURE_MOTIFS, PctCreatureMotif, PctGaugeState, PctPortrait} from "./pct_types";
+import {MAX_PAINT, MAX_PALETTE, SUBTRACTIVE_PALETTE_COST} from "./pct_consts";
 
 export interface PctSimResult extends CycleSimResult<PctGaugeState> {
 }
@@ -50,6 +50,9 @@ Living Muse.
 varies how many subtractive spells and creature motifs go before the window. Since there is no movement to account
 for, Holy in White is only used at the end of the fight. Swiftcast is used when it gets a spell into a raid buff or
 potion which it would otherwise miss.
+
+The last minute of the fight is planned out so that the gauge and paint are used up, and no motif is painted unless it
+pays off before the end.
 
 If a potion is enabled, it is used in the opener and again right before each burst window where it is available.`,
     makeNewSimInstance: function (): PctSim {
@@ -140,6 +143,41 @@ const MUSE_HOLD_WINDOW = 60;
 const POTION_LEAD = 7;
 
 /**
+ * How much of the fight has to be left when Starry Muse comes off cooldown for the burst window to be worth setting
+ * up. With less than this, too little of the window fits to make up for the motifs painted for it and for what gets
+ * held back for it, so the rest of the fight is treated as its end instead.
+ */
+const MIN_BURST_LENGTH = 20;
+
+/**
+ * If the fight ends less than this long after Starry Muse comes off cooldown, then the burst window is all that is
+ * left of the fight: the nine GCDs of the window take about 22 seconds, and anything which was saved for after it
+ * needs a few more GCDs on top of that.
+ */
+const LAST_BURST_ONLY = 30;
+
+/**
+ * Like {@link LAST_BURST_ONLY}, but for palette gauge which is left over going into the window. This is longer, since
+ * the stacks from the free Subtractive Palette have to be used up after the window before any more gauge can be
+ * spent.
+ */
+const LAST_BURST_GAUGE = 40;
+
+/**
+ * How far before the end of the fight the remaining GCDs get planned out, so that resources are used up rather
+ * than left over. A Living Muse charge takes 40 seconds to come back, so this has to be long enough to see whether
+ * a Pom or Claw Motif can still be followed up by the Wing or Maw Motif which gives the portrait.
+ */
+const ENDING_HORIZON = 60;
+
+/**
+ * At the end of the fight, how much potency a Pom or Claw Motif must gain over not painting it if it does not lead
+ * to a portrait. Without the portrait, the Living Muse is worth about as much as the filler which the motif
+ * replaces, so it could otherwise get painted just because of how the last GCD happens to line up with the end.
+ */
+const ENDING_NO_PORTRAIT_COST = 300;
+
+/**
  * The kinds of GCD which can be used while lining up the burst window.
  */
 type EntryAction = 'subtractive' | 'aetherhue' | 'comet' | 'hammer' | 'motif';
@@ -226,6 +264,109 @@ type EntryPlan = {
     museBeforeBurst: boolean,
 };
 
+/**
+ * The kinds of GCD which can be used at the end of the fight.
+ */
+type EndingAction = 'hammer' | 'comet' | 'subtractive' | 'holy' | 'aetherhue' | 'hammerMotif' | 'creatureMotif';
+
+/**
+ * A lightweight copy of the state which matters when planning the end of the fight.
+ */
+type EndingState = {
+    /**
+     * When the next GCD starts
+     */
+    time: number,
+    /**
+     * How many oGCDs can still be weaved before that GCD
+     */
+    weaves: number,
+    /**
+     * Subtractive Palette stacks
+     */
+    stacks: number,
+    palette: number,
+    paint: number,
+    monochrome: boolean,
+    /**
+     * Position in the aetherhue combo: 0 = Fire/Blizzard next, 1 = Aero/Stone next, 2 = Water/Thunder next.
+     */
+    hue: number,
+    /**
+     * Remaining Hammer Time stacks
+     */
+    hammers: number,
+    hammerCanvas: boolean,
+    /**
+     * Index of the painted creature motif in the creature sequence, or -1 if the canvas is empty.
+     */
+    creature: number,
+    /**
+     * Index of the next creature motif to paint.
+     */
+    nextCreature: number,
+    portrait: PctPortrait | null,
+    /**
+     * When the portrait cooldown (shared by Mog of the Ages and Retribution of the Madeen) is ready.
+     */
+    portraitReadyAt: number,
+    livingCharges: number,
+    /**
+     * When the next Living Muse charge comes back. Infinity if charges are capped.
+     */
+    livingNextAt: number,
+    strikingCharges: number,
+    /**
+     * When the next Striking Muse charge comes back. Infinity if charges are capped.
+     */
+    strikingNextAt: number,
+};
+
+type EndingStep = {
+    state: EndingState,
+    /**
+     * Expected damage of the GCD and of the oGCDs weaved after it
+     */
+    gained: number,
+    /**
+     * Whether Subtractive Palette has to be weaved before this GCD.
+     */
+    usedPalette: boolean,
+};
+
+/**
+ * When motifs get painted at the end of the fight: once their muse is ready, early enough that the motif is done
+ * right as the muse comes off cooldown, or only between subtractive spells. The muse and the portrait take up weave
+ * slots, which Subtractive Palette does not need while its stacks are still up.
+ */
+type EndingMotifTiming = 'ready' | 'early' | 'stacks';
+
+const ENDING_MOTIF_TIMINGS: readonly EndingMotifTiming[] = ['ready', 'early', 'stacks'];
+
+/**
+ * What to still fit in before the end of the fight.
+ */
+type EndingTargets = {
+    /**
+     * How many more times to use Subtractive Palette
+     */
+    palettes: number,
+    hammerMotifs: number,
+    creatureMotifs: number,
+    motifTiming: EndingMotifTiming,
+};
+
+/**
+ * The next GCD to use at the end of the fight.
+ */
+type EndingPlan = {
+    first: EndingAction,
+    /**
+     * Whether Subtractive Palette should be weaved before that GCD.
+     */
+    paletteBeforeFirst: boolean,
+};
+
 class PctCycleProcessor extends CycleProcessor<PctGaugeManager> {
 
     constructor(settings: MultiCycleSettings) {
@@ -304,7 +445,17 @@ class PctCycleProcessor extends CycleProcessor<PctGaugeManager> {
      * Whether there will be another Starry Muse window before the fight ends.
      */
     burstComing(): boolean {
-        return this.starryReadyAt() + 5 < this.totalTime;
+        return this.starryReadyAt() + MIN_BURST_LENGTH < this.totalTime;
+    }
+
+    /**
+     * Whether the fight ends during the next burst window or soon after it, so that things left over after the
+     * window go unused.
+     *
+     * @param within How long after Starry Muse comes off cooldown the fight has to end for this to be the case
+     */
+    fightEndsAfterBurst(within: number = LAST_BURST_ONLY): boolean {
+        return this.burstComing() && this.totalTime - this.starryReadyAt() < within;
     }
 
     /**
@@ -332,6 +483,20 @@ class PctCycleProcessor extends CycleProcessor<PctGaugeManager> {
 
     charges(ability: OgcdAbility): number {
         return this.cdTracker.statusOf(this.leveled(ability)).currentCharges;
+    }
+
+    /**
+     * When the next charge of an oGCD comes back. Infinity if its charges are capped.
+     */
+    nextChargeAt(ability: OgcdAbility): number {
+        const leveled = this.leveled(ability);
+        const cooldown = leveled.cooldown;
+        const status = this.cdTracker.statusOf(leveled);
+        const missing = (cooldown.charges ?? 1) - status.currentCharges;
+        if (missing <= 0) {
+            return Number.POSITIVE_INFINITY;
+        }
+        return status.cappedAt.absolute - (missing - 1) * cooldown.time;
     }
 
     /**
@@ -602,7 +767,10 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
         if (!gauge.starryCanvas) {
             motifs.push(Actions.StarryMotif);
         }
-        if (gauge.creatureCanvas === null && cp.readyWithin(Actions.PomMuse, untilStarry + 10)) {
+        // If the fight ends right after the window, a Pom or Claw Motif is not worth painting for it, since there
+        // is no time left for the Wing or Maw Motif which would give the portrait.
+        const leadsNowhere = cp.fightEndsAfterBurst() && (gauge.nextCreature === 'pom' || gauge.nextCreature === 'claw');
+        if (gauge.creatureCanvas === null && !leadsNowhere && cp.readyWithin(Actions.PomMuse, untilStarry + 10)) {
             motifs.push(Actions.CreatureMotifs[gauge.nextCreature]);
         }
         return motifs;
@@ -806,6 +974,7 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
         // then that muse has to go before the window, so that the one after it (which does) goes inside.
         const nextMuse = gauge.creatureCanvas ?? gauge.nextCreature;
         const portraitNeedsMuse = gauge.portrait === null && (nextMuse === 'pom' || nextMuse === 'claw');
+        const gaugeUselessAfter = cp.fightEndsAfterBurst(LAST_BURST_GAUGE);
         // Outcome of a step, including the best way to continue after it
         type Outcome = { cost: number, extraMotif: boolean };
         const memo = new Map<string, Outcome>();
@@ -817,8 +986,11 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
                 const weaveTime = step.weaveTime - (outcome.doubleWeave ? weaveLock : 0);
                 const usedAt = Math.max(starryReady, step.state.time - Math.min(weaveTime, STARRY_MAX_LEAD));
                 const portraitPenalty = portraitNeedsMuse && step.state.extraMotifs > 0 ? ENTRY_NO_PORTRAIT_COST : 0;
+                // If the fight ends right after the window, gauge which is left over going into it is wasted.
+                const leftover = step.state.palette - (outcome.doubleWeave ? SUBTRACTIVE_PALETTE_COST : 0);
+                const wastedPenalty = gaugeUselessAfter ? Math.floor(leftover / SUBTRACTIVE_PALETTE_COST) * ENTRY_OVERCAP_COST : 0;
                 return {
-                    cost: step.cost + usedAt + outcome.penalty + portraitPenalty,
+                    cost: step.cost + usedAt + outcome.penalty + portraitPenalty + wastedPenalty,
                     extraMotif: step.usedExtraMotif,
                 };
             }
@@ -881,7 +1053,13 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
         if (cp.charges(Actions.PomMuse) < 1 || cp.livingMuseChargesIn(cp.timeUntilStarry()) < 2) {
             return false;
         }
-        return !cp.museWouldOverwritePortrait(gauge.creatureCanvas ?? gauge.nextCreature);
+        const motif = gauge.creatureCanvas ?? gauge.nextCreature;
+        // If the fight ends right after the window, then the motif painted afterwards has to be one which gives a
+        // portrait, or it would be for nothing.
+        if (cp.fightEndsAfterBurst() && (motif === 'wing' || motif === 'maw')) {
+            return false;
+        }
+        return !cp.museWouldOverwritePortrait(motif);
     }
 
     /**
@@ -900,6 +1078,367 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
             case 'motif':
                 return this.pendingBurstMotifs(cp)[0]
                     ?? cp.nextAetherhueSpell(cp.buffStacks(Buffs.SubtractivePaletteBuff, cp.gcdDecisionTime) > 0);
+        }
+    }
+
+    /**
+     * Whether the remaining GCDs of the fight should be planned out: there is no more burst window to save
+     * anything for, and the end is close enough to see all the way to it.
+     */
+    private isEnding(cp: PctCycleProcessor): boolean {
+        const start = cp.gcdDecisionTime;
+        return !cp.burstComing()
+            && !cp.inBurst()
+            && !cp.inBurst(start)
+            && cp.totalTime - start <= ENDING_HORIZON;
+    }
+
+    /**
+     * Work out which GCD to use next at the end of the fight. Nothing is worth anything once the fight is over, so
+     * the goal is to spend the gauge on as many subtractive spells as will fit, use up the paint, and only paint
+     * motifs which pay for themselves in time: a hammer motif needs most of its combo to fit, and a creature motif
+     * needs its Living Muse, as well as the portrait in the case of a Pom or Claw Motif.
+     *
+     * This is done by playing out the rest of the fight for every combination of how many more times to use
+     * Subtractive Palette, and how many more hammer and creature motifs to paint, and going with whichever does the
+     * most damage.
+     *
+     * @returns The plan, or null if there is nothing to plan
+     */
+    private planEnding(cp: PctCycleProcessor): EndingPlan | null {
+        const gauge = cp.gaugeManager;
+        const start = cp.gcdDecisionTime;
+        const totalTime = cp.totalTime;
+        // Whatever is left over from the burst window goes first. These are the strongest GCDs there are.
+        if (cp.hasBuff(Buffs.RainbowBrightBuff, start) || cp.hasBuff(Buffs.StarstruckBuff, start)) {
+            return null;
+        }
+        // Everything is valued by its expected damage rather than its potency, since the hammer combo always
+        // crits and direct hits.
+        const noEffects = noBuffEffects();
+        const damage = (ability: Ability) => abilityToDamageNew(cp.stats, cp.leveled(ability), noEffects).directDamage?.expected ?? 0;
+        const rgbDamage = [Actions.Red, Actions.Green, Actions.Blue].map(damage);
+        const cmyDamage = [Actions.Cyan, Actions.Yellow, Actions.Magenta].map(damage);
+        const hammerDamage = Actions.HammerCombo.map(damage);
+        const cometDamage = damage(Actions.Comet);
+        const holyDamage = damage(Actions.Holy);
+        const livingDamage = damage(Actions.PomMuse);
+        const portraitDamage: Record<PctPortrait, number> = {
+            mog: damage(Actions.Mog),
+            madeen: damage(Actions.Madeen),
+        };
+        const noPortraitCost = ENDING_NO_PORTRAIT_COST * rgbDamage[0] / cp.leveled(Actions.Red).potency;
+        const recasts: Record<EndingAction, number> = {
+            hammer: cp.gcdTime(Actions.HammerStamp),
+            comet: cp.gcdTime(Actions.Comet),
+            subtractive: cp.gcdTime(Actions.Cyan),
+            holy: cp.gcdTime(Actions.Holy),
+            aetherhue: cp.gcdTime(Actions.Red),
+            hammerMotif: cp.gcdTime(Actions.HammerMotif),
+            creatureMotif: cp.gcdTime(Actions.PomMotif),
+        };
+        const living = cp.leveled(Actions.PomMuse).cooldown;
+        const striking = cp.leveled(Actions.StrikingMuse).cooldown;
+        const portraitCooldown = cp.leveled(Actions.Mog).cooldown.time;
+        const weaveLock = STANDARD_ANIMATION_LOCK + WEAVE_MARGIN;
+        const givesPortrait = (creature: number) => CREATURE_MOTIFS[creature] === 'wing' || CREATURE_MOTIFS[creature] === 'maw';
+
+        /**
+         * Use the oGCDs which are available in the gap before the next GCD. Returns the damage gained.
+         */
+        const weave = (state: EndingState): number => {
+            // The latest that an oGCD can come off cooldown and still be weaved
+            const deadline = state.time - weaveLock;
+            while (state.livingNextAt <= deadline) {
+                state.livingCharges += 1;
+                state.livingNextAt = state.livingCharges < (living.charges ?? 1) ? state.livingNextAt + living.time : Number.POSITIVE_INFINITY;
+            }
+            while (state.strikingNextAt <= deadline) {
+                state.strikingCharges += 1;
+                state.strikingNextAt = state.strikingCharges < (striking.charges ?? 1) ? state.strikingNextAt + striking.time : Number.POSITIVE_INFINITY;
+            }
+            let gained = 0;
+            if (state.weaves > 0 && state.hammerCanvas && state.hammers === 0 && state.strikingCharges > 0) {
+                state.weaves -= 1;
+                state.hammerCanvas = false;
+                state.hammers = Actions.HammerCombo.length;
+                state.strikingCharges -= 1;
+                if (state.strikingNextAt === Number.POSITIVE_INFINITY) {
+                    state.strikingNextAt = deadline + striking.time;
+                }
+            }
+            if (state.weaves > 0 && state.portrait !== null && state.portraitReadyAt <= deadline) {
+                state.weaves -= 1;
+                // Makes up for what was taken off when the Pom or Claw Motif was painted
+                gained += portraitDamage[state.portrait] + noPortraitCost;
+                state.portrait = null;
+                state.portraitReadyAt = deadline + portraitCooldown;
+            }
+            if (state.weaves > 0 && state.creature >= 0 && state.livingCharges > 0
+                && !(givesPortrait(state.creature) && state.portrait !== null)) {
+                state.weaves -= 1;
+                gained += livingDamage;
+                if (givesPortrait(state.creature)) {
+                    state.portrait = CREATURE_MOTIFS[state.creature] === 'wing' ? 'mog' : 'madeen';
+                }
+                state.nextCreature = (state.creature + 1) % CREATURE_MOTIFS.length;
+                state.creature = -1;
+                state.livingCharges -= 1;
+                if (state.livingNextAt === Number.POSITIVE_INFINITY) {
+                    state.livingNextAt = deadline + living.time;
+                }
+            }
+            return gained;
+        };
+
+        /**
+         * Apply one GCD, as well as the oGCDs which get weaved after it. Returns null if the GCD cannot be used.
+         */
+        const apply = (state: EndingState, action: EndingAction): EndingStep | null => {
+            // Hammer Time has to be used up before it runs out, and nothing else is as strong anyway.
+            if (state.hammers > 0 && action !== 'hammer') {
+                return null;
+            }
+            const next: EndingState = {
+                ...state,
+            };
+            let gained = 0;
+            let usedPalette = false;
+            let instant = false;
+            switch (action) {
+                case 'hammer':
+                    if (next.hammers < 1) {
+                        return null;
+                    }
+                    gained = hammerDamage[hammerDamage.length - next.hammers];
+                    next.hammers -= 1;
+                    instant = true;
+                    break;
+                case 'comet':
+                    if (!next.monochrome || next.paint < 1) {
+                        return null;
+                    }
+                    gained = cometDamage;
+                    next.paint -= 1;
+                    next.monochrome = false;
+                    instant = true;
+                    break;
+                case 'holy':
+                    if (next.monochrome || next.paint < 1) {
+                        return null;
+                    }
+                    gained = holyDamage;
+                    next.paint -= 1;
+                    instant = true;
+                    break;
+                case 'subtractive':
+                    if (next.stacks === 0) {
+                        if (next.weaves < 1 || next.palette < SUBTRACTIVE_PALETTE_COST || next.monochrome) {
+                            return null;
+                        }
+                        next.palette -= SUBTRACTIVE_PALETTE_COST;
+                        next.stacks = 3;
+                        next.monochrome = true;
+                        usedPalette = true;
+                    }
+                    gained = cmyDamage[next.hue];
+                    next.stacks -= 1;
+                    next.hue = (next.hue + 1) % 3;
+                    if (next.hue === 0) {
+                        next.paint = Math.min(next.paint + 1, MAX_PAINT);
+                    }
+                    break;
+                case 'aetherhue':
+                    if (next.stacks > 0) {
+                        return null;
+                    }
+                    gained = rgbDamage[next.hue];
+                    next.hue = (next.hue + 1) % 3;
+                    if (next.hue === 0) {
+                        next.paint = Math.min(next.paint + 1, MAX_PAINT);
+                        next.palette = Math.min(next.palette + 25, MAX_PALETTE);
+                    }
+                    break;
+                case 'hammerMotif':
+                    if (next.hammerCanvas || (next.strikingCharges < 1 && next.strikingNextAt >= totalTime)) {
+                        return null;
+                    }
+                    next.hammerCanvas = true;
+                    break;
+                case 'creatureMotif':
+                    if (next.creature >= 0 || (next.livingCharges < 1 && next.livingNextAt >= totalTime)) {
+                        return null;
+                    }
+                    next.creature = next.nextCreature;
+                    if (!givesPortrait(next.creature)) {
+                        gained -= noPortraitCost;
+                    }
+                    break;
+            }
+            const recast = recasts[action];
+            // The last GCD only counts for as much of it as fits before the end of the fight
+            gained *= Math.min(1, (totalTime - state.time) / recast);
+            next.time = state.time + recast;
+            // Nothing can be used once the last GCD has started
+            if (next.time < totalTime) {
+                next.weaves = instant ? MAX_WEAVES : 1;
+                gained += weave(next);
+            }
+            return {
+                state: next,
+                gained: gained,
+                usedPalette: usedPalette,
+            };
+        };
+
+        const paletteUsable = !cp.hasBuff(Buffs.SubtractivePaletteBuff) && !gauge.monochrome;
+        const initial: EndingState = {
+            time: start,
+            weaves: paletteUsable && cp.canWeave(Actions.SubtractivePalette) ? 1 : 0,
+            stacks: cp.buffStacks(Buffs.SubtractivePaletteBuff, start),
+            palette: gauge.palette,
+            paint: gauge.paint,
+            monochrome: gauge.monochrome,
+            hue: cp.aetherhue(start),
+            hammers: cp.buffStacks(Buffs.HammerTimeBuff, start),
+            hammerCanvas: gauge.hammerCanvas,
+            creature: gauge.creatureCanvas === null ? -1 : CREATURE_MOTIFS.indexOf(gauge.creatureCanvas),
+            nextCreature: CREATURE_MOTIFS.indexOf(gauge.nextCreature),
+            portrait: gauge.portrait,
+            portraitReadyAt: cp.cdTracker.statusOf(cp.leveled(Actions.Mog)).readyAt.absolute,
+            livingCharges: cp.charges(Actions.PomMuse),
+            livingNextAt: cp.nextChargeAt(Actions.PomMuse),
+            strikingCharges: cp.charges(Actions.StrikingMuse),
+            strikingNextAt: cp.nextChargeAt(Actions.StrikingMuse),
+        };
+        const motifRecast = recasts.creatureMotif;
+        /**
+         * The next GCD when working towards the given number of Subtractive Palette uses and motifs.
+         */
+        const pick = (state: EndingState, targets: EndingTargets): EndingAction => {
+            if (state.hammers > 0) {
+                return 'hammer';
+            }
+            // Motifs are painted when their muse can be used straight away
+            const museDeadline = targets.motifTiming === 'early' ? state.time + motifRecast - weaveLock : state.time;
+            const motifsAllowed = targets.motifTiming !== 'stacks' || state.stacks > 0;
+            if (motifsAllowed && targets.hammerMotifs > 0 && !state.hammerCanvas
+                && (state.strikingCharges > 0 || state.strikingNextAt <= museDeadline)) {
+                return 'hammerMotif';
+            }
+            if (motifsAllowed && targets.creatureMotifs > 0 && state.creature < 0
+                && (state.livingCharges > 0 || state.livingNextAt <= museDeadline)
+                && !(givesPortrait(state.nextCreature) && state.portrait !== null && state.portraitReadyAt > museDeadline)) {
+                return 'creatureMotif';
+            }
+            // Comet in Black before the subtractive spells: it is stronger, and if the fight ends before everything
+            // has been used, it is better for a subtractive spell to be the one which is left over.
+            if (state.monochrome && state.paint > 0) {
+                return 'comet';
+            }
+            if (state.stacks > 0) {
+                return 'subtractive';
+            }
+            const whitePaint = !state.monochrome && state.paint > 0;
+            if (targets.palettes > 0) {
+                if (state.palette >= SUBTRACTIVE_PALETTE_COST) {
+                    if (state.weaves > 0 && !state.monochrome) {
+                        return 'subtractive';
+                    }
+                    return whitePaint ? 'holy' : 'aetherhue';
+                }
+                return 'aetherhue';
+            }
+            return whitePaint ? 'holy' : 'aetherhue';
+        };
+        /**
+         * Play out the rest of the fight for the given targets.
+         */
+        const playOut = (targets: EndingTargets): { value: number, plan: EndingPlan } | null => {
+            const remaining = {
+                ...targets,
+            };
+            let state = initial;
+            let value = 0;
+            let plan: EndingPlan | null = null;
+            while (state.time < totalTime) {
+                const action = pick(state, remaining);
+                const step = apply(state, action);
+                if (step === null) {
+                    return null;
+                }
+                switch (action) {
+                    case 'hammerMotif':
+                        remaining.hammerMotifs -= 1;
+                        break;
+                    case 'creatureMotif':
+                        remaining.creatureMotifs -= 1;
+                        break;
+                    case 'subtractive':
+                        if (step.usedPalette) {
+                            remaining.palettes -= 1;
+                        }
+                        break;
+                }
+                plan ??= {
+                    first: action,
+                    paletteBeforeFirst: step.usedPalette,
+                };
+                value += step.gained;
+                state = step.state;
+            }
+            return plan === null ? null : {
+                value: value,
+                plan: plan,
+            };
+        };
+        let plan: EndingPlan | null = null;
+        let planValue = Number.NEGATIVE_INFINITY;
+        // Fewer motifs first, so that a motif is only painted if it is actually better
+        for (let creatureMotifs = 0; creatureMotifs <= 3; creatureMotifs++) {
+            for (let hammerMotifs = 0; hammerMotifs <= 2; hammerMotifs++) {
+                for (let palettes = 4; palettes >= 0; palettes--) {
+                    for (const motifTiming of ENDING_MOTIF_TIMINGS) {
+                        // The timing makes no difference if there are no motifs
+                        if (motifTiming !== 'ready' && creatureMotifs + hammerMotifs === 0) {
+                            continue;
+                        }
+                        const result = playOut({
+                            palettes: palettes,
+                            hammerMotifs: hammerMotifs,
+                            creatureMotifs: creatureMotifs,
+                            motifTiming: motifTiming,
+                        });
+                        if (result !== null && result.value > planValue) {
+                            planValue = result.value;
+                            plan = result.plan;
+                        }
+                    }
+                }
+            }
+        }
+        return plan;
+    }
+
+    /**
+     * The GCD to use for a step of the ending plan.
+     */
+    private endingGcd(cp: PctCycleProcessor, action: EndingAction): GcdAbility {
+        switch (action) {
+            case 'hammer':
+                return cp.nextHammer() ?? cp.nextAetherhueSpell(false);
+            case 'comet':
+                return Actions.Comet;
+            case 'holy':
+                return Actions.Holy;
+            case 'subtractive':
+                return cp.nextAetherhueSpell(true);
+            case 'aetherhue':
+                return cp.nextAetherhueSpell(false);
+            case 'hammerMotif':
+                return Actions.HammerMotif;
+            case 'creatureMotif':
+                return Actions.CreatureMotifs[cp.gaugeManager.nextCreature];
         }
     }
 
@@ -951,8 +1490,9 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
      *
      * @param cp The cycle processor
      * @param plan The burst entry plan, if we are in the lead-up to a burst window
+     * @param ending Whether the end of the fight is being planned out
      */
-    private chooseOgcd(cp: PctCycleProcessor, plan: EntryPlan | null): OgcdAbility | null {
+    private chooseOgcd(cp: PctCycleProcessor, plan: EntryPlan | null, ending: boolean): OgcdAbility | null {
         const gauge = cp.gaugeManager;
         const potion = cp.medicinePotion;
         // Subtractive Palette cannot be used while its stacks are still up, and using it while black paint is held
@@ -1001,15 +1541,20 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
             return potion;
         }
         // Striking Muse is not used in the lead-up to the burst window, since it is about to be used inside the
-        // window, where the whole hammer combo gets buffed.
-        if (plan === null && gauge.hammerCanvas && cp.wantStrikingMuse() && cp.canWeave(Actions.StrikingMuse)) {
+        // window, where the whole hammer combo gets buffed. At the end of the fight, there is nothing to hold it
+        // for, so it is used as soon as it can be weaved, even if the charge only comes back during the weave.
+        const wantStriking = ending ? !cp.hasBuff(Buffs.HammerTimeBuff) : cp.wantStrikingMuse();
+        if (plan === null && gauge.hammerCanvas && wantStriking && cp.canWeave(Actions.StrikingMuse)) {
             return Actions.StrikingMuse;
         }
         if (gauge.portrait !== null && cp.wantPortrait() && cp.canWeave(Actions.Mog)) {
             return gauge.portrait === 'mog' ? Actions.Mog : Actions.Madeen;
         }
-        // In the lead-up to the burst window, the plan decides whether a banked Living Muse charge is used.
-        const wantMuse = plan === null ? cp.wantCreatureMuse() : plan.museBeforeBurst && cp.charges(Actions.PomMuse) > 0;
+        // In the lead-up to the burst window, the plan decides whether a banked Living Muse charge is used. At the
+        // end of the fight, it is used as soon as it can be weaved.
+        const wantMuse = plan === null
+            ? ending || cp.wantCreatureMuse()
+            : plan.museBeforeBurst && cp.charges(Actions.PomMuse) > 0;
         if (gauge.creatureCanvas !== null
             && wantMuse
             && !cp.museWouldOverwritePortrait(gauge.creatureCanvas)
@@ -1017,7 +1562,9 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
             return Actions.CreatureMuses[gauge.creatureCanvas];
         }
         // Subtractive Palette from the gauge, as long as 50 gauge can be banked again in time for the burst window.
+        // At the end of the fight, the ending plan decides when to use it instead.
         if (plan === null
+            && !ending
             && canWeavePalette
             && gauge.palette >= SUBTRACTIVE_PALETTE_COST
             && this.canSpendPalette(cp)) {
@@ -1029,9 +1576,9 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
     /**
      * Weave the oGCDs which we want to use and which fit before the next GCD.
      */
-    private useOgcds(cp: PctCycleProcessor, plan: EntryPlan | null): number {
+    private useOgcds(cp: PctCycleProcessor, plan: EntryPlan | null, ending: boolean): number {
         for (let i = 0; i < MAX_WEAVES; i++) {
-            const ability = this.chooseOgcd(cp, plan);
+            const ability = this.chooseOgcd(cp, plan, ending);
             if (ability === null || this.use(cp, ability) === 'none') {
                 return i;
             }
@@ -1160,12 +1707,23 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
      * One step of the rotation: weave any oGCDs which are wanted, then use the next GCD.
      */
     private rotationStep(cp: PctCycleProcessor) {
-        const plan = this.planBurstEntry(cp);
-        const weaves = this.useOgcds(cp, plan);
+        const ending = this.isEnding(cp);
+        const plan = ending ? null : this.planBurstEntry(cp);
+        let weaves = this.useOgcds(cp, plan, ending);
         if (cp.remainingGcdTime <= 0) {
             return;
         }
-        const gcd = this.chooseGcd(cp, plan);
+        const endingPlan = ending ? this.planEnding(cp) : null;
+        let gcd: GcdAbility;
+        if (endingPlan !== null) {
+            if (endingPlan.paletteBeforeFirst && this.use(cp, Actions.SubtractivePalette) !== 'none') {
+                weaves++;
+            }
+            gcd = this.endingGcd(cp, endingPlan.first);
+        }
+        else {
+            gcd = this.chooseGcd(cp, plan);
+        }
         // Swiftcast, if it gets this spell into a buff
         if (weaves < MAX_WEAVES && cp.canWeave(Actions.Swiftcast) && this.swiftcastHelps(cp, gcd)) {
             this.use(cp, Actions.Swiftcast);
@@ -1182,6 +1740,12 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
                 cp.remainingCycles(() => {
                     outer.rotationStep(cp);
                 });
+                // The damage of the last GCD is counted up to the end of the fight, so the time which the damage
+                // is divided by has to run up to the end as well. Otherwise, the clock stops when the last GCD's
+                // animation lock or cast ends, and the DPS depends on whether that GCD happened to be instant.
+                if (cp.currentTime < cp.totalTime) {
+                    cp.advanceTo(cp.totalTime);
+                }
             },
         }];
     }
