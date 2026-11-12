@@ -46,9 +46,10 @@ Starry Muse window is set up the way The Balance recommends: Subtractive Palette
 the window starts with a hardcast subtractive spell, and nine GCDs are fit inside the buff, with a portrait and a
 Living Muse.
 
-50 palette gauge is always kept in reserve for the next window. Since there is no movement to account for, Holy in
-White is only used at the end of the fight, or occasionally to line up Starry Muse. Swiftcast is used when it gets a
-spell into a raid buff or potion which it would otherwise miss.
+50 palette gauge is always kept in reserve for the next window. To line Starry Muse up with its cooldown, the sim
+varies how many subtractive spells and creature motifs go before the window. Since there is no movement to account
+for, Holy in White is only used at the end of the fight. Swiftcast is used when it gets a spell into a raid buff or
+potion which it would otherwise miss.
 
 If a potion is enabled, it is used in the opener and again right before each burst window where it is available.`,
     makeNewSimInstance: function (): PctSim {
@@ -121,10 +122,17 @@ const ENTRY_HORIZON = 24;
 const ENTRY_OVERCAP_COST = 1.5;
 
 /**
- * How many seconds of Starry Muse delay one Holy in White is considered to be worth when lining up the burst
- * window. Holy in White generates no gauge, so it is only used for this if it makes a real difference.
+ * How many seconds of Starry Muse delay it is considered to be worth to have a portrait (Mog of the Ages or
+ * Retribution of the Madeen) inside the burst window. This is high enough that a portrait is never given up.
  */
-const ENTRY_HOLY_COST = 0.4;
+const ENTRY_NO_PORTRAIT_COST = 10;
+
+/**
+ * How far ahead of Starry Muse coming off cooldown we stop using Living Muse charges as they come up. From then on,
+ * the lead-up to the burst window decides whether a banked charge is used before the window or after it, since
+ * that moves a four second motif to one side or the other.
+ */
+const MUSE_HOLD_WINDOW = 60;
 
 /**
  * How far ahead of Starry Muse coming off cooldown the potion is used.
@@ -134,10 +142,10 @@ const POTION_LEAD = 7;
 /**
  * The kinds of GCD which can be used while lining up the burst window.
  */
-type EntryAction = 'subtractive' | 'aetherhue' | 'holy' | 'comet' | 'hammer' | 'motif';
+type EntryAction = 'subtractive' | 'aetherhue' | 'comet' | 'hammer' | 'motif';
 
 // In order of preference, if they work out equally well
-const ENTRY_ACTIONS: readonly EntryAction[] = ['hammer', 'motif', 'subtractive', 'comet', 'aetherhue', 'holy'];
+const ENTRY_ACTIONS: readonly EntryAction[] = ['hammer', 'motif', 'subtractive', 'comet', 'aetherhue'];
 
 /**
  * A lightweight copy of the state which matters when lining up the burst window.
@@ -166,6 +174,11 @@ type EntryState = {
      * Motifs which still need to be painted for the window
      */
     motifs: number,
+    /**
+     * Creature motifs which can optionally be painted on top of that, by using a banked Living Muse charge before
+     * the window rather than after it.
+     */
+    extraMotifs: number,
 };
 
 /**
@@ -182,6 +195,10 @@ type EntryStep = {
      * Whether Subtractive Palette has to be weaved before this GCD.
      */
     usedPalette: boolean,
+    /**
+     * Whether this is an optional extra creature motif.
+     */
+    usedExtraMotif: boolean,
     /**
      * Whether the GCD is instant, i.e. leaves room for a double weave.
      */
@@ -202,6 +219,11 @@ type EntryPlan = {
      * Whether Subtractive Palette should be weaved before that GCD.
      */
     paletteBeforeFirst: boolean,
+    /**
+     * Whether a banked Living Muse charge should be used before the window, with another creature motif painted
+     * afterwards for the muse which goes inside the window.
+     */
+    museBeforeBurst: boolean,
 };
 
 class PctCycleProcessor extends CycleProcessor<PctGaugeManager> {
@@ -398,15 +420,25 @@ class PctCycleProcessor extends CycleProcessor<PctGaugeManager> {
     }
 
     /**
-     * Whether we want to use the Living Muse now (assuming a creature motif is painted). Hold it for the burst
-     * window when the window is close, unless charges would cap.
+     * Whether we want to use the Living Muse now (assuming a creature motif is painted). When the burst window is
+     * getting close, charges are banked instead, unless they would cap.
      */
     wantCreatureMuse(): boolean {
         const charges = this.charges(Actions.PomMuse);
         if (charges <= 0) {
             return false;
         }
-        return this.inBurst() || charges >= 3 || !this.burstSoon();
+        return this.inBurst() || charges >= 3 || !this.burstComing() || this.timeUntilStarry() >= MUSE_HOLD_WINDOW;
+    }
+
+    /**
+     * How many Living Muse charges will be available after the given number of seconds, if none are used.
+     */
+    livingMuseChargesIn(time: number): number {
+        const muse = this.leveled(Actions.PomMuse);
+        const untilCapped = this.cdTracker.statusOf(muse).cappedAt.relative;
+        const missing = Math.ceil(Math.max(0, untilCapped - time) / muse.cooldown.time);
+        return Math.max(0, muse.cooldown.charges - missing);
     }
 
     /**
@@ -425,12 +457,10 @@ class PctCycleProcessor extends CycleProcessor<PctGaugeManager> {
     }
 
     /**
-     * Whether using the given creature muse would overwrite a portrait that we are holding for the burst window.
+     * Whether using the given creature muse would overwrite a portrait which has not been used yet.
      */
     museWouldOverwritePortrait(motif: PctCreatureMotif): boolean {
-        return (motif === 'wing' || motif === 'maw')
-            && this.gaugeManager.portrait !== null
-            && !this.wantPortrait();
+        return (motif === 'wing' || motif === 'maw') && this.gaugeManager.portrait !== null;
     }
 }
 
@@ -595,6 +625,7 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
             time: state.time + timing.recast,
         };
         let usedPalette = false;
+        let usedExtraMotif = false;
         let instant = false;
         let cost = 0;
         switch (action) {
@@ -631,14 +662,6 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
                     }
                 }
                 break;
-            case 'holy':
-                if (next.monochrome || next.paint < 1) {
-                    return null;
-                }
-                next.paint -= 1;
-                instant = true;
-                cost += ENTRY_HOLY_COST;
-                break;
             case 'comet':
                 if (!next.monochrome || next.paint < 1) {
                     return null;
@@ -655,15 +678,22 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
                 instant = true;
                 break;
             case 'motif':
-                if (next.motifs < 1) {
+                if (next.motifs > 0) {
+                    next.motifs -= 1;
+                }
+                else if (next.extraMotifs > 0) {
+                    next.extraMotifs -= 1;
+                    usedExtraMotif = true;
+                }
+                else {
                     return null;
                 }
-                next.motifs -= 1;
                 break;
         }
         return {
             state: next,
             usedPalette: usedPalette,
+            usedExtraMotif: usedExtraMotif,
             instant: instant,
             weaveTime: timing.recast - timing.lock,
             cost: cost,
@@ -755,7 +785,6 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
         const timings: Record<EntryAction, EntryTiming> = {
             subtractive: hardcast(Actions.Cyan),
             aetherhue: hardcast(Actions.Red),
-            holy: instant(Actions.Holy),
             comet: instant(Actions.Comet),
             hammer: instant(Actions.HammerStamp),
             motif: hardcast(Actions.StarryMotif),
@@ -771,32 +800,52 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
             hue: cp.aetherhue(start),
             hammers: cp.buffStacks(Buffs.HammerTimeBuff, start),
             motifs: this.pendingBurstMotifs(cp).length,
+            extraMotifs: this.canUseMuseBeforeBurst(cp) ? 1 : 0,
         };
-        // Cost of a step, including the best way to continue after it
-        const memo = new Map<string, number>();
-        const stepTotal = (step: EntryStep): number => {
+        // Every window should have a portrait. If none is held, and the next Living Muse does not produce one,
+        // then that muse has to go before the window, so that the one after it (which does) goes inside.
+        const nextMuse = gauge.creatureCanvas ?? gauge.nextCreature;
+        const portraitNeedsMuse = gauge.portrait === null && (nextMuse === 'pom' || nextMuse === 'claw');
+        // Outcome of a step, including the best way to continue after it
+        type Outcome = { cost: number, extraMotif: boolean };
+        const memo = new Map<string, Outcome>();
+        const stepOutcome = (step: EntryStep): Outcome => {
             if (step.state.time >= earliest) {
                 // Starry Muse gets weaved after this GCD. What matters is how soon it can actually be used: as late
                 // as possible in the weave window, but no later than is needed for nine GCDs to fit.
                 const outcome = this.entryOutcome(step.state, step.instant);
                 const weaveTime = step.weaveTime - (outcome.doubleWeave ? weaveLock : 0);
                 const usedAt = Math.max(starryReady, step.state.time - Math.min(weaveTime, STARRY_MAX_LEAD));
-                return step.cost + usedAt + outcome.penalty;
+                const portraitPenalty = portraitNeedsMuse && step.state.extraMotifs > 0 ? ENTRY_NO_PORTRAIT_COST : 0;
+                return {
+                    cost: step.cost + usedAt + outcome.penalty + portraitPenalty,
+                    extraMotif: step.usedExtraMotif,
+                };
             }
-            return step.cost + bestFrom(step.state);
+            const rest = bestFrom(step.state);
+            return {
+                cost: step.cost + rest.cost,
+                extraMotif: step.usedExtraMotif || rest.extraMotif,
+            };
         };
-        const bestFrom = (state: EntryState): number => {
+        const bestFrom = (state: EntryState): Outcome => {
             const key = [state.time.toFixed(2), state.stacks, state.palette, state.paint, state.monochrome ? 1 : 0,
-                state.hue, state.hammers, state.motifs].join('|');
+                state.hue, state.hammers, state.motifs, state.extraMotifs].join('|');
             const known = memo.get(key);
             if (known !== undefined) {
                 return known;
             }
-            let best = Number.MAX_VALUE;
+            let best: Outcome = {
+                cost: Number.MAX_VALUE,
+                extraMotif: false,
+            };
             for (const action of ENTRY_ACTIONS) {
                 const step = this.applyEntryAction(state, action, timings, true);
                 if (step !== null) {
-                    best = Math.min(best, stepTotal(step));
+                    const outcome = stepOutcome(step);
+                    if (outcome.cost < best.cost) {
+                        best = outcome;
+                    }
                 }
             }
             memo.set(key, best);
@@ -810,16 +859,29 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
             if (step === null) {
                 continue;
             }
-            const total = stepTotal(step);
-            if (total < planCost) {
-                planCost = total;
+            const outcome = stepOutcome(step);
+            if (outcome.cost < planCost) {
+                planCost = outcome.cost;
                 plan = {
                     first: action,
                     paletteBeforeFirst: step.usedPalette,
+                    museBeforeBurst: outcome.extraMotif,
                 };
             }
         }
         return plan;
+    }
+
+    /**
+     * Whether a Living Muse charge could be used in the lead-up to the burst window, while still leaving one for
+     * the window itself.
+     */
+    private canUseMuseBeforeBurst(cp: PctCycleProcessor): boolean {
+        const gauge = cp.gaugeManager;
+        if (cp.charges(Actions.PomMuse) < 1 || cp.livingMuseChargesIn(cp.timeUntilStarry()) < 2) {
+            return false;
+        }
+        return !cp.museWouldOverwritePortrait(gauge.creatureCanvas ?? gauge.nextCreature);
     }
 
     /**
@@ -831,14 +893,13 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
                 return cp.nextAetherhueSpell(true);
             case 'aetherhue':
                 return cp.nextAetherhueSpell(false);
-            case 'holy':
-                return Actions.Holy;
             case 'comet':
                 return Actions.Comet;
             case 'hammer':
                 return cp.nextHammer() ?? cp.nextAetherhueSpell(false);
             case 'motif':
-                return this.pendingBurstMotifs(cp)[0] ?? cp.nextAetherhueSpell(false);
+                return this.pendingBurstMotifs(cp)[0]
+                    ?? cp.nextAetherhueSpell(cp.buffStacks(Buffs.SubtractivePaletteBuff, cp.gcdDecisionTime) > 0);
         }
     }
 
@@ -924,7 +985,10 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
             if (gauge.portrait !== null && cp.canWeave(Actions.Mog)) {
                 return gauge.portrait === 'mog' ? Actions.Mog : Actions.Madeen;
             }
-            if (gauge.creatureCanvas !== null && cp.wantCreatureMuse() && cp.canWeave(Actions.PomMuse)) {
+            if (gauge.creatureCanvas !== null
+                && cp.wantCreatureMuse()
+                && !cp.museWouldOverwritePortrait(gauge.creatureCanvas)
+                && cp.canWeave(Actions.PomMuse)) {
                 return Actions.CreatureMuses[gauge.creatureCanvas];
             }
             return null;
@@ -944,8 +1008,10 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
         if (gauge.portrait !== null && cp.wantPortrait() && cp.canWeave(Actions.Mog)) {
             return gauge.portrait === 'mog' ? Actions.Mog : Actions.Madeen;
         }
+        // In the lead-up to the burst window, the plan decides whether a banked Living Muse charge is used.
+        const wantMuse = plan === null ? cp.wantCreatureMuse() : plan.museBeforeBurst && cp.charges(Actions.PomMuse) > 0;
         if (gauge.creatureCanvas !== null
-            && cp.wantCreatureMuse()
+            && wantMuse
             && !cp.museWouldOverwritePortrait(gauge.creatureCanvas)
             && cp.canWeave(Actions.PomMuse)) {
             return Actions.CreatureMuses[gauge.creatureCanvas];

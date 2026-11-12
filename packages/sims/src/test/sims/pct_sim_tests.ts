@@ -217,7 +217,7 @@ describe('PCT sim', () => {
         const starry = usesOf(uses, Actions.StarryMuseAction.name);
         expect(starry.length).to.equal(5);
         for (let i = 1; i < starry.length; i++) {
-            expect(starry[i].usedAt - starry[i - 1].usedAt).to.be.within(120, 121);
+            expect(starry[i].usedAt - starry[i - 1].usedAt).to.be.within(119.99, 121.6);
         }
 
         // Two Striking Muses per 2 minutes
@@ -291,13 +291,24 @@ describe('PCT sim', () => {
                 expect(buffedMadeens.length).to.be.at.least(3);
             });
 
-            it('barely uses Holy in White before the end of the fight', async () => {
+            it('only uses Holy in White at the end of the fight', async () => {
                 const uses = await runSim(720, set);
-                const holy = usesOf(uses, Actions.Holy.name);
-                // Never in burst
-                holy.forEach(u => expect(hasBuff(u, StarryMuse.name)).to.equal(false));
-                // The odd one to line up Starry Muse is fine
-                expect(holy.filter(u => u.usedAt < 720 - 30).length).to.be.at.most(2);
+                usesOf(uses, Actions.Holy.name).forEach(u => expect(u.usedAt).to.be.greaterThan(720 - 30));
+            });
+
+            it('never overwrites a portrait', async () => {
+                const uses = await runSim(720, set);
+                let portrait = false;
+                uses.forEach(u => {
+                    if (PORTRAITS.includes(u.ability.name)) {
+                        expect(portrait).to.equal(true);
+                        portrait = false;
+                    }
+                    else if (u.ability.name === Actions.WingedMuse.name || u.ability.name === Actions.FangedMuse.name) {
+                        expect(portrait).to.equal(false);
+                        portrait = true;
+                    }
+                });
             });
 
             it('keeps 50 gauge in reserve for the next burst window', async () => {
