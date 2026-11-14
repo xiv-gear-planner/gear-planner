@@ -1,13 +1,14 @@
 // @ts-expect-error no type defs available for this library
 import NodeFetchCache, {MemoryCache} from 'node-fetch-cache';
 
+const cache = new MemoryCache({
+    // 1 hour
+    ttl: 60 * 60 * 1000,
+});
 
 const cachedFetch = NodeFetchCache.create({
     shouldCacheResponse: (response: Response) => response.ok && !response.url?.includes("_cacheBust"),
-    cache: new MemoryCache({
-        // 12 hours
-        ttl: 12 * 60 * 60 * 1000,
-    }),
+    cache: cache,
 });
 
 export function installFetchCache() {
