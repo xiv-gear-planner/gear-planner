@@ -16,7 +16,7 @@ describe('Individual item math', () => {
                 statCaps: statCaps,
                 unsyncedVersion: this,
                 isSyncedDown: false,
-            } as GearItem, 'crit');
+            } as unknown as GearItem, 'crit');
             expect(preview.mode).to.equal('unmelded');
             expect(preview.cap).to.equal(250);
             expect(preview.effectiveAmount).to.equal(200);
@@ -98,7 +98,7 @@ describe('bug #695 - offhands have wrong stats', () => {
                 if (job === 'BLU' && item.stats.intelligence === 0) {
                     // return;
                 }
-                const primarySub = item.primarySubstat;
+                const primarySub = item.primarySubstat!;
                 const primarySubValue = item.stats[primarySub];
                 const primarySubCap = item.statCaps[primarySub];
                 if (primarySubValue !== primarySubCap) {
@@ -108,7 +108,7 @@ describe('bug #695 - offhands have wrong stats', () => {
                     }
                     // A few ilvls have different caps for dhit and tenacity
                     if (primarySub === 'dhit' || primarySub === 'tenacity') {
-                        const ilvlSyncInfo = dm.getIlvlSyncInfo(item.ilvl);
+                        const ilvlSyncInfo = dm.getIlvlSyncInfo(item.ilvl)!;
                         const thisCap = ilvlSyncInfo.substatCap(item.occGearSlotName, primarySub, item.meldParamIndex);
                         // The cap for the "normal" substats
                         const normalCap = ilvlSyncInfo.substatCap(item.occGearSlotName, 'crit', item.meldParamIndex);
@@ -152,7 +152,7 @@ describe('bug #695 - offhands have wrong stats', () => {
                         }
                     }
                     if (value !== cap) {
-                        if (mainStat === 'vitality' && Math.abs(value - cap) === 1) {
+                        if (mainStat === 'vitality' && Math.abs(value - cap!) === 1) {
                             // Acceptable margin of error since a lot of these items don't sync as expected
                             return;
                         }
@@ -189,7 +189,7 @@ describe('bug #695 - offhands have wrong stats', () => {
                         return;
                     }
                     // Allow a margin of error of one unless we find a confirmed-wrong case.
-                    if (Math.abs(value - cap) > 1) {
+                    if (Math.abs(value - cap!) > 1) {
                         failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has defstat ${defStat} ${value} !== ${cap} (computed cap)`);
                     }
 
@@ -216,7 +216,7 @@ describe('Feature 24 - support items that give primary/secondary stat directly s
         // in-game NIN: 78 main/79 dh/80 vit /79 det
         it('Supports primary and secondary stats', () => {
             // Menphina's earring (i430 - no sync)
-            const menphina = sheet.itemById(33648);
+            const menphina = sheet.itemById(33648)!;
             expect(menphina.stats.extraMainStat).to.equal(78);
             expect(menphina.stats.extraSecondaryStat).to.equal(79);
             expect(menphina.stats.vitality).to.equal(80);
@@ -239,7 +239,7 @@ describe('Feature 24 - support items that give primary/secondary stat directly s
         // in-game NIN: 71 main/79 dh/72 vit /79 det
         it('Respects ilvl downsync', () => {
             // Azeyma's earring (i560 - should be synced)
-            const azeyma = sheet.itemById(41081);
+            const azeyma = sheet.itemById(41081)!;
             // Post-refactor - this allways returns the full amounts
             expect(azeyma.stats.extraMainStat).to.equal(78);
             expect(azeyma.stats.extraSecondaryStat).to.equal(79);
@@ -287,7 +287,7 @@ describe('Feature 24 - support items that give primary/secondary stat directly s
         });
 
         it('Does not treat said items as custom relics', () => {
-            const menphina = sheet.itemById(33648);
+            const menphina = sheet.itemById(33648)!;
             expect(menphina.isCustomRelic).to.equal(false);
         });
     }).timeout(30_000);
@@ -303,7 +303,7 @@ describe('Feature 24 - support items that give primary/secondary stat directly s
         // in-game SGE: 78 main/79 piety/80 vit/79 det
         it('Supports primary and secondary stats', () => {
             // Menphina's earring (i430 - no sync)
-            const menphina = sheet.itemById(33648);
+            const menphina = sheet.itemById(33648)!;
             expect(menphina.stats.extraMainStat).to.equal(78);
             expect(menphina.stats.extraSecondaryStat).to.equal(79);
             expect(menphina.stats.vitality).to.equal(80);
@@ -326,7 +326,7 @@ describe('Feature 24 - support items that give primary/secondary stat directly s
         // in-game SGE: 71 main/71 piety/72 vit/79 det
         it('Respects ilvl downsync', () => {
             // Azeyma's earring (i560 - should be synced)
-            const azeyma = sheet.itemById(41081);
+            const azeyma = sheet.itemById(41081)!;
             expect(azeyma.stats.extraMainStat).to.equal(78);
             expect(azeyma.stats.extraSecondaryStat).to.equal(79);
             expect(azeyma.stats.vitality).to.equal(72);
@@ -378,7 +378,7 @@ describe('Feature 24 - support items that give primary/secondary stat directly s
         });
 
         it('Does not treat said items as custom relics', () => {
-            const menphina = sheet.itemById(33648);
+            const menphina = sheet.itemById(33648)!;
             expect(menphina.isCustomRelic).to.equal(false);
         });
     }).timeout(30_000);
@@ -392,7 +392,7 @@ describe('Feature 24 - support items that give primary/secondary stat directly s
         // in-game SGE: 71 main/71 piety/72 vit/79 det
         it('Respects ilvl downsync', () => {
             // Menphina's earring (i430 - should be synced)
-            const menphina = sheet.itemById(33648);
+            const menphina = sheet.itemById(33648)!;
             // Actual values in-game:
             // 72 vit, 69 mind, 78 det, 70 piety
 
@@ -448,7 +448,7 @@ describe('Feature 24 - support items that give primary/secondary stat directly s
         });
 
         it('Does not treat said items as custom relics', () => {
-            const menphina = sheet.itemById(33648);
+            const menphina = sheet.itemById(33648)!;
             expect(menphina.isCustomRelic).to.equal(false);
         });
     }).timeout(30_000);
@@ -463,15 +463,15 @@ describe('Custom relic detection', () => {
     });
     it('detects PLD items as relics correctly', () => {
         // Relic Sword
-        expect(pldSheet.itemById(40932).isCustomRelic).to.eq(true);
+        expect(pldSheet.itemById(40932)!.isCustomRelic).to.eq(true);
         // Relic Shield
-        expect(pldSheet.itemById(40951).isCustomRelic).to.eq(true);
+        expect(pldSheet.itemById(40951)!.isCustomRelic).to.eq(true);
         // Non-relic sword
-        expect(pldSheet.itemById(40165).isCustomRelic).to.eq(false);
+        expect(pldSheet.itemById(40165)!.isCustomRelic).to.eq(false);
         // Non-relic shield
-        expect(pldSheet.itemById(40184).isCustomRelic).to.eq(false);
+        expect(pldSheet.itemById(40184)!.isCustomRelic).to.eq(false);
         // Pre-order earrings
-        const menphina = pldSheet.itemById(33648);
+        const menphina = pldSheet.itemById(33648)!;
         expect(menphina.isCustomRelic).to.equal(false);
     });
     it('detects BLU items correctly', () => {
@@ -485,16 +485,16 @@ describe('Custom relic detection', () => {
         // expect(bluSheet.itemById(11958).isCustomRelic).to.eq(false);
         expect(bluSheet.itemById(11958)).to.be.undefined;
         // Pentameld item
-        expect(bluSheet.itemById(10922).isCustomRelic).to.eq(false);
+        expect(bluSheet.itemById(10922)!.isCustomRelic).to.eq(false);
         // Aetherial item
         // expect(bluSheet.itemById(13417).isCustomRelic).to.eq(false);
         expect(bluSheet.itemById(13417)).to.be.undefined;
         // Normal item
-        expect(bluSheet.itemById(8922).isCustomRelic).to.eq(false);
+        expect(bluSheet.itemById(8922)!.isCustomRelic).to.eq(false);
         // Should pick up weapons despite them not having INT
-        expect(bluSheet.itemById(41700).isCustomRelic).to.eq(false);
+        expect(bluSheet.itemById(41700)!.isCustomRelic).to.eq(false);
         // Should pick up the level 50 weapon
-        expect(bluSheet.itemById(24551).isCustomRelic).to.eq(false);
+        expect(bluSheet.itemById(24551)!.isCustomRelic).to.eq(false);
     });
 
 });
@@ -506,7 +506,7 @@ describe('Custom relic issues', () => {
         await pldSheet.load();
     });
     it('has correct PLD 100 weapon stats', () => {
-        const phantomSword = pldSheet.itemById(51000);
+        const phantomSword = pldSheet.itemById(51000)!;
         expect(phantomSword.isCustomRelic).to.equal(true);
         const relic = phantomSword.relicStatModel as EwRelicStatModel;
         expect(relic.type).to.equal('ewrelic');
@@ -514,7 +514,7 @@ describe('Custom relic issues', () => {
         expect(relic.smallValue).to.equal(76);
     });
     it('has correct PLD 100 shield stats', () => {
-        const phantomShield = pldSheet.itemById(51021);
+        const phantomShield = pldSheet.itemById(51021)!;
         expect(phantomShield.isCustomRelic).to.equal(true);
         const relic = phantomShield.relicStatModel as EwRelicStatModel;
         expect(relic.type).to.equal('ewrelic');

@@ -1,5 +1,5 @@
 import {FakeLocalStorage} from "../../util/fake_local_storage";
-import {SheetManagerImpl, SyncStatus} from "../../persistence/saved_sheets";
+import {SheetHandle, SheetManagerImpl, SyncStatus} from "../../persistence/saved_sheets";
 import {expect} from "chai";
 import {SheetExport, SheetSummary} from "@xivgear/xivmath/geartypes";
 import {SupportedLevel} from "@xivgear/xivmath/xivconstants";
@@ -59,8 +59,8 @@ describe('sheet_manager', () => {
 
         const handleGet = mgr.getOrCreateForKey(handle.key);
         expect(handle).to.be.equal(handleGet);
-        expect(JSON.parse(storage.getItem('sheet-save-123-foo'))['foo']).to.equal('bar');
-        expect(JSON.parse(storage.getItem('sheet-save-123-foo'))['name']).to.equal('BLU Test');
+        expect(JSON.parse(storage.getItem('sheet-save-123-foo')!)['foo']).to.equal('bar');
+        expect(JSON.parse(storage.getItem('sheet-save-123-foo')!)['name']).to.equal('BLU Test');
         expect(handle.meta.serverVersion).to.equal(5);
         expect(handle.meta.lastSyncedVersion).to.equal(5);
         expect(handle.meta.currentVersion).to.equal(5);
@@ -82,8 +82,8 @@ describe('sheet_manager', () => {
         handle.flush();
 
         expect(handle.meta.unsyncedModifications).to.have.length(1);
-        expect(JSON.parse(storage.getItem('sheet-save-123-foo'))['foo']).to.equal('baz');
-        expect(JSON.parse(storage.getItem('sheet-save-123-foo'))['name']).to.equal('Modified name');
+        expect(JSON.parse(storage.getItem('sheet-save-123-foo')!)['foo']).to.equal('baz');
+        expect(JSON.parse(storage.getItem('sheet-save-123-foo')!)['name']).to.equal('Modified name');
         expect(handle.meta.serverVersion).to.equal(5);
         expect(handle.meta.lastSyncedVersion).to.equal(5);
         expect(handle.meta.currentVersion).to.equal(6);
@@ -93,8 +93,8 @@ describe('sheet_manager', () => {
         // Simulate upload
         handle.lastSyncedVersion = 6;
         handle.flush();
-        expect(JSON.parse(storage.getItem('sheet-save-123-foo'))['foo']).to.equal('baz');
-        expect(JSON.parse(storage.getItem('sheet-save-123-foo'))['name']).to.equal('Modified name');
+        expect(JSON.parse(storage.getItem('sheet-save-123-foo')!)['foo']).to.equal('baz');
+        expect(JSON.parse(storage.getItem('sheet-save-123-foo')!)['name']).to.equal('Modified name');
         expect(handle.meta.serverVersion).to.equal(6);
         expect(handle.meta.lastSyncedVersion).to.equal(6);
         expect(handle.meta.currentVersion).to.equal(6);
@@ -113,7 +113,7 @@ describe('sheet_manager', () => {
         expect(data[0].meta.lastSyncedVersion).to.equal(6);
         expect(data[0].meta.currentVersion).to.equal(6);
         expect(data[0].syncStatus).to.equal('in-sync' satisfies SyncStatus);
-        expect(data[0].dataNow.name).to.equal('Modified name');
+        expect(data[0].dataNow!.name).to.equal('Modified name');
         expect(data[0].meta.unsyncedModifications).to.have.length(0);
         // expect(data[0].dataNow).to.deep.equal({
         //     foo: 'baz',
@@ -185,9 +185,9 @@ describe('sheet_manager', () => {
         expect(handle.syncStatus).to.equal('never-uploaded' satisfies SyncStatus);
         expect(handle.meta.unsyncedModifications).to.have.length(1);
         handle.flush();
-        expect(JSON.parse(storage.getItem(key))['saveKey']).to.equal(key);
-        expect(JSON.parse(storage.getItem(key))['foo']).to.equal('bar');
-        expect(JSON.parse(storage.getItem(key))['name']).to.equal(summary.name);
+        expect(JSON.parse(storage.getItem(key)!)['saveKey']).to.equal(key);
+        expect(JSON.parse(storage.getItem(key)!)['foo']).to.equal('bar');
+        expect(JSON.parse(storage.getItem(key)!)['name']).to.equal(summary.name);
         expect(storage.getItem(metaKey)).to.equal(JSON.stringify(handle.meta));
 
         handle.lastSyncedVersion = 1;
@@ -196,9 +196,9 @@ describe('sheet_manager', () => {
         expect(handle.meta.currentVersion).to.equal(1);
         expect(handle.syncStatus).to.equal('in-sync' satisfies SyncStatus);
         handle.flush();
-        expect(JSON.parse(storage.getItem(key))['saveKey']).to.equal(key);
-        expect(JSON.parse(storage.getItem(key))['foo']).to.equal('bar');
-        expect(JSON.parse(storage.getItem(key))['name']).to.equal(summary.name);
+        expect(JSON.parse(storage.getItem(key)!)['saveKey']).to.equal(key);
+        expect(JSON.parse(storage.getItem(key)!)['foo']).to.equal('bar');
+        expect(JSON.parse(storage.getItem(key)!)['name']).to.equal(summary.name);
         expect(storage.getItem(metaKey)).to.equal(JSON.stringify(handle.meta));
         expect(handle.meta.unsyncedModifications).to.have.length(0);
 
@@ -208,9 +208,9 @@ describe('sheet_manager', () => {
         expect(handle.meta.currentVersion).to.equal(1);
         expect(handle.syncStatus).to.equal('server-newer-than-client' satisfies SyncStatus);
         handle.flush();
-        expect(JSON.parse(storage.getItem(key))['saveKey']).to.equal(key);
-        expect(JSON.parse(storage.getItem(key))['foo']).to.equal('bar');
-        expect(JSON.parse(storage.getItem(key))['name']).to.equal(summary.name);
+        expect(JSON.parse(storage.getItem(key)!)['saveKey']).to.equal(key);
+        expect(JSON.parse(storage.getItem(key)!)['foo']).to.equal('bar');
+        expect(JSON.parse(storage.getItem(key)!)['name']).to.equal(summary.name);
         expect(storage.getItem(metaKey)).to.equal(JSON.stringify(handle.meta));
         expect(handle.meta.unsyncedModifications).to.have.length(0);
 
@@ -226,9 +226,9 @@ describe('sheet_manager', () => {
         expect(handle.meta.sortOrder).to.equal(6.5);
         expect(handle.syncStatus).to.equal('in-sync' satisfies SyncStatus);
         handle.flush();
-        expect(JSON.parse(storage.getItem(key))['saveKey']).to.equal(key);
-        expect(JSON.parse(storage.getItem(key))['foo']).to.equal('baz');
-        expect(JSON.parse(storage.getItem(key))['name']).to.equal('Modified name');
+        expect(JSON.parse(storage.getItem(key)!)['saveKey']).to.equal(key);
+        expect(JSON.parse(storage.getItem(key)!)['foo']).to.equal('baz');
+        expect(JSON.parse(storage.getItem(key)!)['name']).to.equal('Modified name');
         expect(storage.getItem(metaKey)).to.equal(JSON.stringify(handle.meta));
         expect(handle.meta.unsyncedModifications).to.have.length(0);
 
@@ -283,7 +283,7 @@ describe('sheet_manager', () => {
         expect(handle.serverVersion).to.equal(0);
 
         const newMgr = new SheetManagerImpl(storage);
-        const newHandle = newMgr.getByKey(key);
+        const newHandle: SheetHandle = newMgr.getByKey(key)!;
         expect(newHandle).to.not.be.null;
         expect(newHandle.localVersion).to.equal(1);
         expect(newHandle.lastSyncedVersion).to.equal(0);
@@ -308,7 +308,7 @@ describe('sheet_manager', () => {
         expect(newHandle.localVersion).to.equal(2);
         expect(newHandle.lastSyncedVersion).to.equal(0);
         expect(newHandle.serverVersion).to.equal(0);
-        expect(newHandle.dataNow.description).to.equal('bar2');
+        expect(newHandle.dataNow!.description).to.equal('bar2');
 
         // Let's go the other way now
         // Try a metadata-only change
@@ -369,9 +369,9 @@ describe('sheet_manager', () => {
                 expect(handle.meta.currentVersion).to.equal(1);
                 expect(handle.syncStatus).to.equal('never-uploaded' satisfies SyncStatus);
                 handle.flush();
-                expect(JSON.parse(storage.getItem(key))['saveKey']).to.equal(key);
-                expect(JSON.parse(storage.getItem(key))['foo']).to.equal('bar');
-                expect(JSON.parse(storage.getItem(key))['name']).to.equal(summary.name);
+                expect(JSON.parse(storage.getItem(key)!)['saveKey']).to.equal(key);
+                expect(JSON.parse(storage.getItem(key)!)['foo']).to.equal('bar');
+                expect(JSON.parse(storage.getItem(key)!)['name']).to.equal(summary.name);
                 expect(storage.getItem(metaKey)).to.equal(JSON.stringify(handle.meta));
                 expect(handle.meta.unsyncedModifications).to.have.length(1);
 
@@ -423,9 +423,9 @@ describe('sheet_manager', () => {
                 expect(handle.meta.currentVersion).to.equal(1);
                 expect(handle.syncStatus).to.equal('never-uploaded' satisfies SyncStatus);
                 handle.flush();
-                expect(JSON.parse(storage.getItem(key))['saveKey']).to.equal(key);
-                expect(JSON.parse(storage.getItem(key))['foo']).to.equal('bar');
-                expect(JSON.parse(storage.getItem(key))['name']).to.equal(summary.name);
+                expect(JSON.parse(storage.getItem(key)!)['saveKey']).to.equal(key);
+                expect(JSON.parse(storage.getItem(key)!)['foo']).to.equal('bar');
+                expect(JSON.parse(storage.getItem(key)!)['name']).to.equal(summary.name);
                 expect(storage.getItem(metaKey)).to.equal(JSON.stringify(handle.meta));
 
                 handle.postLocalModification({
@@ -488,9 +488,9 @@ describe('sheet_manager', () => {
                 expect(handle.meta.currentVersion).to.equal(1);
                 expect(handle.syncStatus).to.equal('never-uploaded' satisfies SyncStatus);
                 handle.flush();
-                expect(JSON.parse(storage.getItem(key))['saveKey']).to.equal(key);
-                expect(JSON.parse(storage.getItem(key))['foo']).to.equal('bar');
-                expect(JSON.parse(storage.getItem(key))['name']).to.equal(summary.name);
+                expect(JSON.parse(storage.getItem(key)!)['saveKey']).to.equal(key);
+                expect(JSON.parse(storage.getItem(key)!)['foo']).to.equal('bar');
+                expect(JSON.parse(storage.getItem(key)!)['name']).to.equal(summary.name);
                 expect(storage.getItem(metaKey)).to.equal(JSON.stringify(handle.meta));
                 expect(handle.meta.unsyncedModifications).to.have.length(1);
 
@@ -542,7 +542,7 @@ describe('sheet_manager', () => {
                 } as Partial<SheetExport> as SheetExport);
                 expect(handle.meta.unsyncedModifications).to.have.length(1);
                 {
-                    const modRecord = handle.meta.unsyncedModifications[0];
+                    const modRecord = handle.meta.unsyncedModifications![0];
                     expect(modRecord[0]).to.equal(1);
                 }
                 handle.lastSyncedVersion = 1;
@@ -564,7 +564,7 @@ describe('sheet_manager', () => {
                 expect(handle.meta.currentVersion).to.equal(2);
                 expect(handle.syncStatus).to.equal('client-newer-than-server' satisfies SyncStatus);
                 expect(handle.meta.unsyncedModifications).to.have.length(1);
-                const modRecord = handle.meta.unsyncedModifications[0];
+                const modRecord = handle.meta.unsyncedModifications![0];
                 expect(modRecord[0]).to.equal(2);
                 const modKey = modRecord[1];
 
@@ -613,7 +613,7 @@ describe('sheet_manager', () => {
                 } as Partial<SheetExport> as SheetExport);
                 expect(handle.meta.unsyncedModifications).to.have.length(1);
                 {
-                    const modRecord = handle.meta.unsyncedModifications[0];
+                    const modRecord = handle.meta.unsyncedModifications![0];
                     expect(modRecord[0]).to.equal(1);
                 }
                 handle.lastSyncedVersion = 1;
@@ -638,11 +638,11 @@ describe('sheet_manager', () => {
                 expect(handle.syncStatus).to.equal('client-newer-than-server' satisfies SyncStatus);
                 expect(handle.meta.unsyncedModifications).to.have.length(5);
                 for (let i = 0; i < 5; i++) {
-                    const modRecord = handle.meta.unsyncedModifications[i];
+                    const modRecord = handle.meta.unsyncedModifications![i];
                     expect(modRecord[0]).to.equal(i + 2);
                 }
                 // Let's take the third one
-                const modRecord = handle.meta.unsyncedModifications[2];
+                const modRecord = handle.meta.unsyncedModifications![2];
                 const modKey = modRecord[1];
                 expect(modRecord[0]).to.equal(4);
 
@@ -691,7 +691,7 @@ describe('sheet_manager', () => {
                 } as Partial<SheetExport> as SheetExport);
                 expect(handle.meta.unsyncedModifications).to.have.length(1);
                 {
-                    const modRecord = handle.meta.unsyncedModifications[0];
+                    const modRecord = handle.meta.unsyncedModifications![0];
                     expect(modRecord[0]).to.equal(1);
                 }
                 handle.lastSyncedVersion = 1;
@@ -716,7 +716,7 @@ describe('sheet_manager', () => {
                 expect(handle.syncStatus).to.equal('client-newer-than-server' satisfies SyncStatus);
                 expect(handle.meta.unsyncedModifications).to.have.length(5);
                 for (let i = 0; i < 5; i++) {
-                    const modRecord = handle.meta.unsyncedModifications[i];
+                    const modRecord = handle.meta.unsyncedModifications![i];
                     expect(modRecord[0]).to.equal(i + 2);
                 }
 
@@ -917,8 +917,8 @@ describe('sheet_manager', () => {
             // Should have changed key
             expect(newHandle.key).to.not.equal(handle.key);
             expect(newHandle.name).to.equal(handle.name + ' Copy');
-            expect(newHandle.dataNow.saveKey).to.not.equal(handle.key);
-            expect(newHandle.dataNow.saveKey).to.eq(newHandle.key);
+            expect(newHandle.dataNow!.saveKey).to.not.equal(handle.key);
+            expect(newHandle.dataNow!.saveKey).to.eq(newHandle.key);
         });
     });
 
