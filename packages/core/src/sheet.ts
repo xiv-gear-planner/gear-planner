@@ -131,7 +131,7 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
      * @param ilvlSync The ilvl sync of the sheet, or undefined if the sheet should not have an ilvl sync.
      * @param multiJob Whether to create a multi-job sheet.
      */
-    fromScratch(sheetKey: string, sheetName: string, classJob: JobName, level: SupportedLevel, ilvlSync: number | undefined, multiJob: boolean): SheetType {
+    fromScratch(sheetKey: string | undefined, sheetName: string, classJob: JobName, level: SupportedLevel, ilvlSync: number | undefined, multiJob: boolean): SheetType {
         const defaultPartyBonus: PartyBonusAmount = JOB_DATA[classJob]?.defaultPartyBonus ?? 5;
         const fakeExport: SheetExport = {
             job: classJob,

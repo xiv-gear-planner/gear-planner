@@ -7,7 +7,7 @@ export const SwiftcastBuff: Buff = {
     selfOnly: true,
     descriptionOverride: "Next GCD has no cast time",
     beforeAbility<X extends Ability>(controller: BuffController, ability: X): X | null {
-        if (ability.type === 'gcd' && ability.cast >= 0) {
+        if (ability.type === 'gcd' && ability.cast !== undefined && ability.cast >= 0) {
             controller.removeStatus(SwiftcastBuff);
             return {
                 ...ability,
