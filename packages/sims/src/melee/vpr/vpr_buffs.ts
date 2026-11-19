@@ -153,7 +153,7 @@ export const SwiftskinsVenom: PersonalBuff = {
     duration: 30,
     selfOnly: true,
     effects: {
-        // Increases Twinfang Bite potency by 50
+        // Increases Twinblood Bite potency by 50
     },
     appliesTo: ability => ability.id === Actions.TwinbloodBite.id,
     beforeAbility<VprOgcdAbility>(buffController: BuffController, ability: VprOgcdAbility): VprOgcdAbility {
@@ -172,7 +172,7 @@ export const PoisedForTwinfang: PersonalBuff = {
     duration: 60,
     selfOnly: true,
     effects: {
-        // Increases Twinfang Bite potency by 50
+        // Increases Uncoiled Twinfang potency by 50
     },
     appliesTo: ability => ability.id === Actions.UncoiledTwinfang.id,
     beforeAbility<VprOgcdAbility>(buffController: BuffController, ability: VprOgcdAbility): VprOgcdAbility {
@@ -191,7 +191,7 @@ export const PoisedForTwinblood: PersonalBuff = {
     duration: 60,
     selfOnly: true,
     effects: {
-        // Increases Twinfang Bite potency by 50
+        // Increases Uncoiled Twinblood potency by 50
     },
     appliesTo: ability => ability.id === Actions.UncoiledTwinblood.id,
     beforeAbility<VprOgcdAbility>(buffController: BuffController, ability: VprOgcdAbility): VprOgcdAbility {
