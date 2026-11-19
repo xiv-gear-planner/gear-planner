@@ -1,6 +1,19 @@
-import {FieldBoundDataSelect, labelFor, quickElement} from "@xivgear/common-ui/components/util";
+import {
+    clampValues,
+    FieldBoundCheckBox,
+    FieldBoundDataSelect,
+    FieldBoundIntField,
+    labeledCheckbox,
+    labelFor,
+    quickElement
+} from "@xivgear/common-ui/components/util";
 import {potionOptionsDropdown} from "../common/sim_ui_utils";
-import {PctOpener, PctSettings, PctSimResult} from "@xivgear/sims/caster/pct/pct_sheet_sim";
+import {
+    MAX_KILL_TIME_SPREAD,
+    PctOpener,
+    PctSettings,
+    PctSimResult
+} from "@xivgear/sims/caster/pct/pct_sheet_sim";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
 import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/sims/cycle_sim";
 import {col, CustomColumn} from "@xivgear/common-ui/table/tables";
@@ -121,6 +134,27 @@ export class PctSimGui extends BaseMultiCycleSimGui<PctSimResult, PctSettings> {
         configDiv.appendChild(quickElement('div', [], [openerLabel, openerDropdown]));
 
         configDiv.appendChild(potionOptionsDropdown(settings));
+
+        const comboBreaks = new FieldBoundCheckBox<PctSettings>(settings, 'comboBreaks');
+        const comboBreaksLabel = labeledCheckbox('Use combo breaks (magenta skips)', comboBreaks);
+        comboBreaksLabel.title = 'Lets Aetherhues run out after a Blizzard in Cyan in the burst window, so that the '
+            + 'Subtractive Palette stacks go to Cyan, Cyan, Yellow and the next filler spell is Water in Blue.';
+        configDiv.appendChild(comboBreaksLabel);
+
+        const exactKillTime = new FieldBoundCheckBox<PctSettings>(settings, 'exactKillTime');
+        const exactKillTimeLabel = labeledCheckbox('Only count damage which lands before the kill time', exactKillTime);
+        exactKillTimeLabel.title = 'By default, the last GCD counts for as much of it as fits into the fight. '
+            + 'With this, an action counts in full if its damage lands in time, and not at all otherwise.';
+        configDiv.appendChild(exactKillTimeLabel);
+
+        const killTimeSpread = new FieldBoundIntField<PctSettings>(settings, 'killTimeSpread', {
+            postValidators: [clampValues(0, MAX_KILL_TIME_SPREAD)],
+        });
+        const killTimeSpreadLabel = labelFor('Average over earlier kill times (seconds):', killTimeSpread);
+        killTimeSpreadLabel.style.display = 'block';
+        killTimeSpreadLabel.title = 'Also simulates the fight ending one second earlier, two seconds earlier, and so on, '
+            + 'and shows the average. This evens out how the rotation happens to line up with one exact kill time.';
+        configDiv.appendChild(quickElement('div', [], [killTimeSpreadLabel, killTimeSpread]));
 
         return configDiv;
     }

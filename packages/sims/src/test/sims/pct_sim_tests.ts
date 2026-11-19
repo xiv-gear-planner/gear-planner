@@ -6,7 +6,7 @@ import {getClassJobStats, getLevelStats, getRaceStats} from "@xivgear/xivmath/xi
 import {finalizeStats} from "@xivgear/xivmath/xivstats";
 import {makeFakeSet} from "@xivgear/core/test/test_utils";
 import {FinalizedAbility} from "@xivgear/core/sims/sim_types";
-import {pctSpec, PctSim} from "../../caster/pct/pct_sheet_sim";
+import {PctSettings, pctSpec, PctSim} from "../../caster/pct/pct_sheet_sim";
 import {PctGaugeState} from "../../caster/pct/pct_types";
 import * as Actions from "../../caster/pct/pct_actions";
 import {StarryMuse} from "../../buffs";
@@ -59,6 +59,7 @@ const SUBTRACTIVE_SPELLS = [Actions.Cyan, Actions.Yellow, Actions.Magenta].map(a
 const LIVING_MUSES = [Actions.PomMuse, Actions.WingedMuse, Actions.ClawedMuse, Actions.FangedMuse].map(a => a.name);
 const PORTRAITS = [Actions.Mog, Actions.Madeen].map(a => a.name);
 const CREATURE_MOTIFS = [Actions.PomMotif, Actions.WingMotif, Actions.ClawMotif, Actions.MawMotif].map(a => a.name);
+const AETHERHUE_SPELLS = [Actions.Red, Actions.Green, Actions.Blue, Actions.Cyan, Actions.Yellow, Actions.Magenta].map(a => a.name);
 
 // From 6 to 12 minutes, so that the fight ends at every point of the two minute cycle
 const FIGHT_LENGTHS: number[] = [];
@@ -104,6 +105,12 @@ async function runSim(totalTime: number, set: CharacterGearSet = pctSet, sim: Pc
 function endsAfterBurst(uses: PctUse[], totalTime: number): boolean {
     const starry = usesOf(uses, Actions.StarryMuseAction.name);
     return totalTime - starry[starry.length - 1].usedAt < 45;
+}
+
+function withSettings(settings: Partial<PctSettings>): PctSim {
+    const sim = new PctSim();
+    Object.assign(sim.settings, settings);
+    return sim;
 }
 
 function usesOf(uses: PctUse[], name: string): PctUse[] {
@@ -306,11 +313,115 @@ describe('PCT sim', () => {
                 expect(buffedMadeens.length).to.be.at.least(3);
             });
 
-            it('only uses Holy in White at the end of the fight', async () => {
+            it('only uses Holy in White at the end of the fight if combo breaks are off', async () => {
                 for (const totalTime of FIGHT_LENGTHS) {
-                    const uses = await runSim(totalTime, set);
+                    const uses = await runSim(totalTime, set, withSettings({comboBreaks: false}));
                     usesOf(uses, Actions.Holy.name).forEach(u => expect(u.usedAt, `fight length ${totalTime}`).to.be.greaterThan(totalTime - 62));
                 }
+            });
+
+            it('otherwise only uses Holy in White around burst windows, for combo breaks', async () => {
+                for (const totalTime of FIGHT_LENGTHS) {
+                    const uses = await runSim(totalTime, set);
+                    const starryTimes = usesOf(uses, Actions.StarryMuseAction.name).map(u => u.usedAt);
+                    usesOf(uses, Actions.Holy.name).forEach(u => {
+                        // Lining up the window, or waiting for Aetherhues to run out after it
+                        const nearBurst = starryTimes.some(time => u.usedAt > time - 26 && u.usedAt < time + 45);
+                        expect(nearBurst || u.usedAt > totalTime - 62, `fight length ${totalTime}, Holy at ${u.usedAt}`).to.equal(true);
+                    });
+                }
+            });
+
+            it('breaks the aetherhue combo after burst windows', async () => {
+                const uses = await runSim(720, set);
+                const hueSpells = uses.filter(u => AETHERHUE_SPELLS.includes(u.ability.name));
+                let breaks = 0;
+                hueSpells.forEach((use, i) => {
+                    const previous = hueSpells[i - 1];
+                    if (i < 1 || use.ability.name !== Actions.Cyan.name || previous.ability.name !== Actions.Cyan.name) {
+                        return;
+                    }
+                    breaks++;
+                    // Aetherhues from the first Cyan has to have run out
+                    expect(use.usedAt - previous.usedAt).to.be.greaterThan(30.8);
+                    // Then Yellow, and straight into the third step of the combo (Water in Blue, unless Subtractive
+                    // Palette was used again in between)
+                    expect(hueSpells[i + 1].ability.name).to.equal(Actions.Yellow.name);
+                    expect([Actions.Blue.name, Actions.Magenta.name]).to.include(hueSpells[i + 2].ability.name);
+                    // The first Cyan is inside the burst window, and the second hammer combo is used for the wait
+                    expect(hasBuff(previous, StarryMuse.name)).to.equal(true);
+                    const between = uses.filter(u => u.usedAt > previous.usedAt && u.usedAt < use.usedAt);
+                    expect(usesOf(between, Actions.StrikingMuse.name).length).to.be.at.least(1);
+                });
+                expect(breaks).to.be.at.least(3);
+            });
+
+            it('never breaks the aetherhue combo if combo breaks are off', async () => {
+                const uses = await runSim(720, set, withSettings({comboBreaks: false}));
+                const hueSpells = names(uses.filter(u => AETHERHUE_SPELLS.includes(u.ability.name)));
+                hueSpells.forEach((name, i) => {
+                    if (i > 0) {
+                        expect(name === Actions.Cyan.name && hueSpells[i - 1] === Actions.Cyan.name).to.equal(false);
+                    }
+                });
+            });
+
+            it('only casts aetherhue spells in an order which the Aetherhues status allows', async () => {
+                for (const totalTime of [450, 600, 720]) {
+                    const uses = await runSim(totalTime, set);
+                    uses.filter(u => AETHERHUE_SPELLS.includes(u.ability.name)).forEach(u => {
+                        const message = `fight length ${totalTime}, ${u.ability.name} at ${u.usedAt}`;
+                        const first = hasBuff(u, 'Aetherhues');
+                        const second = hasBuff(u, 'Aetherhues II');
+                        switch (u.ability.name) {
+                            case Actions.Green.name:
+                            case Actions.Yellow.name:
+                                expect(first, message).to.equal(true);
+                                break;
+                            case Actions.Blue.name:
+                            case Actions.Magenta.name:
+                                expect(second, message).to.equal(true);
+                                break;
+                            default:
+                                expect(first || second, message).to.equal(false);
+                        }
+                    });
+                }
+            });
+
+            it('can count only what lands before the kill time', async () => {
+                for (const totalTime of [447, 600, 719]) {
+                    const sim = withSettings({exactKillTime: true});
+                    sim.cycleSettings.totalTime = totalTime;
+                    const result = await sim.simulate(set);
+                    const message = `fight length ${totalTime}`;
+                    expect(result.best.totalTime, message).to.equal(totalTime);
+                    let damage = 0;
+                    result.best.abilitiesUsed.forEach(u => {
+                        // All or nothing
+                        expect([null, 0], message).to.include(u.partialRate);
+                        const lands = u.usedAt + u.original.appDelayFromStart <= totalTime;
+                        expect(u.partialRate === null, message).to.equal(lands);
+                        damage += u.totalDamage;
+                    });
+                    expect(result.mainDpsResult, message).to.be.closeTo(damage / totalTime, 0.01);
+                }
+            });
+
+            it('can average over several kill times', async () => {
+                const spread = withSettings({killTimeSpread: 2});
+                spread.cycleSettings.totalTime = 600;
+                const result = await spread.simulate(set);
+                expect(result.all.length).to.equal(3);
+                expect(result.best.totalTime).to.equal(600);
+                let total = 0;
+                for (const totalTime of [600, 599, 598]) {
+                    const single = new PctSim();
+                    single.cycleSettings.totalTime = totalTime;
+                    total += (await single.simulate(set)).mainDpsResult;
+                }
+                expect(result.mainDpsResult).to.be.closeTo(total / 3, 0.01);
+                expect(await spread.simulateSimple(set)).to.be.closeTo(total / 3, 0.01);
             });
 
             it('counts the whole fight as time taken', async () => {
@@ -394,7 +505,7 @@ describe('PCT sim', () => {
                     const nextStarry = starryTimes.find(time => time > u.usedAt);
                     // If this dips into the reserve, then it is the one for the upcoming window
                     if (paletteAfter < paletteBefore && paletteAfter < 50 && nextStarry !== undefined) {
-                        expect(nextStarry - u.usedAt).to.be.lessThan(24);
+                        expect(nextStarry - u.usedAt).to.be.lessThan(26);
                     }
                 });
             });

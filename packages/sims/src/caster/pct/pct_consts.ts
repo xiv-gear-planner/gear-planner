@@ -53,3 +53,9 @@ export const SubtractiveSpectrumStatusID: number = 3690;
 export const MAX_PALETTE: number = 100;
 export const MAX_PAINT: number = 5;
 export const SUBTRACTIVE_PALETTE_COST: number = 50;
+
+/**
+ * How long the Aetherhues statuses last. The tooltip says 30 seconds, but like most statuses they stay up a little
+ * longer than that. Once they run out, the next aetherhue spell is Fire in Red or Blizzard in Cyan again.
+ */
+export const AETHERHUES_DURATION: number = 30.8;

@@ -5,7 +5,9 @@ import {
     AbilityUseResult,
     CycleProcessor,
     CycleSimResult,
+    CycleSimResultFull,
     ExternalCycleSettings,
+    isFinalizedAbilityUse,
     MultiCycleSettings,
     Rotation
 } from "@xivgear/sims/cycle_sim";
@@ -13,7 +15,9 @@ import {CharacterGearSet} from "@xivgear/core/gear";
 import {BaseMultiCycleSim} from "@xivgear/sims/processors/sim_processors";
 import {PotionOptions} from "@xivgear/sims/common/medicine";
 import {StarryMuse} from "@xivgear/sims/buffs";
-import {animationLock} from "@xivgear/sims/ability_helpers";
+import {animationLock, damageAppDelay} from "@xivgear/sims/ability_helpers";
+import {addValues, applyStdDev, multiplyFixed} from "@xivgear/xivmath/deviation";
+import {sum} from "@xivgear/util/array_utils";
 import {PctGaugeManager} from "./pct_gauge";
 import * as Actions from "./pct_actions";
 import * as Buffs from "./pct_buffs";
@@ -31,7 +35,28 @@ export interface PctSettings extends SimSettings, PotionOptions {
      * starts with a Holy in White before the first motif.
      */
     opener: PctOpener;
+    /**
+     * How the end of the fight is evaluated. If false (the default), the last GCD counts for as much of it as fits
+     * before the kill time. If true, every action counts in full if its damage lands before the kill time, and not
+     * at all otherwise.
+     */
+    exactKillTime: boolean;
+    /**
+     * Simulate this many extra kill times, each one second earlier than the last, and average the results. This
+     * evens out how the rotation happens to line up with one particular kill time.
+     */
+    killTimeSpread: number;
+    /**
+     * Whether to use combo breaks ("magenta skips"): letting Aetherhues run out after a Blizzard in Cyan, so that
+     * the Subtractive Palette stacks go to Cyan, Cyan, Yellow, and the next filler spell is Water in Blue.
+     */
+    comboBreaks: boolean;
 }
+
+/**
+ * The most extra kill times which can be averaged over.
+ */
+export const MAX_KILL_TIME_SPREAD = 5;
 
 export interface PctSettingsExternal extends ExternalCycleSettings<PctSettings> {
 }
@@ -48,11 +73,19 @@ Living Muse.
 
 50 palette gauge is always kept in reserve for the next window. To line Starry Muse up with its cooldown, the sim
 varies how many subtractive spells and creature motifs go before the window. Since there is no movement to account
-for, Holy in White is only used at the end of the fight. Swiftcast is used when it gets a spell into a raid buff or
-potion which it would otherwise miss.
+for, Holy in White is only used at the end of the fight and to set up combo breaks. Swiftcast is used when it gets a
+spell into a raid buff or potion which it would otherwise miss.
 
 The last minute of the fight is planned out so that the gauge and paint are used up, and no motif is painted unless it
 pays off before the end.
+
+Uses combo breaks ("magenta skips") unless turned off: Blizzard in Cyan as the last aetherhue spell of the burst
+window, then the rest of the window, the second hammer combo and motifs until Aetherhues has run out, then Cyan and
+Yellow, so that the next filler spell is Water in Blue.
+
+The end of the fight can be evaluated in two ways: by default the last GCD counts for as much of it as fits, or
+optionally an action only counts if its damage lands before the kill time. The result can also be averaged over
+several kill times a second apart.
 
 If a potion is enabled, it is used in the opener and again right before each burst window where it is available.`,
     makeNewSimInstance: function (): PctSim {
@@ -138,6 +171,18 @@ const ENTRY_NO_PORTRAIT_COST = 10;
 const MUSE_HOLD_WINDOW = 60;
 
 /**
+ * How many seconds of Starry Muse delay it is considered to be worth to avoid a Holy in White when lining up the burst
+ * window. It does about as much damage as the RGB spell it replaces, but generates no gauge.
+ */
+const ENTRY_HOLY_COST = 0.1;
+
+/**
+ * How many seconds of Starry Muse delay it is considered to be worth to go into the burst window in a way which
+ * allows a combo break. This is kept below {@link ENTRY_OVERCAP_COST}, so that gauge is never wasted for it.
+ */
+const ENTRY_NO_COMBO_BREAK_COST = 1.4;
+
+/**
  * How far ahead of Starry Muse coming off cooldown the potion is used.
  */
 const POTION_LEAD = 7;
@@ -188,6 +233,12 @@ const POTION_END_LEAD = 32;
 const ENDING_HORIZON = 60;
 
 /**
+ * A combo break is only started if the fight goes on for at least this long, so that it is over and done with
+ * before the end of the fight gets planned out.
+ */
+const COMBO_BREAK_MIN_REMAINING = ENDING_HORIZON + 45;
+
+/**
  * At the end of the fight, how much potency a Pom or Claw Motif must gain over not painting it if it does not lead
  * to a portrait. Without the portrait, the Living Muse is worth about as much as the filler which the motif
  * replaces, so it could otherwise get painted just because of how the last GCD happens to line up with the end.
@@ -197,10 +248,17 @@ const ENDING_NO_PORTRAIT_COST = 300;
 /**
  * The kinds of GCD which can be used while lining up the burst window.
  */
-type EntryAction = 'subtractive' | 'aetherhue' | 'comet' | 'hammer' | 'motif';
+type EntryAction = 'subtractive' | 'aetherhue' | 'comet' | 'hammer' | 'motif' | 'holy';
 
 // In order of preference, if they work out equally well
 const ENTRY_ACTIONS: readonly EntryAction[] = ['hammer', 'motif', 'subtractive', 'comet', 'aetherhue'];
+
+/**
+ * With combo breaks, Holy in White can also be used to line things up. It is as long as an RGB spell but leaves the
+ * aetherhue combo and the palette gauge where they are, which is what it takes to get Blizzard in Cyan into the
+ * right spot of the burst window without delaying Starry Muse or overcapping the gauge.
+ */
+const ENTRY_ACTIONS_WITH_HOLY: readonly EntryAction[] = [...ENTRY_ACTIONS, 'holy'];
 
 /**
  * A lightweight copy of the state which matters when lining up the burst window.
@@ -339,6 +397,9 @@ type EndingState = {
     strikingNextAt: number,
 };
 
+const AETHERHUE_SPELL_IDS: readonly number[] = [Actions.Red, Actions.Green, Actions.Blue, Actions.Cyan, Actions.Yellow,
+    Actions.Magenta].map(ability => ability.id);
+
 type EndingStep = {
     state: EndingState,
     /**
@@ -386,9 +447,65 @@ type EndingPlan = {
 
 class PctCycleProcessor extends CycleProcessor<PctGaugeManager> {
 
-    constructor(settings: MultiCycleSettings) {
+    /**
+     * Whether actions count in full if they land before the kill time and not at all otherwise, rather than the last
+     * GCD being pro-rated.
+     */
+    readonly exactKillTime: boolean;
+
+    /**
+     * Whether combo breaks are enabled.
+     */
+    readonly useComboBreaks: boolean;
+
+    constructor(settings: MultiCycleSettings, exactKillTime: boolean, useComboBreaks: boolean) {
         super(settings);
         this.cycleLengthMode = 'full-duration';
+        this.exactKillTime = exactKillTime;
+        this.useComboBreaks = useComboBreaks;
+    }
+
+    /**
+     * If a combo break is in progress: when the Aetherhues from its Blizzard in Cyan runs out. Until then, no
+     * aetherhue spell may be cast.
+     */
+    comboBreakUntil: number | null = null;
+
+    /**
+     * Whether the next GCD is the Blizzard in Cyan which starts a combo break.
+     */
+    comboBreakStarting: boolean = false;
+
+    /**
+     * When the Aetherhues status from the last aetherhue spell runs out.
+     */
+    aetherhuesUntil(): number {
+        const usages = this.buffHistory.filter(usage => usage.buff.statusId === Buffs.AetherhuesGYBuff.statusId
+            || usage.buff.statusId === Buffs.AetherhuesBMBuff.statusId);
+        return usages.length > 0 ? usages[usages.length - 1].end : this.currentTime;
+    }
+
+    /**
+     * How long after the start of an ability its damage lands.
+     */
+    landingDelay(ability: Ability): number {
+        const leveled = this.leveled(ability);
+        const cast = leveled.type === 'gcd' && leveled.cast ? this.castTime(leveled, combineBuffEffects([])) : 0;
+        return Math.max(0, cast - CAST_SNAPSHOT_PRE) + damageAppDelay(leveled);
+    }
+
+    override computePartialRate(record: Parameters<CycleProcessor<PctGaugeManager>['computePartialRate']>[0]): number {
+        if (!this.exactKillTime) {
+            return super.computePartialRate(record);
+        }
+        return record.usedAt + record.appDelayFromStart <= this.totalTime ? 1 : 0;
+    }
+
+    override get finalizedTimeBasis(): number {
+        if (!this.exactKillTime) {
+            return super.finalizedTimeBasis;
+        }
+        return this.totalTime;
     }
 
     override createGaugeManager(): PctGaugeManager {
@@ -598,7 +715,18 @@ class PctCycleProcessor extends CycleProcessor<PctGaugeManager> {
         if (charges <= 0) {
             return false;
         }
-        return this.inBurst() || !this.burstComing() || charges >= 2 || this.timeUntilStarry() > 45;
+        if (this.inBurst() || !this.burstComing() || charges >= 2) {
+            return true;
+        }
+        // With combo breaks, the second hammer combo goes right after the burst window, where it helps to wait
+        // for Aetherhues to run out. So both charges are needed around the window, rather than a minute apart.
+        if (this.comboBreakUntil !== null) {
+            return true;
+        }
+        if (this.useComboBreaks && this.totalTime - this.starryReadyAt() > COMBO_BREAK_MIN_REMAINING) {
+            return false;
+        }
+        return this.timeUntilStarry() > 45;
     }
 
     /**
@@ -677,6 +805,9 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
         return {
             usePotion: 'auto',
             opener: '2nd-gcd',
+            exactKillTime: false,
+            killTimeSpread: 0,
+            comboBreaks: true,
         };
     }
 
@@ -684,7 +815,7 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
         return new PctCycleProcessor({
             ...settings,
             hideCycleDividers: true,
-        });
+        }, this.settings.exactKillTime, this.settings.comboBreaks);
     }
 
     /**
@@ -897,6 +1028,14 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
                 next.hammers -= 1;
                 instant = true;
                 break;
+            case 'holy':
+                if (next.monochrome || next.paint < 1) {
+                    return null;
+                }
+                next.paint -= 1;
+                instant = true;
+                cost += ENTRY_HOLY_COST;
+                break;
             case 'motif':
                 if (next.motifs > 0) {
                     next.motifs -= 1;
@@ -931,7 +1070,7 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
      * @param instant Whether that GCD was instant
      * @returns The penalty, and whether Subtractive Palette would have to be weaved together with Starry Muse
      */
-    private entryOutcome(state: EntryState, instant: boolean): { penalty: number, doubleWeave: boolean } {
+    private entryOutcome(state: EntryState, instant: boolean, comboBreak: boolean): { penalty: number, doubleWeave: boolean } {
         const single = (penalty: number) => ({
             penalty: penalty,
             doubleWeave: false,
@@ -942,10 +1081,17 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
         if (state.motifs > 0 || state.hammers > 0) {
             penalty += 20;
         }
+        // Will there be black paint once the stacks have been used?
+        const castsUntilMagenta = 3 - state.hue;
+        const cometAfterStacks = state.monochrome && (state.paint >= 1 || castsUntilMagenta <= state.stacks);
+        // For a combo break, the stacks from before the window have to end on Thunder in Magenta, so that the free
+        // Subtractive Palette starts with Blizzard in Cyan, as the last aetherhue spell of the window.
+        const breakable = cometAfterStacks && (state.stacks === 1 || state.stacks === 2) && (state.hue + state.stacks) % 3 === 0;
+        if (comboBreak && !breakable) {
+            penalty += ENTRY_NO_COMBO_BREAK_COST;
+        }
         if (state.stacks > 0) {
-            // Will there be black paint once the stacks have been used?
-            const castsUntilMagenta = 3 - state.hue;
-            if (!state.monochrome || (state.paint < 1 && castsUntilMagenta > state.stacks)) {
+            if (!cometAfterStacks) {
                 return single(penalty + 1.5);
             }
             // Two stacks left means that two Comets and the two strongest subtractive spells fit in the window.
@@ -1008,6 +1154,7 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
             comet: instant(Actions.Comet),
             hammer: instant(Actions.HammerStamp),
             motif: hardcast(Actions.StarryMotif),
+            holy: instant(Actions.Holy),
         };
         const starryReady = cp.starryReadyAt();
         const weaveLock = animationLock(Actions.StarryMuseAction);
@@ -1027,6 +1174,8 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
         const nextMuse = gauge.creatureCanvas ?? gauge.nextCreature;
         const portraitNeedsMuse = gauge.portrait === null && (nextMuse === 'pom' || nextMuse === 'claw');
         const gaugeUselessAfter = cp.fightEndsAfterBurst(LAST_BURST_GAUGE);
+        const comboBreak = this.settings.comboBreaks && cp.totalTime - cp.starryReadyAt() > COMBO_BREAK_MIN_REMAINING;
+        const actions = comboBreak ? ENTRY_ACTIONS_WITH_HOLY : ENTRY_ACTIONS;
         // Outcome of a step, including the best way to continue after it
         type Outcome = { cost: number, extraMotif: boolean };
         const memo = new Map<string, Outcome>();
@@ -1034,7 +1183,7 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
             if (step.state.time >= earliest) {
                 // Starry Muse gets weaved after this GCD. What matters is how soon it can actually be used: as late
                 // as possible in the weave window, but no later than is needed for nine GCDs to fit.
-                const outcome = this.entryOutcome(step.state, step.instant);
+                const outcome = this.entryOutcome(step.state, step.instant, comboBreak);
                 const weaveTime = step.weaveTime - (outcome.doubleWeave ? weaveLock : 0);
                 const usedAt = Math.max(starryReady, step.state.time - Math.min(weaveTime, STARRY_MAX_LEAD));
                 const portraitPenalty = portraitNeedsMuse && step.state.extraMotifs > 0 ? ENTRY_NO_PORTRAIT_COST : 0;
@@ -1063,7 +1212,7 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
                 cost: Number.MAX_VALUE,
                 extraMotif: false,
             };
-            for (const action of ENTRY_ACTIONS) {
+            for (const action of actions) {
                 const step = this.applyEntryAction(state, action, timings, true);
                 if (step !== null) {
                     const outcome = stepOutcome(step);
@@ -1078,7 +1227,7 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
         const canWeaveNow = cp.canWeave(Actions.SubtractivePalette);
         let plan: EntryPlan | null = null;
         let planCost = Number.MAX_VALUE;
-        for (const action of ENTRY_ACTIONS) {
+        for (const action of actions) {
             const step = this.applyEntryAction(initial, action, timings, canWeaveNow);
             if (step === null) {
                 continue;
@@ -1127,6 +1276,8 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
                 return Actions.Comet;
             case 'hammer':
                 return cp.nextHammer() ?? cp.nextAetherhueSpell(false);
+            case 'holy':
+                return Actions.Holy;
             case 'motif':
                 return this.pendingBurstMotifs(cp)[0]
                     ?? cp.nextAetherhueSpell(cp.buffStacks(Buffs.SubtractivePaletteBuff, cp.gcdDecisionTime) > 0);
@@ -1202,6 +1353,22 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
             }
         }
         const multiplierAt = (time: number) => time >= potionFrom && time < potionUntil ? potionMultiplier : 1;
+        // With an exact kill time, a GCD counts if it lands in time, rather than for however much of it fits.
+        const exact = cp.exactKillTime;
+        const hammerLanding = Actions.HammerCombo.map(ability => cp.landingDelay(ability));
+        const landing: Record<EndingAction, number> = {
+            // Depends on the combo step
+            hammer: 0,
+            comet: cp.landingDelay(Actions.Comet),
+            subtractive: cp.landingDelay(Actions.Cyan),
+            holy: cp.landingDelay(Actions.Holy),
+            aetherhue: cp.landingDelay(Actions.Red),
+            hammerMotif: 0,
+            creatureMotif: 0,
+        };
+        const livingLanding = cp.landingDelay(Actions.PomMuse);
+        const portraitLanding = cp.landingDelay(Actions.Mog);
+        const lands = (usedAt: number, delay: number) => !exact || usedAt + delay <= totalTime;
         const recasts: Record<EndingAction, number> = {
             hammer: cp.gcdTime(Actions.HammerStamp),
             comet: cp.gcdTime(Actions.Comet),
@@ -1241,7 +1408,8 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
                     state.strikingNextAt = deadline + striking.time;
                 }
             }
-            if (state.weaves > 0 && state.portrait !== null && state.portraitReadyAt <= deadline) {
+            if (state.weaves > 0 && state.portrait !== null && state.portraitReadyAt <= deadline
+                && lands(deadline, portraitLanding)) {
                 state.weaves -= 1;
                 // The second part makes up for what was taken off when the Pom or Claw Motif was painted
                 gained += portraitDamage[state.portrait] * multiplierAt(deadline) + noPortraitCost;
@@ -1249,6 +1417,7 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
                 state.portraitReadyAt = deadline + portraitCooldown;
             }
             if (state.weaves > 0 && state.creature >= 0 && state.livingCharges > 0
+                && lands(deadline, livingLanding)
                 && !(givesPortrait(state.creature) && state.portrait !== null)) {
                 state.weaves -= 1;
                 gained += livingDamage * multiplierAt(deadline);
@@ -1279,12 +1448,14 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
             let gained = 0;
             let usedPalette = false;
             let instant = false;
+            let landingDelay = landing[action];
             switch (action) {
                 case 'hammer':
                     if (next.hammers < 1) {
                         return null;
                     }
                     gained = hammerDamage[hammerDamage.length - next.hammers];
+                    landingDelay = hammerLanding[hammerLanding.length - next.hammers];
                     next.hammers -= 1;
                     instant = true;
                     break;
@@ -1347,8 +1518,12 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
                     break;
             }
             const recast = recasts[action];
-            // The last GCD only counts for as much of it as fits before the end of the fight
-            gained *= multiplierAt(state.time) * Math.min(1, (totalTime - state.time) / recast);
+            // The last GCD only counts for as much of it as fits before the end of the fight, or with an exact kill
+            // time, only if it lands
+            const counted = exact
+                ? (lands(state.time, landingDelay) ? 1 : 0)
+                : Math.min(1, (totalTime - state.time) / recast);
+            gained *= multiplierAt(state.time) * counted;
             if (action === 'creatureMotif' && !givesPortrait(next.creature)) {
                 gained -= noPortraitCost;
             }
@@ -1693,6 +1868,13 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
             if (stacks > 0 && cp.hasBuff(Buffs.SubtractiveSpectrumBuff, time)) {
                 return cp.nextAetherhueSpell(true);
             }
+            // Combo break: the free Subtractive Palette starts on Blizzard in Cyan. That goes before the Comet
+            // in Black, so that the Aetherhues from it starts running out as early as possible. It needs to leave
+            // a Hyperphantasia stack for Star Prism.
+            if (this.canStartComboBreak(cp) && stacks === 3 && cp.aetherhue() === 0 && hyperStacks >= 2) {
+                cp.comboBreakStarting = true;
+                return Actions.Cyan;
+            }
             // Comet in Black is the strongest of the hasted fillers, and leaves room for a double weave.
             if (gauge.hasBlackPaint && hyperStacks > 0) {
                 return Actions.Comet;
@@ -1781,7 +1963,75 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
         return filler;
     }
 
+    /**
+     * Whether a combo break can be started in the current burst window.
+     */
+    private canStartComboBreak(cp: PctCycleProcessor): boolean {
+        return this.settings.comboBreaks
+            && cp.comboBreakUntil === null
+            && cp.totalTime - cp.gcdDecisionTime > COMBO_BREAK_MIN_REMAINING;
+    }
+
+    /**
+     * While a combo break is in progress, pick a GCD which is not an aetherhue spell, to wait for Aetherhues to run
+     * out. The rest of the burst window covers the first half of that. After the window, it is the second hammer
+     * combo, and motifs which have to be painted at some point anyway.
+     *
+     * @returns The GCD, or null if no combo break is in progress (or it is done, or has to be given up)
+     */
+    private comboBreakGcd(cp: PctCycleProcessor): GcdAbility | null {
+        if (cp.comboBreakUntil === null) {
+            return null;
+        }
+        const time = cp.gcdDecisionTime;
+        if (time >= cp.comboBreakUntil) {
+            // Done: the combo starts over, so the remaining stacks go to Blizzard in Cyan and Stone in Yellow
+            cp.comboBreakUntil = null;
+            return null;
+        }
+        const gauge = cp.gaugeManager;
+        if (cp.inBurst(time)) {
+            const gcd = this.chooseBurstGcd(cp);
+            if (!AETHERHUE_SPELL_IDS.includes(gcd.id)) {
+                return gcd;
+            }
+        }
+        if (cp.hasBuff(Buffs.RainbowBrightBuff, time)) {
+            return Actions.RainbowDrip;
+        }
+        const hammer = cp.nextHammer();
+        if (hammer !== null) {
+            return hammer;
+        }
+        if (cp.hasBuff(Buffs.StarstruckBuff, time)) {
+            return Actions.StarPrism;
+        }
+        const motifTime = cp.gcdTime(Actions.HammerMotif);
+        if (!gauge.hammerCanvas && cp.readyWithin(Actions.StrikingMuse, motifTime)) {
+            return Actions.HammerMotif;
+        }
+        if (gauge.hasBlackPaint) {
+            return Actions.Comet;
+        }
+        if (gauge.creatureCanvas === null && this.creatureMotifPaysOff(cp) && cp.readyWithin(Actions.PomMuse, motifTime)) {
+            return Actions.CreatureMotifs[gauge.nextCreature];
+        }
+        if (!gauge.starryCanvas && cp.burstComing()) {
+            return Actions.StarryMotif;
+        }
+        if (gauge.hasWhitePaint) {
+            return Actions.Holy;
+        }
+        // Nothing left to wait with
+        cp.comboBreakUntil = null;
+        return null;
+    }
+
     private chooseGcd(cp: PctCycleProcessor, plan: EntryPlan | null): GcdAbility {
+        const waiting = this.comboBreakGcd(cp);
+        if (waiting !== null) {
+            return waiting;
+        }
         if (cp.inBurst(cp.gcdDecisionTime)) {
             return this.chooseBurstGcd(cp);
         }
@@ -1810,6 +2060,7 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
             gcd = this.endingGcd(cp, endingPlan.first);
         }
         else {
+            cp.comboBreakStarting = false;
             gcd = this.chooseGcd(cp, plan);
         }
         // Swiftcast, if it gets this spell into a buff
@@ -1817,6 +2068,98 @@ export class PctSim extends BaseMultiCycleSim<PctSimResult, PctSettings, PctCycl
             this.use(cp, Actions.Swiftcast);
         }
         this.use(cp, gcd);
+        if (cp.comboBreakStarting) {
+            cp.comboBreakStarting = false;
+            cp.comboBreakUntil = cp.aetherhuesUntil();
+        }
+    }
+
+    /**
+     * The kill times to simulate: the configured one, and then one second earlier for each second of spread.
+     */
+    private killTimes(): number[] {
+        const total = this.cycleSettings.totalTime;
+        const spread = Math.max(0, Math.min(MAX_KILL_TIME_SPREAD, Math.floor(this.settings.killTimeSpread ?? 0)));
+        const times = [total];
+        for (let i = 1; i <= spread && total - i > 0; i++) {
+            times.push(total - i);
+        }
+        return times;
+    }
+
+    private spreadCache: { key: string, processors: [number, PctCycleProcessor][] } | undefined;
+
+    /**
+     * One rotation for each kill time. They are kept around between runs like the base class does with its
+     * rotations, since only the stats change when solving melds.
+     */
+    private spreadProcessors(set: CharacterGearSet, simple: boolean): [number, PctCycleProcessor][] {
+        const times = this.killTimes();
+        const key = JSON.stringify([this.computeCacheKey(set), times, simple, this.settings]);
+        if (this.spreadCache?.key !== key) {
+            const configured = this.cycleSettings.totalTime;
+            try {
+                this.spreadCache = {
+                    key: key,
+                    processors: times.map(time => {
+                        this.cycleSettings.totalTime = time;
+                        return [time, this.generateRotations(set, simple)[0][1]];
+                    }),
+                };
+            }
+            finally {
+                this.cycleSettings.totalTime = configured;
+            }
+        }
+        return this.spreadCache.processors;
+    }
+
+    private spreadResult(set: CharacterGearSet, killTime: number, cp: PctCycleProcessor): PctSimResult {
+        cp.stats = set.computedStats;
+        const used = cp.finalizedRecords.filter(isFinalizedAbilityUse);
+        const totalDamage = addValues(...used.map(use => use.totalDamageFull));
+        const timeBasis = cp.finalizedTimeBasis;
+        const dps = multiplyFixed(totalDamage, 1.0 / timeBasis);
+        return {
+            mainDpsResult: applyStdDev(dps, this.resultSettings.stdDevs ?? 0),
+            totalDamage: totalDamage,
+            mainDpsFull: dps,
+            abilitiesUsed: used,
+            displayRecords: cp.finalizedRecords,
+            unbuffedPps: sum(used.map(use => use.totalPotency)) / cp.nextGcdTime,
+            buffTimings: [...cp.buffHistory],
+            totalTime: timeBasis,
+            label: `Kill time ${killTime}s`,
+        };
+    }
+
+    override invalidateCaches() {
+        super.invalidateCaches();
+        this.spreadCache = undefined;
+    }
+
+    /**
+     * With a kill time spread, the result is the average over the kill times rather than the best rotation. The
+     * details shown are those of the configured kill time.
+     */
+    override async simulate(set: CharacterGearSet): Promise<CycleSimResultFull<PctSimResult>> {
+        if (this.killTimes().length === 1) {
+            return super.simulate(set);
+        }
+        const results = this.spreadProcessors(set, false).map(([time, cp]) => this.spreadResult(set, time, cp));
+        return {
+            mainDpsResult: sum(results.map(result => result.mainDpsResult)) / results.length,
+            all: results,
+            best: results[0],
+        };
+    }
+
+    override async simulateSimple(set: CharacterGearSet): Promise<number> {
+        if (this.killTimes().length === 1) {
+            return super.simulateSimple(set);
+        }
+        const results = this.spreadProcessors(set, true).map(([time, cp]) => this.spreadResult(set, time, cp));
+        return sum(results.map(result => result.mainDpsResult)) / results.length;
     }
 
     getRotationsToSimulate(set: CharacterGearSet): Rotation<PctCycleProcessor>[] {

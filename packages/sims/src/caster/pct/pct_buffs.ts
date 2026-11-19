@@ -94,7 +94,7 @@ export const SubtractiveSpectrumBuff: Buff = {
 
 export const AetherhuesGYBuff: Buff = {
     name: "Aetherhues",
-    duration: 30,
+    duration: Consts.AETHERHUES_DURATION,
     effects: {},
     selfOnly: true,
     descriptionOverride: "Able to cast green and yellow magicks.",
@@ -105,7 +105,7 @@ export const AetherhuesGYBuff: Buff = {
 
 export const AetherhuesBMBuff: Buff = {
     name: "Aetherhues II",
-    duration: 30,
+    duration: Consts.AETHERHUES_DURATION,
     effects: {},
     selfOnly: true,
     descriptionOverride: "Able to cast blue and magenta magicks.",
