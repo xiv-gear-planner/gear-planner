@@ -39,7 +39,7 @@ const bisRegex = RegExp(".*/bis/(.*?)/(.*?)/(.*?)$");
 const newStyleUrl = RegExp(".*[&?]page=(.*)$");
 const etroRegex = RegExp("https://etro\\.gg/gearset/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})");
 
-export function parseImport(text: string): ImportSpec {
+export function parseImport(text: string): ImportSpec | null {
 
     text = text.replaceAll('%7C', '|').trim();
     const likelyJson = (text.length > 200 && text.startsWith('{'));
@@ -72,7 +72,7 @@ export function parseImport(text: string): ImportSpec {
         if (etroExec !== null) {
             const etroMulti = RegExp(etroRegex, 'g');
             const uuids: string[] = [];
-            let etroResult: RegExpExecArray;
+            let etroResult: RegExpExecArray | null;
             while ((etroResult = etroMulti.exec(text)) !== null) {
                 uuids.push(etroResult[1]);
             }

@@ -1,6 +1,6 @@
 import {Buff} from "./sim_types";
 
-function nonZero(number: number): boolean {
+function greaterThanZero(number: number | undefined | null): boolean {
     return (number ?? 0) > 0;
 }
 
@@ -13,7 +13,7 @@ function nonZero(number: number): boolean {
  * @param buff
  */
 export function buffRelevantAtStart(buff: Buff): boolean {
-    return nonZero(buff.effects?.haste) || (buff.beforeAbility !== undefined);
+    return greaterThanZero(buff.effects?.haste) || (buff.beforeAbility !== undefined);
 }
 
 /**
@@ -26,9 +26,9 @@ export function buffRelevantAtStart(buff: Buff): boolean {
  * @param buff
  */
 export function buffRelevantAtSnapshot(buff: Buff): boolean {
-    return nonZero(buff.effects?.critChanceIncrease)
-        || nonZero(buff.effects?.dhitChanceIncrease)
-        || nonZero(buff.effects?.dmgIncrease)
+    return greaterThanZero(buff.effects?.critChanceIncrease)
+        || greaterThanZero(buff.effects?.dhitChanceIncrease)
+        || greaterThanZero(buff.effects?.dmgIncrease)
         || (buff.effects?.forceCrit)
         || (buff.effects?.forceDhit)
         || (buff.beforeSnapshot !== undefined)

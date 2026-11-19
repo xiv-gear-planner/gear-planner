@@ -195,7 +195,8 @@ export class GearsetGenerator {
             const newGearsets = new Map<AllStatDedupKey, EquipmentSetWithStats>();
             for (const currSet of possibleMeldCombinations.values()) {
 
-                for (const currPiece of allIndividualGearPieces.get(slotKey).values()) {
+                // If this slot has no equipment, then it gets skipped by the if statement above, so safe to ! it.
+                for (const currPiece of allIndividualGearPieces.get(slotKey)!.values()) {
 
                     const setStatsWithPiece = this.addStats({...currSet.stats}, currPiece.stats);
                     const setPlusNewPieceKey = this.statsToKey(setStatsWithPiece);
@@ -275,7 +276,7 @@ export class GearsetGenerator {
 
                 for (const slotKey of EquipSlots) {
                     if (gearset.equipment[slotKey]?.gearItem?.isCustomRelic) {
-                        newGearset.equipment[slotKey].relicStats = gearset.equipment[slotKey].relicStats ?? undefined;
+                        newGearset.equipment[slotKey]!.relicStats = gearset.equipment[slotKey].relicStats ?? undefined;
                     }
                 }
 
@@ -361,6 +362,9 @@ export class GearsetGenerator {
 
                     // Use best materia for the slot, e.g. ignore possibility of a materia XI if the slot supports XII
                     const materia = this._sheet.getBestMateria(stat, existingCombination.item.melds[slotNum]);
+                    if (!materia) {
+                        continue;
+                    }
 
                     // Copy stats
                     const newStats: RawStats = {...stats};

@@ -8,7 +8,8 @@ import {
     EquipSlotValue,
     GearAcquisitionSource,
     GearItem,
-    IlvlSyncInfo, ItemQuality,
+    IlvlSyncInfo,
+    ItemQuality,
     MateriaSlot,
     NormalOccGearSlotKey,
     RawStatKey,
@@ -68,14 +69,15 @@ export class CustomItem implements GearItem {
 
     isNqVersion: boolean = false;
     unsyncedVersion: GearItem = this;
-    isCustomRelic: boolean = false;
+    readonly isCustomRelic = false;
+    readonly customRelicStats = undefined;
     isSyncedDown: boolean = false;
     relicStatModel: undefined = undefined;
     acquisitionType: GearAcquisitionSource = 'custom';
     readonly rarity = 1;
 
-    primarySubstat: keyof RawStats = null;
-    secondarySubstat: keyof RawStats = null;
+    primarySubstat: keyof RawStats | null = null;
+    secondarySubstat: keyof RawStats | null = null;
     statCaps: RawStatsPart = {};
     // TODO: pull this out into a constant somewhere
     syncedDownTo: number | null;
@@ -108,6 +110,7 @@ export class CustomItem implements GearItem {
         return new CustomItem({
             ...this.defaults(),
             // respectCaps is false for existing items to not cause changes to sheets
+            // @ts-expect-error - backwards compatibility
             respectCaps: false,
             ...exportedData,
             // Pre DoH/DoL exports won't have the full set of stats.
@@ -126,17 +129,20 @@ export class CustomItem implements GearItem {
             slot: slot,
         };
         // Copy relevant features of the highest ilvl available for that slot
-        const highest = sheet.highestIlvlItemForSlot(slot).unsyncedVersion;
-        data.ilvl = highest.ilvl;
-        data.stats.vitality = highest.stats.vitality;
-        data.stats.strength = highest.stats.strength;
-        data.stats.dexterity = highest.stats.dexterity;
-        data.stats.intelligence = highest.stats.intelligence;
-        data.stats.mind = highest.stats.mind;
-        if (slot === 'Weapon2H' || slot === 'Weapon1H') {
-            data.stats.weaponDelay = highest.stats.weaponDelay;
-            data.stats.wdMag = highest.stats.wdMag;
-            data.stats.wdPhys = highest.stats.wdPhys;
+        const highest = sheet.highestIlvlItemForSlot(slot);
+        if (highest !== undefined) {
+            const highestUnsynced = highest.unsyncedVersion;
+            data.ilvl = highestUnsynced.ilvl;
+            data.stats.vitality = highestUnsynced.stats.vitality;
+            data.stats.strength = highestUnsynced.stats.strength;
+            data.stats.dexterity = highestUnsynced.stats.dexterity;
+            data.stats.intelligence = highestUnsynced.stats.intelligence;
+            data.stats.mind = highestUnsynced.stats.mind;
+            if (slot === 'Weapon2H' || slot === 'Weapon1H') {
+                data.stats.weaponDelay = highestUnsynced.stats.weaponDelay;
+                data.stats.wdMag = highestUnsynced.stats.wdMag;
+                data.stats.wdPhys = highestUnsynced.stats.wdPhys;
+            }
         }
         return new CustomItem(data, sheet);
     }
@@ -151,6 +157,7 @@ export class CustomItem implements GearItem {
         const nativeInfo = this.sheet.ilvlSyncInfo(this.ilvl);
         const syncIlvl = this.sheet.ilvlSync;
         const syncInfo = syncIlvl === undefined ? undefined : this.sheet.ilvlSyncInfo(syncIlvl);
+        // Assuming that ilvl data for all valid item levels exists
         this.applyIlvlData(nativeInfo, syncInfo);
     }
 
@@ -247,18 +254,18 @@ export class CustomItem implements GearItem {
         return this._data;
     }
 
-    private applyIlvlData(nativeIlvlInfo: IlvlSyncInfo, syncIlvlInfo?: IlvlSyncInfo) {
+    private applyIlvlData(nativeIlvlInfo: IlvlSyncInfo | undefined, syncIlvlInfo: IlvlSyncInfo | undefined) {
         if (this.respectCaps && nativeIlvlInfo) {
             const statCapsNative: RawStatsPart = {};
             Object.entries(this.stats).forEach(([stat, _]) => {
-                statCapsNative[stat as RawStatKey] = nativeIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey, null);
+                statCapsNative[stat as RawStatKey] = nativeIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey, null) ?? undefined;
             });
             this.statCaps = statCapsNative;
             if (syncIlvlInfo && syncIlvlInfo.ilvl < this.ilvl) {
                 this.unsyncedVersion = new CustomItem({...this._data}, this.sheet, true);
                 const statCapsSync: RawStatsPart = {};
                 Object.entries(this.stats).forEach(([stat, v]) => {
-                    statCapsSync[stat as RawStatKey] = syncIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey, null);
+                    statCapsSync[stat as RawStatKey] = syncIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey, null) ?? undefined;
                 });
                 this.statCaps = statCapsSync;
                 this.isSyncedDown = true;

@@ -24,11 +24,11 @@ export type JobNode = DirNode & {
 }
 
 export function isDirNode(node: AnyNode | undefined  | null): node is DirNode {
-    return node && node.type === 'dir';
+    return Boolean(node && node.type === 'dir');
 }
 
 export function isLeafNode(node: AnyNode | undefined  | null): node is LeafNode {
-    return node && node.type === 'file';
+    return Boolean(node && node.type === 'file');
 }
 
 export type AnyNode = LeafNode | DirNode;
@@ -112,13 +112,16 @@ export class BisServiceImpl implements BisService {
                     reason: `${pathPart} is not a directory`,
                 };
             }
-            current = current.children.find(node => node.pathPart === pathPart);
-            if (!current) {
+            const next: AnyNode | undefined = current.children.find(node => node.pathPart === pathPart);
+            if (!next) {
                 return {
                     type: 'error',
                     offendingPathPart: pathPart,
                     reason: `${pathPart} does not exist`,
                 };
+            }
+            else {
+                current = next;
             }
         }
         return current;
@@ -171,14 +174,15 @@ export class MockBisService implements BisService {
                     reason: `${pathPart} is not a directory`,
                 };
             }
-            current = current.children.find(node => node.pathPart === pathPart);
-            if (!current) {
+            const next: AnyNode | undefined = current.children.find(node => node.pathPart === pathPart);
+            if (!next) {
                 return {
                     type: 'error',
                     offendingPathPart: pathPart,
                     reason: `${pathPart} does not exist`,
                 };
             }
+            current = next;
         }
         return current;
     }
@@ -298,14 +302,15 @@ export async function getBisIndexAt(path: string[]): Promise<AnyNode | BisIndexE
                 reason: `${pathPart} is not a directory`,
             };
         }
-        current = current.children.find(node => node.pathPart === pathPart);
-        if (!current) {
+        const next: AnyNode | undefined = current.children.find(node => node.pathPart === pathPart);
+        if (!next) {
             return {
                 type: 'error',
                 offendingPathPart: pathPart,
                 reason: `${pathPart} does not exist`,
             };
         }
+        current = next;
     }
     return current;
 }

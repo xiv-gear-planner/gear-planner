@@ -57,7 +57,7 @@ export class FakeLocalStorage implements Storage {
 
     getItem(key: string): string | null {
         if (this._data.has(key)) {
-            return this._data.get(key);
+            return this._data.get(key)!;
         }
         return null;
     }

@@ -1566,7 +1566,7 @@ export type IlvlSyncInfo = {
     /**
      * Get the ItemLevel modifier for a stat at this item level.
      */
-    getIlvlModifier(statsKey: RawStatKey): number | undefined;
+    getIlvlModifier(statsKey: RawStatKey): number | null;
     /**
      * Calculate the substat cap for a given slot, stat, and meldParamIndex. Returns null to indicate no cap.
      *
