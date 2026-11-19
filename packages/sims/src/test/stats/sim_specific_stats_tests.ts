@@ -10,7 +10,7 @@ import {
     ScarletDelirium
 } from "../../tank/drk/drk_actions";
 import {HEADLESS_SHEET_PROVIDER} from "@xivgear/core/sheet";
-import {AlternativeScaling} from "@xivgear/core/sims/sim_types";
+import {AlternativeScaling, DamagingAbility} from "@xivgear/core/sims/sim_types";
 import {getScalingOverrides, potencyToDamage} from "@xivgear/core/sims/sim_utils";
 
 
@@ -115,7 +115,7 @@ describe("ComputedSetStats Class-Specific", () => {
         const damageBeforeCrit570 = baseDamageFull(stats, 570, 'Ability', false, false, livingShadowScalingOverrides);
         expect(damageBeforeCrit570.expected).to.eq(28990);
 
-        const fullDamageShadowbringer = potencyToDamage(stats, 570, LivingShadowShadowbringer, {
+        const fullDamageShadowbringer = potencyToDamage(stats, 570, LivingShadowShadowbringer as DamagingAbility, {
             dmgMod: 1,
             critChanceIncrease: 0,
             dhitChanceIncrease: 0,
@@ -132,7 +132,7 @@ describe("ComputedSetStats Class-Specific", () => {
         const damageBeforeCrit620 = baseDamageFull(stats, 620, 'Ability', false, false, livingShadowScalingOverrides);
         expect(damageBeforeCrit620.expected).to.eq(31533);
 
-        const fullDamageDisesteem = potencyToDamage(stats, 620, LivingShadowDisesteem, {
+        const fullDamageDisesteem = potencyToDamage(stats, 620, LivingShadowDisesteem as DamagingAbility, {
             dmgMod: 1,
             critChanceIncrease: 0,
             dhitChanceIncrease: 0,

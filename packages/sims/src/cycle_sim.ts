@@ -334,7 +334,7 @@ export const isFinalizedAbilityUse = <X>(record: DisplayRecordFinalized<X>): rec
  */
 export interface BuffUsage {
     /**
-     * The buff which was usedj.
+     * The buff which was used.
      */
     readonly buff: Buff,
     /**
@@ -541,7 +541,7 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
         this.medicinePotion = makeMedicinePotion(settings.medicine);
         this.manuallyActivatedBuffs = settings.manuallyActivatedBuffs ?? [];
         this.useAutos = settings.useAutos;
-        this.hideCycleDividers = settings.hideCycleDividers;
+        this.hideCycleDividers = settings.hideCycleDividers ?? false;
         this.comboTrackerMap = new Map();
         this.aaAbility = {
             attackType: 'Auto-attack',
@@ -1727,7 +1727,7 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
         let ability: X = originalAbility;
         for (const buff of buffs) {
             if ('beforeAbility' in buff) {
-                const modified: X | void = buff.beforeAbility(this.makeBuffController(buff), ability);
+                const modified: X | null | void = buff.beforeAbility(this.makeBuffController(buff), ability);
                 if (modified) {
                     ability = modified;
                 }

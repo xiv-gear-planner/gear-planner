@@ -332,11 +332,22 @@ export class CharacterGearSet {
         return this._food;
     }
 
+    set food(food: FoodItem | undefined) {
+        this._food = food;
+        this.invalidate();
+        this.notifyListeners();
+    }
+
     /**
      * The medicine item currently selected, else undefined if no medicine is selected.
      */
     get medicine(): MedicineItem | undefined {
         return this._medicine;
+    }
+
+    set medicine(medicine: MedicineItem | undefined) {
+        this._medicine = medicine;
+        this.forceRecalc();
     }
 
     /**
@@ -369,17 +380,6 @@ export class CharacterGearSet {
 
     private invalidate() {
         this._dirtyComp = true;
-    }
-
-    set food(food: FoodItem | undefined) {
-        this._food = food;
-        this.invalidate();
-        this.notifyListeners();
-    }
-
-    set medicine(medicine: MedicineItem | undefined) {
-        this._medicine = medicine;
-        this.forceRecalc();
     }
 
     get specialistBonusEnabled(): boolean {
@@ -490,10 +490,10 @@ export class CharacterGearSet {
                         });
                     }
                     else {
-                        const meld = this.equipment[slot].melds[index];
+                        const meld = this.equipment[slot]?.melds[index];
                         if (meld) {
                             reEquip.push({
-                                materia: this._sheet.getMateriaById(materiaId),
+                                materia: this._sheet.getMateriaById(materiaId) ?? null,
                                 locked: slotMemory.locked,
                             });
                         }
@@ -771,7 +771,7 @@ export class CharacterGearSet {
         const stats = this.computedStats;
         const finalized = finalizeStatsInt(
             stats.gearStats,
-            this.food?.bonuses,
+            this.food?.bonuses ?? {},
             stats.level,
             stats.levelStats,
             stats.job,
@@ -816,7 +816,7 @@ export class CharacterGearSet {
             }
         }
         if (equip.gearItem.isCustomRelic) {
-            const failures = equip.gearItem.relicStatModel.validate(equip);
+            const failures = equip.gearItem.relicStatModel!.validate(equip);
             for (const failure of failures) {
                 issues.push({
                     ...failure,
@@ -947,7 +947,8 @@ export class CharacterGearSet {
         }
         let meldedStatValue = baseStatValue;
         let smallestMateria = 999999;
-        const materiaList = materiaOverride === undefined ? equip.melds.map(meld => meld.equippedMateria).filter(item => item) : materiaOverride.filter(item => item);
+        const materiaEffective = materiaOverride === undefined ? equip.melds.map(meld => meld.equippedMateria) : materiaOverride;
+        const materiaList = materiaEffective.filter(item => item !== null);
         for (const materia of materiaList) {
             const materiaStatValue = materia.stats[stat];
             if (materiaStatValue > 0) {
@@ -1062,7 +1063,7 @@ export class CharacterGearSet {
                                 continue;
                             }
                         }
-                        const newMateria: Materia = this._sheet.getBestMateria(stat, meldSlot);
+                        const newMateria: Materia | undefined = this._sheet.getBestMateria(stat, meldSlot);
                         if (!newMateria) {
                             continue;
                         }

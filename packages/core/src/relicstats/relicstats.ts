@@ -47,7 +47,7 @@ function ewRelic(large: number, small: number): EwRelicStatModel {
             let reportLarge = !statToReport;
             const caps = item.gearItem.unsyncedVersion.statCaps;
             for (const stat of ALL_COMBAT_SUB_STATS) {
-                const current = item.relicStats[stat];
+                const current = item.relicStats![stat];
                 const cap = caps[stat];
                 if (current === undefined) {
                     continue;
@@ -91,7 +91,7 @@ function customRelic(total: number): CustomRelicStatModel {
             let runningTotal = 0;
             const caps = item.gearItem.unsyncedVersion.statCaps;
             for (const stat of ALL_COMBAT_SUB_STATS) {
-                const current = item.relicStats[stat];
+                const current = item.relicStats![stat];
                 const cap = caps[stat];
                 if (current && cap && current > cap && (!statToReport || statToReport === stat)) {
                     out.push(err(`Stat ${STAT_ABBREVIATIONS[stat]} must be ${cap} or lower. `));
@@ -106,9 +106,9 @@ function customRelic(total: number): CustomRelicStatModel {
                 // If reporting specific stat, make sure that stat is non-zero, and tailor the message based on whether
                 // you would be able to fix the issue by reducing only that stat.
                 if (statToReport) {
-                    const reportingStatAmount = item.relicStats[statToReport];
+                    const reportingStatAmount = item.relicStats![statToReport];
                     // Skip if the stat being reported is zero to begin with
-                    if (reportingStatAmount > 0) {
+                    if (reportingStatAmount !== undefined && reportingStatAmount > 0) {
                         // If the issue can be fixed by reducing only the current stat, report that to the user
                         if (overcap <= reportingStatAmount) {
                             const reduceTo = reportingStatAmount - overcap;
@@ -150,15 +150,15 @@ export function getRelicStatModelFor(gearItem: GearItem, baseParams: BaseParamMa
                 const failures = [...partial.validate(item, statToReport)];
                 const relicStats = item.relicStats;
                 if (statToReport) {
-                    if (relicStats[statToReport] && jobData.excludedRelicSubstats.includes(statToReport)) {
-                        failures.push(err(`${STAT_FULL_NAMES[statToReport]} is not available on ${jobData.combatRole.toLowerCase()} relics.`));
+                    if (relicStats![statToReport] && jobData.excludedRelicSubstats.includes(statToReport)) {
+                        failures.push(err(`${STAT_FULL_NAMES[statToReport]} is not available on ${jobData.combatRole?.toLowerCase() ?? jobData.type.toLowerCase()} relics.`));
                     }
                 }
                 else {
-                    for (const entry of Object.entries(relicStats)) {
+                    for (const entry of Object.entries(relicStats!)) {
                         const stat = entry[0] as Substat;
                         if (entry[1] && jobData.excludedRelicSubstats.includes(stat)) {
-                            failures.push(err(`Stat ${STAT_FULL_NAMES[stat]} is not available on ${jobData.combatRole.toLowerCase()} relics.`));
+                            failures.push(err(`Stat ${STAT_FULL_NAMES[stat]} is not available on ${jobData.combatRole?.toLowerCase() ?? jobData.type.toLowerCase()} relics.`));
                         }
                     }
                 }
@@ -174,8 +174,8 @@ function getRelicStatModelForPartial(gearItem: GearItem, baseParams: BaseParamMa
     }
     // BaseParam tells you that 2h = 140%, 1h = 100%, and shield = 40%
     // Just use crit, it should be the same for all of them
-    const slotModifier = baseParams.crit.slots[gearItem.occGearSlotName] / 140;
-    const statCap = gearItem.unsyncedVersion.statCaps.crit;
+    const slotModifier = baseParams.crit!.slots[gearItem.occGearSlotName] / 140;
+    const statCap = gearItem.unsyncedVersion.statCaps.crit!;
     switch (gearItem.ilvl) {
         case 795: {
             let small = Math.round(108 * slotModifier);
@@ -206,7 +206,10 @@ function getRelicStatModelForPartial(gearItem: GearItem, baseParams: BaseParamMa
             const caps = item.gearItem.unsyncedVersion.statCaps;
             const stats: readonly Substat[] = (statToReport ? [statToReport] as const : ALL_COMBAT_SUB_STATS);
             for (const stat of stats) {
-                const current: number = item.relicStats[stat as Substat];
+                const current: number | undefined = item.relicStats![stat as Substat];
+                if (current === undefined) {
+                    continue;
+                }
                 const cap = caps[stat as Substat];
                 if (current && cap && current > cap) {
                     out.push({

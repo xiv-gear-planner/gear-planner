@@ -131,7 +131,7 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
      * @param ilvlSync The ilvl sync of the sheet, or undefined if the sheet should not have an ilvl sync.
      * @param multiJob Whether to create a multi-job sheet.
      */
-    fromScratch(sheetKey: string, sheetName: string, classJob: JobName, level: SupportedLevel, ilvlSync: number | undefined, multiJob: boolean): SheetType {
+    fromScratch(sheetKey: string | undefined, sheetName: string, classJob: JobName, level: SupportedLevel, ilvlSync: number | undefined, multiJob: boolean): SheetType {
         const defaultPartyBonus: PartyBonusAmount = JOB_DATA[classJob]?.defaultPartyBonus ?? 5;
         const fakeExport: SheetExport = {
             job: classJob,
@@ -415,15 +415,16 @@ export class GearPlanSheet {
     async load() {
         let specificItems: Set<number> | undefined;
         if (this._isSpecificItems) {
-            specificItems = new Set<number>();
+            const specificItemsInner = new Set<number>();
             this._importedData.sets.forEach(set => {
                 for (const equipmentSlot in set.items) {
                     const importedItem: ItemSlotExport | undefined = set.items[equipmentSlot as EquipSlotKey];
                     if (importedItem) {
-                        specificItems.add(importedItem.id);
+                        specificItemsInner.add(importedItem.id);
                     }
                 }
             });
+            specificItems = specificItemsInner;
         }
         else {
             specificItems = undefined;
@@ -1016,7 +1017,7 @@ export class GearPlanSheet {
             return null;
         }
         const rehydratedSim = simSpec.loadSavedSimInstance(simExport.settings);
-        rehydratedSim.displayName = simExport.name ?? undefined;
+        rehydratedSim.displayName = simExport.name ?? "(No Name)";
         rehydratedSim.settings.includeInExport ??= true;
         return rehydratedSim;
     }
@@ -1169,9 +1170,9 @@ export class GearPlanSheet {
      * @param stat
      * @param job overrides the job, useful for multi-job sheets
      */
-    isStatRelevant(stat: RawStatKey | undefined, job: JobName = this.classJobName): boolean {
+    isStatRelevant(stat: RawStatKey | undefined | null, job: JobName = this.classJobName): boolean {
         // TODO: more things should
-        if (stat === undefined) {
+        if (stat === undefined || stat === null) {
             return false;
         }
         const classJobEarlyStats = getClassJobStats(job);
@@ -1193,6 +1194,9 @@ export class GearPlanSheet {
                 }
                 if (stat === 'gearHaste') {
                     const specialStat = this.activeSpecialStat;
+                    if (specialStat === null) {
+                        return false;
+                    }
                     return SPECIAL_STATS_MAPPING[specialStat]?.showHaste ?? false;
                 }
                 if (classJobEarlyStats.irrelevantSubstats) {
@@ -1729,8 +1733,8 @@ function checkItemCompat(itemA: EquippedItem, itemB: EquippedItem): SlotIncompat
         // Dealing with relics
         const badSubStats: string[] = [];
         ALL_COMBAT_SUB_STATS.forEach(stat => {
-            const statValueA = itemA.relicStats[stat];
-            const statValueB = itemB.relicStats[stat];
+            const statValueA = itemA.relicStats![stat];
+            const statValueB = itemB.relicStats![stat];
             if (statValueA !== statValueB) {
                 badSubStats.push(`${stat}: ${statValueA} ≠ ${statValueB}`);
             }

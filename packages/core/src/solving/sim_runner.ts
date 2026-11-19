@@ -55,6 +55,7 @@ export class SimRunner<SimType extends Simulation<SimResult, SimSettings, unknow
         for (let i = 0; i < setExports.length; i++) {
             const set = sheet.importGearSet(microExportToFullExport(setExports[i]));
             const result = await this._sim.simulateSimple(set);
+            // @ts-expect-error - this is not re-used. We clear it here so that the memory can be reclaimed.
             setExports[i] = undefined;
 
             if (result > bestDps) {

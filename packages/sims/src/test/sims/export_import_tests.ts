@@ -21,7 +21,7 @@ describe('importing and exporting', () => {
         before(async function () {
             this.timeout(30_000);
             registerDefaultSims();
-            sheet = HEADLESS_SHEET_PROVIDER.fromScratch(undefined, "Foo", "WHM", 100, 735, false);
+            sheet = HEADLESS_SHEET_PROVIDER.fromScratch(undefined!, "Foo", "WHM", 100, 735, false);
             await sheet.load();
             sheet.race = 'Wildwood';
             sheet.partyBonus = 3;
@@ -31,10 +31,10 @@ describe('importing and exporting', () => {
             }
             set = new CharacterGearSet(sheet);
             set.name = 'Bar';
-            set.setEquip("Weapon", sheet.itemById(WEAPON_ID));
-            set.equipment.Weapon.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_ID);
-            set.setEquip("Head", sheet.itemById(HAT_ID));
-            set.equipment.Head.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_ID);
+            set.setEquip("Weapon", sheet.itemById(WEAPON_ID)!);
+            set.equipment.Weapon!.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_ID)!;
+            set.setEquip("Head", sheet.itemById(HAT_ID)!);
+            set.equipment.Head!.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_ID)!;
             set.forceRecalc();
             sheet.addGearSet(set);
             // Start with no sims
@@ -60,10 +60,10 @@ describe('importing and exporting', () => {
             expect(setExport.partyBonus).to.eq(3);
             expect(setExport.ilvlSync).to.eq(735);
             expect(setExport.name).to.eq("Bar");
-            expect(setExport.items.Weapon.id).to.eq(WEAPON_ID);
-            expect(setExport.items.Weapon.materia[0].id).to.eq(MATERIA_ID);
-            expect(setExport.items.Head.id).to.eq(HAT_ID);
-            expect(setExport.items.Head.materia[0].id).to.eq(MATERIA_ID);
+            expect(setExport.items.Weapon!.id).to.eq(WEAPON_ID);
+            expect(setExport.items.Weapon!.materia[0]!.id).to.eq(MATERIA_ID);
+            expect(setExport.items.Head!.id).to.eq(HAT_ID);
+            expect(setExport.items.Head!.materia[0]!.id).to.eq(MATERIA_ID);
 
             expect(setExport.jobOverride).to.be.oneOf([undefined, null]);
             expect(setExport.job).to.equal('WHM');
@@ -82,8 +82,8 @@ describe('importing and exporting', () => {
 
             expect(newSet.name).to.equal('Bar');
             const weapon = newSet.equipment.Weapon;
-            expect(weapon.gearItem.id).to.equal(WEAPON_ID);
-            expect(weapon.melds[0].equippedMateria.id).to.equal(MATERIA_ID);
+            expect(weapon!.gearItem.id).to.equal(WEAPON_ID);
+            expect(weapon!.melds[0]!.equippedMateria!.id).to.equal(MATERIA_ID);
 
             expect(newSheet.isMultiJob).to.be.false;
             expect(newSet.jobOverride).to.be.null;
@@ -103,8 +103,8 @@ describe('importing and exporting', () => {
 
             expect(newSet.name).to.equal('Bar');
             const weapon = newSet.equipment.Weapon;
-            expect(weapon.gearItem.id).to.equal(WEAPON_ID);
-            expect(weapon.melds[0].equippedMateria.id).to.equal(MATERIA_ID);
+            expect(weapon!.gearItem.id).to.equal(WEAPON_ID);
+            expect(weapon!.melds[0]!.equippedMateria!.id).to.equal(MATERIA_ID);
 
             expect(newSheet.isMultiJob).to.be.false;
             expect(newSet.jobOverride).to.be.null;
@@ -113,7 +113,7 @@ describe('importing and exporting', () => {
         it('can export set and import onto a sheet', async () => {
             const setExport = sheet.exportGearSet(set, true);
             // Note that we are doing a cross-job import
-            const newSheet = HEADLESS_SHEET_PROVIDER.fromScratch(undefined, "Foo2", 'SGE', 90, 665, false);
+            const newSheet = HEADLESS_SHEET_PROVIDER.fromScratch(undefined!, "Foo2", 'SGE', 90, 665, false);
             await newSheet.load();
             // If default set added, delete it
             if (newSheet.sets.length > 0) {
@@ -136,8 +136,8 @@ describe('importing and exporting', () => {
             // Weapon is forcibly deleted because we can't use a WHM weapon on a SGE sheet
             expect(newSet.equipment.Weapon).to.be.null;
             const hat = newSet.equipment.Head;
-            expect(hat.gearItem.id).to.equal(HAT_ID);
-            expect(hat.melds[0].equippedMateria.id).to.equal(MATERIA_ID);
+            expect(hat!.gearItem.id).to.equal(HAT_ID);
+            expect(hat!.melds[0]!.equippedMateria!.id).to.equal(MATERIA_ID);
 
             expect(newSheet.isMultiJob).to.be.false;
             expect(newSet.jobOverride).to.be.null;
@@ -228,7 +228,7 @@ describe('importing and exporting', () => {
 
         before(async function () {
             this.timeout(30_000);
-            sheet = HEADLESS_SHEET_PROVIDER.fromScratch(undefined, "Foo", "WHM", 100, 735, true);
+            sheet = HEADLESS_SHEET_PROVIDER.fromScratch(undefined!, "Foo", "WHM", 100, 735, true);
             await sheet.load();
             sheet.race = 'Wildwood';
             sheet.partyBonus = 3;
@@ -238,20 +238,20 @@ describe('importing and exporting', () => {
             }
             set = new CharacterGearSet(sheet);
             set.name = 'Bar';
-            set.setEquip("Weapon", sheet.itemById(WEAPON_ID));
-            set.equipment.Weapon.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_ID);
-            set.setEquip("Head", sheet.itemById(HAT_ID));
-            set.equipment.Head.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_ID);
+            set.setEquip("Weapon", sheet.itemById(WEAPON_ID)!);
+            set.equipment.Weapon!.melds[0]!.equippedMateria = sheet.getMateriaById(MATERIA_ID)!;
+            set.setEquip("Head", sheet.itemById(HAT_ID)!);
+            set.equipment.Head!.melds[0]!.equippedMateria = sheet.getMateriaById(MATERIA_ID)!;
             set.forceRecalc();
             sheet.addGearSet(set);
 
             setJO = new CharacterGearSet(sheet);
             setJO.earlySetJobOverride('SGE');
             setJO.name = 'Bar';
-            setJO.setEquip("Weapon", sheet.itemById(WEAPON_ID_SGE));
-            setJO.equipment.Weapon.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_ID);
-            setJO.setEquip("Head", sheet.itemById(HAT_ID));
-            setJO.equipment.Head.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_ID);
+            setJO.setEquip("Weapon", sheet.itemById(WEAPON_ID_SGE)!);
+            setJO.equipment.Weapon!.melds[0]!.equippedMateria = sheet.getMateriaById(MATERIA_ID)!;
+            setJO.setEquip("Head", sheet.itemById(HAT_ID)!);
+            setJO.equipment.Head!.melds[0]!.equippedMateria = sheet.getMateriaById(MATERIA_ID)!;
             setJO.forceRecalc();
             sheet.addGearSet(setJO);
         });
@@ -265,10 +265,10 @@ describe('importing and exporting', () => {
             expect(setExport.partyBonus).to.eq(3);
             expect(setExport.ilvlSync).to.eq(735);
             expect(setExport.name).to.eq("Bar");
-            expect(setExport.items.Weapon.id).to.eq(WEAPON_ID);
-            expect(setExport.items.Weapon.materia[0].id).to.eq(MATERIA_ID);
-            expect(setExport.items.Head.id).to.eq(HAT_ID);
-            expect(setExport.items.Head.materia[0].id).to.eq(MATERIA_ID);
+            expect(setExport.items.Weapon!.id).to.eq(WEAPON_ID);
+            expect(setExport.items.Weapon!.materia[0]!.id).to.eq(MATERIA_ID);
+            expect(setExport.items.Head!.id).to.eq(HAT_ID);
+            expect(setExport.items.Head!.materia[0]!.id).to.eq(MATERIA_ID);
 
             expect(setExport.jobOverride).to.be.oneOf([undefined, null]);
             expect(setExport.job).to.eq('WHM');
@@ -279,10 +279,10 @@ describe('importing and exporting', () => {
             expect(setExport.partyBonus).to.eq(3);
             expect(setExport.ilvlSync).to.eq(735);
             expect(setExport.name).to.eq("Bar");
-            expect(setExport.items.Weapon.id).to.eq(WEAPON_ID_SGE);
-            expect(setExport.items.Weapon.materia[0].id).to.eq(MATERIA_ID);
-            expect(setExport.items.Head.id).to.eq(HAT_ID);
-            expect(setExport.items.Head.materia[0].id).to.eq(MATERIA_ID);
+            expect(setExport.items.Weapon!.id).to.eq(WEAPON_ID_SGE);
+            expect(setExport.items.Weapon!.materia[0]!.id).to.eq(MATERIA_ID);
+            expect(setExport.items.Head!.id).to.eq(HAT_ID);
+            expect(setExport.items.Head!.materia[0]!.id).to.eq(MATERIA_ID);
 
             expect(setExport.jobOverride).to.be.oneOf([undefined, null]);
             expect(setExport.job).to.eq('SGE');
@@ -301,8 +301,8 @@ describe('importing and exporting', () => {
 
             expect(newSet.name).to.equal('Bar');
             const weapon = newSet.equipment.Weapon;
-            expect(weapon.gearItem.id).to.equal(WEAPON_ID);
-            expect(weapon.melds[0].equippedMateria.id).to.equal(MATERIA_ID);
+            expect(weapon!.gearItem.id).to.equal(WEAPON_ID);
+            expect(weapon!.melds[0]!.equippedMateria!.id).to.equal(MATERIA_ID);
 
             expect(newSheet.isMultiJob).to.be.false;
             expect(newSet.jobOverride).to.be.null;
@@ -323,8 +323,8 @@ describe('importing and exporting', () => {
 
                 expect(newSet.name).to.equal('Bar');
                 const weapon = newSet.equipment.Weapon;
-                expect(weapon.gearItem.id).to.equal(WEAPON_ID);
-                expect(weapon.melds[0].equippedMateria.id).to.equal(MATERIA_ID);
+                expect(weapon!.gearItem.id).to.equal(WEAPON_ID);
+                expect(weapon!.melds[0]!.equippedMateria!.id).to.equal(MATERIA_ID);
 
                 expect(newSheet.isMultiJob).to.be.true;
                 expect(newSet.jobOverride).to.eq('WHM');
@@ -336,8 +336,8 @@ describe('importing and exporting', () => {
 
                 expect(newSet.name).to.equal('Bar');
                 const weapon = newSet.equipment.Weapon;
-                expect(weapon.gearItem.id).to.equal(WEAPON_ID_SGE);
-                expect(weapon.melds[0].equippedMateria.id).to.equal(MATERIA_ID);
+                expect(weapon!.gearItem.id).to.equal(WEAPON_ID_SGE);
+                expect(weapon!.melds[0]!.equippedMateria!.id).to.equal(MATERIA_ID);
 
                 expect(newSheet.isMultiJob).to.be.true;
                 expect(newSet.jobOverride).to.eq('SGE');
@@ -347,7 +347,7 @@ describe('importing and exporting', () => {
         it('can export set and import onto a non-multijob sheet', async () => {
             const setExport = sheet.exportGearSet(set, true);
             // Note that we are doing a cross-job import
-            const newSheet = HEADLESS_SHEET_PROVIDER.fromScratch(undefined, "Foo2", 'SGE', 90, 665, false);
+            const newSheet = HEADLESS_SHEET_PROVIDER.fromScratch(undefined!, "Foo2", 'SGE', 90, 665, false);
             await newSheet.load();
             // If default set added, delete it
             if (newSheet.sets.length > 0) {
@@ -370,8 +370,8 @@ describe('importing and exporting', () => {
             // Weapon is forcibly deleted because we can't use a WHM weapon on a SGE sheet
             expect(newSet.equipment.Weapon).to.be.null;
             const hat = newSet.equipment.Head;
-            expect(hat.gearItem.id).to.equal(HAT_ID);
-            expect(hat.melds[0].equippedMateria.id).to.equal(MATERIA_ID);
+            expect(hat!.gearItem.id).to.equal(HAT_ID);
+            expect(hat!.melds[0]!.equippedMateria!.id).to.equal(MATERIA_ID);
 
             expect(newSheet.isMultiJob).to.be.false;
             expect(newSet.jobOverride).to.be.null;
@@ -381,7 +381,7 @@ describe('importing and exporting', () => {
             const setExport = sheet.exportGearSet(set, true);
             expect(setExport.job).to.equal('WHM');
             // Note that we are doing a cross-job import
-            const newSheet = HEADLESS_SHEET_PROVIDER.fromScratch(undefined, "Foo2", 'SGE', 90, 665, true);
+            const newSheet = HEADLESS_SHEET_PROVIDER.fromScratch(undefined!, "Foo2", 'SGE', 90, 665, true);
             await newSheet.load();
             // If default set added, delete it
             if (newSheet.sets.length > 0) {
@@ -402,10 +402,10 @@ describe('importing and exporting', () => {
             expect(newSet.name).to.equal('Bar');
 
             // Weapon is retained because this is a multi-job sheet
-            expect(newSet.equipment.Weapon.gearItem.id).to.eq(WEAPON_ID);
+            expect(newSet.equipment.Weapon!.gearItem.id).to.eq(WEAPON_ID);
             const hat = newSet.equipment.Head;
-            expect(hat.gearItem.id).to.equal(HAT_ID);
-            expect(hat.melds[0].equippedMateria.id).to.equal(MATERIA_ID);
+            expect(hat!.gearItem.id).to.equal(HAT_ID);
+            expect(hat!.melds[0]!.equippedMateria!.id).to.equal(MATERIA_ID);
 
             expect(newSheet.isMultiJob).to.be.true;
             expect(newSet.jobOverride).to.eq('WHM');

@@ -84,7 +84,7 @@ export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, co
     // TODO: can we avoid having all of these separate stat modifications?
     return {
         directDamage: ability.potency ? potencyToDamage(stats, ability.potency, ability as DamagingAbility, combinedBuffEffects, scalingOverrides) : null,
-        dot: 'dot' in ability ? {
+        dot: 'dot' in ability && ability.dot !== undefined ? {
             fullDurationTicks: ability.dot.duration === 'indefinite' ? 'indefinite' : (ability.dot.duration / 3),
             damagePerTick: dotPotencyToDamage(stats, ability.dot.tickPotency, ability, combinedBuffEffects),
         } : null,
@@ -109,7 +109,7 @@ export function noBuffEffects(): CombinedBuffEffect {
 /**
  * Translates the given alternate scalings into the specific numerical scaling overrides.
  */
-export function getScalingOverrides(alternativeScalings: AlternativeScaling[], stats: ComputedSetStats, strengthBuff: number = 0, dexBuff: number = 0): ScalingOverrides {
+export function getScalingOverrides(alternativeScalings: AlternativeScaling[] | undefined, stats: ComputedSetStats, strengthBuff: number = 0, dexBuff: number = 0): ScalingOverrides {
     const scalings = getDefaultScalings(stats);
     // Process alternative scalings for the ability. There may be multiple.
     if (alternativeScalings) {

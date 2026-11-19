@@ -46,9 +46,9 @@ describe('DoH stats tests', () => {
     it('can equip items with correct stats', () => {
 
         const set = new CharacterGearSet(sheet);
-        const afflatusHammer = sheet.itemById(39826);
-        const afflatusFile = sheet.itemById(39837);
-        const afflatusEar = sheet.itemById(39856);
+        const afflatusHammer = sheet.itemById(39826)!;
+        const afflatusFile = sheet.itemById(39837)!;
+        const afflatusEar = sheet.itemById(39856)!;
 
         // Direct stats
         expect(afflatusHammer.stats.craftsmanship).to.equal(1208);
@@ -90,7 +90,7 @@ describe('DoH stats tests', () => {
             expect(computed.cp).to.eq(264 - 10);
         }
 
-        set.equipment.Ears.melds[0].equippedMateria = sheet.getMateriaById(33939);
+        set.equipment.Ears!.melds[0].equippedMateria = sheet.getMateriaById(33939)!;
 
 
         // Checked vs in-game values
@@ -102,7 +102,7 @@ describe('DoH stats tests', () => {
             expect(computed.cp).to.eq(264);
         }
 
-        set.equipment.Weapon.melds[0].equippedMateria = sheet.getMateriaById(33939);
+        set.equipment.Weapon!.melds[0].equippedMateria = sheet.getMateriaById(33939)!;
         // It will overcap a little bit - it gives 10 CP but the cap is 7
         {
             set.forceRecalc();
@@ -151,7 +151,7 @@ describe('DoH stats tests', () => {
     it('applies selected medicine as a final stat bonus', () => {
         const medicine = sheet.medicineItemsForDisplay[0];
         const set = new CharacterGearSet(sheet);
-        set.setEquip('Weapon', sheet.itemById(39826));
+        set.setEquip('Weapon', sheet.itemById(39826)!);
         const statsWithoutMedicine = set.computedStats;
 
         set.medicine = medicine;
@@ -188,10 +188,10 @@ describe('DoL stats tests', () => {
     it('can equip items with correct stats', () => {
 
         const set = new CharacterGearSet(sheet);
-        const afflatusPick = sheet.itemById(39833);
-        const afflatusSledge = sheet.itemById(39844);
-        const afflatusEar = sheet.itemById(39860);
-        const everseekerBody = sheet.itemById(44438);
+        const afflatusPick = sheet.itemById(39833)!;
+        const afflatusSledge = sheet.itemById(39844)!;
+        const afflatusEar = sheet.itemById(39860)!;
+        const everseekerBody = sheet.itemById(44438)!;
 
         // Direct stats
         expect(afflatusPick.stats.vitality).to.equal(159);
@@ -249,8 +249,8 @@ describe('DoL stats tests', () => {
         }
 
         // Provides 11 GP
-        const gpMateria = sheet.getMateriaById(41777);
-        set.equipment.Ears.melds[0].equippedMateria = gpMateria;
+        const gpMateria = sheet.getMateriaById(41777)!;
+        set.equipment.Ears!.melds[0].equippedMateria = gpMateria;
 
         // Checked vs in-game values
         {
@@ -261,7 +261,7 @@ describe('DoL stats tests', () => {
             expect(computed.gp).to.eq(507 + 11);
         }
 
-        set.equipment.Weapon.melds[0].equippedMateria = gpMateria;
+        set.equipment.Weapon!.melds[0].equippedMateria = gpMateria;
         // It will overcap a little bit - it gives 10 gp but the cap is 7
         {
             set.forceRecalc();

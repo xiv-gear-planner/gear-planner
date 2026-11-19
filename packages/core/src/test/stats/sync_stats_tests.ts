@@ -7,7 +7,7 @@ import {statCapWithJob} from "@xivgear/xivmath/xivmath";
 
 function equipById(set: CharacterGearSet, ...ids: number[]) {
     ids.forEach((id) => {
-        const item = set.sheet.itemById(id);
+        const item = set.sheet.itemById(id)!;
         expect(item).to.not.be.undefined;
         expect(item).to.not.be.null;
         const rawSlot = item.displayGearSlotName;

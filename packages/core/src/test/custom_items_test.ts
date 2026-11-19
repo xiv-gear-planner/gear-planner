@@ -36,7 +36,7 @@ describe('Custom items support', () => {
 
         expect(custom.stats.gearHaste).to.eq(5);
 
-        const gearItem = sheet.itemById(custom.id);
+        const gearItem = sheet.itemById(custom.id)!;
         // Should be exactly the same object, there's no cloning going on
         expect(gearItem).eq(custom);
 
@@ -102,7 +102,7 @@ describe('Custom items support', () => {
         expect(custom.materiaSlots.length).to.equal(3);
         expect(custom.unsyncedVersion.materiaSlots.length).to.equal(3);
 
-        const gearItem = sheet.itemById(custom.id);
+        const gearItem = sheet.itemById(custom.id)!;
         // Should be exactly the same object, there's no cloning going on
         expect(gearItem).eq(custom);
 
@@ -158,7 +158,7 @@ describe('Custom items support', () => {
         expect(custom.materiaSlots.length).to.equal(3);
         expect(custom.unsyncedVersion.materiaSlots.length).to.equal(3);
 
-        const gearItem = sheet.itemById(custom.id);
+        const gearItem = sheet.itemById(custom.id)!;
         // Should be exactly the same object, there's no cloning going on
         expect(gearItem).eq(custom);
 
@@ -214,7 +214,7 @@ describe('Custom items support', () => {
         expect(custom.materiaSlots.length).to.equal(0);
         expect(custom.unsyncedVersion.materiaSlots.length).to.equal(3);
 
-        const gearItem = sheet.itemById(custom.id);
+        const gearItem = sheet.itemById(custom.id)!;
         // Should be exactly the same object, there's no cloning going on
         expect(gearItem).eq(custom);
 
@@ -272,22 +272,22 @@ describe('Custom items support', () => {
         expect(custom.materiaSlots.length).to.equal(0);
         expect(custom.unsyncedVersion.materiaSlots.length).to.equal(3);
 
-        const gearItem = sheet.itemById(custom.id);
+        const gearItem = sheet.itemById(custom.id)!;
         // Should be exactly the same object, there's no cloning going on
         expect(gearItem).eq(custom);
 
         set1.setEquip('Weapon', custom);
 
-        expect(set1.equipment.Weapon.gearItem).to.eq(gearItem);
-        expect(set1.equipment.Weapon.melds).to.have.length(0);
+        expect(set1.equipment.Weapon!.gearItem).to.eq(gearItem);
+        expect(set1.equipment.Weapon!.melds).to.have.length(0);
 
         const exported = sheet.exportSheet(ExportTypes.InternalSave);
         const importedSheet = HEADLESS_SHEET_PROVIDER.fromExport(exported);
         await importedSheet.load();
 
         const setImported = importedSheet.sets[0];
-        expect(setImported.equipment.Weapon.gearItem.id).to.eq(gearItem.id);
-        expect(setImported.equipment.Weapon.melds).to.have.length(0);
+        expect(setImported.equipment.Weapon!.gearItem.id).to.eq(gearItem.id);
+        expect(setImported.equipment.Weapon!.melds).to.have.length(0);
     }).timeout(30_000);
 
     it('Supports a custom food', async () => {
@@ -309,10 +309,10 @@ describe('Custom items support', () => {
         custom.customData.primaryStatBonus.max = 200;
         custom.customData.secondaryStat = 'dhit';
 
-        expect(custom.bonuses.crit.max).to.eq(200);
-        expect(custom.bonuses.crit.percentage).to.eq(12);
-        expect(custom.bonuses.dhit.max).to.eq(100);
-        expect(custom.bonuses.dhit.percentage).to.eq(10);
+        expect(custom.bonuses.crit!.max).to.eq(200);
+        expect(custom.bonuses.crit!.percentage).to.eq(12);
+        expect(custom.bonuses.dhit!.max).to.eq(100);
+        expect(custom.bonuses.dhit!.percentage).to.eq(10);
 
         expect(custom.primaryStat).to.eq('crit');
         expect(custom.secondaryStat).to.eq('dhit');
@@ -536,9 +536,9 @@ describe('Custom items support', () => {
         custom.customData.primaryStatBonus.percentage = 12;
         custom.customData.primaryStatBonus.max = 200;
 
-        // Make it food and then set it to None
+        // Equip the custom food and then unequip it
         set1.food = custom;
-        set1.food = null;
+        set1.food = undefined;
 
         // Callback that checks whether confirmation is required
         let callbackCalled = false;

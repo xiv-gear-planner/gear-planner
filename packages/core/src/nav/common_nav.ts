@@ -415,7 +415,7 @@ export function getUrlNavigationPath(pathname: string, legacyPage: string | null
     return legacyPage === null || legacyPage === undefined ? splitUrlPath(pathname) : splitLegacyPipePath(legacyPage);
 }
 
-export function tryParseOptionalIntParam(input: string | number | undefined): number | undefined {
+export function tryParseOptionalIntParam(input: string | number | undefined | null): number | undefined {
     if (input === undefined || input === null || input === '') {
         return undefined;
     }

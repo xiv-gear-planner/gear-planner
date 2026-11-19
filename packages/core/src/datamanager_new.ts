@@ -20,7 +20,8 @@ import {
     FoodItem,
     GearAcquisitionSource,
     GearItem,
-    IlvlSyncInfo, ItemQuality,
+    IlvlSyncInfo,
+    ItemQuality,
     JobMultipliers,
     Materia,
     MateriaSlot,
@@ -64,7 +65,7 @@ export class NewApiDataManager implements DataManager {
     private readonly _classJob: JobName;
     private readonly _allJobs: JobName[];
     private readonly _level: SupportedLevel;
-    private readonly _specificItems: Set<number>;
+    private readonly _specificItems: Set<number> | undefined;
     private readonly _ilvlSync: number | undefined;
     private readonly apiClient: DataApiClient<never>;
     private readonly minEquipIlvl: number;
@@ -117,7 +118,7 @@ export class NewApiDataManager implements DataManager {
                     // Unroll the ItemLevel object into a direct mapping from RawStatKey => modifier
                     // BaseParam data is trickier. First, we need to convert from a list to a map, where the keys are the stat.
                     const baseParams = this._baseParams!;
-                    const getIlvlModifier = (statsKey: RawStatKey): number | undefined => {
+                    const getIlvlModifier = (statsKey: RawStatKey): number | null => {
                         switch (statsKey) {
                             case "hp":
                                 return row.HP;
@@ -254,7 +255,7 @@ export class NewApiDataManager implements DataManager {
 
     itemById(id: number, forceNq: boolean = false): (GearItem | undefined) {
         // @x-ts-expect-error - assumed that DataManager is not meaningfully used prior to loading data
-        return this._allItems.find(item => {
+        return this._allItems!.find(item => {
             return item.id === id && item.isNqVersion === forceNq;
         });
     }
@@ -263,18 +264,18 @@ export class NewApiDataManager implements DataManager {
         if (id < 0) {
             return undefined;
         }
-        // @x-ts-expect-error - assumed that DataManager is not meaningfully used prior to loading data
-        return this._allMateria.find(item => item.id === id);
+        // assumed that DataManager is not meaningfully used prior to loading data
+        return this._allMateria!.find(item => item.id === id);
     }
 
     foodById(id: number) {
-        // @x-ts-expect-error - assumed that DataManager is not meaningfully used prior to loading data
-        return this._allFoodItems.find(food => food.id === id);
+        // assumed that DataManager is not meaningfully used prior to loading data
+        return this._allFoodItems!.find(food => food.id === id);
     }
 
     medicineById(id: number) {
-        // @x-ts-expect-error - assumed that DataManager is not meaningfully used prior to loading data
-        return this._allMedicineItems.find(medicine => medicine.id === id);
+        // assumed that DataManager is not meaningfully used prior to loading data
+        return this._allMedicineItems!.find(medicine => medicine.id === id);
     }
 
 
@@ -283,30 +284,33 @@ export class NewApiDataManager implements DataManager {
             checkResponse(response);
             this._baseParams = response.data.items!.reduce<BaseParamMap>((baseParams, value) => {
                 // Each individual item also gets converted
-                baseParams[statById(value.rowId)] = {
-                    meldParam: requireArrayTyped(value.meldParam, 'number'),
-                    // This maps our internal stat keys to the xivapi percentages.
-                    slots: {
-                        Body: requireNumber(value.chestPercent),
-                        Ears: requireNumber(value.earringPercent),
-                        Feet: requireNumber(value.feetPercent),
-                        Hand: requireNumber(value.handsPercent),
-                        Head: requireNumber(value.headPercent),
-                        Legs: requireNumber(value.legsPercent),
-                        Neck: requireNumber(value.necklacePercent),
-                        OffHand: requireNumber(value.offHandPercent),
-                        Ring: requireNumber(value.ringPercent),
-                        Weapon2H: requireNumber(value.twoHandWeaponPercent),
-                        Weapon1H: requireNumber(value.oneHandWeaponPercent),
-                        Wrist: requireNumber(value.braceletPercent),
-                        ChestHead: requireNumber(value.chestHeadPercent),
-                        ChestHeadLegsFeet: requireNumber(value.chestHeadLegsFeetPercent),
-                        ChestLegsFeet: requireNumber(value.chestLegsFeetPercent),
-                        ChestLegsGloves: requireNumber(value.chestLegsGlovesPercent),
-                        HeadChestHandsLegsFeet: requireNumber(value.headChestHandsLegsFeetPercent),
-                        LegsFeet: requireNumber(value.legsFeetPercent),
-                    },
-                };
+                const byId = statById(value.rowId);
+                if (byId !== undefined) {
+                    baseParams[byId] = {
+                        meldParam: requireArrayTyped(value.meldParam, 'number'),
+                        // This maps our internal stat keys to the xivapi percentages.
+                        slots: {
+                            Body: requireNumber(value.chestPercent),
+                            Ears: requireNumber(value.earringPercent),
+                            Feet: requireNumber(value.feetPercent),
+                            Hand: requireNumber(value.handsPercent),
+                            Head: requireNumber(value.headPercent),
+                            Legs: requireNumber(value.legsPercent),
+                            Neck: requireNumber(value.necklacePercent),
+                            OffHand: requireNumber(value.offHandPercent),
+                            Ring: requireNumber(value.ringPercent),
+                            Weapon2H: requireNumber(value.twoHandWeaponPercent),
+                            Weapon1H: requireNumber(value.oneHandWeaponPercent),
+                            Wrist: requireNumber(value.braceletPercent),
+                            ChestHead: requireNumber(value.chestHeadPercent),
+                            ChestHeadLegsFeet: requireNumber(value.chestHeadLegsFeetPercent),
+                            ChestLegsFeet: requireNumber(value.chestLegsFeetPercent),
+                            ChestLegsGloves: requireNumber(value.chestLegsGlovesPercent),
+                            HeadChestHandsLegsFeet: requireNumber(value.headChestHandsLegsFeetPercent),
+                            LegsFeet: requireNumber(value.legsFeetPercent),
+                        },
+                    };
+                }
                 return baseParams;
             }, {});
             return response;
@@ -385,30 +389,33 @@ export class NewApiDataManager implements DataManager {
                 }
             });
         const statsPromise = Promise.all([itemsPromise, baseParamPromise]).then(() => {
-            console.log(`Finishing item calculations for ${this._allItems.length} items`);
-            this._allItems.forEach(item => {
+            console.log(`Finishing item calculations for ${this._allItems!.length} items`);
+            this._allItems!.forEach(item => {
                 // console.log(`Item ${item.id} ${item.name}`);
                 const itemIlvlPromise = this.getIlvlSyncData(baseParamPromise, item.ilvl);
-                let isyncLvl: number | null;
+                let isyncLvl: number | undefined;
                 // Downsync by ilvl directly
                 if (this._ilvlSync && this._ilvlSync < item.ilvl) {
                     isyncLvl = this._ilvlSync;
                 }
-                // If no explicit ilvl sync is specified, but the sheet level is less than the item's level, then
-                // sync to the max ilvl for a gear piece of that level. This theoretically corresponds to
-                // ParamGrow.ItemLevelSync.
                 else if (this._level < item.equipLvl) { // Downsync by equip lvl, infer correct ilvl
-                    isyncLvl = this._maxIlvlForEquipLevel.get(this._level);
+                    // If no explicit ilvl sync is specified, but the sheet level is less than the item's level, then
+                    // sync to the max ilvl for a gear piece of that level. This theoretically corresponds to
+                    // ParamGrow.ItemLevelSync.
+                    isyncLvl = this._maxIlvlForEquipLevel!.get(this._level);
                 }
                 else {
-                    isyncLvl = null;
+                    isyncLvl = undefined;
                 }
-                const ilvlSyncPromise: Promise<IlvlSyncInfo> = isyncLvl === null ? Promise.resolve(undefined) : this.getIlvlSyncData(baseParamPromise, isyncLvl);
+                const ilvlSyncPromise: Promise<IlvlSyncInfo | undefined | null> = isyncLvl === undefined ? Promise.resolve(undefined) : this.getIlvlSyncData(baseParamPromise, isyncLvl);
                 extraPromises.push(Promise.all([itemIlvlPromise, ilvlSyncPromise]).then(([native, sync]) => {
-                    item.applyIlvlData(native, sync, this._level);
+                    item.applyIlvlData(native!, this._level, sync ?? undefined);
                     if (item.isCustomRelic) {
                         // console.debug('Applying relic model');
-                        item.relicStatModel = getRelicStatModelFor(item, this._baseParams, this._classJob);
+                        const relicStatModel = getRelicStatModelFor(item, this._baseParams!, this._classJob);
+                        if (relicStatModel) {
+                            item.relicStatModel = relicStatModel;
+                        }
                         // console.debug('Applied', item.relicStatModel);
                     }
                 }));
@@ -491,39 +498,39 @@ export class NewApiDataManager implements DataManager {
     }
 
     get allItems(): DataApiGearInfo[] {
-        return this._allItems;
+        return this._allItems!;
     }
 
     get allFoodItems(): DataApiFoodInfo[] {
-        return this._allFoodItems;
+        return this._allFoodItems!;
     }
 
     get allMedicineItems(): DataApiMedicineInfo[] {
-        return this._allMedicineItems;
+        return this._allMedicineItems!;
     }
 
     get allMateria(): Materia[] {
-        return this._allMateria;
+        return this._allMateria!;
     }
 
     get baseParams(): BaseParamMap {
-        return this._baseParams;
+        return this._baseParams!;
     }
 
     get minIlvl(): number {
-        return this._minIlvl;
+        return this._minIlvl!;
     }
 
     get maxIlvl(): number {
-        return this._maxIlvl;
+        return this._maxIlvl!;
     }
 
     get minIlvlFood(): number {
-        return this._minIlvlFood;
+        return this._minIlvlFood!;
     }
 
     get maxIlvlFood(): number {
-        return this._maxIlvlFood;
+        return this._maxIlvlFood!;
     }
 
     get ilvlSync(): number | undefined {
@@ -543,11 +550,11 @@ export class NewApiDataManager implements DataManager {
     }
 
     getIlvlSyncInfo(ilvl: number): IlvlSyncInfo | undefined {
-        return this._isyncData.get(ilvl);
+        return this._isyncData!.get(ilvl);
     }
 
     getImplicitIlvlSync(level: number, isWeapon: boolean): number | undefined {
-        return (isWeapon ? this._maxIlvlForEquipLevelWeapon : this._maxIlvlForEquipLevel).get(level);
+        return (isWeapon ? this._maxIlvlForEquipLevelWeapon! : this._maxIlvlForEquipLevel!).get(level);
     }
 }
 
@@ -687,7 +694,7 @@ export class DataApiGearInfo implements GearItem {
     syncedDownTo: number | null;
     isNqVersion: boolean;
     readonly rarity: number;
-    readonly specialStatType: SpecialStatType;
+    readonly specialStatType: SpecialStatType | null;
     readonly specialStats: RawStats | null;
     // activeSpecialStat: SpecialStatType | null = null;
     private _activeSpecialStat: SpecialStatType | null = null;
@@ -729,7 +736,8 @@ export class DataApiGearInfo implements GearItem {
         this.displayGearSlotName = slotMap.displayGearSlotName;
         this.occGearSlotName = slotMap.occGearSlotName;
         this.slotMapping = slotMap;
-        this.displayGearSlot = this.displayGearSlotName ? DisplayGearSlotMapping[this.displayGearSlotName] : undefined;
+        // TODO: is this ever actually undefined?
+        this.displayGearSlot = (this.displayGearSlotName ? DisplayGearSlotMapping[this.displayGearSlotName] : undefined)!;
         const weaponDelayRaw = (data.delayMs);
         this.baseStats = new RawStats();
         this.baseStats.wdPhys = forceNq ? data.damagePhys : data.damagePhysHQ;
@@ -930,7 +938,7 @@ export class DataApiGearInfo implements GearItem {
         }
     }
 
-    applyIlvlData(nativeIlvlInfo: IlvlSyncInfo, syncIlvlInfo?: IlvlSyncInfo, level?: number) {
+    applyIlvlData(nativeIlvlInfo: IlvlSyncInfo, level: number, syncIlvlInfo?: IlvlSyncInfo) {
         const statCapsNative: RawStatsPart = {};
         Object.entries(this.baseStats).forEach(([stat, _]) => {
             const rsk = stat as RawStatKey;
@@ -949,7 +957,7 @@ export class DataApiGearInfo implements GearItem {
             const statCapsSync: RawStatsPart = {};
             Object.entries(this.baseStats).forEach(([stat, v]) => {
                 const rsk = stat as RawStatKey;
-                statCapsSync[rsk] = syncIlvlInfo.substatCap(this.occGearSlotName, rsk, this.meldParamIndex);
+                statCapsSync[rsk] = syncIlvlInfo.substatCap(this.occGearSlotName, rsk, this.meldParamIndex) ?? undefined;
             });
             this.baseStats = applyStatCaps(this.baseStats, statCapsSync);
             this.statCaps = statCapsSync;
@@ -980,7 +988,7 @@ export class DataApiGearInfo implements GearItem {
     recalcEffectiveStats(): void {
         if (this.specialStatType && this.specialStatType === this._activeSpecialStat) {
             const stats = new RawStats(this.baseStats);
-            addStats(stats, this.specialStats);
+            addStats(stats, this.specialStats!);
             this.stats = stats;
         }
         else {
@@ -1018,7 +1026,9 @@ export class DataApiFoodInfo implements FoodItem {
                 continue;
             }
             const actualKey = statById(parseInt(rawKey));
-            this.bonuses[actualKey] = data.bonusesHQ[rawKey];
+            if (actualKey !== undefined) {
+                this.bonuses[actualKey] = data.bonusesHQ[rawKey];
+            }
         }
         const sortedStats = Object.entries(this.bonuses).sort((entryA, entryB) => entryB[1].max - entryA[1].max).map(entry => entry[0] as RawStatKey).filter(stat => stat !== 'vitality');
         if (sortedStats.length >= 1) {
@@ -1058,7 +1068,9 @@ export class DataApiMedicineInfo implements MedicineItem {
                 continue;
             }
             const actualKey = statById(parseInt(rawKey));
-            this.bonuses[actualKey] = data.bonusesHQ[rawKey];
+            if (actualKey !== undefined) {
+                this.bonuses[actualKey] = data.bonusesHQ[rawKey];
+            }
         }
         const sortedStats = Object.entries(this.bonuses).sort((entryA, entryB) => entryB[1].max - entryA[1].max).map(entry => entry[0] as RawStatKey).filter(stat => stat !== 'vitality');
         if (sortedStats.length >= 1) {
