@@ -7,22 +7,18 @@ import {MAX_PAINT, MAX_PALETTE, SUBTRACTIVE_PALETTE_COST} from "./pct_consts";
  */
 export class PctGaugeManager implements GaugeManager<PctGaugeState> {
 
-    private readonly _level: number;
+    readonly level: number;
     private _palette: number = 0;
     private _paint: number = 0;
     private _monochrome: boolean = false;
     private _creatureCanvas: PctCreatureMotif | null = null;
     private _nextCreatureIndex: number = 0;
     private _portrait: PctPortrait | null = null;
-    private _hammerCanvas: boolean = false;
-    private _starryCanvas: boolean = false;
+    hammerCanvas: boolean = false;
+    starryCanvas: boolean = false;
 
     constructor(level: number) {
-        this._level = level;
-    }
-
-    get level(): number {
-        return this._level;
+        this.level = level;
     }
 
     get palette(): number {
@@ -90,22 +86,6 @@ export class PctGaugeManager implements GaugeManager<PctGaugeState> {
 
     get portrait(): PctPortrait | null {
         return this._portrait;
-    }
-
-    get hammerCanvas(): boolean {
-        return this._hammerCanvas;
-    }
-
-    set hammerCanvas(value: boolean) {
-        this._hammerCanvas = value;
-    }
-
-    get starryCanvas(): boolean {
-        return this._starryCanvas;
-    }
-
-    set starryCanvas(value: boolean) {
-        this._starryCanvas = value;
     }
 
     /**
