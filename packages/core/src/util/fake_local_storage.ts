@@ -2,7 +2,8 @@
  * In-memory localStorage drop-in replacement.
  */
 export class FakeLocalStorage implements Storage {
-    private _data: Map<string, string>;
+    // This is initially set when the ctor calls _reset()
+    private _data!: Map<string, string>;
 
     constructor() {
         this._reset();

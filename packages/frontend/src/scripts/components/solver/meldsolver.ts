@@ -3,7 +3,7 @@ import {MicroSetExport, SetExport, SimExport} from "@xivgear/xivmath/geartypes";
 import {SimResult, SimSettings, Simulation} from "@xivgear/core/sims/sim_types";
 import {ExportTypes, GearPlanSheet} from "@xivgear/core/sheet";
 import {GearsetGenerationSettings} from "@xivgear/core/solving/gearset_generation";
-import {SolverSimulationSettings} from "@xivgear/core/solving/sim_runner";
+import {exportSolverSimulationSettings, SolverSimulationSettings} from "@xivgear/core/solving/sim_runner";
 import {WORKER_POOL} from "../../workers/worker_pool";
 import {GearsetGenerationRequest, SolverSimulationRequest} from "@xivgear/core/workers/worker_types";
 import {SolverSimulationJobContext} from "../../workers/simulation_worker";
@@ -125,7 +125,7 @@ export class MeldSolver {
         console.log(`Workers: ${maxWorkers}`);
         console.log(`${nSetsPerJob} per worker`);
 
-        const solverSimulationSettingsExport = SolverSimulationSettings.export(simSettings);
+        const solverSimulationSettingsExport = exportSolverSimulationSettings(simSettings);
 
         pending = 0;
 
