@@ -80,7 +80,7 @@ export class CustomItem implements GearItem {
     secondarySubstat: keyof RawStats | null = null;
     statCaps: RawStatsPart = {};
     // TODO: pull this out into a constant somewhere
-    syncedDownTo: number | null;
+    syncedDownTo: number | null = null;
     private _data: CustomItemExport;
     readonly slotMapping: EquipSlotMap;
 
@@ -281,6 +281,7 @@ export class CustomItem implements GearItem {
             this.statCaps = {};
             this.unsyncedVersion = this;
             this.isSyncedDown = false;
+            this.syncedDownTo = null;
         }
         this.computeSubstats();
     }

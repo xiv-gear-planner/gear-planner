@@ -587,8 +587,8 @@ export class DataApiEquipSlotMap implements EquipSlotMap {
     readonly Wrist: EquipSlotValue;
     readonly RingLeft: EquipSlotValue;
     readonly RingRight: EquipSlotValue;
-    readonly displayGearSlotName: DisplayGearSlotKey;
-    readonly occGearSlotName: OccGearSlotKey;
+    readonly displayGearSlotName!: DisplayGearSlotKey;
+    readonly occGearSlotName!: OccGearSlotKey;
 
     constructor(cat: EquipSlotCategory) {
         this.Weapon = slotValue(cat.mainHand);
@@ -680,18 +680,22 @@ export class DataApiGearInfo implements GearItem {
     readonly occGearSlotName: OccGearSlotKey;
     // Base stats, including caps
     private baseStats: RawStats;
-    primarySubstat: keyof RawStats | null;
-    secondarySubstat: keyof RawStats | null;
+    // These are set in computeSubstats()
+    primarySubstat!: keyof RawStats | null;
+    secondarySubstat!: keyof RawStats | null;
     materiaSlots: MateriaSlot[];
     readonly isCustomRelic: boolean;
     readonly isUnique: boolean;
-    unsyncedVersion: DataApiGearInfo;
+    // Set in computeSubstats()
+    unsyncedVersion!: DataApiGearInfo;
     readonly acquisitionType: GearAcquisitionSource;
     readonly jobs: JobName[];
-    statCaps: RawStatsPart;
-    isSyncedDown: boolean;
-    relicStatModel: RelicStatModel;
-    syncedDownTo: number | null;
+    // Set in applyIlvlData()
+    statCaps!: RawStatsPart;
+    isSyncedDown!: boolean;
+    relicStatModel: RelicStatModel | undefined;
+    // Set in applyIlvlData()
+    syncedDownTo!: number | null;
     isNqVersion: boolean;
     readonly rarity: number;
     readonly specialStatType: SpecialStatType | null;
@@ -699,7 +703,8 @@ export class DataApiGearInfo implements GearItem {
     // activeSpecialStat: SpecialStatType | null = null;
     private _activeSpecialStat: SpecialStatType | null = null;
     // Actual effective stats
-    stats: RawStats;
+    // Set in recalcEffectiveStats()
+    stats!: RawStats;
     readonly slotMapping: DataApiEquipSlotMap;
     readonly meldParamIndex: number;
     readonly quality: ItemQuality;
