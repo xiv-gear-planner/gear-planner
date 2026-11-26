@@ -40,6 +40,14 @@ export class ShortlinkServiceImpl implements ShortlinkService {
             headers: {
                 "Content-Type": "application/json",
             },
+        }).then(response => {
+            if (!response.ok) {
+                console.error("Non-ok shortlink put response", response);
+                throw Error("Got non-ok response. See browser console", {
+                    cause: response,
+                });
+            }
+            return response;
         }).then(response => response.text()).then(uuid => {
             // If on prod, use the fancy share link.
             if (embed) {
