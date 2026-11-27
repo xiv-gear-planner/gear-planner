@@ -1,6 +1,6 @@
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {ACCOUNT_STATE_TRACKER, AccountStateTracker, TokenState} from "../account_state";
-import {labeledCheckbox, makeActionButton, quickElement} from "@xivgear/common-ui/components/util";
+import {el, labelFor, makeActionButton} from "@xivgear/common-ui/components/util";
 import {ValidatingForm, vfWrap} from "@xivgear/common-ui/components/forms/validating_form";
 import {
     RegisterResponse,
@@ -14,6 +14,23 @@ import {LogoutModal} from "./logout_modal";
 import {SheetPickerTable} from "../../components/sheetpicker/saved_sheet_picker";
 import {USER_DATA_SYNCER} from "../user_data";
 import {FinalizePasswordResetModal} from "./finalize_password_reset_modal";
+import {bold, elt} from "@xivgear/common-ui/components/templates";
+
+function makeSubmitButton(label: string): HTMLButtonElement {
+    const button = el('button', {props: {type: 'submit'}}, [label]);
+    button.addEventListener('click', ev => ev.stopPropagation());
+    return button;
+}
+
+function makeValidatedCheckbox(label: string | Node, checkbox: HTMLInputElement, validationField: string): HTMLDivElement {
+    const labelElement = labelFor(label, checkbox);
+    return el('div', {
+        class: 'labeled-checkbox',
+        attributes: {
+            'validation-field': validationField,
+        },
+    }, [checkbox, labelElement]);
+}
 
 class AccountModal extends BaseModal {
 
@@ -56,9 +73,9 @@ class AccountManagementInner extends HTMLElement {
         if (this.tracker.loggedIn) {
             const elements: Node[] = [];
             const accountState = this.tracker.accountState;
-            const text = quickElement('span', [], ['Logged in as:', quickElement('br'), accountState.email]);
+            const text = elt('span')`Logged in as ${bold`${accountState.email}`}`;
             elements.push(text);
-            elements.push(quickElement('br'));
+            elements.push(el('br'));
             const chgPassButton = makeActionButton('Change Password', () => {
                 new ChangePasswordModal(this.tracker, () => this.refresh()).attachAndShowTop();
             });
@@ -69,13 +86,15 @@ class AccountManagementInner extends HTMLElement {
             elements.push(logoutButton);
             if (!accountState.verified) {
                 // UI for verifying email.
-                const txt = quickElement('span', [], ['You have not verified your email yet. If you have just registered, you should have received a code in your email.']);
-                const verificationCodeInput = quickElement('input', ['verification-code-input'], []);
-                verificationCodeInput.placeholder = 'Verification Code';
-                verificationCodeInput.type = 'text';
-                const submitButton = makeActionButton('Submit', () => {
+                const txt = elt('span')`You have not verified your email yet. If you have just registered, you should have received a code in your email.`;
+                const verificationCodeInput = el('input', {
+                    class: 'verification-code-input',
+                    props: {
+                        placeholder: 'Verification Code',
+                        type: 'text',
+                    },
                 });
-                submitButton.type = 'submit';
+                const submitButton = makeSubmitButton('Submit');
                 const resendButton = makeActionButton('Resend', () => this.indicateLoading(async () => {
                     try {
                         await this.tracker.resendVerificationCode(); // TODO test
@@ -86,7 +105,7 @@ class AccountManagementInner extends HTMLElement {
                         alert('There was an error sending the verification code. Please try again later.');
                     }
                 })());
-                const verifyForm = quickElement('form', [], [txt, verificationCodeInput, resendButton, submitButton]);
+                const verifyForm = el('form', {}, [txt, verificationCodeInput, resendButton, submitButton]);
                 verifyForm.addEventListener('submit', this.indicateLoading(async (e) => {
                     e.preventDefault();
                     verificationCodeInput.classList.remove('failed');
@@ -106,18 +125,24 @@ class AccountManagementInner extends HTMLElement {
             // Login section
             const children: HTMLElement[] = [];
             {
-                const loginHeader = quickElement('h3', [], ['Login']);
-                const email = quickElement('input', ['email-field'], []);
-                email.type = 'email';
-                email.placeholder = 'Email';
-                email.autocomplete = 'email';
-                const passwordField = quickElement('input', ['password-field'], []);
-                passwordField.type = 'password';
-                passwordField.placeholder = 'Password';
-                passwordField.autocomplete = 'current-password';
-                const loginButton = makeActionButton('Log In', () => {
+                const loginHeader = elt('h3')`Login`;
+                const email = el('input', {
+                    class: 'email-field',
+                    props: {
+                        type: 'email',
+                        placeholder: 'Email',
+                        autocomplete: 'email',
+                    },
                 });
-                loginButton.type = 'submit';
+                const passwordField = el('input', {
+                    class: 'password-field',
+                    props: {
+                        type: 'password',
+                        placeholder: 'Password',
+                        autocomplete: 'current-password',
+                    },
+                });
+                const loginButton = makeSubmitButton('Log In');
 
                 const forgotButton = makeActionButton('Forgot Password', this.indicateLoading(async () => {
                     try {
@@ -138,7 +163,7 @@ class AccountManagementInner extends HTMLElement {
                     }
                 }));
 
-                const loginForm = quickElement('form', ['login-form'], [loginHeader, email, passwordField, loginButton, forgotButton]);
+                const loginForm = el('form', {class: 'login-form'}, [loginHeader, email, passwordField, loginButton, forgotButton]);
                 loginForm.addEventListener('submit', this.indicateLoading(async (e) => {
                     e.preventDefault();
                     const accountInfo = await this.tracker.login(email.value, passwordField.value);
@@ -157,50 +182,55 @@ class AccountManagementInner extends HTMLElement {
             }
             // Divider
             {
-                const divider = quickElement('h3', ['divider-heading'], ['OR']);
+                const divider = elt('h3', {class: 'divider-heading'})`OR`;
                 children.push(divider);
             }
             // Register section
             {
-                const registerHeader = quickElement('h3', [], ['Register']);
-                const email = quickElement('input', ['email-field'], []);
-                email.type = 'email';
-                email.placeholder = 'Email (Not Displayed Publicly)';
-                email.autocomplete = 'email';
-                email.setAttribute('validation-field', 'email');
+                const registerHeader = elt('h3')`Register`;
+                const email = el('input', {
+                    class: 'email-field',
+                    props: {
+                        type: 'email',
+                        placeholder: 'Email (Not Displayed Publicly)',
+                        autocomplete: 'email',
+                    },
+                    attributes: {
+                        'validation-field': 'email',
+                    },
+                });
                 const pwrf = passwordWithRepeat();
-                const displayName = quickElement('input', ['display-name-field'], []);
-                displayName.type = 'text';
-                displayName.placeholder = 'Display Name (May Be Changed)';
-                displayName.autocomplete = 'username';
-                displayName.setAttribute('validation-field', 'displayName');
+                const displayName = el('input', {
+                    class: 'display-name-field',
+                    props: {
+                        type: 'text',
+                        placeholder: 'Display Name (May Be Changed)',
+                        autocomplete: 'username',
+                    },
+                    attributes: {
+                        'validation-field': 'displayName',
+                    },
+                });
                 // TODO: captcha if required
 
-                const privacyCheckbox = document.createElement('input');
-                privacyCheckbox.type = 'checkbox';
-                const privacyLink = quickElement('a', [], ['Privacy Policy']);
-                privacyLink.href = '#';
+                const privacyCheckbox = el('input', {props: {type: 'checkbox'}});
+                const privacyLink = elt('a', {props: {href: '#'}})`Privacy Policy`;
                 privacyLink.addEventListener('click', (e) => {
                     e.preventDefault();
                     showPrivacyPolicyModal();
                 });
-                const privacyCbl = labeledCheckbox(quickElement('span', [], ['I agree to the ', privacyLink]), privacyCheckbox);
+                const privacyCbl = makeValidatedCheckbox(elt('span')`I agree to the ${privacyLink}`, privacyCheckbox, 'privacy');
                 privacyCheckbox.addEventListener('change', () => {
                     privacyCbl.classList.remove('failed');
                 });
-                privacyCbl.setAttribute('validation-field', 'privacy');
 
-                const cookieCheckbox = document.createElement('input');
-                cookieCheckbox.type = 'checkbox';
-                const cookieCbl = labeledCheckbox(quickElement('span', [], ['I consent to cookies (required for account services)']), cookieCheckbox);
+                const cookieCheckbox = el('input', {props: {type: 'checkbox'}});
+                const cookieCbl = makeValidatedCheckbox(elt('span')`I consent to cookies (required for account services)`, cookieCheckbox, 'cookie');
                 cookieCbl.addEventListener('change', () => {
                     cookieCbl.classList.remove('failed');
                 });
-                cookieCbl.setAttribute('validation-field', 'cookie');
 
-                const submitButton = makeActionButton('Register', () => {
-                });
-                submitButton.type = 'submit';
+                const submitButton = makeSubmitButton('Register');
                 const outer = this;
                 const registrationForm = new ValidatingForm<RegisterResponse>({
                     afterSubmitAttempt(valid: boolean): void {
@@ -257,11 +287,15 @@ class AccountManagementInner extends HTMLElement {
     }
 }
 
-export function showAccountModal() {
+export function
+
+showAccountModal() {
     new AccountModal(ACCOUNT_STATE_TRACKER).attachAndShowExclusively();
 }
 
-export function setupAccountUi() {
+export function
+
+setupAccountUi() {
     // First, find the button
     const accountButton = document.querySelector('#account-button');
     if (!accountButton) {
