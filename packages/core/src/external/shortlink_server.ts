@@ -1,6 +1,6 @@
 import {EMBED_HASH, makeUrl, NavState, SHORTLINK_HASH} from "../nav/common_nav";
 
-const DEFAULT_SHORTLINK_SERVER: URL = new URL("https://api.xivgear.app/shortlink/");
+const DEFAULT_SHORTLINK_SERVER: URL = new URL("https://storage.xivgear.app/shortlink/");
 // const DEFAULT_SHORTLINK_SERVER: URL = new URL("http://localhost:8081/shortlink/");
 // const DEFAULT_SHORTLINK_SERVER: URL = new URL("http://betastorage.xivgear.app/shortlink/");
 
