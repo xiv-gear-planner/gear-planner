@@ -247,6 +247,7 @@ type GearSetCheckpoint = {
     equipment: EquipmentSet;
     food: FoodItem | undefined;
     medicine: MedicineItem | undefined;
+    specialistBonusEnabled: boolean;
     jobOverride: JobName | null;
     name: string;
     description: string | undefined;
@@ -273,6 +274,7 @@ export class CharacterGearSet {
     private _raceOverride: RaceName | null = null;
     private _food: FoodItem | undefined;
     private _medicine: MedicineItem | undefined;
+    private _specialistBonusEnabled: boolean = false;
     private readonly _sheet: GearPlanSheet;
     private readonly refresher = new Inactivitytimer(0, () => {
         this._notifyListeners();
@@ -330,11 +332,22 @@ export class CharacterGearSet {
         return this._food;
     }
 
+    set food(food: FoodItem | undefined) {
+        this._food = food;
+        this.invalidate();
+        this.notifyListeners();
+    }
+
     /**
      * The medicine item currently selected, else undefined if no medicine is selected.
      */
     get medicine(): MedicineItem | undefined {
         return this._medicine;
+    }
+
+    set medicine(medicine: MedicineItem | undefined) {
+        this._medicine = medicine;
+        this.forceRecalc();
     }
 
     /**
@@ -369,14 +382,15 @@ export class CharacterGearSet {
         this._dirtyComp = true;
     }
 
-    set food(food: FoodItem | undefined) {
-        this._food = food;
-        this.invalidate();
-        this.notifyListeners();
+    get specialistBonusEnabled(): boolean {
+        return this._specialistBonusEnabled;
     }
 
-    set medicine(medicine: MedicineItem | undefined) {
-        this._medicine = medicine;
+    set specialistBonusEnabled(enabled: boolean) {
+        if (this._specialistBonusEnabled === enabled) {
+            return;
+        }
+        this._specialistBonusEnabled = enabled;
         this.forceRecalc();
     }
 
@@ -476,10 +490,10 @@ export class CharacterGearSet {
                         });
                     }
                     else {
-                        const meld = this.equipment[slot].melds[index];
+                        const meld = this.equipment[slot]?.melds[index];
                         if (meld) {
                             reEquip.push({
-                                materia: this._sheet.getMateriaById(materiaId),
+                                materia: this._sheet.getMateriaById(materiaId) ?? null,
                                 locked: slotMemory.locked,
                             });
                         }
@@ -656,6 +670,14 @@ export class CharacterGearSet {
             }
         }
 
+        if (classJobStats.type === 'DoH' && this._specialistBonusEnabled) {
+            addStats(combinedStats, {
+                craftsmanship: 20,
+                control: 20,
+                cp: 15,
+            });
+        }
+
         // Intelligence stat from gear only (no modifiers) for BLU
         const gearIntStat = combinedStats.intelligence;
 
@@ -749,7 +771,7 @@ export class CharacterGearSet {
         const stats = this.computedStats;
         const finalized = finalizeStatsInt(
             stats.gearStats,
-            this.food?.bonuses,
+            this.food?.bonuses ?? {},
             stats.level,
             stats.levelStats,
             stats.job,
@@ -794,7 +816,7 @@ export class CharacterGearSet {
             }
         }
         if (equip.gearItem.isCustomRelic) {
-            const failures = equip.gearItem.relicStatModel.validate(equip);
+            const failures = equip.gearItem.relicStatModel!.validate(equip);
             for (const failure of failures) {
                 issues.push({
                     ...failure,
@@ -925,7 +947,8 @@ export class CharacterGearSet {
         }
         let meldedStatValue = baseStatValue;
         let smallestMateria = 999999;
-        const materiaList = materiaOverride === undefined ? equip.melds.map(meld => meld.equippedMateria).filter(item => item) : materiaOverride.filter(item => item);
+        const materiaEffective = materiaOverride === undefined ? equip.melds.map(meld => meld.equippedMateria) : materiaOverride;
+        const materiaList = materiaEffective.filter(item => item !== null);
         for (const materia of materiaList) {
             const materiaStatValue = materia.stats[stat];
             if (materiaStatValue > 0) {
@@ -1040,7 +1063,7 @@ export class CharacterGearSet {
                                 continue;
                             }
                         }
-                        const newMateria: Materia = this._sheet.getBestMateria(stat, meldSlot);
+                        const newMateria: Materia | undefined = this._sheet.getBestMateria(stat, meldSlot);
                         if (!newMateria) {
                             continue;
                         }
@@ -1119,6 +1142,7 @@ export class CharacterGearSet {
             equipment: cloneEquipmentSet(this.equipment),
             food: this._food,
             medicine: this._medicine,
+            specialistBonusEnabled: this._specialistBonusEnabled,
             jobOverride: this._jobOverride,
             name: this._name,
             description: this._description,
@@ -1184,6 +1208,7 @@ export class CharacterGearSet {
         Object.assign(this.equipment, newEquipment);
         this._food = checkpoint.food;
         this._medicine = checkpoint.medicine;
+        this._specialistBonusEnabled = checkpoint.specialistBonusEnabled;
         this._name = checkpoint.name;
         this._description = checkpoint.description;
         if (checkpoint.jobOverride !== this._jobOverride) {

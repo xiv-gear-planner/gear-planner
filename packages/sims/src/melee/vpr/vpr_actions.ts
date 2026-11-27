@@ -1,5 +1,5 @@
 import {VprGcdAbility, VprOgcdAbility} from "./vpr_types";
-import {FlanksbaneVenom, FlankstungVenom, HindsbaneVenom, HindstungVenom, HonedReavers, HonedSteel, HuntersInstinct, ReadyToReawaken, Swiftscaled} from "./vpr_buffs";
+import {FlanksbaneVenom, FlankstungVenom, HindsbaneVenom, HindstungVenom, HuntersVenom, SwiftskinsVenom, HonedReavers, HonedSteel, HuntersInstinct, ReadyToReawaken, Swiftscaled, PoisedForTwinfang, PoisedForTwinblood} from "./vpr_buffs";
 
 
 export const SteelFangs: VprGcdAbility = {
@@ -117,7 +117,7 @@ export const HuntersCoil: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 3.0,
     cast: 0,
-    activatesBuffs: [HuntersInstinct],
+    activatesBuffs: [HuntersInstinct, HuntersVenom],
     updateGaugeLegacy: gauge => gauge.serpentOfferings += 5,
 };
 
@@ -129,7 +129,7 @@ export const SwiftskinsCoil: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 3.0,
     cast: 0,
-    activatesBuffs: [Swiftscaled],
+    activatesBuffs: [Swiftscaled, SwiftskinsVenom],
     updateGaugeLegacy: gauge => gauge.serpentOfferings += 5,
 };
 
@@ -141,6 +141,7 @@ export const UncoiledFury: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 3.5,
     cast: 0,
+    activatesBuffs: [PoisedForTwinfang],
     updateGaugeLegacy: gauge => gauge.rattlingCoils -= 1,
 };
 
@@ -195,7 +196,7 @@ export const Ouroboros: VprGcdAbility = {
     type: 'gcd',
     potency: 1150,
     attackType: "Weaponskill",
-    gcd: 2.0,
+    gcd: 3.0,
     cast: 0,
 };
 
@@ -275,6 +276,7 @@ export const UncoiledTwinfang: VprOgcdAbility = {
     type: 'ogcd',
     potency: 120,
     attackType: 'Ability',
+    activatesBuffs: [PoisedForTwinblood],
 };
 
 export const UncoiledTwinblood: VprOgcdAbility = {

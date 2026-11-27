@@ -25,7 +25,7 @@ function makeSummaryFromData(data: SheetExport): SheetSummary {
         isync: data.ilvlSync,
         level: data.level,
         job: data.job,
-        multiJob: data.isMultiJob,
+        multiJob: data.isMultiJob ?? false,
     };
 }
 
@@ -48,7 +48,7 @@ export class SheetHandleImpl {
 
     constructor(
         public readonly key: string,
-        data: SheetExport,
+        data: SheetExport | null,
         meta: LocalSheetMetadata,
         private readonly mgr: SheetManagerImpl
     ) {
@@ -155,7 +155,8 @@ export class SheetHandleImpl {
     }
 
     /**
-     * The sort order of this sheet.
+     * The sort order of this sheet. Returns a default value based on the sheet save key even if no explicit value is
+     * set.
      */
     get sortOrder(): number {
         if (this.meta.sortOrder !== null) {
@@ -169,7 +170,7 @@ export class SheetHandleImpl {
      *
      * @param sortOrder
      */
-    set sortOrder(sortOrder: number | null) {
+    setSortOrder(sortOrder: number | null) {
         this.meta.sortOrder = sortOrder;
         this.meta.currentVersion++;
         this.metaDirty = true;
@@ -468,7 +469,8 @@ export class SheetHandleImpl {
                 throw new Error("Async loader not available");
             }
         }
-        return this._data;
+        // null cause is guarded against above
+        return this._data!;
     }
 
     get dataNow(): SheetExport | null {
@@ -570,6 +572,11 @@ export class SheetHandleImpl {
         return this.trueSyncStatus === 'conflict';
     }
 
+    /**
+     * "Save As" a sheet using the default "<original name> Copy" naming scheme.
+     *
+     * Not valid to call this if the sheet data is null.
+     */
     saveLocalAsDefault(): SheetHandle {
         const newName = this.name + " Copy";
         const newHandle = this.mgr.newSheetFromScratch({
@@ -577,7 +584,7 @@ export class SheetHandleImpl {
             name: newName,
         });
         newHandle.postLocalModification({
-            ...this._data,
+            ...this._data!,
             name: newName,
             saveKey: newHandle.key,
         });
@@ -637,12 +644,12 @@ export interface SheetManager {
  */
 export const DUMMY_SHEET_MGR: SheetManager = {
     getByKey(sheetKey: string): SheetHandle | null {
-        return undefined;
+        return null;
     },
     setAsyncLoader(loader: SheetAsyncLoader): void {
     },
     newSheetFromScratch(summary: SheetSummary): SheetHandle {
-        return undefined;
+        return undefined as unknown as SheetHandle;
     },
     afterSheetListChange(): void {
     },
@@ -655,10 +662,10 @@ export const DUMMY_SHEET_MGR: SheetManager = {
     flush(): void {
     },
     getOrCreateForKey(key: string): SheetHandle {
-        return undefined;
+        return undefined as unknown as SheetHandle;
     },
     reorderTo(draggedSheet: SheetHandle, draggedTo: SheetHandle): "up" | "down" | null {
-        return undefined;
+        return null;
     },
     resetAll(): void {
     },
@@ -742,7 +749,7 @@ export class SheetManagerImpl implements SheetManager {
      */
     resetAll(): void {
         this.allItems.forEach(item => {
-            item.sortOrder = null;
+            item.setSortOrder(null);
         });
         this.flush();
     }
@@ -779,12 +786,13 @@ export class SheetManagerImpl implements SheetManager {
         const items: SheetHandle[] = [];
         for (const storageKey in this.storage) {
             if (storageKey.startsWith("sheet-save-") && !storageKey.endsWith("-meta")) {
-                if (this.dataMap.has(storageKey)) {
-                    const existing = this.dataMap.get(storageKey);
+                const existing = this.dataMap.get(storageKey);
+                if (existing !== undefined) {
                     items.push(existing);
                     continue;
                 }
-                const handle = this.readOne(storageKey);
+                // This is the key from the for-in loop, so we know it exists
+                const handle = this.readOne(storageKey)!;
                 items.push(handle);
             }
         }
@@ -812,11 +820,11 @@ export class SheetManagerImpl implements SheetManager {
         let out: 'down' | 'up';
         if (toIndex === 0) {
             // Scenario 3
-            draggedSheet.sortOrder = draggedTo.sortOrder + 0.0001;
+            draggedSheet.setSortOrder(draggedTo.sortOrder + 0.0001);
             out = 'up';
         }
         else if (toIndex === lastIndex) {
-            draggedSheet.sortOrder = draggedTo.sortOrder - 1;
+            draggedSheet.setSortOrder(draggedTo.sortOrder - 1);
             out = 'down';
         }
         else if (draggedSheet === draggedTo) {
@@ -834,7 +842,7 @@ export class SheetManagerImpl implements SheetManager {
             const secondBasis = this.allItems[secondBasisIndex].sortOrder;
             const primaryBasis = draggedTo.sortOrder;
             const newSort = (primaryBasis + secondBasis) / 2;
-            draggedSheet.sortOrder = newSort;
+            draggedSheet.setSortOrder(newSort);
             out = isDown ? 'down' : 'up';
         }
         this.resort();
@@ -909,8 +917,18 @@ export class SheetManagerImpl implements SheetManager {
         return item;
     }
 
+    /**
+     * Save the sheet data.
+     *
+     * Not valid to call this if the sheet save key is undefined. Use {@link #saveAs} in that case.
+     *
+     * @param sheet
+     */
     saveData(sheet: GearPlanSheet) {
         const saveKey = sheet.saveKey;
+        if (saveKey === undefined) {
+            throw new Error("Cannot save sheet data with undefined save key.");
+        }
         const handle = this.getOrCreateForKey(saveKey);
         handle.postLocalModification(sheet.exportSheet(ExportTypes.InternalSave));
         handle.flush();
@@ -997,7 +1015,7 @@ export class SheetManagerImpl implements SheetManager {
         if (!this.dataMap.has(sheet)) {
             return this.readOne(sheet);
         }
-        return this.dataMap.get(sheet);
+        return this.dataMap.get(sheet) ?? null;
     }
 
     remove(toDelete: SheetHandle) {

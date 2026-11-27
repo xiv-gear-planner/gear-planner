@@ -1,9 +1,10 @@
-import {goPath, processNav, setPath} from "./nav_hash";
+import {goPath, processNav} from "./nav_hash";
 import {DISPLAY_SETTINGS} from "@xivgear/common-ui/settings/display_settings";
 import {showSettingsModal} from "@xivgear/common-ui/settings/settings_modal";
-import {splitLegacyPipePath} from "@xivgear/core/nav/common_nav";
-import {applyCommonTopMenuFormatting} from "@xivgear/common-ui/components/top_menu";
+import {splitUrlPath} from "@xivgear/core/nav/common_nav";
+import {applyCommonSideMenuFormatting} from "@xivgear/common-ui/components/menu_items";
 import {arrayEq} from "@xivgear/util/array_utils";
+import {setupSideNavigation} from "@xivgear/common-ui/components/side_navigation";
 
 const pageTitle = 'XivGear - FFXIV Gear Planner';
 
@@ -20,43 +21,37 @@ function getRequiredElementById(id: string): HTMLElement {
     return out;
 }
 
-export const contentArea = getRequiredElementById("content-area");
-export const devMenuArea = getRequiredElementById("dev-menu-area");
-export const topMenuArea = getRequiredElementById("main-menu-area");
+const contentArea = getRequiredElementById("content-area");
+const topMenuArea = getRequiredElementById("main-menu-area");
 export const welcomeArea = getRequiredElementById("welcome-message");
-const body = document.querySelector('body');
 
 export function setMainContent(title: string, ...nodes: Parameters<ParentNode['replaceChildren']>) {
     contentArea.replaceChildren(...nodes);
     setTitle(title);
 }
 
-export function initTopMenu() {
+export function initSideMenu() {
     topMenuArea.querySelectorAll('a').forEach(link => {
         const href = link.getAttribute('href');
-        if (href?.startsWith('?page=')) {
+        if (href?.startsWith('/')) {
             link.addEventListener('click', e => {
                 e.preventDefault();
-                goPath(...splitLegacyPipePath(href.slice(6)));
+                goPath(...splitUrlPath(href));
             });
         }
     });
 }
 
-export function formatTopMenu(hash: string[]) {
+export function formatSideMenu(hash: string[]) {
     topMenuArea.querySelectorAll('a').forEach(link => {
         const href = link.getAttribute('href');
-        applyCommonTopMenuFormatting(link);
-        if (href?.startsWith('?page=')) {
-            const expected = splitLegacyPipePath(href.slice(6));
+        applyCommonSideMenuFormatting(link);
+        if (href?.startsWith('/')) {
+            const expected = splitUrlPath(href);
             console.debug(`Expected: ${expected}, actual: ${hash}`);
-            if (arrayEq(expected, hash)) {
-                link.classList.add('current-page');
-            }
-            else {
-                const isCurrentPage = hash.length >= expected.length && arrayEq(hash.slice(0, expected.length), expected);
-                link.classList.toggle('current-page', isCurrentPage);
-            }
+            // We want the math page to still be selected when you select a subpage of it.
+            const isSelected = arrayEq(expected, hash) || href === '/math' && hash[0] === 'math';
+            link.classList.toggle('current-page', isSelected);
         }
     });
 }
@@ -72,37 +67,10 @@ export function setTitle(titlePart: string | undefined) {
 
 
 export function earlyUiSetup() {
-    const devMenu = devMenuArea;
-    document.getElementById('dev-menu-button')?.addEventListener('click', (ev) => {
-        ev.preventDefault();
-        if (devMenu.style.display === 'none') {
-            devMenu.style.display = '';
-        }
-        else {
-            devMenu.style.display = 'none';
-        }
-    });
     DISPLAY_SETTINGS.loadSettings();
+    setupSideNavigation();
     getRequiredElementById('settings-button').addEventListener('click', (ev) => {
         ev.preventDefault();
         showSettingsModal();
     });
-    getRequiredElementById('show-hide-menu-button').addEventListener('click', (ev) => {
-        ev.preventDefault();
-        body!.classList.toggle("top-menu-hidden");
-        // topMenuArea.style.display = topMenuArea.style.display === 'none' ? '' : 'none';
-    });
-    const header = document.createElement("span");
-    header.textContent = "Dev Menu";
-    devMenu.appendChild(header);
-    const nukeButton = document.createElement("button");
-    nukeButton.addEventListener('click', (ev) => {
-        if (confirm('This will DELETE ALL sheets, sets, and settings.')) {
-            localStorage.clear();
-            setPath();
-            location.reload();
-        }
-    });
-    nukeButton.textContent = "Nuke Local Storage";
-    devMenu.appendChild(nukeButton);
 }

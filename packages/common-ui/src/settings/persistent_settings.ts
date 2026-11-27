@@ -1,5 +1,6 @@
 import {Language} from "@xivgear/i18n/translation";
 
+export type SideMenuMode = 'hidden' | 'auto' | 'sticky';
 
 export type PersistentSettings = {
     get lightMode(): boolean | undefined;
@@ -12,6 +13,8 @@ export type PersistentSettings = {
     set languageOverride(value: Language | undefined);
     get reverseItemSort(): boolean | undefined;
     set reverseItemSort(value: boolean);
+    get wideSideMenuMode(): SideMenuMode | undefined;
+    set wideSideMenuMode(value: SideMenuMode | undefined);
     workersOverride: number | undefined;
     hideWelcomeMessage: boolean;
     generatorWarnIfAbove: boolean;
@@ -28,6 +31,7 @@ const HIDE_WELCOME_KEY = 'hide-welcome-area';
 const LANGUAGE_OVERRIDE_KEY = 'language-override';
 const WORKERS_OVERRIDE_KEY = 'workers-override';
 const REVERSE_ITEM_SORT_KEY = 'reverse-item-sort';
+const WIDE_SIDE_MENU_MODE_KEY = 'side-menu-mode-wide';
 const GENERATOR_WARN_KEY = 'generator-warn';
 const GENERATOR_WARN_THRESHOLD_KEY = 'generator-warn-threshold';
 const SOLVER_FILTER_FOOD_KEY = 'solver-filter-food';
@@ -87,6 +91,12 @@ export const SETTINGS: PersistentSettings = {
     },
     set reverseItemSort(value: boolean) {
         setBool(REVERSE_ITEM_SORT_KEY, value);
+    },
+    get wideSideMenuMode(): SideMenuMode | undefined {
+        return getSideMenuMode(WIDE_SIDE_MENU_MODE_KEY);
+    },
+    set wideSideMenuMode(value: SideMenuMode | undefined) {
+        setSideMenuMode(WIDE_SIDE_MENU_MODE_KEY, value);
     },
     get generatorWarnIfAbove(): boolean {
         return getBool(GENERATOR_WARN_KEY) ?? true;
@@ -148,5 +158,22 @@ function setInt(key: string, value: number | undefined) {
             throw new Error(`Not an integer: ${value} (${key})`);
         }
         localStorage.setItem(key, value.toString());
+    }
+}
+
+function getSideMenuMode(key: string): SideMenuMode | undefined {
+    const raw = localStorage.getItem(key);
+    if (raw === 'hidden' || raw === 'auto' || raw === 'sticky') {
+        return raw;
+    }
+    return undefined;
+}
+
+function setSideMenuMode(key: string, value: SideMenuMode | undefined) {
+    if (value === undefined) {
+        localStorage.removeItem(key);
+    }
+    else {
+        localStorage.setItem(key, value);
     }
 }

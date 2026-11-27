@@ -4,25 +4,25 @@ import {SimResult, SimSettings, Simulation} from "../sims/sim_types";
 import {GearPlanSheet} from "../sheet";
 import {microExportToFullExport, setToMicroExport} from "../workers/worker_utils";
 
-export class SolverSimulationSettings {
+export interface SolverSimulationSettings {
     sim: Simulation<SimResult, SimSettings, unknown>;
     sets: CharacterGearSet[];
-
-    // It is not necessary to capture sheet-level details, because the workers' setSheet logic takes care of sheet-level
-    // information.
-    static export(settings: SolverSimulationSettings): SolverSimulationSettingsExport {
-        return {
-            sets: settings.sets?.map(setToMicroExport) ?? [],
-            sim: {
-                stub: settings.sim.spec.stub,
-                settings: settings.sim.exportSettings() as SimSettings,
-                name: settings.sim.displayName,
-            },
-        };
-    }
 }
 
-export class SolverSimulationSettingsExport {
+export function exportSolverSimulationSettings(settings: SolverSimulationSettings): SolverSimulationSettingsExport {
+    // It is not necessary to capture sheet-level details, because the workers' setSheet logic takes care of sheet-level
+    // information.
+    return {
+        sets: settings.sets?.map(setToMicroExport) ?? [],
+        sim: {
+            stub: settings.sim.spec.stub,
+            settings: settings.sim.exportSettings() as SimSettings,
+            name: settings.sim.displayName,
+        },
+    };
+}
+
+export interface SolverSimulationSettingsExport {
     sim: SimExport;
     sets: MicroSetExport[];
 }
@@ -55,6 +55,7 @@ export class SimRunner<SimType extends Simulation<SimResult, SimSettings, unknow
         for (let i = 0; i < setExports.length; i++) {
             const set = sheet.importGearSet(microExportToFullExport(setExports[i]));
             const result = await this._sim.simulateSimple(set);
+            // @ts-expect-error - this is not re-used. We clear it here so that the memory can be reclaimed.
             setExports[i] = undefined;
 
             if (result > bestDps) {

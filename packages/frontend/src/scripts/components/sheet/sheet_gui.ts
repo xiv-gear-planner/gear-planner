@@ -25,13 +25,7 @@ import {
     PartyBonusAmount
 } from "@xivgear/xivmath/geartypes";
 import {CharacterGearSet, SyncInfo} from "@xivgear/core/gear";
-import {
-    MAX_PARTY_BONUS,
-    RACE_STATS,
-    RaceName,
-    SpecialStatKey,
-    SupportedLevel
-} from "@xivgear/xivmath/xivconstants";
+import {MAX_PARTY_BONUS, RACE_STATS, RaceName, SpecialStatKey, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {processNav} from "../../nav_hash";
 import {scrollIntoView} from "@xivgear/common-ui/util/scrollutil";
 import {Inactivitytimer} from "@xivgear/util/inactivitytimer";
@@ -61,11 +55,7 @@ import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 import {cleanUrl} from "@xivgear/common-ui/nav/common_frontend_nav";
 import {isSafari} from "@xivgear/common-ui/util/detect_safari";
 import {getNextPopoutContext, MESSAGE_REFRESH_CONTENT, MESSAGE_REFRESH_TOOLBAR} from "../../popout";
-import {
-    makeExportIcon,
-    makeImportIcon,
-    makeNewSheetIcon
-} from "@xivgear/common-ui/components/icons";
+import {makeExportIcon, makeImportIcon, makeNewSheetIcon} from "@xivgear/common-ui/components/icons";
 import {AddSimDialog} from "../sim/add_sim_dialog";
 import {ImportSetsModal} from "../import/import_sets_modal";
 import {recordSheetEvent} from "../../analytics/analytics";
@@ -713,9 +703,17 @@ export class GearPlanSheetGui extends GearPlanSheet {
     private set editorItem(item: typeof this._editorItem) {
         this._editorItem = item;
         if (this.isViewOnly) {
-            this.headerArea.style.display = 'none';
+            this.headerDisplayed = false;
         }
         this.resetEditorArea();
+    }
+
+    get headerDisplayed(): boolean {
+        return this.element.classList.contains('show-header');
+    }
+
+    set headerDisplayed(showing: boolean) {
+        this.element.classList.toggle('show-header', showing);
     }
 
     get selectedGearSet(): CharacterGearSet | null {
@@ -1007,7 +1005,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
         }
 
         if (this.saveKey) {
-            this.headerArea.style.display = 'none';
+            this.headerDisplayed = false;
         }
         else {
             if (this.isViewOnly) {
@@ -1030,10 +1028,11 @@ export class GearPlanSheetGui extends GearPlanSheet {
                 unsavedWarning.textContent = 'This imported sheet will not be saved unless you use the "Save As" button in the "More Actions..." menu below the table.';
                 this.headerArea.appendChild(unsavedWarning);
             }
-            this.headerArea.style.display = '';
+            // TODO: is this doing anything
+            this.headerDisplayed = true;
             const headerButton = makeActionButton('Toggle Header', () => {
                 // TODO: if you have manually shown the header, don't hide it again when re-selecting a set
-                this.headerArea.style.display = (this.headerArea.style.display === 'none') ? '' : 'none';
+                this.headerDisplayed = !this.headerDisplayed;
             });
             buttonsArea.appendChild(headerButton);
             const advancedStats = makeActionButton('Stat Details', () => {

@@ -31,31 +31,27 @@ body:not(.embed-view) {
       display: none;
     }
 
+    .gear-sheet-table-area, .gear-sheet-table-holder {
+      width: 100%;
+    }
 
-    &.top-menu-hidden {
+    --set-name-col-min-width: 160px;
 
-      &:has(gear-plan.view-only) {
-        #help-button-area {
-          display: none;
+    gear-plan {
+      &.view-only {
+
+        .gear-sheet-table-holder-outer {
+          padding: 0;
+          margin: 0;
         }
-      }
 
-      gear-plan {
-        &.view-only {
+        .gear-sheet-table-area {
+          padding: 0;
+          margin: 0;
+        }
 
-          .gear-sheet-table-holder-outer {
-            padding: 0;
-            margin: 0;
-          }
-
-          .gear-sheet-table-area {
-            padding: 0;
-            margin: 0;
-          }
-
-          .gear-plan-table {
-            --action-col-width: 30px;
-          }
+        .gear-plan-table {
+          --action-col-width: 30px;
 
         }
       }
@@ -71,7 +67,7 @@ body:not(.embed-view) {
         //}
 
         gear-set-viewer {
-          // Small padding top, no padding sides, larger padding bottom.
+          // Small padding top, no side padding, larger padding bottom.
           padding: 10px 0 100px;
 
           // This gets capped to 100% width anyway

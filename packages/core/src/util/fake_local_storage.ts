@@ -2,28 +2,29 @@
  * In-memory localStorage drop-in replacement.
  */
 export class FakeLocalStorage implements Storage {
-    private _data: Map<string, string>;
+    // This is initially set when the ctor calls _reset()
+    private _data!: Map<string, string>;
 
     constructor() {
         this._reset();
         return new Proxy(this, {
-            get(target: typeof this, key: string | symbol): unknown {
+            get(target: FakeLocalStorage, key: string | symbol): unknown {
                 if (key in target) {
                     return target[String(key)];
                 }
                 return target._data.get(key as string) ?? target[String(key)];
             },
-            set(target: typeof this, key: string | symbol, newValue: unknown): boolean {
+            set(target: FakeLocalStorage, key: string | symbol, newValue: unknown): boolean {
                 if (!(key in target)) {
                     target._data.set(String(key), String(newValue));
                     return true;
                 }
                 return false;
             },
-            ownKeys(target: typeof this): ArrayLike<string | symbol> {
+            ownKeys(target: FakeLocalStorage): ArrayLike<string | symbol> {
                 return Array.from(target._data.keys());
             },
-            getOwnPropertyDescriptor(target: typeof this, key: string | symbol): PropertyDescriptor | undefined {
+            getOwnPropertyDescriptor(target: FakeLocalStorage, key: string | symbol): PropertyDescriptor | undefined {
                 if (target._data.has(String(key))) {
                     return {
                         enumerable: true,
@@ -33,7 +34,7 @@ export class FakeLocalStorage implements Storage {
                 }
                 return undefined;
             },
-            has(target: typeof this, key: string | symbol): boolean {
+            has(target: FakeLocalStorage, key: string | symbol): boolean {
                 return target._data.has(String(key)) || key in target;
             },
         });
@@ -57,7 +58,7 @@ export class FakeLocalStorage implements Storage {
 
     getItem(key: string): string | null {
         if (this._data.has(key)) {
-            return this._data.get(key);
+            return this._data.get(key)!;
         }
         return null;
     }

@@ -19,7 +19,7 @@ describe('New Datamanager', () => {
         await sch90.loadData();
     });
     it('can load some SCH items', async () => {
-        const codexOfAscension = sch90.itemById(40176);
+        const codexOfAscension = sch90.itemById(40176)!;
         // Basic item props
         eq(codexOfAscension.id, 40176);
         eq(codexOfAscension.name, 'Codex of Ascension');
@@ -95,27 +95,27 @@ describe('New Datamanager', () => {
         // eq(ilvl545book, undefined);
 
         // This item is 560, it just barely makes it
-        const ilvl560book = sch90.itemById(34053);
+        const ilvl560book = sch90.itemById(34053)!;
         eq(ilvl560book.ilvl, 560);
 
     }).timeout(20_000);
     it('can get stats of food items', async () => {
-        const food = sch90.foodById(44096);
+        const food = sch90.foodById(44096)!;
         eq(food.id, 44096);
         eq(food.name, "Vegetable Soup");
         eq(food.nameTranslation.en, "Vegetable Soup");
         eq(food.nameTranslation.de, "Gemüsesuppe");
         eq(food.primaryStat, 'dhit');
         eq(food.secondaryStat, 'determination');
-        eq(food.bonuses.dhit.max, 121);
-        eq(food.bonuses.dhit.percentage, 10);
-        eq(food.bonuses.determination.max, 73);
-        eq(food.bonuses.determination.percentage, 10);
+        eq(food.bonuses.dhit!.max, 121);
+        eq(food.bonuses.dhit!.percentage, 10);
+        eq(food.bonuses.determination!.max, 73);
+        eq(food.bonuses.determination!.percentage, 10);
     }).timeout(30_000);
     it('handles multi-slot items correctly', async () => {
         const dm = new NewApiDataManager(['BLM'], 100);
         await dm.loadData();
-        const verm = dm.itemById(24855);
+        const verm = dm.itemById(24855)!;
         eq(verm.displayGearSlotName, 'Body');
         eq(verm.occGearSlotName, 'ChestHead');
         expect(verm.slotMapping.getBlockedSlots()).to.deep.eq(['Head']);
@@ -166,23 +166,23 @@ describe('New Datamanager', () => {
             });
             it('should not downsync a lvl90 i665 weapon', () => {
                 // Wings of Ascension
-                const item = dm.itemById(40182);
+                const item = dm.itemById(40182)!;
                 expect(item.isSyncedDown).to.eq(false);
             });
             it('should not downsync a lvl90 i660 chest', () => {
                 // Augmented Credendum Surcoat of Healing
-                const item = dm.itemById(40136);
+                const item = dm.itemById(40136)!;
                 expect(item.isSyncedDown).to.eq(false);
             });
             it('should downsync a lvl94 i663 weapon to 660', () => {
                 // Cobalt Tungsten Pendulums
-                const item = dm.itemById(42162);
+                const item = dm.itemById(42162)!;
                 expect(item.isSyncedDown).to.eq(true);
                 expect(item.syncedDownTo).to.eq(660);
             });
             it('should downsync a lvl94 i663 chest to 660', () => {
                 // Sarcenet Chestwrap of Healing
-                const item = dm.itemById(42192);
+                const item = dm.itemById(42192)!;
                 expect(item.isSyncedDown).to.eq(true);
                 expect(item.syncedDownTo).to.eq(660);
                 expect(item.unsyncedVersion.stats.defenseMag).to.eq(758 + 84);
@@ -193,7 +193,7 @@ describe('New Datamanager', () => {
             });
             it('should remove all def when downsyncing accessories', () => {
                 // Dark Horse Champion's Earring of Healing
-                const item = dm.itemById(43161);
+                const item = dm.itemById(43161)!;
                 expect(item.isSyncedDown).to.eq(true);
                 expect(item.syncedDownTo).to.eq(665);
                 expect(item.unsyncedVersion.stats.defenseMag).to.eq(1);
@@ -204,37 +204,37 @@ describe('New Datamanager', () => {
             });
             it('should downsync a lvl95 i666 weapon to 665', () => {
                 // Skydeep Milpreves
-                const item = dm.itemById(42239);
+                const item = dm.itemById(42239)!;
                 expect(item.isSyncedDown).to.eq(true);
                 expect(item.syncedDownTo).to.eq(665);
             });
             it('should downsync a lvl95 i666 chest to 665', () => {
                 // Skydeep Robe of Healing
-                const item = dm.itemById(42269);
+                const item = dm.itemById(42269)!;
                 expect(item.isSyncedDown).to.eq(true);
                 expect(item.syncedDownTo).to.eq(665);
             });
             it('should downsync a lvl96 i669 weapon to 665', () => {
                 // White Gold Syrinxi
-                const item = dm.itemById(42316);
+                const item = dm.itemById(42316)!;
                 expect(item.isSyncedDown).to.eq(true);
                 expect(item.syncedDownTo).to.eq(665);
             });
             it('should downsync a lvl96 i669 chest to 665', () => {
                 // White Gold Visor of Healing
-                const item = dm.itemById(42345);
+                const item = dm.itemById(42345)!;
                 expect(item.isSyncedDown).to.eq(true);
                 expect(item.syncedDownTo).to.eq(665);
             });
             it('should downsync a lvl100 i735 weapon to 665', () => {
                 // Dark Horse Champion's Milpreves
-                const item = dm.itemById(43119);
+                const item = dm.itemById(43119)!;
                 expect(item.isSyncedDown).to.eq(true);
                 expect(item.syncedDownTo).to.eq(665);
             });
             it('should downsync a lvl100 i730 chest to 665', () => {
                 // Dark Horse Champion's Hat of Healing
-                const item = dm.itemById(43148);
+                const item = dm.itemById(43148)!;
                 expect(item.isSyncedDown).to.eq(true);
                 expect(item.syncedDownTo).to.eq(665);
             });
@@ -248,16 +248,16 @@ describe('New Datamanager', () => {
             });
             it('should not downsync a lvl90 i665 weapon', () => {
                 // Wings of Ascension
-                const item = dm.itemById(40182);
+                const item = dm.itemById(40182)!;
                 expect(item.isSyncedDown).to.eq(false);
             });
             it('should not downsync a lvl90 i660 chest', () => {
                 // Augmented Credendum Surcoat of Healing
-                const item = dm.itemById(40136);
+                const item = dm.itemById(40136)!;
                 expect(item.isSyncedDown).to.eq(false);
             });
             it('should downsync a lvl93 i660 weapon to 660 (remove melds but not change stats)', () => {
-                const item = dm.itemById(42085);
+                const item = dm.itemById(42085)!;
                 expect(item.isSyncedDown).to.eq(true);
                 expect(item.syncedDownTo).to.eq(660);
                 expect(item.unsyncedVersion.stats.wdMag).to.eq(item.stats.wdMag);
@@ -268,49 +268,49 @@ describe('New Datamanager', () => {
             });
             it('should downsync a lvl94 i663 weapon to 660', () => {
                 // Cobalt Tungsten Pendulums
-                const item = dm.itemById(42162);
+                const item = dm.itemById(42162)!;
                 expect(item.isSyncedDown).to.eq(true);
                 expect(item.syncedDownTo).to.eq(660);
             });
             it('should downsync a lvl94 i663 chest to 660', () => {
                 // Sarcenet Chestwrap of Healing
-                const item = dm.itemById(42192);
+                const item = dm.itemById(42192)!;
                 expect(item.isSyncedDown).to.eq(true);
                 expect(item.syncedDownTo).to.eq(660);
             });
             it('should downsync a lvl95 i666 weapon to 660', () => {
                 // Skydeep Milpreves
-                const item = dm.itemById(42239);
+                const item = dm.itemById(42239)!;
                 expect(item.isSyncedDown).to.eq(true);
                 expect(item.syncedDownTo).to.eq(660);
             });
             it('should downsync a lvl95 i666 chest to 660', () => {
                 // Skydeep Robe of Healing
-                const item = dm.itemById(42269);
+                const item = dm.itemById(42269)!;
                 expect(item.isSyncedDown).to.eq(true);
                 expect(item.syncedDownTo).to.eq(660);
             });
             it('should downsync a lvl96 i669 weapon to 660', () => {
                 // White Gold Syrinxi
-                const item = dm.itemById(42316);
+                const item = dm.itemById(42316)!;
                 expect(item.isSyncedDown).to.eq(true);
                 expect(item.syncedDownTo).to.eq(660);
             });
             it('should downsync a lvl96 i669 chest to 660', () => {
                 // White Gold Visor of Healing
-                const item = dm.itemById(42345);
+                const item = dm.itemById(42345)!;
                 expect(item.isSyncedDown).to.eq(true);
                 expect(item.syncedDownTo).to.eq(660);
             });
             it('should downsync a lvl100 i735 weapon to 660', () => {
                 // Dark Horse Champion's Milpreves
-                const item = dm.itemById(43119);
+                const item = dm.itemById(43119)!;
                 expect(item.isSyncedDown).to.eq(true);
                 expect(item.syncedDownTo).to.eq(660);
             });
             it('should downsync a lvl100 i730 chest to 660', () => {
                 // Dark Horse Champion's Hat of Healing
-                const item = dm.itemById(43148);
+                const item = dm.itemById(43148)!;
                 expect(item.isSyncedDown).to.eq(true);
                 expect(item.syncedDownTo).to.eq(660);
             });
@@ -332,7 +332,7 @@ describe('New Datamanager', () => {
         });
         it('handles normal item, below isync', () => {
             // Serenity
-            const item = dm.itemById(42574, false);
+            const item = dm.itemById(42574, false)!;
             expect(item.stats.wdMag).to.eq(137);
             expect(item.stats.mind).to.eq(493);
             expect(item.stats.crit).to.eq(339);
@@ -340,7 +340,7 @@ describe('New Datamanager', () => {
         });
         it('handles normal item, exactly at isync', () => {
             // Neo Kingdom Cane
-            const item = dm.itemById(42701, false);
+            const item = dm.itemById(42701, false)!;
             expect(item.stats.wdMag).to.eq(139);
             expect(item.stats.mind).to.eq(520);
             expect(item.stats.crit).to.eq(253);
@@ -348,7 +348,7 @@ describe('New Datamanager', () => {
         });
         it('handles normal item, synced', () => {
             // Queensknight Cane
-            const item = dm.itemById(46459, false);
+            const item = dm.itemById(46459, false)!;
             expect(item.stats.wdMag).to.eq(139);
             expect(item.stats.mind).to.eq(520);
             expect(item.stats.crit).to.eq(361);
@@ -358,7 +358,7 @@ describe('New Datamanager', () => {
         });
         it('handles HQ item, below sync', () => {
             // HQ Claro Walnut Cane
-            const item = dm.itemById(42457, false);
+            const item = dm.itemById(42457, false)!;
             expect(item.stats.wdMag).to.eq(134);
             expect(item.stats.mind).to.eq(449);
             expect(item.stats.piety).to.eq(314);
@@ -366,7 +366,7 @@ describe('New Datamanager', () => {
         });
         it('handles NQ item, below sync', () => {
             // NQ Claro Walnut Cane
-            const item = dm.itemById(42457, true);
+            const item = dm.itemById(42457, true)!;
             expect(item.stats.wdMag).to.eq(121);
             expect(item.stats.mind).to.eq(404);
             expect(item.stats.piety).to.eq(283);
@@ -374,7 +374,7 @@ describe('New Datamanager', () => {
         });
         it('handles HQ item, above sync', () => {
             // HQ Claro Walnut Cane
-            const item = dm.itemById(46015, false);
+            const item = dm.itemById(46015, false)!;
             expect(item.stats.wdMag).to.eq(139);
             expect(item.stats.mind).to.eq(520);
             expect(item.stats.crit).to.eq(361);
@@ -382,7 +382,7 @@ describe('New Datamanager', () => {
         });
         it('handles NQ item, above sync', () => {
             // NQ Ceremonial Wand
-            const item = dm.itemById(46015, true);
+            const item = dm.itemById(46015, true)!;
             expect(item.stats.wdMag).to.eq(132);
             expect(item.stats.mind).to.eq(520);
             expect(item.stats.crit).to.eq(358);
@@ -390,7 +390,7 @@ describe('New Datamanager', () => {
         });
         it('handles Occult Crescent item, no bonus', () => {
             // Arcanaut's Robe of Healing +2
-            const item = dm.itemById(47844, false);
+            const item = dm.itemById(47844, false)!;
             expect(item.stats.wdMag).to.eq(0);
             expect(item.stats.mind).to.eq(501);
             expect(item.stats.crit).to.eq(348);
@@ -398,7 +398,7 @@ describe('New Datamanager', () => {
         });
         it('handles Occult Crescent item, with bonus', () => {
             // Arcanaut's Robe of Healing +2
-            const item = dm.itemById(47844, false);
+            const item = dm.itemById(47844, false)!;
             item.activeSpecialStat = SpecialStatType.OccultCrescent;
             expect(item.stats.wdMag).to.eq(0);
             expect(item.stats.mind).to.eq(501 + 120);

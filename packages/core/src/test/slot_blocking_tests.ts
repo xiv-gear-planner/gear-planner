@@ -409,17 +409,17 @@ describe('Slot blocking in gear sets', () => {
         sheet.addGearSet(set);
 
         // Equip a random weapon so we don't get noise due to the "no weapon" issue
-        const weap = sheet.itemById(34051);
+        const weap = sheet.itemById(34051)!;
         set.setEquip('Weapon', weap);
 
         // Vermillion Cloak of Casting (24855) additionally blocks the head slot
-        const vermillionCloak = sheet.itemById(24855);
+        const vermillionCloak = sheet.itemById(24855)!;
         expect(vermillionCloak.occGearSlotName).to.eq('ChestHead');
         expect(vermillionCloak.slotMapping.getBlockedSlots()).to.deep.eq(['Head']);
         set.setEquip('Body', vermillionCloak);
 
         // Equip any head piece (33977 - Spaekona's Petasos)
-        const headPiece = sheet.itemById(33977);
+        const headPiece = sheet.itemById(33977)!;
         expect(headPiece.occGearSlotName).to.eq('Head');
         set.setEquip('Head', headPiece);
 

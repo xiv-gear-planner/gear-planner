@@ -161,6 +161,10 @@ export type EquipSlotMap = {
     getBlockedSlots(): EquipSlotKey[];
 }
 
+/**
+ * The quality of an item. 'none' means the item does not support NQ/HQ. 'nq'/'hq' mean what you would expect.
+ */
+export type ItemQuality = 'none' | 'nq' | 'hq';
 
 export interface XivItem {
     /**
@@ -179,6 +183,10 @@ export interface XivItem {
      * Item icon URL
      */
     iconUrl: URL;
+    /**
+     * Item quality
+     */
+    quality: ItemQuality;
 }
 
 export interface XivCombatItem extends XivItem {
@@ -1070,6 +1078,10 @@ export interface SetExport {
      */
     medicine?: number,
     /**
+     * Whether the crafter specialist bonus is enabled. Only applicable to DoH.
+     */
+    specialistBonusEnabled?: boolean,
+    /**
      * When a relic is de-selected, its former stats are remembered here so that they can be recalled if the
      * relic is selected again. They keys are item IDs, and the values are {@link RelicStats}.
      */
@@ -1554,7 +1566,7 @@ export type IlvlSyncInfo = {
     /**
      * Get the ItemLevel modifier for a stat at this item level.
      */
-    getIlvlModifier(statsKey: RawStatKey): number | undefined;
+    getIlvlModifier(statsKey: RawStatKey): number | null;
     /**
      * Calculate the substat cap for a given slot, stat, and meldParamIndex. Returns null to indicate no cap.
      *

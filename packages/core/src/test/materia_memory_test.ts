@@ -21,8 +21,9 @@ describe("Materia Memory", () => {
             maxGrade: 12,
             ilvl: 999,
         };
+        const dummyUrl = new URL("https://test.local/123.png");
         const mat1: Materia = {
-            iconUrl: undefined,
+            iconUrl: dummyUrl,
             id: 1001,
             isHighGrade: true,
             materiaGrade: 12,
@@ -34,9 +35,10 @@ describe("Materia Memory", () => {
                 determination: 50,
             }),
             ilvl: 690,
+            quality: 'none',
         };
         const mat2: Materia = {
-            iconUrl: undefined,
+            iconUrl: dummyUrl,
             id: 1002,
             isHighGrade: true,
             materiaGrade: 11,
@@ -48,6 +50,7 @@ describe("Materia Memory", () => {
                 dhit: 10,
             }),
             ilvl: 690,
+            quality: 'none',
         };
         // TODO: when 'locked' becomes part of the export, update this test
         const slots1: MeldableMateriaSlot[] = [
@@ -65,7 +68,7 @@ describe("Materia Memory", () => {
         const slots2: MeldableMateriaSlot[] = [
             {
                 materiaSlot: slot,
-                equippedMateria: undefined,
+                equippedMateria: null,
                 locked: true,
             },
             {

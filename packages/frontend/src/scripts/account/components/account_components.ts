@@ -300,7 +300,7 @@ export function setupAccountUi() {
             }
         }
         else {
-            accountButtonText.textContent = 'Log In';
+            accountButtonText.textContent = 'Log In/Create Account';
             body.setAttribute('data-accountstate', 'not-logged-in');
             body.setAttribute('data-tokenstate', 'not-logged-in');
         }

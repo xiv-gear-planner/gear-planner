@@ -102,7 +102,7 @@ async function ilvlSyncCapArguments(arg: IlvlSyncCapInputs, gen: GeneralSettings
     const meldParam = baseParamInfo?.meldParam[arg.meldParamIndex];
     const ilvlModifier = dm.getIlvlSyncInfo(arg.ilvl)?.getIlvlModifier(arg.baseParam);
     const baseParamSlotModifier = baseParamInfo?.slots[arg.slot];
-    if (meldParam === undefined || ilvlModifier === undefined || baseParamSlotModifier === undefined) {
+    if (meldParam === undefined || ilvlModifier === undefined || ilvlModifier === null || baseParamSlotModifier === undefined) {
         return [0, 0, 0];
     }
     return [meldParam, ilvlModifier, baseParamSlotModifier];

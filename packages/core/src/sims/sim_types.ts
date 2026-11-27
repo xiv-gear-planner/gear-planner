@@ -675,7 +675,7 @@ export type BaseBuff = Readonly<{
      * have already been modified.
      * @returns The ability, if the buff needs to modify some properties of the ability. Null if no modification.
      */
-    beforeAbility?<X extends Ability>(controller: BuffController, ability: X): X | void,
+    beforeAbility?<X extends Ability>(controller: BuffController, ability: X): X | null | void,
     /**
      * Modify an ability before it snapshots. If the ability is instant, this is not much different from
      * beforeAbility.
@@ -685,7 +685,7 @@ export type BaseBuff = Readonly<{
      * have already been modified.
      * @returns The ability, if the buff needs to modify some properties of the ability. Null if no modification.
      */
-    beforeSnapshot?<X extends Ability>(controller: BuffController, ability: X): X | void,
+    beforeSnapshot?<X extends Ability>(controller: BuffController, ability: X): X | null | void,
     /**
      * Modify the final damage dealt by an ability.
      *

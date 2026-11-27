@@ -12,18 +12,14 @@ import {
 export function setToMicroExport(set: CharacterGearSet): MicroSetExport {
     const slots: MicroSlotExport[] = [];
     for (const equipmentKey in set.equipment) {
-        const inSlot: EquippedItem = set.equipment[equipmentKey as EquipSlotKey];
+        const inSlot: EquippedItem | null = set.equipment[equipmentKey as EquipSlotKey];
         if (inSlot) {
             if (inSlot.gearItem.isCustomRelic) {
                 const exportedItem: MicroSlotExport = [
                     equipmentKey as EquipSlotKey,
-                    // TODO: determine if it makes more sense to just serialize empty materia slots as {}
-                    // The advantage is that {} is a lot smaller than {"id":-1}, and exports are already long
-                    // On the other hand, *most* real exports would have slots filled (BiS etc)
-                    // To indicate NQ items, add .5 to the item ID
                     inSlot.gearItem.id,
                     "relic",
-                    (inSlot.relicStats && Object.entries(inSlot.relicStats)) ? {...inSlot.relicStats} : null,
+                    (inSlot.relicStats && Object.entries(inSlot.relicStats)) ? {...inSlot.relicStats} : {},
                 ];
                 slots.push(exportedItem);
 
@@ -51,7 +47,7 @@ export function setToMicroExport(set: CharacterGearSet): MicroSetExport {
 
 export function microExportToFullExport(s: MicroSetExport): SetExport {
     const fakeItemsImport: ItemsSlotsExport = {};
-    let foodId: number | null = null;
+    let foodId: number | undefined = undefined;
     s.forEach(s => {
         const slotName = s[0];
         if (slotName === "food") {

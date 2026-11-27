@@ -11,14 +11,29 @@
 </head>
 <body class="modern">
 
-<div id="dev-menu-area" style="display: none;"></div>
 <div id="show-hide-menu-button-area">
-    <button id="show-hide-menu-button"><span>≡</span></button>
+    <button id="show-hide-menu-button" type="button" aria-label="Menu" title="Menu">
+        <span class="nav-menu-icon" aria-hidden="true"></span><span class="menu-label">Menu</span>
+    </button>
 </div>
-<div id="main-menu-area">
+<div id="main-menu-area" role="navigation" aria-label="Main navigation">
     <div id="main-menu-area-inner">
-        <a href="..">Back to XivGear</a><a href="?page=math">Math</a><a href="" id="settings-button">Settings</a><!--    <a href="." id="dev-menu-button">Dev Menu</a>--><a href="https://github.com/xiv-gear-planner/gear-planner/" id="github-button" target="_blank">GitHub</a><a href="https://ko-fi.com/wynnxiv" id="kofi-button" target="_blank">Ko-Fi</a>
-        <a href="https://patreon.com/xivgearapp?utm_medium=unknown&utm_source=join_link&utm_campaign=creatorshare_creator&utm_content=copyLink" id="patreon-button" target="_blank">Patreon</a>
+        <div class="menu-link-sections">
+            <div class="menu-link-group menu-link-group-internal">
+                <a href="/math"><span>Formulas</span></a>
+                <a href="" id="settings-button"><span>Settings</span></a>
+            </div>
+            <div class="menu-link-group menu-link-group-sites">
+                <div class="menu-section-heading"><span>Other Apps</span></div>
+                <a href="https://xivgear.app/"><span>Gear Planner</span></a>
+            </div>
+            <div class="menu-link-group menu-link-group-external">
+                <div class="menu-section-heading"><span>Help &amp; About</span></div>
+                <a href="https://github.com/xiv-gear-planner/gear-planner/" id="github-button" target="_blank"><span>GitHub</span></a>
+                <a href="https://ko-fi.com/wynnxiv" id="kofi-button" target="_blank"><span>Ko-Fi</span></a>
+                <a href="https://patreon.com/xivgearapp?utm_medium=unknown&utm_source=join_link&utm_campaign=creatorshare_creator&utm_content=copyLink" id="patreon-button" target="_blank"><span>Patreon</span></a>
+            </div>
+        </div>
     </div>
 </div>
 <div id="content-area"></div>
