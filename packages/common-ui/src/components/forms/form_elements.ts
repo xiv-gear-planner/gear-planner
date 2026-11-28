@@ -1,4 +1,4 @@
-import {quickElement} from "../util";
+import {el} from "../util";
 
 export type PasswordFieldWithRepeat = {
     passwordField: HTMLInputElement,
@@ -9,16 +9,28 @@ export type PasswordFieldWithRepeat = {
 };
 
 export function passwordWithRepeat(passLabel: string = 'Password', validationField: string = 'password'): PasswordFieldWithRepeat {
-    const passwordField = quickElement('input', ['password-field'], []);
-    passwordField.type = 'password';
-    passwordField.placeholder = passLabel;
-    passwordField.autocomplete = 'new-password';
-    passwordField.setAttribute('validation-field', validationField);
-    const passwordRepeatField = quickElement('input', ['password-field'], []);
-    passwordRepeatField.type = 'password';
-    passwordRepeatField.placeholder = 'Repeat Password';
-    passwordRepeatField.autocomplete = 'new-password';
-    passwordRepeatField.setAttribute('validation-field', validationField);
+    const passwordField = el('input', {
+        class: 'password-field',
+        props: {
+            type: 'password',
+            placeholder: passLabel,
+            autocomplete: 'new-password',
+        },
+        attributes: {
+            'validation-field': validationField,
+        },
+    });
+    const passwordRepeatField = el('input', {
+        class: 'password-field',
+        props: {
+            type: 'password',
+            placeholder: 'Repeat Password',
+            autocomplete: 'new-password',
+        },
+        attributes: {
+            'validation-field': validationField,
+        },
+    });
 
     function getValue(): string {
         return passwordField.value;
