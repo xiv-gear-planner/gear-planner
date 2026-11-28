@@ -27,6 +27,7 @@ import {pldSpec} from "./tank/pld/pld_sheet_sim";
 import {blmSpec} from "./caster/blm/blm_sheet_sim";
 import {drgSpec} from "./melee/drg/drg_sim";
 import {blmPpsSpec} from "./caster/blm/blm_pps_sim";
+import {pctSpec} from "./caster/pct/pct_sheet_sim";
 import {mchSheetSpec} from "./ranged/mch/mch_sheet_sim";
 import {registerSim} from "@xivgear/core/sims/sim_registry";
 
@@ -70,6 +71,7 @@ export function registerDefaultSims() {
     // Caster
     registerSim(blmSpec);
     registerSim(blmPpsSpec);
+    registerSim(pctSpec);
     registerSim(BluWinged120Spec);
     registerSim(BluFlame120Spec);
     registerSim(BluBreath60Spec);

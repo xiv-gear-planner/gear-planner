@@ -44,6 +44,8 @@ import {blmSpec} from "@xivgear/sims/caster/blm/blm_sheet_sim";
 import {BlmSimGui} from "../caster/blm_sim_ui";
 import {blmPpsSpec} from "@xivgear/sims/caster/blm/blm_pps_sim";
 import {BlmPpsGui} from "../caster/blm_pps_ui";
+import {pctSpec} from "@xivgear/sims/caster/pct/pct_sheet_sim";
+import {PctSimGui} from "../caster/pct_sim_ui";
 import {BluWinged120Spec} from "@xivgear/sims/blu/blu_winged120";
 import {BluSimGui} from "../blu/blu_common_ui";
 import {BluFlame120Spec} from "@xivgear/sims/blu/blu_flame120";
@@ -86,6 +88,7 @@ export function registerDefaultSimGuis() {
     // Caster
     registerGui(blmSpec, BlmSimGui);
     registerGui(blmPpsSpec, BlmPpsGui);
+    registerGui(pctSpec, PctSimGui);
     registerGui(BluWinged120Spec, BluSimGui);
     registerGui(BluFlame120Spec, BluSimGui);
     registerGui(BluBreath60Spec, BluSimGui);
