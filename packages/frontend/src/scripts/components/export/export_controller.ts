@@ -29,6 +29,7 @@ import {EquipSlots, Materia, XivItem} from "@xivgear/xivmath/geartypes";
 import {recordSheetEvent} from "../../analytics/analytics";
 import {GearPlanSheetGui} from "../sheet/sheet_gui";
 import {DEFAULT_SHORTLINK_SERVICE} from "../../services/default_services";
+import {recordError} from "@xivgear/common-ui/analytics/analytics";
 
 type ExportMethod<X> = {
     /**
@@ -479,7 +480,9 @@ abstract class ExportModal<X> extends BaseModal {
                     this.setResultData(selectedType, value);
                 }, err => {
                     console.error(err);
-                    this.setResultData(selectedType, ["Error!"]);
+                    recordError('export', err, {selectedType});
+                    this.refreshSelection();
+                    this.showError();
                 });
             };
         }
@@ -502,6 +505,10 @@ abstract class ExportModal<X> extends BaseModal {
             this.variableButton.textContent = 'Copy';
             this.varButtonAction = () => navigator.clipboard.writeText(this.textBox.value);
         }
+    }
+
+    showError() {
+        this.textBox.value = 'Error!';
     }
 
     private rewriteTextArea(): void {
